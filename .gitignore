@@ -1,0 +1,8 @@
+.*.swp
+*.log
+*.pid
+
+node_modules
+static/build
+
+.DS_Store
