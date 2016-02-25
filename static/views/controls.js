@@ -51,8 +51,8 @@ export var Input = React.createClass({
   getInitialState() {
     return {
       visible: false,
-      fileName: this.props.defaultValue && this.props.defaultValue.name || null,
-      content: this.props.defaultValue && this.props.defaultValue.content || null
+      fileName: (this.props.defaultValue || {}).name || null,
+      content: (this.props.defaultValue || {}).content || null
     };
   },
   getDefaultProps() {
@@ -80,14 +80,8 @@ export var Input = React.createClass({
     }
   },
   saveFile(fileName, content) {
-    this.setState({
-      fileName: fileName,
-      content: content
-    });
-    return this.props.onChange(
-      this.props.name,
-      {name: fileName, content: content}
-    );
+    this.setState({fileName, content});
+    return this.props.onChange(this.props.name, {name: fileName, content});
   },
   removeFile() {
     if (!this.props.disabled) {
@@ -98,129 +92,133 @@ export var Input = React.createClass({
   readFile() {
     var reader = new FileReader();
     var input = this.getInputDOMNode();
-
     if (input.files.length) {
       reader.onload = () => this.saveFile(input.value.replace(/^.*[\\\/]/g, ''), reader.result);
       reader.readAsBinaryString(input.files[0]);
     }
   },
   onChange() {
-    if (this.props.onChange) {
+    var {onChange, name, type} = this.props;
+    if (onChange) {
       var input = this.getInputDOMNode();
-      return this.props.onChange(
-        this.props.name,
-        this.props.type === 'checkbox' ? input.checked : input.value
-      );
+      return onChange(name, type === 'checkbox' ? input.checked : input.value);
     }
   },
   handleFocus(e) {
     e.target.select();
   },
   renderInput() {
-    var classes = {'form-control': this.props.type !== 'range'};
-    classes[this.props.inputClassName] = this.props.inputClassName;
+    var {visible, fileName, content} = this.state;
+    var {
+      type, inputClassName, toggleable, selectOnFocus, debounce, children, disabled, extraContent
+    } = this.props;
+    var isCheckboxOrRadio = this.isCheckboxOrRadio();
+    var inputWrapperClasses = {
+      'input-group': toggleable,
+      'custom-tumbler': isCheckboxOrRadio,
+      hidden: type === 'hidden'
+    };
+
     var props = {
       ref: 'input',
       key: 'input',
-      onFocus: this.props.selectOnFocus && this.handleFocus,
-      type: (this.props.toggleable && this.state.visible) ? 'text' : this.props.type,
-      className: utils.classNames(classes)
+      onFocus: selectOnFocus && this.handleFocus,
+      type: (toggleable && visible) ? 'text' : type,
+      className: utils.classNames({
+        'form-control': type !== 'range',
+        [inputClassName]: inputClassName
+      }),
+      onChange: type === 'file' ?
+        this.readFile
+      :
+        debounce ? this.debouncedChange : this.onChange
     };
-    if (this.props.type === 'file') {
-      props.onChange = this.readFile;
-    } else {
-      props.onChange = this.props.debounce ? this.debouncedChange : this.onChange;
-    }
-    var Tag = _.contains(['select', 'textarea'], this.props.type) ? this.props.type : 'input';
-    var input = <Tag {...this.props} {...props}>{this.props.children}</Tag>;
-    var isCheckboxOrRadio = this.isCheckboxOrRadio();
-    var inputWrapperClasses = {
-      'input-group': this.props.toggleable,
-      'custom-tumbler': isCheckboxOrRadio,
-      textarea: this.props.type === 'textarea'
-    };
-    if (this.props.type === 'file') {
-      input = <form ref='form'>{input}</form>;
-    }
+
+    var Tag = _.contains(['select', 'textarea'], type) ? type : 'input';
+    var input = <Tag {...this.props} {...props}>{children}</Tag>;
+    if (type === 'file') input = <form ref='form'>{input}</form>;
+
     return (
       <div key='input-group' className={utils.classNames(inputWrapperClasses)}>
         {input}
-        {this.props.type === 'file' &&
+        {type === 'file' &&
           <div className='input-group'>
             <input
               className='form-control file-name'
               type='text'
               placeholder={i18n('controls.file.placeholder')}
-              value={
-                this.state.fileName && (
-                  '[' + utils.showSize(this.state.content.length) + '] ' + this.state.fileName
-                )
-              }
+              value={fileName && '[' + utils.showSize(content.length) + '] ' + fileName}
               onClick={this.pickFile}
-              disabled={this.props.disabled}
+              disabled={disabled}
               readOnly
             />
             <div
               className='input-group-addon'
-              onClick={this.state.fileName ? this.removeFile : this.pickFile}
+              onClick={fileName ? this.removeFile : this.pickFile}
             >
               <i
-                className={this.state.fileName && !this.props.disabled ?
-                  'glyphicon glyphicon-remove' : 'glyphicon glyphicon-file'
-                }
+                className={utils.classNames(
+                  'glyphicon',
+                  fileName && !disabled ? 'glyphicon-remove' : 'glyphicon-file'
+                )}
               />
             </div>
           </div>
         }
-        {this.props.toggleable &&
+        {toggleable &&
           <div className='input-group-addon' onClick={this.togglePassword}>
             <i
-              className={
-                this.state.visible ?
-                'glyphicon glyphicon-eye-close' : 'glyphicon glyphicon-eye-open'
-              }
+              className={utils.classNames(
+                'glyphicon',
+                visible ? 'glyphicon-eye-close' : 'glyphicon-eye-open'
+              )}
             />
           </div>
         }
         {isCheckboxOrRadio && <span>&nbsp;</span>}
-        {this.props.extraContent}
+        {extraContent}
       </div>
     );
   },
   renderLabel(children) {
-    if (!this.props.label && !children) return null;
+    var {label, id, tooltipText, tooltipPlacement, tooltipIcon} = this.props;
+    if (!label && !children) return null;
     return (
-      <label key='label' htmlFor={this.props.id}>
+      <label key='label' htmlFor={id}>
         {children}
-        {this.props.label}
-        {this.props.tooltipText &&
-          <Tooltip text={this.props.tooltipText} placement={this.props.tooltipPlacement}>
-            <i className={utils.classNames('glyphicon tooltip-icon', this.props.tooltipIcon)} />
+        {label}
+        {tooltipText &&
+          <Tooltip text={tooltipText} placement={tooltipPlacement}>
+            <i className={utils.classNames('glyphicon tooltip-icon', tooltipIcon)} />
           </Tooltip>
         }
       </label>
     );
   },
   renderDescription() {
-    var text = !_.isUndefined(this.props.error) && !_.isNull(this.props.error) ? this.props.error :
-      this.props.description || '';
-    return <span key='description' className='help-block'>{text}</span>;
+    var {error, description} = this.props;
+    return (
+      <span key='description' className='help-block'>
+        {!_.isUndefined(error) && !_.isNull(error) ? error : description || ''}
+      </span>
+    );
   },
   renderWrapper(children) {
+    var {error, disabled, wrapperClassName} = this.props;
     var isCheckboxOrRadio = this.isCheckboxOrRadio();
     var classes = {
       'form-group': !isCheckboxOrRadio,
       'checkbox-group': isCheckboxOrRadio,
-      'has-error': !_.isUndefined(this.props.error) && !_.isNull(this.props.error),
-      disabled: this.props.disabled
+      'has-error': !_.isUndefined(error) && !_.isNull(error),
+      disabled,
+      [wrapperClassName]: wrapperClassName
     };
-    classes[this.props.wrapperClassName] = this.props.wrapperClassName;
-    return (<div className={utils.classNames(classes)}>{children}</div>);
+    return <div className={utils.classNames(classes)}>{children}</div>;
   },
   render() {
     if (this.props.type === 'hidden' && !this.props.description && !this.props.label) return null;
-    return this.renderWrapper(this.isCheckboxOrRadio() ?
-      [
+    return this.renderWrapper(
+      this.isCheckboxOrRadio() ? [
         this.renderLabel(this.renderInput()),
         this.renderDescription()
       ] : [
@@ -240,27 +238,28 @@ export var RadioGroup = React.createClass({
     tooltipText: React.PropTypes.node
   },
   render() {
+    var {label, tooltipText, values} = this.props;
     return (
       <div className='radio-group'>
-        {this.props.label &&
+        {label &&
           <h4>
-            {this.props.label}
-            {this.props.tooltipText &&
-              <Tooltip text={this.props.tooltipText} placement='right'>
+            {label}
+            {tooltipText &&
+              <Tooltip text={tooltipText} placement='right'>
                 <i className='glyphicon glyphicon-warning-sign tooltip-icon' />
               </Tooltip>
             }
           </h4>
         }
-        {_.map(this.props.values, (value) => {
-          return <Input
+        {_.map(values,
+          (value) => <Input
             {...this.props}
             {...value}
             type='radio'
             key={value.data}
             value={value.data}
-          />;
-        })}
+          />
+        )}
       </div>
     );
   }
