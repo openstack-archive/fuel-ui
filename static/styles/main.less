@@ -2211,7 +2211,7 @@ input[type=range] {
           float: none;
         }
 
-        .node-name{
+        .node-name {
           height: 18px;
           word-break: break-all;
           p {
@@ -2366,6 +2366,9 @@ input[type=range] {
                 color: @link-color-hover;
                 border-bottom-color: @link-color-hover;
               }
+            }
+            div {
+              cursor: default;
             }
           }
         }
@@ -3175,6 +3178,17 @@ input[type=range] {
     text-align: center;
     color: @base-text-color;
     .font-semibold;
+  }
+}
+
+.select-nodes-dialog {
+  .modal-dialog {
+    width: @page-width;
+    .modal-body {
+      min-height: 400px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
   }
 }
 
