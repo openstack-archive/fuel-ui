@@ -934,7 +934,10 @@ export var ShowNodeInfoDialog = React.createClass({
     backboneMixin('node'),
     renamingMixin('hostname')
   ],
-  renderableAttributes: ['cpu', 'disks', 'interfaces', 'memory', 'system', 'attributes'],
+  renderableAttributes: [
+    'cpu', 'disks', 'interfaces', 'memory', 'system', 'attributes', 'numa_topology'
+  ],
+  specificRenderAttributes: ['numa_topology'],
   getDefaultProps() {
     return {modalClass: 'always-show-scrollbar'};
   },
@@ -1232,7 +1235,7 @@ export var ShowNodeInfoDialog = React.createClass({
   renderNodeHardware() {
     var {node} = this.props;
     var meta = node.get('meta');
-    var groupOrder = ['system', 'cpu', 'memory', 'disks', 'interfaces'];
+    var groupOrder = ['system', 'cpu', 'memory', 'disks', 'interfaces', 'numa_topology'];
     var groups = _.sortBy(_.keys(meta), (group) => _.indexOf(groupOrder, group));
     var nodeAttributes = this.state.nodeAttributes;
     var isPendingAdditionNode = node.get('pending_addition');
@@ -1290,6 +1293,8 @@ export var ShowNodeInfoDialog = React.createClass({
             return null;
           }
 
+          var isSpecificRenderAttribute = _.contains(this.specificRenderAttributes, group);
+
           return (
             <div className='panel panel-default' key={group + groupIndex}>
               <div
@@ -1317,7 +1322,7 @@ export var ShowNodeInfoDialog = React.createClass({
                 ref={'togglable_' + groupIndex}
               >
                 <div className='panel-body enable-selection'>
-                  {_.isArray(groupEntries) &&
+                  {_.isArray(groupEntries) && !isSpecificRenderAttribute &&
                     <div>
                       {_.map(groupEntries, (entry, entryIndex) => {
                         return (
@@ -1340,7 +1345,7 @@ export var ShowNodeInfoDialog = React.createClass({
                       })}
                     </div>
                   }
-                  {_.isPlainObject(groupEntries) &&
+                  {_.isPlainObject(groupEntries) && !isSpecificRenderAttribute &&
                     <div>
                       {_.map(groupEntries, (propertyValue, propertyName) => {
                         if (
@@ -1381,6 +1386,7 @@ export var ShowNodeInfoDialog = React.createClass({
                     !_.isPlainObject(groupEntries) &&
                     !_.isArray(groupEntries) &&
                     !_.isUndefined(groupEntries) &&
+                    !isSpecificRenderAttribute &&
                       <div>{groupEntries}</div>
                   }
                   {group === 'config' &&
@@ -1453,6 +1459,21 @@ export var ShowNodeInfoDialog = React.createClass({
                           {i18n('common.save_settings_button')}
                         </button>
                       }
+                    </div>
+                  }
+                  {group === 'numa_topology' &&
+                    <div className='numa-topology'>
+                      {_.map(groupEntries.numa_nodes, (numaNode, index) => {
+                        return (
+                          <div
+                            className='nested-object'
+                            key={'subentries_' + groupIndex + index}
+                          >
+                            {this.renderNodeInfo('cpu', '[' + numaNode.cpus + ']')}
+                            {this.renderNodeInfo('memory', utils.showMemorySize(numaNode.memory))}
+                          </div>
+                        );
+                      })}
                     </div>
                   }
                 </div>
