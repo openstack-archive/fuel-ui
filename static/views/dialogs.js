@@ -934,7 +934,9 @@ export var ShowNodeInfoDialog = React.createClass({
     backboneMixin('node'),
     renamingMixin('hostname')
   ],
-  renderableAttributes: ['cpu', 'disks', 'interfaces', 'memory', 'system', 'attributes'],
+  renderableAttributes: [
+    'system', 'cpu', 'memory', 'disks', 'interfaces', 'attributes', 'numa_topology'
+  ],
   getDefaultProps() {
     return {modalClass: 'always-show-scrollbar'};
   },
@@ -1232,8 +1234,7 @@ export var ShowNodeInfoDialog = React.createClass({
   renderNodeHardware() {
     var {node} = this.props;
     var meta = node.get('meta');
-    var groupOrder = ['system', 'cpu', 'memory', 'disks', 'interfaces'];
-    var groups = _.sortBy(_.keys(meta), (group) => _.indexOf(groupOrder, group));
+    var groups = _.sortBy(_.keys(meta), (group) => _.indexOf(this.renderableAttributes, group));
     var nodeAttributes = this.state.nodeAttributes;
     var isPendingAdditionNode = node.get('pending_addition');
     var sortedAttributes, attributeFields, commonInputProps, nodeAttributesError;
@@ -1289,34 +1290,101 @@ export var ShowNodeInfoDialog = React.createClass({
           if (!_.contains(this.renderableAttributes, group)) {
             return null;
           }
-
-          return (
-            <div className='panel panel-default' key={group + groupIndex}>
-              <div
-                className='panel-heading'
-                role='tab'
-                id={'heading' + group}
-                onClick={this.toggle.bind(this, groupIndex)}
-              >
-                <div className='panel-title'>
-                  <div
-                    data-parent='#accordion'
-                    aria-expanded='true'
-                    aria-controls={'body' + group}
-                  >
-                    <strong>{i18n('node_details.' + group, {defaultValue: group})}</strong>
-                    {this.showSummary(meta, group)}
-                    <i className='glyphicon glyphicon-plus pull-right' />
-                  </div>
-                </div>
-              </div>
-              <div
-                className='panel-collapse collapse'
-                role='tabpanel'
-                aria-labelledby={'heading' + group}
-                ref={'togglable_' + groupIndex}
-              >
-                <div className='panel-body enable-selection'>
+          var panelContent;
+          switch (group) {
+            case 'config':
+              panelContent = (
+                <div className='vms-config'>
+                  <Input
+                    ref='vms-config'
+                    type='textarea'
+                    label={i18n('node_details.vms_config_msg')}
+                    error={this.state.VMsConfValidationError}
+                    onChange={this.onVMsConfChange}
+                    defaultValue={this.state.VMsConf}
+                  />
+                  <button
+                    className='btn btn-success'
+                    onClick={this.saveVMsConf}
+                    disabled={this.state.VMsConfValidationError ||
+                      this.state.actionInProgress}
+                    >
+                    {i18n('common.save_settings_button')}
+                  </button>
+                </div>);
+              break;
+            case 'attributes':
+              panelContent = (
+                <div className='node-attributes'>
+                  {_.map(sortedAttributes, (section) => {
+                    return _.map(attributeFields, (field) => {
+                      var disabled = !isPendingAdditionNode ||
+                        (nodeAttributes.checkRestrictions(
+                          this.state.configModels,
+                          'disabled',
+                          nodeAttributes.get(section).metadata
+                        ).result);
+                      var path = nodeAttributes.makePath(section, field);
+                      var nodeAttribute = nodeAttributes.get(path);
+                      var error = nodeAttributesError && nodeAttributesError[path];
+                      if (nodeAttribute.type === 'custom_hugepages') {
+                        return <customControls.custom_hugepages
+                          config={nodeAttribute}
+                          onChange={this.onNodeAttributesChange}
+                          name='hugepages.nova'
+                          error={error}
+                          disabled={disabled}
+                        />;
+                      }
+                      return (
+                        <div className='row'>
+                          <div className='col-xs-12'>
+                            <Input
+                              {...commonInputProps}
+                              {...nodeAttribute}
+                              name={path}
+                              error={error}
+                              disabled={disabled}
+                            />
+                          </div>
+                        </div>
+                      );
+                    });
+                  })}
+                  {isPendingAdditionNode &&
+                    <button
+                      className='btn btn-success'
+                      onClick={this.saveNodeAttributes}
+                      disabled={
+                        !_.isNull(nodeAttributesError) ||
+                        !this.hasNodeAttributesChanges() ||
+                        this.state.actionInProgress
+                      }
+                    >
+                      {i18n('common.save_settings_button')}
+                    </button>
+                  }
+                </div>);
+              break;
+            case 'numa_topology':
+              panelContent = (
+                <div className='numa-topology'>
+                  {_.map(groupEntries.numa_nodes, (numaNode, index) => {
+                    return (
+                      <div
+                        className='nested-object'
+                        key={'subentries_' + groupIndex + index}
+                      >
+                        {this.renderNodeInfo('cpu', '[' + numaNode.cpus + ']')}
+                        {this.renderNodeInfo('memory', utils.showSize(numaNode.memory))}
+                      </div>
+                    );
+                  })}
+                </div>);
+              break;
+            default:
+              panelContent = (
+                <div>
                   {_.isArray(groupEntries) &&
                     <div>
                       {_.map(groupEntries, (entry, entryIndex) => {
@@ -1354,107 +1422,66 @@ export var ShowNodeInfoDialog = React.createClass({
                           );
                         }
                       })}
-                      {!_.isEmpty(subEntries) &&
-                        <div>
-                          {_.map(subEntries, (subentry, subentrysIndex) => {
-                            return (
-                              <div
-                                className='nested-object'
-                                key={'subentries_' + groupIndex + subentrysIndex}
-                              >
-                                {_.map(utils.sortEntryProperties(subentry), (propertyName) => {
-                                  return this.renderNodeInfo(
-                                    propertyName,
-                                    this.showPropertyValue(
-                                      group, propertyName, subentry[propertyName]
-                                    )
-                                  );
-                                })}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      }
                     </div>
                   }
-                  {
-                    !_.isPlainObject(groupEntries) &&
-                    !_.isArray(groupEntries) &&
-                    !_.isUndefined(groupEntries) &&
-                      <div>{groupEntries}</div>
-                  }
-                  {group === 'config' &&
-                    <div className='vms-config'>
-                      <Input
-                        ref='vms-config'
-                        type='textarea'
-                        label={i18n('node_details.vms_config_msg')}
-                        error={this.state.VMsConfValidationError}
-                        onChange={this.onVMsConfChange}
-                        defaultValue={this.state.VMsConf}
-                      />
-                      <button
-                        className='btn btn-success'
-                        onClick={this.saveVMsConf}
-                        disabled={this.state.VMsConfValidationError ||
-                          this.state.actionInProgress}
-                      >
-                        {i18n('common.save_settings_button')}
-                      </button>
-                    </div>
-                  }
-                  {group === 'attributes' &&
-                    <div className='node-attributes'>
-                      {_.map(sortedAttributes, (section) => {
-                        return _.map(attributeFields, (field) => {
-                          var disabled = !isPendingAdditionNode ||
-                            (nodeAttributes.checkRestrictions(
-                              this.state.configModels,
-                              'disabled',
-                              nodeAttributes.get(section).metadata
-                            ).result);
-                          var path = nodeAttributes.makePath(section, field);
-                          var nodeAttribute = nodeAttributes.get(path);
-                          var error = nodeAttributesError && nodeAttributesError[path];
-                          if (nodeAttribute.type === 'custom_hugepages') {
-                            return <customControls.custom_hugepages
-                              config={nodeAttribute}
-                              onChange={this.onNodeAttributesChange}
-                              name='hugepages.nova'
-                              error={error}
-                              disabled={disabled}
-                            />;
-                          }
-                          return (
-                            <div className='row'>
-                              <div className='col-xs-12'>
-                                <Input
-                                  {...commonInputProps}
-                                  {...nodeAttribute}
-                                  name={path}
-                                  error={error}
-                                  disabled={disabled}
-                                />
-                              </div>
-                            </div>
-                          );
-                        });
+                  {!_.isEmpty(subEntries) &&
+                    <div>
+                      {_.map(subEntries, (subentry, subentrysIndex) => {
+                        return (
+                          <div
+                            className='nested-object'
+                            key={'subentries_' + groupIndex + subentrysIndex}
+                            >
+                            {_.map(utils.sortEntryProperties(subentry), (propertyName) => {
+                              return this.renderNodeInfo(
+                                propertyName,
+                                this.showPropertyValue(
+                                  group, propertyName, subentry[propertyName]
+                                )
+                              );
+                            })}
+                          </div>
+                        );
                       })}
-                      {isPendingAdditionNode &&
-                        <button
-                          className='btn btn-success'
-                          onClick={this.saveNodeAttributes}
-                          disabled={
-                            !_.isNull(nodeAttributesError) ||
-                            !this.hasNodeAttributesChanges() ||
-                            this.state.actionInProgress
-                          }
-                        >
-                          {i18n('common.save_settings_button')}
-                        </button>
-                      }
                     </div>
                   }
+                  {!_.isPlainObject(groupEntries) &&
+                  !_.isArray(groupEntries) &&
+                  !_.isUndefined(groupEntries) &&
+                    <div>{groupEntries}</div>
+                  }
+                </div>
+              );
+          }
+
+          return (
+            <div className='panel panel-default' key={group + groupIndex}>
+              <div
+                className='panel-heading'
+                role='tab'
+                id={'heading' + group}
+                onClick={this.toggle.bind(this, groupIndex)}
+              >
+                <div className='panel-title'>
+                  <div
+                    data-parent='#accordion'
+                    aria-expanded='true'
+                    aria-controls={'body' + group}
+                  >
+                    <strong>{i18n('node_details.' + group, {defaultValue: group})}</strong>
+                    {this.showSummary(meta, group)}
+                    <i className='glyphicon glyphicon-plus pull-right' />
+                  </div>
+                </div>
+              </div>
+              <div
+                className='panel-collapse collapse'
+                role='tabpanel'
+                aria-labelledby={'heading' + group}
+                ref={'togglable_' + groupIndex}
+              >
+                <div className='panel-body enable-selection'>
+                  {panelContent}
                 </div>
               </div>
             </div>
