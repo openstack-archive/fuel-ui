@@ -592,7 +592,13 @@ models.NodeAttributes = Backbone.DeepModel
         _.each(listOfFields, (field) => {
           var groupSetting = group[field];
           if (!(groupSetting.regex || {}).source) return;
-          if (!new RegExp(groupSetting.regex.source).test(groupSetting.value)) {
+          if (groupSetting.type === 'custom_hugepages') {
+            _.map(groupSetting.value, (value, name) => {
+              if (!new RegExp(groupSetting.regex.source).test(value)) {
+                errors[this.makePath(groupName, field, name)] = groupSetting.regex.error;
+              }
+            });
+          } else if (!new RegExp(groupSetting.regex.source).test(groupSetting.value)) {
             errors[this.makePath(groupName, field)] = groupSetting.regex.error;
           }
         });
