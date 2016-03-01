@@ -65,7 +65,6 @@ registerSuite(() => {
     'Test Compute pane: next button is disabled by when no hypervisor selected'() {
       return this.remote
         .pressKeys('\uE007')
-        .clickByCssSelector('input[name=hypervisor\\:vmware]')
         .clickByCssSelector('input[name=hypervisor\\:qemu]')
         .assertElementExists('.wizard-compute-pane .alert.empty-choice',
           'There should be the warning when no hypervisors selected')
