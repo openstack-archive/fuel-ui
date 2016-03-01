@@ -1,10 +1,10 @@
 {
-  "name": "fuel-web",
+  "name": "fuel-ui",
   "version": "0.0.1",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/openstack/fuel-web.git"
+    "url": "https://github.com/openstack/fuel-ui.git"
   },
   "engines": {
     "node": ">=0.10.0"
