@@ -35,7 +35,9 @@ EquipmentPage = React.createClass({
       var clusters = new models.Clusters();
       var plugins = new models.Plugins();
       var nodeNetworkGroups = new models.NodeNetworkGroups();
+      var settings = new models.Settings();
       var {releases, fuelSettings} = app;
+
       return $.when(
         nodes.fetch(),
         clusters.fetch(),
@@ -52,8 +54,12 @@ EquipmentPage = React.createClass({
         var requests = clusters.map((cluster) => {
           var roles = new models.Roles();
           roles.url = _.result(cluster, 'url') + '/roles';
-          cluster.set({roles: roles});
-          return roles.fetch();
+          settings.url = _.result(cluster, 'url') + '/attributes';
+          cluster.set({
+            roles: roles,
+            settings: settings
+          });
+          return [roles.fetch(), settings.fetch()];
         });
         requests = requests.concat(
           plugins
