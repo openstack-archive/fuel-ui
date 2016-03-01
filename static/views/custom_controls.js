@@ -362,12 +362,26 @@ customControls.text_list = customControls.textarea_list = React.createClass({
 });
 
 customControls.custom_hugepages = React.createClass({
+  statics: {
+    validate(hugePageConfig) {
+      if (!(hugePageConfig.regex || {}).source) return null;
+      var regex = new RegExp(hugePageConfig.regex.source);
+      var result = {};
+      _.each(hugePageConfig.value,
+        (value, name) => {
+          if (!regex.test(value)) {
+            result[name] = hugePageConfig.regex.error;
+          }
+        }
+      );
+      return !_.isEmpty(result) ? result : null;
+    }
+  },
   render() {
     var inputProps = {
       placeholder: 'None',
-      error: this.props.error,
       description: null,
-      type: 'text',
+      type: 'number',
       name: this.props.name,
       disabled: this.props.disabled
     };
@@ -402,6 +416,7 @@ customControls.custom_hugepages = React.createClass({
                     value={value}
                     key={name}
                     onChange={_.partialRight(this.props.onChange, name)}
+                    error={this.props.error && this.props.error[name]}
                   />
                 </div>
               </div>
