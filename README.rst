@@ -69,6 +69,13 @@ Testing
     npm run lint
     npm test
 
+  UI functional tests require Nailgun server from fuel-web repo to be
+  installed. By default it's assumed that fuel-web repo is in the same
+  directory as fuel-ui repo, but you can specify another path using
+  FUEL_WEB_ROOT environment variable::
+
+    FUEL_WEB_ROOT=/path/to/fuel-web npm test
+
   By default Firefox browser is used. You can specify the browser using
   BROWSER environment variable::
 
