@@ -365,9 +365,8 @@ customControls.custom_hugepages = React.createClass({
   render() {
     var inputProps = {
       placeholder: 'None',
-      error: this.props.error,
       description: null,
-      type: 'text',
+      type: 'number',
       name: this.props.name,
       disabled: this.props.disabled
     };
@@ -402,6 +401,10 @@ customControls.custom_hugepages = React.createClass({
                     value={value}
                     key={name}
                     onChange={_.partialRight(this.props.onChange, name)}
+                    error={
+                      this.props.error &&
+                      this.props.error[this.props.makePath('hugepages', 'nova', name)]
+                    }
                   />
                 </div>
               </div>

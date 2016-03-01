@@ -1153,22 +1153,17 @@ export var ShowNodeInfoDialog = React.createClass({
     if (this.state.VMsConf) groups.push('config');
     if (nodeAttributes && this.state.configModels) {
       if (!_.isEmpty(nodeAttributes.attributes)) {
-        // sorting attributes
-        sortedAttributes = _.sortBy(
-          _.keys(nodeAttributes.attributes), (name) => {
-            return nodeAttributes.get(name + '.metadata.weight');
-          }
-        );
-        // processing hide restrictions
-        sortedAttributes = _.compact(_.map(sortedAttributes, (name) => {
-          if (!nodeAttributes.checkRestrictions(
+        // sorting attributes and processing hide restrictions
+        sortedAttributes = _.chain(_.keys(nodeAttributes.attributes))
+        .sortBy((name) => nodeAttributes.get(name + '.metadata.weight'))
+        .filter((name) => {
+          return (!nodeAttributes.checkRestrictions(
             this.state.configModels,
             'hide',
             nodeAttributes.get(name).metadata
-          ).result) {
-            return name;
-          }
-        }));
+          ).result);
+        })
+        .value();
         if (sortedAttributes.length) {
           groups.push('attributes');
           attributeFields = ['nova', 'dpdk'];
@@ -1176,7 +1171,7 @@ export var ShowNodeInfoDialog = React.createClass({
             placeholder: 'None',
             onChange: this.onNodeAttributesChange,
             error: null,
-            type: 'text'
+            type: 'number'
           };
           nodeAttributesError = this.state.nodeAttributesError;
         }
@@ -1320,7 +1315,8 @@ export var ShowNodeInfoDialog = React.createClass({
                     <div className='node-attributes'>
                       {_.map(sortedAttributes, (section) => {
                         return _.map(attributeFields, (field) => {
-                          var disabled = !isPendingAdditionNode ||
+                          var disabled = this.state.actionInProgress ||
+                            !isPendingAdditionNode ||
                             (nodeAttributes.checkRestrictions(
                               this.state.configModels,
                               'disabled',
@@ -1334,8 +1330,9 @@ export var ShowNodeInfoDialog = React.createClass({
                               config={nodeAttribute}
                               onChange={this.onNodeAttributesChange}
                               name='hugepages.nova'
-                              error={error}
+                              error={nodeAttributesError}
                               disabled={disabled}
+                              makePath={nodeAttributes.makePath}
                             />;
                           }
                           return (
