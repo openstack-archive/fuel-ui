@@ -380,10 +380,10 @@ customControls.custom_hugepages = React.createClass({
           </label>
         </div>
         <div className='row labels'>
-          <div className='col-xs-1'>
+          <div className='col-xs-2'>
             {i18n('common.size_label')}
           </div>
-          <div className='col-xs-11'>
+          <div className='col-xs-10'>
             {i18n('common.count_label')}
           </div>
         </div>
@@ -391,12 +391,12 @@ customControls.custom_hugepages = React.createClass({
           {_.map(this.props.config.value, (value, name) => {
             return (
               <div className='row' key={name}>
-                <div className='col-xs-1'>
+                <div className='col-xs-2'>
                   <p>
-                    {name}
+                    {utils.showMemorySize(name)}
                   </p>
                 </div>
-                <div className='col-xs-11'>
+                <div className='col-xs-10'>
                   <Input
                     {...inputProps}
                     value={value}
