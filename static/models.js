@@ -591,6 +591,15 @@ models.NodeAttributes = Backbone.DeepModel
       _.each(attrs, (group, groupName) => {
         _.each(listOfFields, (field) => {
           var groupSetting = group[field];
+
+          // support of custom controls
+          var CustomControl = customControls[groupSetting.type];
+          if (CustomControl) {
+            var error = CustomControl.validate(groupSetting);
+            if (error) errors[this.makePath(groupName, field)] = error;
+            return;
+          }
+
           if (!(groupSetting.regex || {}).source) return;
           if (!new RegExp(groupSetting.regex.source).test(groupSetting.value)) {
             errors[this.makePath(groupName, field)] = groupSetting.regex.error;
