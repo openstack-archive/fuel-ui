@@ -635,8 +635,8 @@ export var SelectNodesDialog = React.createClass({
       defaultFilters={{roles: [], status: []}}
       showBatchActionButtons={false}
       showLabeManagementButton={false}
-      isViewModeSwitchingPossible={false}
-      nodeSelectionPossibleOnly
+      showViewModeButtons={false}
+      nodeActionsAvailable={false}
       viewMode='compact'
     />;
   },
