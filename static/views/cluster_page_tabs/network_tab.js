@@ -684,7 +684,8 @@ var NetworkTab = React.createClass({
   },
   removeUnsavedTasks() {
     var clusterTasks = this.props.cluster.get('tasks');
-    clusterTasks.each((task) => task.get('unsaved') && clusterTasks.remove(task));
+    clusterTasks.each((task) => task.get('unsaved') &&
+      task.get('status') !== 'running' && clusterTasks.remove(task));
   },
   isNetworkConfigurationChanged() {
     return !_.isEqual(
