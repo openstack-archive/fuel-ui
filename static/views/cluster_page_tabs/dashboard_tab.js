@@ -592,11 +592,8 @@ var ClusterActionsPanel = React.createClass({
   renderActions() {
     var action = this.state.currentAction;
     var actionNs = ns + 'actions.' + action + '.';
-    var isActionAvailable = this.isActionAvailable(action);
 
     var nodes = this.props.cluster.get('nodes');
-    var nodesToProvision = nodes.filter((node) => node.isProvisioningPossible());
-    var nodesToDeploy = nodes.filter((node) => node.isDeploymentPossible());
 
     var alerts = this.validate(action);
     var blockerDescriptions = {
@@ -623,176 +620,118 @@ var ClusterActionsPanel = React.createClass({
       />
     };
 
-    var getButtonProps = function(className) {
-      return {
-        className: utils.classNames({
-          'btn btn-primary': true,
-          'btn-warning': _.isEmpty(alerts.blocker) &&
-            (!_.isEmpty(alerts.error) || !_.isEmpty(alerts.warning)),
-          [className]: true
-        }),
-        disabled: !isActionAvailable
-      };
+    var actionButtonProps = {
+      cluster: this.props.cluster,
+      ns: actionNs,
+      disabled: !this.isActionAvailable(action),
+      warning: _.isEmpty(alerts.blocker) &&
+        (!_.isEmpty(alerts.error) || !_.isEmpty(alerts.warning)),
+      showDialog: this.showDialog
     };
 
-    var actionControls = {
-      deploy: (
-        <div className='col-xs-3 changes-list'>
-          {nodes.hasChanges() &&
+    var actionControls;
+    switch (action) {
+      case 'deploy':
+        actionControls = (
+          <div className='col-xs-3 changes-list' key={action}>
+            {nodes.hasChanges() &&
+              <ul>
+                {this.renderNodesAmount(nodes.where({pending_addition: true}), 'added_node')}
+                {this.renderNodesAmount(
+                  nodes.where({status: 'provisioned', pending_deletion: false}),
+                  'provisioned_node'
+                )}
+                {this.renderNodesAmount(nodes.where({pending_deletion: true}), 'deleted_node')}
+              </ul>
+            }
+            <ClusterActionButton
+              {...actionButtonProps}
+              nodes={nodes.models}
+              className='deploy-btn'
+              iconClassName='deploy-icon'
+              dialog={DeployClusterDialog}
+            />
+          </div>
+        );
+        break;
+      case 'provision':
+        var nodesToProvision = nodes.filter((node) => node.isProvisioningPossible());
+        actionControls = [
+          !!nodesToProvision.length &&
+            <div className='action-description' key='action-description'>
+              {i18n(actionNs + 'description')}
+            </div>,
+          <div className='col-xs-3 changes-list' key={action}>
             <ul>
-              {this.renderNodesAmount(nodes.where({pending_addition: true}), 'added_node')}
-              {this.renderNodesAmount(
-                nodes.where({status: 'provisioned', pending_deletion: false}),
-                'provisioned_node'
-              )}
-              {this.renderNodesAmount(nodes.where({pending_deletion: true}), 'deleted_node')}
+              <li>
+                {i18n(
+                  actionNs +
+                    (nodesToProvision.length ? 'nodes_to_provision' : 'no_nodes_to_provision'),
+                  {count: nodesToProvision.length}
+                )}
+              </li>
             </ul>
-          }
-          <button
-            {... getButtonProps('deploy-btn')}
-            onClick={() => this.showDialog(DeployClusterDialog)}
-          >
-            <div className='deploy-icon' />
-            {i18n(actionNs + 'button_title')}
-          </button>
-        </div>
-      ),
-      provision: [
-        nodesToProvision.length ?
-          <div className='action-description' key='action-description'>
-            {i18n(actionNs + 'description')}
+            <ClusterActionButton
+              {...actionButtonProps}
+              nodes={nodesToProvision}
+              className='btn-provision'
+              dialog={ProvisionNodesDialog}
+              canSelectNodes
+            />
           </div>
-        :
-          <div className='no-nodes' key='no-nodes'>
-            {i18n(actionNs + 'no_nodes_to_provision')}
-          </div>,
-        <div className='col-xs-3 changes-list' key='changes-list'>
-          {nodesToProvision.length > 1 ?
-            <div className='btn-group'>
-              <button
-                {... getButtonProps('btn-provision')}
-                onClick={() => this.showDialog(ProvisionNodesDialog, {
-                  nodeIds: _.map(nodesToProvision, (node) => node.id)
-                })}
-              >
-                {i18n(actionNs + 'button_title', {count: nodesToProvision.length})}
-              </button>
-              <button
-                {... getButtonProps('dropdown-toggle')}
-                data-toggle='dropdown'
-              >
-                <span className='caret' />
-              </button>
-              <ul className='dropdown-menu'>
-                <li>
-                  <button
-                    className='btn btn-link btn-select-nodes'
-                    onClick={() => this.showSelectNodesDialog(
-                      nodesToProvision,
-                      (nodeIds) => this.showDialog(ProvisionNodesDialog, {nodeIds})
-                    )}
-                  >
-                    {i18n(actionNs + 'choose_nodes')}
-                  </button>
-                </li>
-              </ul>
-            </div>
-          :
-            <button
-              {... getButtonProps('btn-provision')}
-              onClick={() => this.showDialog(ProvisionNodesDialog, {
-                nodeIds: _.map(nodesToProvision, (node) => node.id)
-              })}
-            >
-              {nodesToProvision.length ?
-                i18n(actionNs + 'button_title', {count: nodesToProvision.length})
-              :
-                i18n(actionNs + 'button_title_no_nodes')
-              }
-            </button>
-          }
-        </div>
-      ],
-      deployment: [
-        nodesToDeploy.length ?
-          <div className='action-description' key='action-description'>
-            {i18n(actionNs + 'description')}
+        ];
+        break;
+      case 'deployment':
+        var nodesToDeploy = nodes.filter((node) => node.isDeploymentPossible());
+        actionControls = [
+          !!nodesToDeploy.length &&
+            <div className='action-description' key='action-description'>
+              {i18n(actionNs + 'description')}
+            </div>,
+          <div className='col-xs-3 changes-list' key={action}>
+            <ul>
+              <li>
+                {i18n(
+                  actionNs + (nodesToDeploy.length ? 'nodes_to_deploy' : 'no_nodes_to_deploy'),
+                  {count: nodesToDeploy.length}
+                )}
+              </li>
+            </ul>
+            <ClusterActionButton
+              {...actionButtonProps}
+              nodes={nodesToDeploy}
+              className='btn-deploy-nodes'
+              dialog={DeployNodesDialog}
+              canSelectNodes
+            />
           </div>
-        :
-          <div className='no-nodes' key='no-nodes'>
-            {i18n(actionNs + 'no_nodes_to_deploy')}
-          </div>,
-        <div className='col-xs-3 changes-list' key='changes-list'>
-          {nodesToDeploy.length > 1 ?
-            <div className='btn-group'>
-              <button
-                {... getButtonProps('btn-deploy-nodes')}
-                onClick={() => this.showDialog(DeployNodesDialog, {
-                  nodeIds: _.map(nodesToDeploy, (node) => node.id)
-                })}
-              >
-                {i18n(actionNs + 'button_title', {count: nodesToDeploy.length})}
-              </button>
-              <button
-                {... getButtonProps('dropdown-toggle')}
-                data-toggle='dropdown'
-              >
-                <span className='caret' />
-              </button>
-              <ul className='dropdown-menu'>
-                <li>
-                  <button
-                    className='btn btn-link btn-select-nodes'
-                    onClick={() => this.showSelectNodesDialog(
-                      nodesToDeploy,
-                      (nodeIds) => this.showDialog(DeployNodesDialog, {nodeIds})
-                    )}
-                  >
-                    {i18n(actionNs + 'choose_nodes')}
-                  </button>
-                </li>
-              </ul>
-            </div>
-          :
-            <button
-              {... getButtonProps('btn-deploy-nodes')}
-              onClick={() => this.showDialog(DeployNodesDialog, {
-                nodeIds: _.map(nodesToDeploy, (node) => node.id)
-              })}
-            >
-              {nodesToDeploy.length ?
-                i18n(actionNs + 'button_title', {count: nodesToDeploy.length})
-              :
-                i18n(actionNs + 'button_title_no_nodes')
-              }
-            </button>
-          }
-        </div>
-      ],
-      spawn_vms: (
-        <div className='col-xs-3 changes-list'>
-          <ul>
-            <li>
-              {i18n(actionNs + 'nodes_to_provision', {
-                count: nodes.filter(
-                  (node) => node.hasRole('virt') && node.get('status') === 'discover'
-                ).length
-              })}
-            </li>
-          </ul>
-          <button
-            className='btn btn-primary btn-provision-vms'
-            onClick={() => this.showDialog(ProvisionVMsDialog)}
-          >
-            {i18n(actionNs + 'button_title')}
-          </button>
-        </div>
-      )
-    };
+        ];
+        break;
+      case 'spawn_vms':
+        var vmsToProvision = nodes.filter(
+          (node) => node.hasRole('virt') && node.get('status') === 'discover'
+        );
+        actionControls = (
+          <div className='col-xs-3 changes-list' key={action}>
+            <ul>
+              <li>{i18n(actionNs + 'nodes_to_provision', {count: vmsToProvision.length})}</li>
+            </ul>
+            <ClusterActionButton
+              {...actionButtonProps}
+              nodes={vmsToProvision}
+              className='btn-provision-vms'
+              dialog={ProvisionVMsDialog}
+            />
+          </div>
+        );
+        break;
+      default:
+        actionControls = null;
+    }
     return (
       <div className='dashboard-block actions-panel clearfix'>
         {this.renderActionsDropdown()}
-        {actionControls[action]}
+        {actionControls}
         <div className='col-xs-9 task-alerts'>
           {_.map(['blocker', 'error', 'warning'],
             (severity) => <WarningsBlock
@@ -863,6 +802,103 @@ var ClusterActionsPanel = React.createClass({
       );
     }
     return <div className='row'>{this.renderActions()}</div>;
+  }
+});
+
+var ClusterActionButton = React.createClass({
+  getInitialState() {
+    return {
+      selectedNodeIds: _.pluck(this.props.nodes, 'id')
+    };
+  },
+  getDefaultProps() {
+    return {
+      disabled: false,
+      alerts: {},
+      canSelectNodes: false
+    };
+  },
+  showSelectNodesDialog() {
+    var {cluster, showDialog} = this.props;
+    var nodes = new models.Nodes(this.props.nodes);
+    nodes.fetch = function(options) {
+      return this.constructor.__super__.fetch.call(this,
+        _.extend({data: {cluster_id: cluster.id}}, options));
+    };
+    nodes.parse = function() {
+      return this.getByIds(nodes.pluck('id'));
+    };
+    showDialog(
+      SelectNodesDialog,
+      {
+        nodes,
+        selectedNodeIds: this.state.selectedNodeIds,
+        proceed: (selectedNodeIds) => this.setState({selectedNodeIds}),
+        roles: cluster.get('roles'),
+        nodeNetworkGroups: cluster.get('nodeNetworkGroups')
+      }
+    );
+  },
+  render() {
+    var {selectedNodeIds} = this.state;
+    var {nodes, className, iconClassName, disabled, warning, showDialog, dialog, canSelectNodes} =
+      this.props;
+    var buttonClassName = utils.classNames({'btn btn-primary': true, 'btn-warning': warning});
+
+    if (canSelectNodes && nodes.length > 1) {
+      return (
+        <div className='btn-group'>
+          <button
+            className={utils.classNames(buttonClassName, className)}
+            disabled={disabled}
+            onClick={() => showDialog(dialog, {nodeIds: selectedNodeIds})}
+          >
+            {!!iconClassName && <div className={iconClassName} />}
+            {i18n(
+              this.props.ns + (
+                selectedNodeIds.length === nodes.length ?
+                  'button_title_all_nodes'
+                :
+                  'button_title_some_nodes'
+              ),
+              {count: nodes.length, selected: selectedNodeIds.length}
+            )}
+          </button>
+          <button
+            className={utils.classNames(buttonClassName, 'dropdown-toggle')}
+            disabled={disabled}
+            data-toggle='dropdown'
+          >
+            <span className='caret' />
+          </button>
+          <ul className='dropdown-menu'>
+            <li>
+              <button
+                className='btn btn-link btn-select-nodes'
+                onClick={this.showSelectNodesDialog}
+              >
+                {i18n(this.props.ns + 'choose_nodes')}
+              </button>
+            </li>
+          </ul>
+        </div>
+      );
+    }
+
+    return (
+      <button
+        className={utils.classNames(buttonClassName, className)}
+        disabled={disabled}
+        onClick={() => showDialog(dialog, {nodeIds: selectedNodeIds})}
+      >
+        {!!iconClassName && <div className={iconClassName} />}
+        {i18n(
+          this.props.ns +
+            (selectedNodeIds.length ? 'button_title_all_nodes' : 'button_title_no_nodes'),
+          {count: selectedNodeIds.length}
+        )}
+      </button>
+    );
   }
 });
 
