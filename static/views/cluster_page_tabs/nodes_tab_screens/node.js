@@ -310,10 +310,10 @@ var Node = React.createClass({
           <div className='node-name clearfix'>
             {this.renderNodeCheckbox()}
             <div className='name pull-left'>
-              {this.props.nodeSelectionPossibleOnly ?
-                <div>{node.get('name') || node.get('mac')}</div>
-              :
+              {this.props.nodeActionsAvailable ?
                 this.renderNameControl()
+              :
+                <div>{node.get('name') || node.get('mac')}</div>
               }
             </div>
           </div>
@@ -343,7 +343,7 @@ var Node = React.createClass({
               :
                 <div>
                   {this.renderStatusLabel(status)}
-                  {!this.props.nodeSelectionPossibleOnly &&
+                  {this.props.nodeActionsAvailable &&
                     <div className='node-buttons'>
                       {status === 'offline' && this.renderRemoveButton()}
                       {[
@@ -377,7 +377,7 @@ var Node = React.createClass({
             <div className={utils.classNames(logoClasses)} />
             {this.renderNodeHardwareSummary()}
           </div>
-          {!this.props.nodeSelectionPossibleOnly &&
+          {this.props.nodeActionsAvailable &&
             <div className='node-popover-buttons'>
               <button className='btn btn-default node-settings' onClick={this.showNodeDetails}>
                 {i18n(ns + 'details')}
@@ -448,10 +448,10 @@ var Node = React.createClass({
           <div className={utils.classNames(logoClasses)} />
           <div className='node-name'>
             <div className='name'>
-              {this.props.nodeSelectionPossibleOnly ?
-                <p>{node.get('name') || node.get('mac')}</p>
-              :
+              {this.props.nodeActionsAvailable ?
                 this.renderNameControl()
+              :
+                <p>{node.get('name') || node.get('mac')}</p>
               }
             </div>
             <div className='role-list'>
@@ -472,7 +472,7 @@ var Node = React.createClass({
             }
           </div>
           <div className='node-action'>
-            {!this.props.nodeSelectionPossibleOnly && [
+            {this.props.nodeActionsAvailable && [
               !!node.get('cluster') && this.renderLogsLink(true),
               renderActionButtons &&
                 (node.get('pending_addition') || node.get('pending_deletion')) &&
@@ -505,7 +505,7 @@ var Node = React.createClass({
             }
           </div>
           {this.renderNodeHardwareSummary()}
-          {!this.props.nodeSelectionPossibleOnly &&
+          {this.props.nodeActionsAvailable &&
             <div className='node-settings' onClick={this.showNodeDetails} />
           }
         </label>

@@ -116,7 +116,85 @@ define([
           .assertElementEnabled(
             dashboardPage.deployButtonSelector,
             'Provisioned nodes can be deployed'
-          );
+          )
+          .then(function() {
+            return common.addNodesToCluster(2, ['Controller']);
+          })
+          .then(function() {
+            return clusterPage.goToTab('Dashboard');
+          })
+          .clickByCssSelector('.actions-panel .nav button.dropdown-toggle')
+          .clickByCssSelector('.actions-panel .nav .dropdown-menu li.provision button')
+          .clickByCssSelector('.changes-list .dropdown-toggle')
+          .clickByCssSelector('.changes-list .btn-select-nodes')
+          .then(function() {
+            return modal.waitToOpen();
+          })
+          .then(function() {
+            return modal.checkTitle('Select Nodes');
+          })
+          .assertElementsExist(
+            '.modal .node.selected',
+            2,
+            'All available nodes are selected for provisioning'
+          )
+          .assertElementContainsText(
+            '.modal-footer .btn-success',
+            'Select 2 Nodes',
+            'Select Nodes dialog confirmation button has a proper text'
+          )
+          .assertElementNotExists(
+            '.modal .node-management-panel .control-buttons-box .btn',
+            'There are no batch action buttons in Select Nodes dialog'
+          )
+          .clickByCssSelector('.modal .node-management-panel .btn-sorters')
+          .clickByCssSelector('.modal .sorters .more-control .dropdown-toggle')
+          .clickByCssSelector('.modal .sorters .popover input[name=manufacturer]')
+          .assertElementsExist(
+            '.modal .nodes-group',
+            2,
+            'Node sorting in Select nodes dialog works'
+          )
+          .clickByCssSelector('.modal .node-management-panel .btn-filters')
+          .clickByCssSelector('.modal .filters .more-control .dropdown-toggle')
+          .clickByCssSelector('.modal .filters .popover input[name=hdd]')
+          .setInputValue('.modal .filters .popover input[name=end]', '1000')
+          .assertElementsExist(
+            '.modal .node',
+            1,
+            'Node filtering in Select nodes dialog works'
+          )
+          .clickByCssSelector('.modal .node')
+          .clickByCssSelector('.modal .filters .btn-reset-filters')
+          .clickByCssSelector('.modal .node.selected')
+          .waitForElementDeletion('.modal .node.selected', 2000)
+          .assertElementDisabled(
+            '.modal-footer .btn-success',
+            'No nodes selected for provisioning'
+          )
+          .clickByCssSelector('.modal .node')
+          .then(function() {
+            return modal.clickFooterButton('Select 1 Node');
+          })
+          .then(function() {
+            return modal.waitToClose();
+          })
+          .then(function() {
+            return modal.waitToOpen();
+          })
+          .then(function() {
+            return modal.clickFooterButton('Provision 1 Node');
+          })
+          .then(function() {
+            return modal.waitToClose();
+          })
+          .then(function() {
+            return clusterPage.goToTab('Nodes');
+          })
+          .assertElementsExist('.node .node-status .progress', 1, 'Just one node is provisioned')
+          .then(function() {
+            return clusterPage.goToTab('Dashboard');
+          });
       },
       'Deploy nodes': function() {
         this.timeout = 100000;
