@@ -113,8 +113,8 @@ NodeListScreen = React.createClass({
       filters: [],
       showBatchActionButtons: true,
       showLabeManagementButton: true,
-      isViewModeSwitchingPossible: true,
-      nodeSelectionPossibleOnly: false
+      showViewModeButtons: true,
+      nodeActionsAvailable: true
     };
   },
   getInitialState() {
@@ -145,6 +145,7 @@ NodeListScreen = React.createClass({
       );
 
     var search = cluster && this.props.mode === 'add' ? '' : uiSettings.search;
+    // FIXME(jkirnosova): need to eliminate 2 sources of thuth here
     var viewMode = this.props.viewMode || uiSettings.view_mode;
     var isLabelsPanelOpen = false;
 
@@ -546,7 +547,7 @@ NodeListScreen = React.createClass({
           {... _.pick(
             this.props,
             'cluster', 'mode', 'defaultSorting', 'statusesToFilter', 'defaultFilters',
-            'showBatchActionButtons', 'showLabeManagementButton', 'isViewModeSwitchingPossible'
+            'showBatchActionButtons', 'showLabeManagementButton', 'showViewModeButtons'
           )}
           {... _.pick(
             this,
@@ -576,7 +577,7 @@ NodeListScreen = React.createClass({
         <NodeList
           {... _.pick(this.state, 'viewMode', 'activeSorters', 'selectedRoles')}
           {... _.pick(this.props, 'cluster', 'mode', 'statusesToFilter', 'selectedNodeIds',
-            'clusters', 'roles', 'nodeNetworkGroups', 'nodeSelectionPossibleOnly')
+            'clusters', 'roles', 'nodeNetworkGroups', 'nodeActionsAvailable')
           }
           {... _.pick(processedRoleData, 'maxNumberOfNodes', 'processedRoleLimits')}
           nodes={filteredNodes}
@@ -1009,7 +1010,7 @@ ManagementPanel = React.createClass({
   render() {
     var {
       nodes, screenNodes, filteredNodes, mode, locked, showBatchActionButtons,
-      viewMode, changeViewMode, isViewModeSwitchingPossible,
+      viewMode, changeViewMode, showViewModeButtons,
       search,
       activeSorters, availableSorters, labelSorters, defaultSorting, changeSortingOrder, addSorting,
       activeFilters, availableFilters, labelFilters, changeFilter, getFilterOptions,
@@ -1070,7 +1071,7 @@ ManagementPanel = React.createClass({
       <div className='row'>
         <div className='sticker node-management-panel'>
           <div className='node-list-management-buttons col-xs-5'>
-            {isViewModeSwitchingPossible &&
+            {showViewModeButtons &&
               <div className='view-mode-switcher'>
                 <div className='btn-group' data-toggle='buttons'>
                   {_.map(models.Nodes.prototype.viewModes, (mode) => {
@@ -2144,7 +2145,7 @@ NodeGroup = React.createClass({
           {this.props.nodes.map((node) => {
             return <Node
               {... _.pick(this.props,
-                'mode', 'viewMode', 'nodeNetworkGroups', 'nodeSelectionPossibleOnly'
+                'mode', 'viewMode', 'nodeNetworkGroups', 'nodeActionsAvailable'
               )}
               key={node.id}
               node={node}

@@ -1009,7 +1009,7 @@
                 },
                 "provision_nodes": {
                     "title": "Provision Nodes",
-                    "locked_node_settings_alert": "Before you proceed, review the nodes configuration, including disk partitioning and interfaces configuration. You will not be able to change these settings after Fuel provisions the nodes.",
+                    "locked_node_settings_alert": "Before you proceed, review the nodes configuration, including roles, disk partitioning and interfaces configuration. You will not be able to change these settings after Fuel provisions the nodes.",
                     "are_you_sure_provision": "Click Start Provisioning to provision the operating system onto the environment nodes, or Cancel to make changes.",
                     "start_provisioning": "Provision __count__ Node",
                     "start_provisioning_plural": "Provision __count__ Nodes"
