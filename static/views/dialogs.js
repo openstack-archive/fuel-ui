@@ -592,7 +592,7 @@ export var SelectNodesDialog = React.createClass({
   mixins: [dialogMixin],
   getInitialState() {
     var selectedNodeIds = {};
-    this.props.nodes.each((node) => selectedNodeIds[node.id] = true);
+    _.each(this.props.selectedNodeIds, (id) => selectedNodeIds[id] = true);
     return {selectedNodeIds};
   },
   getDefaultProps() {
@@ -604,7 +604,7 @@ export var SelectNodesDialog = React.createClass({
   ns: 'dialog.select_nodes.',
   proceed() {
     this.close();
-    this.props.callback(_.keys(this.state.selectedNodeIds));
+    this.props.proceed(_.keys(this.state.selectedNodeIds));
   },
   selectNodes(ids = [], checked) {
     if (ids.length) {
@@ -635,8 +635,8 @@ export var SelectNodesDialog = React.createClass({
       defaultFilters={{roles: [], status: []}}
       showBatchActionButtons={false}
       showLabeManagementButton={false}
-      isViewModeSwitchingPossible={false}
-      nodeSelectionPossibleOnly
+      showViewModeButtons={false}
+      nodeActionsAvailable={false}
       viewMode='compact'
     />;
   },

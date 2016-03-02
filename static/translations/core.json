@@ -665,38 +665,45 @@
                     "tls_not_enabled": "TLS is not enabled. It is highly recommended to enable and configure TLS.",
                     "tls_for_horizon_not_enabled": "TLS is not enabled for Horizon public endpoint. It is highly recommended to enable and configure TLS for Horizon.",
                     "tls_for_services_not_enabled": "TLS is not enabled for OpenStack public endpoints. It is highly recommended to enable and configure TLS.",
-                    "offline_nodes": "Some nodes are offline.",
-                    "unprovisioned_virt_nodes": "The __role__ node is not provisioned.",
+                    "offline_nodes": "__count__ node is offline.",
+                    "offline_nodes_plural": "__count__ nodes are offline.",
+                    "unprovisioned_virt_nodes": "1 __role__ node is not provisioned.",
                     "unprovisioned_virt_nodes_plural": "Some __role__ nodes are not provisioned.",
                     "deployment_mode": "Deployment Mode",
                     "actions": {
                         "deploy": {
                             "title": "Regular deployment",
-                            "button_title": "Deploy Changes"
+                            "button_title_all_nodes": "Deploy Changes"
                         },
                         "provision": {
                             "title": "Advanced provisioning",
                             "description": "Provisioning installs an operating system on nodes.",
+                            "nodes_to_provision": "__count__ node is discovered",
+                            "nodes_to_provision_plural": "__count__ nodes are discovered",
                             "no_nodes_to_provision": "No online discovered nodes to provision.",
-                            "button_title": "Provision __count__ Node",
-                            "button_title_plural": "Provision __count__ Nodes",
+                            "button_title_all_nodes": "Provision __count__ Node",
+                            "button_title_all_nodes_plural": "Provision __count__ Nodes",
+                            "button_title_some_nodes": "Provision __selected__ of __count__ Nodes",
                             "button_title_no_nodes": "Provision Nodes",
-                            "choose_nodes": "Select nodes for provisioning"
+                            "choose_nodes": "Choose nodes for provisioning"
                         },
                         "deployment": {
                             "title": "Advanced deployment",
                             "description": "Deploys OpenStack on nodes.",
+                            "nodes_to_deploy": "__count__ node is provisioned",
+                            "nodes_to_deploy_plural": "__count__ nodes are provisioned",
                             "no_nodes_to_deploy": "No online provisioned nodes to deploy.",
-                            "button_title": "Deploy __count__ Node",
-                            "button_title_plural": "Deploy __count__ Nodes",
+                            "button_title_all_nodes": "Deploy __count__ Node",
+                            "button_title_all_nodes_plural": "Deploy __count__ Nodes",
+                            "button_title_some_nodes": "Deploy __selected__ of __count__ Nodes",
                             "button_title_no_nodes": "Deploy Nodes",
-                            "choose_nodes": "Select nodes for deployment"
+                            "choose_nodes": "Choose nodes for deployment"
                         },
                         "spawn_vms": {
                             "title": "VMs provisioning",
-                            "nodes_to_provision": "__count__ node to be provisioned.",
-                            "nodes_to_provision_plural": "__count__ nodes to be provisioned.",
-                            "button_title": "Provision VMs"
+                            "nodes_to_provision": "__count__ __role__ node is discovered.",
+                            "nodes_to_provision_plural": "__count__ __role__ nodes are discovered.",
+                            "button_title_all_nodes": "Provision VMs"
                         }
                     }
                 },
@@ -1009,7 +1016,7 @@
                 },
                 "provision_nodes": {
                     "title": "Provision Nodes",
-                    "locked_node_settings_alert": "Before you proceed, review the nodes configuration, including disk partitioning and interfaces configuration. You will not be able to change these settings after Fuel provisions the nodes.",
+                    "locked_node_settings_alert": "Before you proceed, review the nodes configuration, including roles, disk partitioning and interfaces configuration. You will not be able to change these settings after Fuel provisions the nodes.",
                     "are_you_sure_provision": "Click Start Provisioning to provision the operating system onto the environment nodes, or Cancel to make changes.",
                     "start_provisioning": "Provision __count__ Node",
                     "start_provisioning_plural": "Provision __count__ Nodes"

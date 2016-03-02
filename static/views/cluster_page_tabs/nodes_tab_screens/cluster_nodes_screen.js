@@ -31,6 +31,7 @@ var ClusterNodesScreen = React.createClass({
       filters={_.without(models.Nodes.prototype.filters, 'cluster')}
       statusesToFilter={_.without(models.Node.prototype.statuses, 'discover')}
       defaultFilters={{roles: [], status: []}}
+      saveUISettings
     />;
   }
 });

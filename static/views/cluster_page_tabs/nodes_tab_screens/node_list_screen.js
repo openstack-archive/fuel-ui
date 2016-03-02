@@ -113,38 +113,42 @@ NodeListScreen = React.createClass({
       filters: [],
       showBatchActionButtons: true,
       showLabeManagementButton: true,
-      isViewModeSwitchingPossible: true,
-      nodeSelectionPossibleOnly: false
+      showViewModeButtons: true,
+      nodeActionsAvailable: true,
+      saveUISettings: false
     };
   },
   getInitialState() {
-    var {cluster, nodes} = this.props;
-    var uiSettings = (cluster || this.props.fuelSettings).get('ui_settings');
+    var {
+      cluster, fuelSettings, nodes, filters, defaultFilters, sorters, defaultSorting
+    } = this.props;
+    var uiSettings = (cluster || fuelSettings).get('ui_settings');
 
-    var availableFilters = this.props.filters.map((name) => {
+    var availableFilters = filters.map((name) => {
       var filter = new Filter(name, [], false);
       filter.updateLimits(nodes, true);
       return filter;
     });
-    var activeFilters = cluster && this.props.mode === 'add' ?
-        Filter.fromObject(this.props.defaultFilters, false)
-      :
+    var activeFilters = this.props.saveUISettings ?
         _.union(
-          Filter.fromObject(_.extend({}, this.props.defaultFilters, uiSettings.filter), false),
+          Filter.fromObject(_.extend({}, defaultFilters, uiSettings.filter), false),
           Filter.fromObject(uiSettings.filter_by_labels, true)
-        );
+        )
+      :
+        Filter.fromObject(defaultFilters, false);
     _.invoke(activeFilters, 'updateLimits', nodes, false);
 
-    var availableSorters = this.props.sorters.map((name) => new Sorter(name, 'asc', false));
-    var activeSorters = cluster && this.props.mode === 'add' ?
-      _.map(this.props.defaultSorting, _.partial(Sorter.fromObject, _, false))
-    :
+    var availableSorters = sorters.map((name) => new Sorter(name, 'asc', false));
+    var activeSorters = this.props.saveUISettings ?
       _.union(
         _.map(uiSettings.sort, _.partial(Sorter.fromObject, _, false)),
         _.map(uiSettings.sort_by_labels, _.partial(Sorter.fromObject, _, true))
-      );
+      )
+    :
+      _.map(defaultSorting, _.partial(Sorter.fromObject, _, false));
 
-    var search = cluster && this.props.mode === 'add' ? '' : uiSettings.search;
+    var search = this.props.saveUISettings ? uiSettings.search : '';
+    // FIXME(jkirnosova): need to eliminate 2 sources of thuth here
     var viewMode = this.props.viewMode || uiSettings.view_mode;
     var isLabelsPanelOpen = false;
 
@@ -155,19 +159,21 @@ NodeListScreen = React.createClass({
     if (!cluster) return states;
 
     // additonal Nodes tab states (Cluster page)
+    var settings = cluster.get('settings');
     var roles = cluster.get('roles').pluck('name');
-    var selectedRoles = nodes.length ? _.filter(roles, (role) => !nodes.any((node) => {
-      return !node.hasRole(role);
-    })) : [];
+    var selectedRoles = nodes.length ?
+      _.filter(roles, (role) => !nodes.any((node) => !node.hasRole(role)))
+    :
+      [];
     var indeterminateRoles = nodes.length ? _.filter(roles, (role) => {
       return !_.contains(selectedRoles, role) && nodes.any((node) => node.hasRole(role));
     }) : [];
 
     var configModels = {
-      cluster: cluster,
-      settings: cluster.get('settings'),
+      cluster,
+      settings,
       version: app.version,
-      default: cluster.get('settings')
+      default: settings
     };
 
     return _.extend(states, {selectedRoles, indeterminateRoles, configModels});
@@ -440,13 +446,15 @@ NodeListScreen = React.createClass({
     }
   },
   changeUISettings(newSettings) {
-    var uiSettings = (this.props.cluster || this.props.fuelSettings).get('ui_settings');
-    var options = {patch: true, wait: true, validate: false};
-    _.extend(uiSettings, newSettings);
-    if (this.props.cluster) {
-      this.props.cluster.save({ui_settings: uiSettings}, options);
-    } else {
-      this.props.fuelSettings.save(null, options);
+    if (this.props.saveUISettings) {
+      var uiSettings = (this.props.cluster || this.props.fuelSettings).get('ui_settings');
+      var options = {patch: true, wait: true, validate: false};
+      _.extend(uiSettings, newSettings);
+      if (this.props.cluster) {
+        this.props.cluster.save({ui_settings: uiSettings}, options);
+      } else {
+        this.props.fuelSettings.save(null, options);
+      }
     }
   },
   revertChanges() {
@@ -546,7 +554,7 @@ NodeListScreen = React.createClass({
           {... _.pick(
             this.props,
             'cluster', 'mode', 'defaultSorting', 'statusesToFilter', 'defaultFilters',
-            'showBatchActionButtons', 'showLabeManagementButton', 'isViewModeSwitchingPossible'
+            'showBatchActionButtons', 'showLabeManagementButton', 'showViewModeButtons'
           )}
           {... _.pick(
             this,
@@ -576,7 +584,7 @@ NodeListScreen = React.createClass({
         <NodeList
           {... _.pick(this.state, 'viewMode', 'activeSorters', 'selectedRoles')}
           {... _.pick(this.props, 'cluster', 'mode', 'statusesToFilter', 'selectedNodeIds',
-            'clusters', 'roles', 'nodeNetworkGroups', 'nodeSelectionPossibleOnly')
+            'clusters', 'roles', 'nodeNetworkGroups', 'nodeActionsAvailable')
           }
           {... _.pick(processedRoleData, 'maxNumberOfNodes', 'processedRoleLimits')}
           nodes={filteredNodes}
@@ -1009,7 +1017,7 @@ ManagementPanel = React.createClass({
   render() {
     var {
       nodes, screenNodes, filteredNodes, mode, locked, showBatchActionButtons,
-      viewMode, changeViewMode, isViewModeSwitchingPossible,
+      viewMode, changeViewMode, showViewModeButtons,
       search,
       activeSorters, availableSorters, labelSorters, defaultSorting, changeSortingOrder, addSorting,
       activeFilters, availableFilters, labelFilters, changeFilter, getFilterOptions,
@@ -1070,7 +1078,7 @@ ManagementPanel = React.createClass({
       <div className='row'>
         <div className='sticker node-management-panel'>
           <div className='node-list-management-buttons col-xs-5'>
-            {isViewModeSwitchingPossible &&
+            {showViewModeButtons &&
               <div className='view-mode-switcher'>
                 <div className='btn-group' data-toggle='buttons'>
                   {_.map(models.Nodes.prototype.viewModes, (mode) => {
@@ -1885,14 +1893,20 @@ SelectAllMixin = {
   componentDidUpdate() {
     if (this.refs['select-all']) {
       var input = this.refs['select-all'].getInputDOMNode();
-      input.indeterminate = !input.checked && _.any(this.props.nodes, (node) => {
-        return this.props.selectedNodeIds[node.id];
-      });
+      input.indeterminate = !input.checked &&
+        _.any(this.props.nodes, (node) => this.props.selectedNodeIds[node.id]);
     }
   },
   renderSelectAllCheckbox() {
-    var checked = this.props.mode === 'edit' || (this.props.nodes.length &&
-          !_.any(this.props.nodes, (node) => !this.props.selectedNodeIds[node.id]));
+    var {
+      nodes, selectedNodeIds, maxNumberOfNodes, selectNodes, mode, locked, nodeActionsAvailable
+    } = this.props;
+    var nodesToSelect = nodeActionsAvailable ?
+      nodes
+    :
+      _.filter(nodes, (node) => node.get('online'));
+    var checked = mode === 'edit' ||
+      nodesToSelect.length && !_.any(nodesToSelect, (node) => !selectedNodeIds[node.id]);
     return (
       <Input
         ref='select-all'
@@ -1900,13 +1914,14 @@ SelectAllMixin = {
         type='checkbox'
         checked={checked}
         disabled={
-          this.props.mode === 'edit' || this.props.locked || !this.props.nodes.length ||
-          !checked && !_.isNull(this.props.maxNumberOfNodes) &&
-          this.props.maxNumberOfNodes < this.props.nodes.length
+          mode === 'edit' ||
+          locked ||
+          !nodesToSelect.length ||
+          !checked && !_.isNull(maxNumberOfNodes) && maxNumberOfNodes < nodesToSelect.length
         }
         label={i18n('common.select_all')}
         wrapperClassName='select-all pull-right'
-        onChange={_.bind(this.props.selectNodes, this.props, _.pluck(this.props.nodes, 'id'))}
+        onChange={_.partial(selectNodes, _.pluck(nodesToSelect, 'id'))}
       />
     );
   }
@@ -2144,14 +2159,18 @@ NodeGroup = React.createClass({
           {this.props.nodes.map((node) => {
             return <Node
               {... _.pick(this.props,
-                'mode', 'viewMode', 'nodeNetworkGroups', 'nodeSelectionPossibleOnly'
+                'mode', 'viewMode', 'nodeNetworkGroups', 'nodeActionsAvailable'
               )}
               key={node.id}
               node={node}
               renderActionButtons={!!this.props.cluster}
               cluster={this.props.cluster || this.props.clusters.get(node.get('cluster'))}
               checked={this.props.mode === 'edit' || this.props.selectedNodeIds[node.id]}
-              locked={this.props.locked || _.contains(nodesWithRestrictionsIds, node.id)}
+              locked={
+                this.props.locked ||
+                _.contains(nodesWithRestrictionsIds, node.id) ||
+                !this.props.nodeActionsAvailable && !node.get('online')
+              }
               onNodeSelection={_.bind(this.props.selectNodes, this.props, [node.id])}
             />;
           })}
