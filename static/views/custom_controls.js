@@ -393,7 +393,7 @@ customControls.custom_hugepages = React.createClass({
               <div className='row' key={size}>
                 <div className='col-xs-2'>
                   <p>
-                    {utils.showDiskSize(size, 1)}
+                    {utils.showSize(size, 1)}
                   </p>
                 </div>
                 <div className='col-xs-10'>
