@@ -967,19 +967,23 @@ export var ShowNodeInfoDialog = React.createClass({
           break;
         case 'memory':
           if (_.isArray(meta.memory.devices) && meta.memory.devices.length) {
-            var sizes = _.countBy(_.pluck(meta.memory.devices, 'size'), utils.showMemorySize);
+            // (morale): note, that iteratee in _.countBy gets 3 arguments
+            // value, index and collection
+            var sizes = _.countBy(_.pluck(meta.memory.devices, 'size'), (value) => {
+              return utils.showSize(value);
+            });
             summary = _.map(_.keys(sizes).sort(), (size) => sizes[size] + ' x ' + size).join(', ');
-            summary += ', ' + utils.showMemorySize(meta.memory.total) + ' ' +
+            summary += ', ' + utils.showSize(meta.memory.total) + ' ' +
               i18n('dialog.show_node.total');
           } else {
-            summary = utils.showMemorySize(meta.memory.total) + ' ' +
+            summary = utils.showSize(meta.memory.total) + ' ' +
               i18n('dialog.show_node.total');
           }
           break;
         case 'disks':
           summary = meta.disks.length + ' ';
           summary += i18n('dialog.show_node.drive', {count: meta.disks.length});
-          summary += ', ' + utils.showDiskSize(_.reduce(_.pluck(meta.disks, 'size'), (sum, n) =>
+          summary += ', ' + utils.showSize(_.reduce(_.pluck(meta.disks, 'size'), (sum, n) =>
             sum + n, 0)) + ' ' + i18n('dialog.show_node.total');
           break;
         case 'cpu':
@@ -1002,15 +1006,15 @@ export var ShowNodeInfoDialog = React.createClass({
   },
   showPropertyValue(group, name, value) {
     var valueFormatters = {
-      size: group === 'disks' ?
-          utils.showDiskSize
+      size: _.contains(['disks', 'memory'], group) ?
+          utils.showSize
         :
-          group === 'memory' ? utils.showMemorySize : utils.showSize,
+        (value) => utils.showSize(value, 0, 256),
       frequency: utils.showFrequency,
       max_speed: utils.showBandwidth,
       current_speed: utils.showBandwidth,
-      maximum_capacity: group === 'memory' ? utils.showMemorySize : _.identity,
-      total: group === 'memory' ? utils.showMemorySize : _.identity
+      maximum_capacity: group === 'memory' ? utils.showSize : _.identity,
+      total: group === 'memory' ? utils.showSize : _.identity
     };
     try {
       value = valueFormatters[name](value);

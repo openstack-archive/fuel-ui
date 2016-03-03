@@ -282,7 +282,7 @@ var NodeDisk = React.createClass({
             {disk.get('name')} ({disk.id})
           </h4>
           <h4 className='col-xs-6 text-right'>
-            {i18n(ns + 'total_space')} : {utils.showDiskSize(disk.get('size'), 2)}
+            {i18n(ns + 'total_space')} : {utils.showSize(disk.get('size'), 2)}
           </h4>
         </div>
         <div className='row disk-visual clearfix'>
@@ -302,7 +302,7 @@ var NodeDisk = React.createClass({
                 >
                   <div>{volume.get('label')}</div>
                   <div className='volume-group-size'>
-                    {utils.showDiskSize(volumesInfo[volumeName].size, 2)}
+                    {utils.showSize(volumesInfo[volumeName].size, 2)}
                   </div>
                 </div>
                 {!this.props.disabled && volumesInfo[volumeName].min <= 0 && this.state.collapsed &&
@@ -327,7 +327,7 @@ var NodeDisk = React.createClass({
             >
               <div className='volume-group-name'>{i18n(ns + 'unallocated')}</div>
               <div className='volume-group-size'>
-                {utils.showDiskSize(volumesInfo.unallocated.size, 2)}
+                {utils.showSize(volumesInfo.unallocated.size, 2)}
               </div>
             </div>
           </div>
@@ -346,7 +346,7 @@ var NodeDisk = React.createClass({
                         <div className='col-xs-10'>
                           <p className='form-control-static'>
                             {propertyName === 'size' ?
-                              utils.showDiskSize(diskMetaData[propertyName]) :
+                              utils.showSize(diskMetaData[propertyName]) :
                               diskMetaData[propertyName]
                             }
                           </p>

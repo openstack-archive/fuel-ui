@@ -1921,7 +1921,7 @@ NodeList = React.createClass({
       var diskSizes = node.resource('disks');
       return i18n('node_details.disks_amount', {
         count: diskSizes.length,
-        size: diskSizes.map((size) => utils.showDiskSize(size) + ' ' +
+        size: diskSizes.map((size) => utils.showSize(size) + ' ' +
           i18n('node_details.hdd')).join(', ')
       });
     };
@@ -1965,12 +1965,12 @@ NodeList = React.createClass({
           ) || i18n(ns + 'unallocated'),
           hdd: () => i18n(
             'node_details.total_hdd',
-            {total: utils.showDiskSize(node.resource('hdd'))}
+            {total: utils.showSize(node.resource('hdd'))}
           ),
           disks: () => composeNodeDiskSizesLabel(node),
           ram: () => i18n(
             'node_details.total_ram',
-            {total: utils.showMemorySize(node.resource('ram'))}
+            {total: utils.showSize(node.resource('ram'))}
           ),
           interfaces: () => i18n(
             'node_details.interfaces_amount',

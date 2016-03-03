@@ -171,13 +171,13 @@ Cluster = React.createClass({
                 {i18n('clusters_page.cluster_hardware_ram')}
               </div>,
               <div key='ram-value' className='value'>
-                {utils.showDiskSize(capacity.ram)}
+                {utils.showSize(capacity.ram)}
               </div>,
               <div key='hdd-title' className='item'>
                 {i18n('clusters_page.cluster_hardware_hdd')}
               </div>,
               <div key='hdd-value' className='value'>
-                {utils.showDiskSize(capacity.hdd)}
+                {utils.showSize(capacity.hdd)}
               </div>
             ]}
           </div>
