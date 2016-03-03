@@ -118,11 +118,11 @@ var utils = {
     var treshold = 1000;
     return (frequency >= treshold ? (frequency / base).toFixed(2) + ' GHz' : frequency + ' MHz');
   },
-  showSize(bytes, treshold) {
+  showSize(bytes, power = 0, treshold = 1024) {
     bytes = parseInt(bytes, 10);
     if (!_.isNumber(bytes) || _.isNaN(bytes)) return i18n('common.not_available');
+    bytes *= Math.pow(1024, power);
     var base = 1024;
-    treshold = treshold || 256;
     var units = ['byte', 'kb', 'mb', 'gb', 'tb'];
     var i, result;
     var unit = 'tb';
@@ -135,13 +135,6 @@ var utils = {
     }
     return (result ? result.toFixed(1) : result) + ' ' + i18n('common.size.' + unit,
         {count: result});
-  },
-  showMemorySize(bytes) {
-    return utils.showSize(bytes, 1024);
-  },
-  showDiskSize(value, power) {
-    power = power || 0;
-    return utils.showSize(value * Math.pow(1024, power));
   },
   calculateNetworkSize(cidr) {
     return Math.pow(2, 32 - parseInt(_.last(cidr.split('/')), 10));

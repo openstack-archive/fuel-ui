@@ -152,7 +152,8 @@ export var Input = React.createClass({
               placeholder={i18n('controls.file.placeholder')}
               value={
                 this.state.fileName && (
-                  '[' + utils.showSize(this.state.content.length) + '] ' + this.state.fileName
+                  '[' + utils.showSize(this.state.content.length, 0, 256) + '] ' +
+                  this.state.fileName
                 )
               }
               onClick={this.pickFile}

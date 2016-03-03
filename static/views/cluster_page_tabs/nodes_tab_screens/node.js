@@ -210,12 +210,12 @@ var Node = React.createClass({
         <span>
           {i18n('node_details.ram')}
           {': '}
-          {_.isUndefined(ram) ? '?' + i18n('common.size.gb') : utils.showMemorySize(ram)}
+          {_.isUndefined(ram) ? '?' + i18n('common.size.gb') : utils.showSize(ram)}
         </span>
         <span>
           {i18n('node_details.hdd')}
           {': '}
-          {_.isUndefined(hdd) ? '?' + i18n('common.size.gb') : utils.showDiskSize(hdd)}
+          {_.isUndefined(hdd) ? '?' + i18n('common.size.gb') : utils.showSize(hdd)}
         </span>
       </div>
     );
@@ -419,11 +419,11 @@ var Node = React.createClass({
                 <span>
                   {node.resource('cores')} ({node.resource('ht_cores') || '?'})
                 </span> / <span>
-                  {node.resource('hdd') ? utils.showDiskSize(node.resource('hdd')) : '?' +
+                  {node.resource('hdd') ? utils.showSize(node.resource('hdd')) : '?' +
                     i18n('common.size.gb')
                   }
                 </span> / <span>
-                  {node.resource('ram') ? utils.showMemorySize(node.resource('ram')) : '?' +
+                  {node.resource('ram') ? utils.showSize(node.resource('ram')) : '?' +
                     i18n('common.size.gb')
                   }
                 </span>

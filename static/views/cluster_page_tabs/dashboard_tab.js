@@ -950,11 +950,11 @@ var ClusterInfo = React.createClass({
           </div>
           <div className='col-xs-4 ram'>
             <span>{i18n(capacityNs + 'ram')}</span>
-            <span className='capacity-value'>{utils.showDiskSize(capacity.ram)}</span>
+            <span className='capacity-value'>{utils.showSize(capacity.ram)}</span>
           </div>
           <div className='col-xs-4 hdd'>
             <span>{i18n(capacityNs + 'hdd')}</span>
-            <span className='capacity-value'>{utils.showDiskSize(capacity.hdd)}</span>
+            <span className='capacity-value'>{utils.showSize(capacity.hdd)}</span>
           </div>
         </div>
       </div>
