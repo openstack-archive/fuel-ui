@@ -1254,7 +1254,8 @@ export var ShowNodeInfoDialog = React.createClass({
             placeholder: 'None',
             onChange: this.onNodeAttributesChange,
             error: null,
-            type: 'number'
+            type: 'number',
+            min: 0
           };
           nodeAttributesError = this.state.nodeAttributesError;
         }

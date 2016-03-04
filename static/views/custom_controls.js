@@ -368,7 +368,8 @@ customControls.custom_hugepages = React.createClass({
       description: null,
       type: 'number',
       name: this.props.name,
-      disabled: this.props.disabled
+      disabled: this.props.disabled,
+      min: 0
     };
     if (_.isEmpty(this.props.config.value)) return null;
     return (
