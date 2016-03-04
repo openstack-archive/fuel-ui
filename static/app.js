@@ -217,11 +217,15 @@ class App {
   }
 
   loadPage(Page, options = []) {
+    if (Page.longLoads && !!this.rootComponent) {
+      this.rootComponent.showProgressBar(true);
+    }
     return (Page.fetchData ? Page.fetchData(...options) : $.Deferred().resolve())
       .done((pageOptions) => {
         if (!this.rootComponent) this.renderLayout();
         this.setPage(Page, pageOptions);
-      });
+      })
+      .always(() => this.rootComponent.showProgressBar(false));
   }
 
   setPage(Page, options) {

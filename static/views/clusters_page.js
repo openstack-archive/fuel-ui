@@ -29,13 +29,13 @@ var ClustersPage, ClusterList, Cluster;
 ClustersPage = React.createClass({
   statics: {
     title: i18n('clusters_page.title'),
+    longLoads: true,
     navbarActiveElement: 'clusters',
     breadcrumbsPath: [['home', '#'], 'environments'],
     fetchData() {
       var clusters = new models.Clusters();
       var nodes = new models.Nodes();
       var tasks = new models.Tasks();
-
       return $.when(clusters.fetch(), nodes.fetch(), tasks.fetch())
         .then(() => {
           var requests = [];
