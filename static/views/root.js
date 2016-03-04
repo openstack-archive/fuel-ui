@@ -37,7 +37,11 @@ var RootComponent = React.createClass({
     this.setState({showDefaultPasswordWarning: false});
   },
   getInitialState() {
-    return {showDefaultPasswordWarning: false};
+    return {
+      showDefaultPasswordWarning: false,
+      pageIsLoading: false,
+      progressBarValue: 10
+    };
   },
   setPage(Page, pageOptions) {
     this.setState({
@@ -45,6 +49,28 @@ var RootComponent = React.createClass({
       pageOptions: pageOptions
     });
     return this.refs.page;
+  },
+  showProgressBar(isLoading) {
+    this.setState({pageIsLoading: isLoading});
+    if (isLoading) {
+      this.startProgressBarAnimation();
+    } else {
+      this.stopProgressBarAnimation();
+    }
+  },
+  startProgressBarAnimation() {
+    this.progressBarTimeout = _.delay(() => this.progressBarAnimation(), 5);
+  },
+  stopProgressBarAnimation() {
+    if (this.progressBarTimeout) clearTimeout(this.progressBarTimeout);
+    delete this.progressBarTimeout;
+    this.setState({progressBarValue: 10});
+  },
+  progressBarAnimation() {
+    this.setState({
+      progressBarValue: ++this.state.progressBarValue > 100 ? 10 : this.state.progressBarValue
+    });
+    this.startProgressBarAnimation();
   },
   updateTitle() {
     var Page = this.state.Page;
@@ -55,7 +81,7 @@ var RootComponent = React.createClass({
     dispatcher.trigger('updatePageLayout');
   },
   render() {
-    var {Page, showDefaultPasswordWarning} = this.state;
+    var {Page, showDefaultPasswordWarning, pageIsLoading} = this.state;
     var {fuelSettings, version} = this.props;
 
     if (!Page) return null;
@@ -66,6 +92,11 @@ var RootComponent = React.createClass({
 
     return (
       <div id='content-wrapper'>
+        {pageIsLoading &&
+          <div className='progressBarContainer'>
+            <div className='progressBar' style={{width: this.state.progressBarValue + '%'}} />
+          </div>
+        }
         <div className={utils.classNames(layoutClasses)}>
           {!Page.hiddenLayout && [
             <Navbar

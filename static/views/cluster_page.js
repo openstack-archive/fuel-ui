@@ -53,6 +53,7 @@ var ClusterPage = React.createClass({
     })
   ],
   statics: {
+    longLoads: true,
     navbarActiveElement: 'clusters',
     breadcrumbsPath(pageOptions) {
       var {activeTab, cluster} = pageOptions;

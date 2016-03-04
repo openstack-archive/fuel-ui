@@ -28,6 +28,7 @@ EquipmentPage = React.createClass({
   mixins: [backboneMixin('nodes')],
   statics: {
     title: i18n('equipment_page.title'),
+    longLoads: true,
     navbarActiveElement: 'equipment',
     breadcrumbsPath: [['home', '#'], 'equipment'],
     fetchData() {
