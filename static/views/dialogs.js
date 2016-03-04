@@ -1425,6 +1425,7 @@ export var ShowNodeInfoDialog = React.createClass({
                                   name={path}
                                   error={error}
                                   disabled={disabled}
+                                  min={0}
                                 />
                               </div>
                             </div>
