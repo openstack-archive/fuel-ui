@@ -433,7 +433,9 @@
                         "offloading_disabled": "Disabled",
                         "offloading_default": "Default",
                         "mtu": "MTU",
-                        "mtu_placeholder": "Default"
+                        "mtu_placeholder": "Default",
+                        "configure": "Configure",
+                        "close_configure": "Close Configuration Mode"
                     },
                     "configure_disks": {
                         "no_disks": "No unassigned disks available.",
