@@ -155,26 +155,19 @@ var OffloadingModesControl = React.createClass({
 
     return (
       <div className='offloading-modes'>
-        <div>
-          <button className='btn btn-default' onClick={this.toggleVisibility}>
-            {i18n(ns + 'offloading_modes')}: {this.makeOffloadingModesExcerpt()}
-          </button>
-          {this.state.isVisible &&
-            <table className='table'>
-              <thead>
-                <tr>
-                  <th>{i18n(ns + 'offloading_mode')}</th>
-                  <th>{i18n(ns + 'offloading_enabled')}</th>
-                  <th>{i18n(ns + 'offloading_disabled')}</th>
-                  <th>{i18n(ns + 'offloading_default')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {this.renderChildModes(modes, 1)}
-              </tbody>
-            </table>
-          }
-        </div>
+        <table className='table'>
+          <thead>
+            <tr>
+              <th>{i18n(ns + 'offloading_mode')}</th>
+              <th>{i18n(ns + 'offloading_enabled')}</th>
+              <th>{i18n(ns + 'offloading_disabled')}</th>
+              <th>{i18n(ns + 'offloading_default')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.renderChildModes(modes, 1)}
+          </tbody>
+        </table>
       </div>
     );
   }
