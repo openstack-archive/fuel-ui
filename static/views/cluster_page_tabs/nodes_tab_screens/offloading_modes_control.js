@@ -24,14 +24,6 @@ var OffloadingModesControl = React.createClass({
   propTypes: {
     interface: React.PropTypes.object
   },
-  getInitialState() {
-    return {
-      isVisible: false
-    };
-  },
-  toggleVisibility() {
-    this.setState({isVisible: !this.state.isVisible});
-  },
   setModeState(mode, state) {
     mode.state = state;
     _.each(mode.sub, (mode) => this.setModeState(mode, state));
@@ -84,35 +76,7 @@ var OffloadingModesControl = React.createClass({
       this.props.interface.set('offloading_modes', modes);
     };
   },
-  makeOffloadingModesExcerpt() {
-    var states = {
-      true: i18n(ns + 'offloading_enabled'),
-      false: i18n(ns + 'offloading_disabled'),
-      null: i18n(ns + 'offloading_default')
-    };
-    var ifcModes = this.props.interface.get('offloading_modes');
 
-    if (_.uniq(_.pluck(ifcModes, 'state')).length === 1) {
-      return states[ifcModes[0].state];
-    }
-
-    var lastState;
-    var added = 0;
-    var excerpt = [];
-    _.each(ifcModes,
-        (mode) => {
-          if (!_.isNull(mode.state) && mode.state !== lastState) {
-            lastState = mode.state;
-            added++;
-            excerpt.push((added > 1 ? ', ' : '') + mode.name + ' ' + states[mode.state]);
-          }
-          // show no more than two modes in the button
-          if (added === 2) return false;
-        }
-      );
-    if (added < ifcModes.length) excerpt.push(', ...');
-    return excerpt;
-  },
   renderChildModes(modes, level) {
     return modes.map((mode) => {
       var lines = [
@@ -155,26 +119,19 @@ var OffloadingModesControl = React.createClass({
 
     return (
       <div className='offloading-modes'>
-        <div>
-          <button className='btn btn-default' onClick={this.toggleVisibility}>
-            {i18n(ns + 'offloading_modes')}: {this.makeOffloadingModesExcerpt()}
-          </button>
-          {this.state.isVisible &&
-            <table className='table'>
-              <thead>
-                <tr>
-                  <th>{i18n(ns + 'offloading_mode')}</th>
-                  <th>{i18n(ns + 'offloading_enabled')}</th>
-                  <th>{i18n(ns + 'offloading_disabled')}</th>
-                  <th>{i18n(ns + 'offloading_default')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {this.renderChildModes(modes, 1)}
-              </tbody>
-            </table>
-          }
-        </div>
+        <table className='table'>
+          <thead>
+            <tr>
+              <th>{i18n(ns + 'offloading_mode')}</th>
+              <th>{i18n(ns + 'offloading_enabled')}</th>
+              <th>{i18n(ns + 'offloading_disabled')}</th>
+              <th>{i18n(ns + 'offloading_default')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.renderChildModes(modes, 1)}
+          </tbody>
+        </table>
       </div>
     );
   }
