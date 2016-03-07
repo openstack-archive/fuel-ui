@@ -31,7 +31,7 @@ define([
           .then(function(ifcElements) {
             return ifcElements.reduce(function(result, ifcElement) {
               return ifcElement
-                .findByCssSelector('.ifc-name')
+                .findByCssSelector('.common-ifc-name')
                   .then(function(ifcDiv) {
                     return ifcDiv
                       .getVisibleText()
@@ -42,9 +42,9 @@ define([
             }, null);
           });
     },
-    findInterfaceElementInBond: function(ifcName) {
+    findInterfaceElementInBond: function(bondName, ifcName) {
       return this.remote
-        .findAllByCssSelector('.ifc-info-block')
+        .findAllByCssSelector('.' + bondName + ' .ifc-info-block')
           .then(function(ifcsElements) {
             return ifcsElements.reduce(function(result, ifcElement) {
               return ifcElement
@@ -59,15 +59,15 @@ define([
             }, null);
           });
     },
-    removeInterfaceFromBond: function(ifcName) {
+    removeInterfaceFromBond: function(bondName, ifcName) {
       var self = this;
       return this.remote
         .then(function() {
-          return self.findInterfaceElementInBond(ifcName);
+          return self.findInterfaceElementInBond(bondName, ifcName);
         })
         .then(function(ifcElement) {
           return ifcElement
-            .findByCssSelector('.ifc-info > .btn-link')
+            .findByCssSelector('.btn-link')
               .then(function(btnRemove) {
                 return btnRemove.click();
               });
@@ -129,9 +129,8 @@ define([
           return self.findInterfaceElement(bondName);
         })
         .then(function(bondElement) {
-          ifcsNames.push(bondName);
           return bondElement
-            .findAllByCssSelector('.ifc-name')
+            .findAllByCssSelector('.ifc-info .ifc-name')
               .then(function(ifcNamesElements) {
                 assert.equal(ifcNamesElements.length, ifcsNames.length,
                   'Unexpected number of interfaces in bond');
