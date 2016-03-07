@@ -77,7 +77,8 @@ var EditNodeInterfacesScreen = React.createClass({
   getInitialState() {
     return {
       actionInProgress: false,
-      interfaceErrors: {}
+      interfaceNetworksErrors: {},
+      interfacePropertiesErrors: {}
     };
   },
   componentWillMount() {
@@ -364,7 +365,8 @@ var EditNodeInterfacesScreen = React.createClass({
     }
   },
   validate() {
-    var interfaceErrors = {};
+    var interfaceNetworksErrors = {};
+    var interfacePropertiesErrors = {};
     var validationResult;
     var networkConfiguration = this.props.cluster.get('networkConfiguration');
     var networkingParameters = networkConfiguration.get('networking_parameters');
@@ -378,11 +380,18 @@ var EditNodeInterfacesScreen = React.createClass({
         networks: networks
       });
       if (validationResult.length) {
-        interfaceErrors[ifc.get('name')] = validationResult.join(' ');
+        interfacePropertiesErrors[ifc.get('name')] =
+          _.compact(_.pluck(validationResult, 'interface_properties'))[0];
+        validationResult = _.without(validationResult,
+          _.find(validationResult, 'interface_properties'));
+        interfaceNetworksErrors[ifc.get('name')] = validationResult.join(' ');
       }
     });
-    if (!_.isEqual(this.state.interfaceErrors, interfaceErrors)) {
-      this.setState({interfaceErrors: interfaceErrors});
+    if (!_.isEqual(this.state.interfaceNetworksErrors, interfaceNetworksErrors)) {
+      this.setState({interfaceNetworksErrors: interfaceNetworksErrors});
+    }
+    if (!_.isEqual(this.state.interfacePropertiesErrors, interfacePropertiesErrors)) {
+      this.setState({interfacePropertiesErrors: interfacePropertiesErrors});
     }
   },
   validateSpeedsForBonding(interfaces) {
@@ -392,7 +401,8 @@ var EditNodeInterfacesScreen = React.createClass({
     return _.uniq(speeds).length > 1 || !_.compact(speeds).length;
   },
   isSavingPossible() {
-    return !_.chain(this.state.interfaceErrors).values().some().value() &&
+    return !_.chain(this.state.interfaceNetworksErrors).values().some().value() &&
+      !_.chain(this.state.interfacePropertiesErrors).values().some().value() &&
       !this.state.actionInProgress && this.hasChanges();
   },
   getIfcProperty(property) {
@@ -491,10 +501,17 @@ var EditNodeInterfacesScreen = React.createClass({
                 <NodeInterfaceDropTarget {...this.props}
                   key={'interface-' + ifcName}
                   interface={ifc}
+                  hasChanges={
+                    !_.isEqual(
+                       _.findWhere(this.state.initialInterfaces, {name: ifcName}),
+                      _.omit(ifc.toJSON(), 'state')
+                    )
+                  }
                   locked={locked}
                   bondingAvailable={bondingAvailable}
                   configurationTemplateExists={configurationTemplateExists}
-                  errors={this.state.interfaceErrors[ifcName]}
+                  errors={this.state.interfaceNetworksErrors[ifcName]}
+                  interfacePropertiesErrors={this.state.interfacePropertiesErrors[ifcName]}
                   validate={this.validate}
                   removeInterfaceFromBond={this.removeInterfaceFromBond}
                   bondingProperties={this.props.bondingConfig.properties}
@@ -582,9 +599,15 @@ var NodeInterface = React.createClass({
       }
     })
   ],
+  renderedIfcProperties: ['offloading_modes', 'mtu'],
   propTypes: {
     bondingAvailable: React.PropTypes.bool,
     locked: React.PropTypes.bool
+  },
+  getInitialState() {
+    return {
+      activeInterfaceSectionName: null
+    };
   },
   isLacpRateAvailable() {
     return _.contains(this.getBondPropertyValues('lacp_rate', 'for_modes'), this.getBondMode());
@@ -661,6 +684,39 @@ var NodeInterface = React.createClass({
     var name = 'disable_offloading';
     this.onInterfacePropertiesChange(name, !interfaceProperties[name]);
   },
+  makeOffloadingModesExcerpt() {
+    var offloadingNS = 'cluster_page.nodes_tab.configure_interfaces.';
+    var states = {
+      true: i18n(offloadingNS + 'offloading_enabled'),
+      false: i18n(offloadingNS + 'offloading_disabled'),
+      null: i18n(offloadingNS + 'offloading_default')
+    };
+    var ifcModes = this.props.interface.get('offloading_modes');
+
+    if (!ifcModes.length) {
+      return states[!this.props.interface.get('interface_properties').disable_offloading];
+    }
+    if (_.uniq(_.pluck(ifcModes, 'state')).length === 1) {
+      return states[ifcModes[0].state];
+    }
+
+    var lastState;
+    var added = 0;
+    var excerpt = [];
+    _.each(ifcModes,
+      (mode) => {
+        if (!_.isNull(mode.state) && mode.state !== lastState) {
+          lastState = mode.state;
+          added++;
+          excerpt.push((added > 1 ? ',' : '') + mode.name + ' ' + states[mode.state]);
+        }
+        // show no more than two modes in the button
+        if (added === 2) return false;
+      }
+    );
+    if (added < ifcModes.length) excerpt.push(', ...');
+    return excerpt;
+  },
   onInterfacePropertiesChange(name, value) {
     function convertToNullIfNaN(value) {
       var convertedValue = parseInt(value, 10);
@@ -673,10 +729,150 @@ var NodeInterface = React.createClass({
     interfaceProperties[name] = value;
     this.props.interface.set('interface_properties', interfaceProperties);
   },
+  renderConfigurableAttributes() {
+    var ifc = this.props.interface;
+    var ifcProperties = ifc.get('interface_properties');
+    var errors = this.props.interfacePropertiesErrors;
+    var offloadingModes = ifc.get('offloading_modes') || [];
+    return (
+      <div className='properties-list'>
+        <span className='propety-item-container'>
+          {i18n(ns + 'offloading_modes') + ':'}
+          <button
+            className='btn btn-link property-item'
+            onClick={() => this.switchActiveSubtab('offloading_modes')}
+          >
+            {ifcProperties.disable_offloading ?
+              i18n(ns + 'disable_offloading')
+            :
+              offloadingModes.length ?
+                this.makeOffloadingModesExcerpt()
+              :
+                i18n(ns + 'default_offloading')
+            }
+          </button>
+        </span>
+        {_.map(ifcProperties, (propertyValue, propertyName) => {
+          if (_.contains(this.renderedIfcProperties, propertyName)) {
+            var classes = {
+              'text-danger': _.has(errors, propertyName),
+              [propertyName]: true
+            };
+            return (
+              <span key={propertyName} className={utils.classNames(classes)}>
+                {i18n(ns + propertyName) + ':'}
+                <button
+                  className='btn btn-link property-item'
+                  onClick={() => this.switchActiveSubtab(propertyName)}
+                >
+                  {propertyValue || i18n(ns + propertyName + '_placeholder')}
+                </button>
+              </span>
+            );
+          }
+        })}
+      </div>
+    );
+  },
+  renderInterfaceSubtab() {
+    var ifc = this.props.interface;
+    var offloadingModes = ifc.get('offloading_modes') || [];
+    var {locked} = this.props;
+    var ifcProperties = ifc.get('interface_properties') || null;
+    var errors = _.pick(
+      this.props.interfacePropertiesErrors,
+      this.state.activeInterfaceSectionName
+    );
+    switch (this.state.activeInterfaceSectionName) {
+      case 'offloading_modes':
+        return (
+          <div>
+            {offloadingModes.length ?
+              <OffloadingModes interface={ifc} disabled={locked} />
+            :
+              <Input
+                type='checkbox'
+                label={i18n(ns + 'disable_offloading')}
+                checked={ifcProperties.disable_offloading}
+                name='disable_offloading'
+                onChange={this.toggleOffloading}
+                disabled={locked}
+                wrapperClassName='toggle-offloading'
+              />
+            }
+          </div>
+        );
+      case 'mtu':
+        return (
+          <Input
+            type='number'
+            min={42}
+            max={65536}
+            label={i18n(ns + 'mtu')}
+            value={ifcProperties.mtu || ''}
+            placeholder={i18n(ns + 'mtu_placeholder')}
+            name='mtu'
+            onChange={this.onInterfacePropertiesChange}
+            disabled={locked}
+            wrapperClassName='pull-left mtu-control'
+            error={errors && !_.isEmpty(errors) && _.values(errors).join(', ') || null}
+          />
+        );
+    }
+  },
+  switchActiveSubtab(subTabName) {
+    var currentActiveTab = this.state.activeInterfaceSectionName;
+    this.setState({
+      activeInterfaceSectionName: currentActiveTab === subTabName ?
+        null
+      :
+        subTabName
+    });
+  },
+  renderConfigurationPanel() {
+    return (
+      <div className='row configuration-panel'>
+        <div className='col-xs-12'>
+          {this.renderInterfaceSubtab()}
+        </div>
+      </div>
+    );
+  },
+  renderInterfaceProperties() {
+    if (!this.props.interface.get('interface_properties')) return null;
+    var isConfigurationModeOn = !_.isNull(this.state.activeInterfaceSectionName);
+    return (
+      <div className='ifc-properties clearfix forms-box'>
+        <div className='row'>
+          <div className='col-xs-11'>
+            {this.renderConfigurableAttributes()}
+          </div>
+          <div className='col-xs-1'>
+            {isConfigurationModeOn &&
+              <button
+                type='button'
+                className='close'
+                aria-label='Close'
+                onClick={() => this.setState({activeInterfaceSectionName: null})}
+              >
+                <span aria-hidden='true'>&times;</span>
+              </button>
+            }
+          </div>
+        </div>
+        {isConfigurationModeOn &&
+          <div className='row configuration-panel'>
+            <div className='col-xs-12'>
+              {this.renderInterfaceSubtab()}
+            </div>
+          </div>
+        }
+      </div>
+    );
+  },
   render() {
     var ifc = this.props.interface;
-    var cluster = this.props.cluster;
-    var locked = this.props.locked;
+    var {cluster, locked} = this.props;
     var availableBondingModes = ifc.isBond() ? this.getAvailableBondingModes() : [];
     var networkConfiguration = cluster.get('networkConfiguration');
     var networks = networkConfiguration.get('networks');
@@ -692,16 +888,14 @@ var NodeInterface = React.createClass({
       };
     };
     var bondProperties = ifc.get('bond_properties');
-    var interfaceProperties = ifc.get('interface_properties') || null;
-    var offloadingModes = ifc.get('offloading_modes') || [];
     var bondingPossible = this.props.bondingAvailable && !locked;
-
     return this.props.connectDropTarget(
       <div className='ifc-container'>
         <div className={utils.classNames({
           'ifc-inner-container': true,
           nodrag: this.props.errors,
-          over: this.props.isOver && this.props.canDrop
+          over: this.props.isOver && this.props.canDrop,
+          'has-changes': this.props.hasChanges
         })}>
           {ifc.isBond() &&
             <div className='bond-properties clearfix forms-box'>
@@ -760,115 +954,93 @@ var NodeInterface = React.createClass({
             </div>
           }
 
-          <div className='networks-block row'>
-            <div className='col-xs-3'>
-              <div className='ifc-checkbox pull-left'>
-                {!ifc.isBond() && bondingPossible ?
-                  <Input
-                    type='checkbox'
-                    onChange={this.bondingChanged}
-                    checked={ifc.get('checked')}
-                  />
-                :
-                  <span>&nbsp;</span>
-                }
-              </div>
-              <div className='pull-left'>
-                {_.map(slaveInterfaces, (slaveInterface, index) => {
-                  return (
-                    <div
-                      key={'info-' + slaveInterface.get('name')}
-                      className='ifc-info-block clearfix'
-                    >
-                      <div className='ifc-connection pull-left'>
-                        <div
-                          className={utils.classNames(connectionStatusClasses(slaveInterface))}
-                        />
-                      </div>
-                      <div className='ifc-info pull-left'>
-                        {this.props.interfaceNames[index].length === 1 &&
-                          <div>
-                            {i18n(ns + 'name')}:
-                            {' '}
-                            <span className='ifc-name'>{this.props.interfaceNames[index]}</span>
-                          </div>
-                        }
-                        {this.props.nodes.length === 1 &&
-                          <div>{i18n(ns + 'mac')}: {slaveInterface.get('mac')}</div>
-                        }
-                        <div>
-                          {i18n(ns + 'speed')}: {this.props.interfaceSpeeds[index].join(', ')}
-                        </div>
-                        {(bondingPossible && slaveInterfaces.length >= 3) &&
-                          <button
-                            className='btn btn-link'
-                            onClick={_.partial(
-                              this.props.removeInterfaceFromBond,
-                              ifc.get('name'), slaveInterface.get('name')
-                            )}
-                          >
-                            {i18n('common.remove_button')}
-                          </button>
-                        }
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            <div className='col-xs-9'>
-              {!this.props.configurationTemplateExists &&
-                <div className='ifc-networks'>
-                  {assignedNetworks.length ?
-                    assignedNetworks.map((interfaceNetwork) => {
-                      var network = interfaceNetwork.getFullNetwork(networks);
-                      if (!network) return null;
-                      return (
-                        <DraggableNetwork
-                          key={'network-' + network.id}
-                          {... _.pick(this.props, ['locked', 'interface'])}
-                          networkingParameters={networkingParameters}
-                          interfaceNetwork={interfaceNetwork}
-                          network={network}
-                        />
-                      );
-                    })
-                  :
-                    i18n(ns + 'drag_and_drop_description')
+          <div className='networks-block'>
+            <div className='row'>
+              <div className='col-xs-12'>
+                <div className='ifc-checkbox'>
+                  {!ifc.isBond() && bondingPossible ?
+                    <Input
+                      type='checkbox'
+                      onChange={this.bondingChanged}
+                      checked={ifc.get('checked')}
+                      label={ifc.get('name')}
+                    />
+                    :
+                    <span>&nbsp;</span>
                   }
                 </div>
-              }
+              </div>
             </div>
+            <div className='row'>
+              <div className='col-xs-3'>
+                <div className='pull-left'>
+                  {_.map(slaveInterfaces, (slaveInterface, index) => {
+                    return (
+                      <div
+                        key={'info-' + slaveInterface.get('name')}
+                        className='ifc-info-block clearfix'
+                        >
+                        <div className='ifc-connection pull-left'>
+                          <div
+                            className={utils.classNames(connectionStatusClasses(slaveInterface))}
+                          />
+                        </div>
+                        <div className='ifc-info pull-left'>
+                          {this.props.nodes.length === 1 &&
+                            <div>{i18n(ns + 'mac')}: {slaveInterface.get('mac')}</div>
+                          }
+                          <div>
+                            {i18n(ns + 'speed')}: {this.props.interfaceSpeeds[index].join(', ')}
+                          </div>
+                          {(bondingPossible && slaveInterfaces.length >= 3) &&
+                            <button
+                              className='btn btn-link'
+                              onClick={_.partial(
+                                    this.props.removeInterfaceFromBond,
+                                    ifc.get('name'), slaveInterface.get('name')
+                                  )}
+                              >
+                              {i18n('common.remove_button')}
+                            </button>
+                          }
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className='col-xs-9'>
+                {!this.props.configurationTemplateExists &&
+                  <div className='ifc-networks'>
+                    {assignedNetworks.length ?
+                      assignedNetworks.map((interfaceNetwork) => {
+                        var network = interfaceNetwork.getFullNetwork(networks);
+                        if (!network) return null;
+                        return (
+                          <DraggableNetwork
+                            key={'network-' + network.id}
+                            {... _.pick(this.props, ['locked', 'interface'])}
+                            networkingParameters={networkingParameters}
+                            interfaceNetwork={interfaceNetwork}
+                            network={network}
+                          />
+                        );
+                      })
+                    :
+                      i18n(ns + 'drag_and_drop_description')
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+            {this.props.errors &&
+              <div className='ifc-error alert alert-danger'>
+                {this.props.errors}
+              </div>
+            }
           </div>
-
-          {interfaceProperties &&
-            <div className='ifc-properties clearfix forms-box'>
-              <Input
-                type='text'
-                label={i18n(ns + 'mtu')}
-                value={interfaceProperties.mtu || ''}
-                placeholder={i18n(ns + 'mtu_placeholder')}
-                name='mtu'
-                onChange={this.onInterfacePropertiesChange}
-                disabled={locked}
-                wrapperClassName='pull-right'
-              />
-              {offloadingModes.length ?
-                <OffloadingModes interface={ifc} disabled={locked} />
-              :
-                <button
-                  onClick={this.toggleOffloading}
-                  disabled={locked}
-                  className='btn btn-default toggle-offloading'>
-                  {i18n(ns + (interfaceProperties.disable_offloading ? 'disable_offloading' :
-                    'default_offloading'))}
-                </button>
-              }
-            </div>
-
-          }
+          {this.renderInterfaceProperties()}
         </div>
-        {this.props.errors && <div className='ifc-error'>{this.props.errors}</div>}
       </div>
     );
   }
