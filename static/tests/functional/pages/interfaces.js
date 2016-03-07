@@ -31,7 +31,7 @@ define([
           .then(function(ifcElements) {
             return ifcElements.reduce(function(result, ifcElement) {
               return ifcElement
-                .findByCssSelector('.ifc-name')
+                .findByCssSelector('.common-ifc-name')
                   .then(function(ifcDiv) {
                     return ifcDiv
                       .getVisibleText()
@@ -48,7 +48,7 @@ define([
           .then(function(ifcsElements) {
             return ifcsElements.reduce(function(result, ifcElement) {
               return ifcElement
-                .findByCssSelector('.ifc-name')
+                .findByCssSelector('.ifc-info .ifc-name')
                   .then(function(ifcNameElement) {
                     return ifcNameElement
                       .getVisibleText()
@@ -131,7 +131,7 @@ define([
         .then(function(bondElement) {
           ifcsNames.push(bondName);
           return bondElement
-            .findAllByCssSelector('.ifc-name')
+            .findAllByCssSelector('.ifc-info .ifc-name')
               .then(function(ifcNamesElements) {
                 assert.equal(ifcNamesElements.length, ifcsNames.length,
                   'Unexpected number of interfaces in bond');
