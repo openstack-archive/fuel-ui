@@ -1313,39 +1313,47 @@ export var ShowNodeInfoDialog = React.createClass({
               panelContent = (
                 <div className='node-attributes'>
                   {_.map(sortedAttributes, (section) => {
-                    return _.map(attributeFields, (field) => {
-                      var disabled = !isPendingAdditionNode ||
-                        (nodeAttributes.checkRestrictions(
-                          this.state.configModels,
-                          'disabled',
-                          nodeAttributes.get(section).metadata
-                        ).result);
-                      var path = utils.makePath(section, field);
-                      var nodeAttribute = nodeAttributes.get(path);
-                      var error = nodeAttributesError && nodeAttributesError[path];
-                      if (nodeAttribute.type === 'custom_hugepages') {
-                        return <customControls.custom_hugepages
-                          config={nodeAttribute}
-                          onChange={this.onNodeAttributesChange}
-                          name='hugepages.nova'
-                          error={error}
-                          disabled={disabled}
-                        />;
-                      }
-                      return (
-                        <div className='row'>
-                          <div className='col-xs-12'>
-                            <Input
-                              {...commonInputProps}
-                              {...nodeAttribute}
-                              name={path}
+                    return (
+                      <div key={section}>
+                        <h3>
+                          {nodeAttributes.get(section).metadata.label}
+                        </h3>
+                        {_.map(attributeFields, (field) => {
+                          var disabled = !isPendingAdditionNode ||
+                            (nodeAttributes.checkRestrictions(
+                              this.state.configModels,
+                              'disabled',
+                              nodeAttributes.get(section).metadata
+                            ).result);
+                          var path = utils.makePath(section, field);
+                          var nodeAttribute = nodeAttributes.get(path);
+                          var error = nodeAttributesError && nodeAttributesError[path];
+                          if (nodeAttribute.type === 'custom_hugepages') {
+                            return <customControls.custom_hugepages
+                              config={nodeAttribute}
+                              onChange={this.onNodeAttributesChange}
+                              name='hugepages.nova'
                               error={error}
                               disabled={disabled}
-                            />
-                          </div>
-                        </div>
-                      );
-                    });
+                              key={field + 'hugepages'}
+                            />;
+                          }
+                          return (
+                            <div className='row' key={field}>
+                              <div className='col-xs-12'>
+                                <Input
+                                  {...commonInputProps}
+                                  {...nodeAttribute}
+                                  name={path}
+                                  error={error}
+                                  disabled={disabled}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
                   })}
                   {isPendingAdditionNode &&
                     <button
