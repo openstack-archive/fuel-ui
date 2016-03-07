@@ -1232,226 +1232,243 @@ export var ShowNodeInfoDialog = React.createClass({
       </div>
     );
   },
-  renderNodeHardware() {
-    var {node} = this.props;
-    var meta = node.get('meta');
-    var groups = _.sortBy(_.keys(meta), (group) => _.indexOf(this.renderableAttributes, group));
+  renderNodeConfig() {
+    return (
+      <div className='panel-body enable-selection'>
+        <div className='vms-config'>
+          <Input
+            ref='vms-config'
+            type='textarea'
+            label={i18n('node_details.vms_config_msg')}
+            error={this.state.VMsConfValidationError}
+            onChange={this.onVMsConfChange}
+            defaultValue={this.state.VMsConf}
+          />
+          <button
+            className='btn btn-success'
+            onClick={this.saveVMsConf}
+            disabled={this.state.VMsConfValidationError ||
+              this.state.actionInProgress}
+            >
+            {i18n('common.save_settings_button')}
+          </button>
+        </div>
+      </div>
+    );
+  },
+  renderNodeAttributes() {
     var nodeAttributes = this.state.nodeAttributes;
-    var isPendingAdditionNode = node.get('pending_addition');
-    var sortedAttributes, attributeFields, commonInputProps, nodeAttributesError;
-    if (this.state.VMsConf) groups.push('config');
+    var isPendingAdditionNode = this.props.node.get('pending_addition');
+    // sorting attributes and processing hide restrictions
+    var sortedAttributes = _.chain(_.keys(nodeAttributes.attributes))
+      .sortBy((name) => nodeAttributes.get(name + '.metadata.weight'))
+      .value();
+    var attributeFields = ['nova', 'dpdk'];
+    var nodeAttributesError, commonInputProps;
+    if (sortedAttributes.length) {
+      commonInputProps = {
+        placeholder: 'None',
+        onChange: this.onNodeAttributesChange,
+        error: null,
+        type: 'number'
+      };
+      nodeAttributesError = this.state.nodeAttributesError;
+    }
+    return (
+      <div className='panel-body enable-selection'>
+        <div className='node-attributes'>
+          {_.map(sortedAttributes, (section) => {
+            return _.map(attributeFields, (field) => {
+              var disabled = !isPendingAdditionNode ||
+                (nodeAttributes.checkRestrictions(
+                  this.state.configModels,
+                  'disabled',
+                  nodeAttributes.get(section).metadata
+                ).result);
+              var path = utils.makePath(section, field);
+              var nodeAttribute = nodeAttributes.get(path);
+              var error = nodeAttributesError && nodeAttributesError[path];
+              if (nodeAttribute.type === 'custom_hugepages') {
+                return <customControls.custom_hugepages
+                  config={nodeAttribute}
+                  onChange={this.onNodeAttributesChange}
+                  name='hugepages.nova'
+                  error={error}
+                  disabled={disabled}
+                />;
+              }
+              return (
+                <div className='row'>
+                  <div className='col-xs-12'>
+                    <Input
+                      {...commonInputProps}
+                      {...nodeAttribute}
+                      name={path}
+                      error={error}
+                      disabled={disabled}
+                    />
+                  </div>
+                </div>
+              );
+            });
+          })}
+          {isPendingAdditionNode &&
+            <button
+              className='btn btn-success'
+              onClick={this.saveNodeAttributes}
+              disabled={
+                !_.isNull(nodeAttributesError) ||
+                !this.hasNodeAttributesChanges() ||
+                this.state.actionInProgress
+              }
+              >
+              {i18n('common.save_settings_button')}
+            </button>
+          }
+        </div>
+      </div>
+    );
+  },
+  renderNUMATopology(groupIndex) {
+    return (
+      <div className='panel-body enable-selection'>
+        <div className='numa-topology'>
+          {_.map(this.props.node.get('meta').numa_topology.numa_nodes, (numaNode, index) => {
+            return (
+              <div
+                className='nested-object'
+                key={'subentries_' + groupIndex + index}
+              >
+                {this.renderNodeInfo('id', numaNode.id)}
+                {this.renderNodeInfo('cpu_id', numaNode.cpus.join(', '))}
+                {this.renderNodeInfo('memory', utils.showSize(numaNode.memory))}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  },
+  getNodeGroups() {
+    var groups = _.sortBy(_.keys(this.props.node.get('meta')), (group) => {
+      return _.indexOf(this.renderableAttributes, group);
+    });
+    var nodeAttributes = this.state.nodeAttributes;
     if (nodeAttributes && this.state.configModels) {
       if (!_.isEmpty(nodeAttributes.attributes)) {
-        // sorting attributes and processing hide restrictions
-        sortedAttributes = _.chain(_.keys(nodeAttributes.attributes))
-        .sortBy((name) => nodeAttributes.get(name + '.metadata.weight'))
-        .filter((name) => {
-          return (!nodeAttributes.checkRestrictions(
-            this.state.configModels,
-            'hide',
-            nodeAttributes.get(name).metadata
-          ).result);
-        })
-        .value();
-        if (sortedAttributes.length) {
+        var filteredAttributes = _.chain(_.keys(nodeAttributes.attributes))
+          .filter((name) => {
+            return (!nodeAttributes.checkRestrictions(
+              this.state.configModels,
+              'hide',
+              nodeAttributes.get(name).metadata
+            ).result);
+          })
+          .value();
+        if (filteredAttributes.length) {
           groups.push('attributes');
-          attributeFields = ['nova', 'dpdk'];
-          commonInputProps = {
-            placeholder: 'None',
-            onChange: this.onNodeAttributesChange,
-            error: null,
-            type: 'number'
-          };
-          nodeAttributesError = this.state.nodeAttributesError;
         }
       }
     }
-
+    return groups;
+  },
+  renderGroupContent(group, groupIndex) {
     var sortOrder = {
       disks: ['name', 'model', 'size'],
       interfaces: ['name', 'mac', 'state', 'ip', 'netmask', 'current_speed', 'max_speed',
         'driver', 'bus_info']
     };
-
-    return (
-      <div className='panel-group' id='accordion' role='tablist' aria-multiselectable='true'>
-        {_.map(groups, (group, groupIndex) => {
-          var groupEntries = meta[group];
-          if (group === 'interfaces' || group === 'disks') {
-            groupEntries = _.sortBy(groupEntries, 'name');
-          }
-          var subEntries = _.isPlainObject(groupEntries) ?
-            _.find(_.values(groupEntries), _.isArray) : [];
-
-          if (!_.contains(this.renderableAttributes, group)) {
-            return null;
-          }
-          var panelContent;
-          switch (group) {
-            case 'config':
-              panelContent = (
-                <div className='vms-config'>
-                  <Input
-                    ref='vms-config'
-                    type='textarea'
-                    label={i18n('node_details.vms_config_msg')}
-                    error={this.state.VMsConfValidationError}
-                    onChange={this.onVMsConfChange}
-                    defaultValue={this.state.VMsConf}
-                  />
-                  <button
-                    className='btn btn-success'
-                    onClick={this.saveVMsConf}
-                    disabled={this.state.VMsConfValidationError ||
-                      this.state.actionInProgress}
-                    >
-                    {i18n('common.save_settings_button')}
-                  </button>
-                </div>);
-              break;
-            case 'attributes':
-              panelContent = (
-                <div className='node-attributes'>
-                  {_.map(sortedAttributes, (section) => {
-                    return _.map(attributeFields, (field) => {
-                      var disabled = !isPendingAdditionNode ||
-                        (nodeAttributes.checkRestrictions(
-                          this.state.configModels,
-                          'disabled',
-                          nodeAttributes.get(section).metadata
-                        ).result);
-                      var path = utils.makePath(section, field);
-                      var nodeAttribute = nodeAttributes.get(path);
-                      var error = nodeAttributesError && nodeAttributesError[path];
-                      if (nodeAttribute.type === 'custom_hugepages') {
-                        return <customControls.custom_hugepages
-                          config={nodeAttribute}
-                          onChange={this.onNodeAttributesChange}
-                          name='hugepages.nova'
-                          error={error}
-                          disabled={disabled}
-                        />;
-                      }
-                      return (
-                        <div className='row'>
-                          <div className='col-xs-12'>
-                            <Input
-                              {...commonInputProps}
-                              {...nodeAttribute}
-                              name={path}
-                              error={error}
-                              disabled={disabled}
-                            />
-                          </div>
-                        </div>
-                      );
-                    });
-                  })}
-                  {isPendingAdditionNode &&
-                    <button
-                      className='btn btn-success'
-                      onClick={this.saveNodeAttributes}
-                      disabled={
-                        !_.isNull(nodeAttributesError) ||
-                        !this.hasNodeAttributesChanges() ||
-                        this.state.actionInProgress
-                      }
-                    >
-                      {i18n('common.save_settings_button')}
-                    </button>
-                  }
-                </div>);
-              break;
-            case 'numa_topology':
-              panelContent = (
-                <div className='numa-topology'>
-                  {_.map(groupEntries.numa_nodes, (numaNode, index) => {
-                    return (
-                      <div
-                        className='nested-object'
-                        key={'subentries_' + groupIndex + index}
-                      >
-                        {this.renderNodeInfo('id', numaNode.id)}
-                        {this.renderNodeInfo('cpu_id', numaNode.cpus.join(', '))}
-                        {this.renderNodeInfo('memory', utils.showSize(numaNode.memory))}
-                      </div>
-                    );
-                  })}
-                </div>);
-              break;
-            default:
-              panelContent = (
-                <div>
-                  {_.isArray(groupEntries) &&
-                    <div>
-                      {_.map(groupEntries, (entry, entryIndex) => {
-                        return (
-                          <div className='nested-object' key={'entry_' + groupIndex + entryIndex}>
-                            {_.map(utils.sortEntryProperties(entry, sortOrder[group]),
-                              (propertyName) => {
-                                if (
-                                  !_.isPlainObject(entry[propertyName]) &&
-                                  !_.isArray(entry[propertyName])
-                                ) {
-                                  return this.renderNodeInfo(
-                                    propertyName,
-                                    this.showPropertyValue(group, propertyName, entry[propertyName])
-                                  );
-                                }
-                              }
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  }
-                  {_.isPlainObject(groupEntries) &&
-                    <div>
-                      {_.map(groupEntries, (propertyValue, propertyName) => {
-                        if (
-                          !_.isPlainObject(propertyValue) &&
-                          !_.isArray(propertyValue) &&
-                          !_.isNumber(propertyName)
-                        ) {
-                          return this.renderNodeInfo(
-                            propertyName,
-                            this.showPropertyValue(group, propertyName, propertyValue)
-                          );
+    var groupEntries = this.props.node.get('meta')[group];
+    if (group === 'interfaces' || group === 'disks') {
+      groupEntries = _.sortBy(groupEntries, 'name');
+    }
+    var subEntries = _.isPlainObject(groupEntries) ?
+      _.find(_.values(groupEntries), _.isArray) : [];
+    switch (group) {
+      case 'config':
+        return this.renderNodeConfig();
+      case 'numa_topology':
+        return this.renderNUMATopology(groupIndex);
+      case 'attributes':
+        return this.renderNodeAttributes();
+      default:
+        return (
+          <div className='panel-body enable-selection'>
+            {_.isArray(groupEntries) &&
+              <div>
+                {_.map(groupEntries, (entry, entryIndex) => {
+                  return (
+                    <div className='nested-object' key={'entry_' + groupIndex + entryIndex}>
+                      {_.map(utils.sortEntryProperties(entry, sortOrder[group]),
+                        (propertyName) => {
+                          if (
+                            !_.isPlainObject(entry[propertyName]) &&
+                            !_.isArray(entry[propertyName])
+                          ) {
+                            return this.renderNodeInfo(
+                              propertyName,
+                              this.showPropertyValue(group, propertyName, entry[propertyName])
+                            );
+                          }
                         }
-                      })}
-                      {!_.isEmpty(subEntries) &&
-                        <div>
-                          {_.map(subEntries, (subentry, subentrysIndex) => {
-                            return (
-                              <div
-                                className='nested-object'
-                                key={'subentries_' + groupIndex + subentrysIndex}
-                              >
-                                {_.map(utils.sortEntryProperties(subentry), (propertyName) => {
-                                  return this.renderNodeInfo(
-                                    propertyName,
-                                    this.showPropertyValue(
-                                      group, propertyName, subentry[propertyName]
-                                    )
-                                  );
-                                })}
-                              </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            }
+            {_.isPlainObject(groupEntries) &&
+              <div>
+                {_.map(groupEntries, (propertyValue, propertyName) => {
+                  if (
+                    !_.isPlainObject(propertyValue) &&
+                    !_.isArray(propertyValue) &&
+                    !_.isNumber(propertyName)
+                  ) {
+                    return this.renderNodeInfo(
+                      propertyName,
+                      this.showPropertyValue(group, propertyName, propertyValue)
+                    );
+                  }
+                })}
+                {!_.isEmpty(subEntries) &&
+                  <div>
+                    {_.map(subEntries, (subentry, subentrysIndex) => {
+                      return (
+                        <div
+                          className='nested-object'
+                          key={'subentries_' + groupIndex + subentrysIndex}
+                          >
+                          {_.map(utils.sortEntryProperties(subentry), (propertyName) => {
+                            return this.renderNodeInfo(
+                              propertyName,
+                              this.showPropertyValue(
+                                group, propertyName, subentry[propertyName]
+                              )
                             );
                           })}
                         </div>
-                      }
-                    </div>
-                  }
-                  {
-                    !_.isPlainObject(groupEntries) &&
-                    !_.isArray(groupEntries) &&
-                    !_.isUndefined(groupEntries) &&
-                      <div>{groupEntries}</div>
-                  }
-                </div>
-              );
-          }
-
+                      );
+                    })}
+                  </div>
+                }
+              </div>
+            }
+            {
+              !_.isPlainObject(groupEntries) &&
+              !_.isArray(groupEntries) &&
+              !_.isUndefined(groupEntries) &&
+                <div>{groupEntries}</div>
+            }
+          </div>
+        );
+    }
+  },
+  renderNodeHardware() {
+    var groups = this.getNodeGroups();
+    return (
+      <div className='panel-group' id='accordion' role='tablist' aria-multiselectable='true'>
+        {_.map(groups, (group, groupIndex) => {
           return (
             <div className='panel panel-default' key={group + groupIndex}>
               <div
@@ -1467,7 +1484,7 @@ export var ShowNodeInfoDialog = React.createClass({
                     aria-controls={'body' + group}
                   >
                     <strong>{i18n('node_details.' + group, {defaultValue: group})}</strong>
-                    {this.showSummary(meta, group)}
+                    {this.showSummary(this.props.node.get('meta'), group)}
                     <i className='glyphicon glyphicon-plus pull-right' />
                   </div>
                 </div>
@@ -1478,9 +1495,7 @@ export var ShowNodeInfoDialog = React.createClass({
                 aria-labelledby={'heading' + group}
                 ref={'togglable_' + groupIndex}
               >
-                <div className='panel-body enable-selection'>
-                  {panelContent}
-                </div>
+                {this.renderGroupContent(group, groupIndex)}
               </div>
             </div>
           );
