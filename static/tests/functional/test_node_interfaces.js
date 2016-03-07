@@ -63,6 +63,42 @@ define([
             return common.removeCluster(clusterName, true);
           });
       },
+      'Configure button manipulations': function() {
+        return this.remote
+          .clickByCssSelector('.mtu .btn-link')
+          .assertElementExists(
+            '#interface-subtabs',
+            'Interface properties congfiguration tabs appear'
+          )
+          .clickByCssSelector('.mtu.group-title .btn-link')
+          .assertElementExists(
+            '.mtu-control',
+            'MTU control is shown when navigating to MTU tab'
+          )
+          .clickByCssSelector('button.close')
+          .assertElementNotExists(
+            '.configuration-panel',
+            'Interface properties panel is hidden after clicking Close Configuration Mode'
+          )
+          .clickByCssSelector('.properties-list .mtu .btn-link')
+          .assertElementExists(
+            '#interface-subtabs .active.mtu.group-title',
+            'MTU section is opened when clicking MTU link'
+          )
+          .setInputValue('.mtu-control input[type=text]', '2')
+          .assertElementExists(
+            '.has-error.mtu-control',
+            'Error styles are applied to MTU control on invalid value'
+          )
+          .assertElementExists(
+            '.active.mtu.group-title .glyphicon-danger-sign',
+            'Invalid icon appears in navigation tree'
+          )
+          .assertElementExists(
+            '.text-danger.mtu',
+            'Invalid style is applied to MTU in summary panel'
+          );
+      },
       'Untagged networks error': function() {
         return this.remote
           .then(function() {
