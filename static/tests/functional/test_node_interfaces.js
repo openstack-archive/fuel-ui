@@ -63,6 +63,29 @@ define([
             return common.removeCluster(clusterName, true);
           });
       },
+      'Configure button manipulations': function() {
+        var configureBtnSelector = '.btn.toggle-configure';
+        return this.remote
+          .assertElementsAppear(configureBtnSelector, 1000, 'Configure buttons are present')
+          .clickByCssSelector(configureBtnSelector)
+          .assertElementAppears(
+            '#interface-subtabs',
+            1000,
+            'Interface properties congfiguration tabs appear'
+          )
+          .clickByCssSelector('.mtu.group-title a')
+          .assertElementAppears(
+            '.mtu-control',
+            1000,
+            'MTU control is shown when navigating to MTU tab'
+          )
+          .clickByCssSelector('.toggle-configure')
+          .assertElementDisappears(
+            '.configuration-panel',
+            1000,
+            'Interface properties panel is hidden after clicking Close Configuration Mode'
+          );
+      },
       'Untagged networks error': function() {
         return this.remote
           .then(function() {
