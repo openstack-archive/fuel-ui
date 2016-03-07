@@ -427,6 +427,7 @@
                         },
                         "disable_offloading": "Offloading Disabled",
                         "default_offloading": "Default Offloading",
+                        "enable_default_offloading": "Enable Default Offloading",
                         "offloading_modes": "Offloading Modes",
                         "offloading_mode": "Mode",
                         "offloading_enabled": "Enabled",
