@@ -74,7 +74,7 @@ export NAILGUN_CHECK_URL='/api/version'
 function run_ui_func_tests {
   local GULP="./node_modules/.bin/gulp"
   local TESTS_DIR=static/tests/functional # FIXME(vkramskikh): absolute path should be used
-  local TESTS=$TESTS_DIR/test_*.js
+  local TESTS=$TESTS_DIR/test_node_interfaces.js
 
   pushd "$FUEL_WEB_ROOT" > /dev/null
   tox -e cleanup
