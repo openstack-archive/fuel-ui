@@ -947,10 +947,12 @@ models.Interface = BaseModel.extend({
       errors.push(i18n(ns + 'too_many_untagged_networks'));
     }
     var interfaceProperties = this.get('interface_properties');
-    if (interfaceProperties && interfaceProperties.mtu) {
-      var mtuValue = interfaceProperties.mtu;
-      if (mtuValue && (mtuValue < 42 || mtuValue > 65536)) {
-        errors.push(i18n(ns + 'invalid_mtu'));
+
+    if (interfaceProperties) {
+      if (this.validateInterfaceProperties(interfaceProperties).length) {
+        errors.push({
+          interface_properties: this.validateInterfaceProperties(interfaceProperties)
+        });
       }
     }
 
@@ -971,6 +973,17 @@ models.Interface = BaseModel.extend({
       )
     ) errors.push(i18n(ns + 'vlan_range_intersection'));
 
+    return errors;
+  },
+  validateInterfaceProperties(interfaceProperties) {
+    var errors = [];
+    var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
+    if (interfaceProperties.mtu) {
+      var mtuValue = interfaceProperties.mtu;
+      if (mtuValue && (mtuValue < 42 || mtuValue > 65536)) {
+        errors.push({mtu: i18n(ns + 'invalid_mtu')});
+      }
+    }
     return errors;
   }
 });
