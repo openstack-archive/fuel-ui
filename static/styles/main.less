@@ -3474,7 +3474,7 @@ input[type=range] {
       }
 
       > div {
-        padding: @base-ifc-indent 0;
+        padding: @base-ifc-indent 0 15px;
         margin: 0;
       }
 
@@ -3496,9 +3496,6 @@ input[type=range] {
         label {
           width: auto;
           .font-semibold;
-        }
-        .help-block {
-          display: none;
         }
       }
 
@@ -3551,6 +3548,7 @@ input[type=range] {
       }
       .ifc-properties {
         border-top: 1px dotted @ifc-container-dark-color;
+        margin-left: 15px;
         .checkbox-group {
           text-align: right;
           .custom-tumbler {
@@ -3560,6 +3558,33 @@ input[type=range] {
         }
         .toggle-offloading {
           margin-left: 50px;
+        }
+        .toggle-configure {
+          margin-right: 10px;
+          .glyphicon-cog {margin-right: 10px;}
+        }
+        .properties-list {
+          padding-top: 5px;
+          .property-item {
+            cursor: pointer;
+          }
+          span {
+            margin-right: 10px;
+          }
+        }
+        #interface-subtabs {
+          li {
+            margin: 2px 0 0 0;
+            .glyphicon-danger-sign {
+              position: absolute;
+              left: 5px;
+            }
+          }
+        }
+        .mtu-control {
+          div {
+            float: left;
+          }
         }
       }
       // Offline modes control

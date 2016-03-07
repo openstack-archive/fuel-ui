@@ -63,6 +63,51 @@ define([
             return common.removeCluster(clusterName, true);
           });
       },
+      'Configure button manipulations': function() {
+        var configureBtnSelector = '.btn.toggle-configure';
+        return this.remote
+          .assertElementsAppear(configureBtnSelector, 1000, 'Configure buttons are present')
+          .clickByCssSelector(configureBtnSelector)
+          .assertElementAppears(
+            '#interface-subtabs',
+            1000,
+            'Interface properties congfiguration tabs appear'
+          )
+          .clickByCssSelector('.mtu.group-title a')
+          .assertElementAppears(
+            '.mtu-control',
+            1000,
+            'MTU control is shown when navigating to MTU tab'
+          )
+          .clickByCssSelector('.toggle-configure')
+          .assertElementDisappears(
+            '.configuration-panel',
+            1000,
+            'Interface properties panel is hidden after clicking Close Configuration Mode'
+          )
+          .clickByCssSelector('.properties-list .mtu a')
+          .assertElementAppears(
+            '#interface-subtabs .active.mtu.group-title',
+            1000,
+            'MTU section is opened when clicking MTU link'
+          )
+          .setInputValue('.mtu-control input[type=text]', '2')
+          .assertElementAppears(
+            '.has-error.mtu-control',
+            1000,
+            'Error styles are applied to MTU control on invalid value'
+          )
+          .assertElementAppears(
+            '.active.mtu.group-title .glyphicon-danger-sign',
+            1000,
+            'Invalid icon appears in navigation tree'
+          )
+          .assertElementAppears(
+            '.text-danger.mtu',
+            1000,
+            'Invalid style is applied to MTU in summary panel'
+          );
+      },
       'Untagged networks error': function() {
         return this.remote
           .then(function() {
