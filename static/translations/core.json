@@ -429,7 +429,8 @@
                             "sriov_placement_error": "No network could be placed on SRIOV enabled interface",
                             "invalid_virtual_functions_number": "Virtual Functions number should be a positive number less than __max__",
                             "invalid_physnet": "Invalid name",
-                            "empty_physnet": "Physical Network Name should not be empty"
+                            "empty_physnet": "Physical Network Name should not be empty",
+                            "dpdk_placement_error": "Only Private network with VLAN segmentation could be placed on DPDK enabled interface"
                         },
                         "disable_offloading": "Offloading Disabled",
                         "default_offloading": "Default Offloading",
@@ -441,7 +442,9 @@
                         "sriov": "SR-IOV",
                         "sriov_description": "Single-root I/O Virtualization (SR-IOV) is a specification that, when implemented by a physical PCIe device, enables it to appear as multiple separate PCIe devices. This enables multiple virtualized guests to share direct access to the physical device, offering improved performance over an equivalent virtual device.",
                         "virtual_functions": "Number of Virtual Functions",
-                        "physical_network": "Physical Network Name"
+                        "physical_network": "Physical Network Name",
+                        "dpdk": "DPDK",
+                        "dpdk_description": "The Data Plane Development Kit (DPDK) provides high-performance packet processing libraries and user space drivers."
                     },
                     "configure_disks": {
                         "no_disks": "No unassigned disks available.",

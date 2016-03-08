@@ -589,7 +589,7 @@ var NodeInterface = React.createClass({
       }
     })
   ],
-  renderedIfcProperties: ['offloading_modes', 'mtu', 'sriov'],
+  renderedIfcProperties: ['offloading_modes', 'mtu', 'sriov', 'dpdk'],
   propTypes: {
     bondingAvailable: React.PropTypes.bool,
     locked: React.PropTypes.bool
@@ -756,6 +756,7 @@ var NodeInterface = React.createClass({
             //@TODO (morale): create some common component out of this
             switch (propertyName) {
               case 'sriov':
+              case 'dpdk':
                 return (
                   <span key={propertyName} className={utils.classNames(classes)}>
                     {i18n(ns + propertyName) + ':'}
@@ -830,7 +831,29 @@ var NodeInterface = React.createClass({
         );
       case 'sriov':
         return this.renderSRIOV(errors);
+      case 'dpdk':
+        return this.renderDPDK(errors);
     }
+  },
+  renderDPDK(errors) {
+    var ifc = this.props.interface;
+    var interfaceProperties = ifc.get('interface_properties');
+    var locked = this.props.locked || !interfaceProperties.dpdk.available;
+    return (
+      <div className='dpdk-panel'>
+        <div className='description'>{i18n(ns + 'dpdk_description')}</div>
+        <Input
+          type='checkbox'
+          label={i18n('common.enabled')}
+          checked={interfaceProperties.dpdk.enabled}
+          name='dpdk.enabled'
+          onChange={this.onInterfacePropertiesChange}
+          disabled={locked}
+          wrapperClassName='dpdk-control'
+          error={errors}
+        />
+      </div>
+    );
   },
   renderSRIOV(errors) {
     var ifc = this.props.interface;
