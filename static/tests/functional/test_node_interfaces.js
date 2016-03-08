@@ -90,6 +90,15 @@ define([
             'Interface properties panel is hidden after clicking Close Configuration Mode'
           );
       },
+      'Test DPDK panel': function() {
+        return this.remote
+          .clickByCssSelector('.dpdk .btn-link')
+          .clickByCssSelector('.dpdk-panel input[type=checkbox]')
+          .assertElementExists(
+            '.ifc-inner-container.nodrag.eth1',
+            'Error style is applied when enabling DPDK on interface with Public network'
+          );
+      },
       'Untagged networks error': function() {
         return this.remote
           .then(function() {
