@@ -55,7 +55,8 @@
                 },
                 "count_label": "Count",
                 "size_label": "Size",
-                "enabled": "Enabled"
+                "enabled": "Enabled",
+                "disabled": "Disabled"
             },
             "controls": {
                 "file": {
@@ -428,23 +429,22 @@
                             "sriov_placement_error": "No network could be placed on SRIOV enabled interface",
                             "invalid_virtual_functions_number": "Virtual Functions number should be a positive number less than __max__",
                             "invalid_physnet": "Invalid name",
-                            "empty_physnet": "Physical Network Name should not be empty"
+                            "empty_physnet": "Physical Network Name should not be empty",
+                            "dpdk_placement_error": "Only Private network with VLAN segmentation could be placed on DPDK enabled interface"
                         },
                         "disable_offloading": "Offloading Disabled",
                         "default_offloading": "Default Offloading",
                         "offloading_modes": "Offloading Modes",
                         "offloading_mode": "Mode",
-                        "offloading_enabled": "Enabled",
-                        "offloading_disabled": "Disabled",
                         "offloading_default": "Default",
                         "mtu": "MTU",
                         "mtu_placeholder": "Default",
                         "sriov": "SR-IOV",
-                        "sriov_enabled": "Enabled",
-                        "sriov_disabled": "Disabled",
-                        "sriov_description": "Single root input/output virtualization -  is a network interface that allows the isolation of the PCI Express resources for manageability and performance reasons",
+                        "sriov_description": "Single Root Input/Output Virtualization is a network interface that allows the isolation of the PCI Express resources for manageability and performance reasons.",
                         "virtual_functions": "Number of Virtual Functions",
-                        "physical_network": "Physical Network Name"
+                        "physical_network": "Physical Network Name",
+                        "dpdk": "DPDK",
+                        "dpdk_description": "Data Plane Development Kit is a set of data plane libraries and network interface controller drivers for fast packet processing."
                     },
                     "configure_disks": {
                         "no_disks": "No unassigned disks available.",
@@ -1570,8 +1570,6 @@
                         "default_offloading": "默认卸载",
                         "offloading_modes": "卸载模式",
                         "offloading_mode": "模式",
-                        "offloading_enabled": "启用",
-                        "offloading_disabled": "禁用",
                         "offloading_default": "默认",
                         "mtu": "MTU",
                         "mtu_placeholder": "默认"
