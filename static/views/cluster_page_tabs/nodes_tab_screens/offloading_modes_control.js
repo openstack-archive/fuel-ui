@@ -123,8 +123,8 @@ var OffloadingModesControl = React.createClass({
           <thead>
             <tr>
               <th>{i18n(ns + 'offloading_mode')}</th>
-              <th>{i18n(ns + 'offloading_enabled')}</th>
-              <th>{i18n(ns + 'offloading_disabled')}</th>
+              <th>{i18n('common.enabled')}</th>
+              <th>{i18n('common.disabled')}</th>
               <th>{i18n(ns + 'offloading_default')}</th>
             </tr>
           </thead>
