@@ -599,7 +599,7 @@ var NodeInterface = React.createClass({
       }
     })
   ],
-  renderedIfcProperties: ['offloading_modes', 'mtu'],
+  renderedIfcProperties: ['offloading_modes', 'mtu', 'dpdk'],
   propTypes: {
     bondingAvailable: React.PropTypes.bool,
     locked: React.PropTypes.bool
@@ -726,7 +726,11 @@ var NodeInterface = React.createClass({
       value = convertToNullIfNaN(value);
     }
     var interfaceProperties = _.cloneDeep(this.props.interface.get('interface_properties') || {});
-    interfaceProperties[name] = value;
+    if (_.contains(name, '.')) {
+      _.set(interfaceProperties, name, value);
+    } else {
+      interfaceProperties[name] = value;
+    }
     this.props.interface.set('interface_properties', interfaceProperties);
   },
   renderConfigurableAttributes() {
@@ -753,22 +757,42 @@ var NodeInterface = React.createClass({
           </button>
         </span>
         {_.map(ifcProperties, (propertyValue, propertyName) => {
+          if (_.isPlainObject(propertyValue) && !propertyValue.available) return null;
           if (_.contains(this.renderedIfcProperties, propertyName)) {
             var classes = {
               'text-danger': _.has(errors, propertyName),
+              'property-item-container': true,
               [propertyName]: true
             };
-            return (
-              <span key={propertyName} className={utils.classNames(classes)}>
-                {i18n(ns + propertyName) + ':'}
-                <button
-                  className='btn btn-link property-item'
-                  onClick={() => this.switchActiveSubtab(propertyName)}
-                >
-                  {propertyValue || i18n(ns + propertyName + '_placeholder')}
-                </button>
-              </span>
-            );
+            var commonButtonProps = {
+              className: 'btn btn-link property-item',
+              onClick: () => this.switchActiveSubtab(propertyName)
+            };
+            //@TODO (morale): create some common component out of this
+            switch (propertyName) {
+              case 'dpdk':
+                return (
+                  <span key={propertyName} className={utils.classNames(classes)}>
+                    {i18n(ns + propertyName) + ':'}
+                    <button {...commonButtonProps}>
+                      {propertyValue.enabled ?
+                        i18n(ns + 'dpdk_enabled')
+                      :
+                        i18n(ns + 'dpdk_disabled')
+                      }
+                    </button>
+                  </span>
+                );
+              default:
+                return (
+                  <span key={propertyName} className={utils.classNames(classes)}>
+                    {i18n(ns + propertyName) + ':'}
+                    <button {...commonButtonProps}>
+                      {propertyValue || i18n(ns + propertyName + '_placeholder')}
+                    </button>
+                  </span>
+                );
+            }
           }
         })}
       </div>
@@ -818,7 +842,29 @@ var NodeInterface = React.createClass({
             error={errors && !_.isEmpty(errors) && _.values(errors).join(', ') || null}
           />
         );
+      case 'dpdk':
+        return this.renderDPDK(errors);
     }
+  },
+  renderDPDK(errors) {
+    var ifc = this.props.interface;
+    var interfaceProperties = ifc.get('interface_properties');
+    var locked = this.props.locked || !interfaceProperties.dpdk.available;
+    return (
+      <div className='dpdk-panel'>
+        <p>{i18n(ns + 'dpdk_description')}</p>
+        <Input
+          type='checkbox'
+          label={i18n('common.enable')}
+          checked={interfaceProperties.dpdk.enabled}
+          name='dpdk.enabled'
+          onChange={this.onInterfacePropertiesChange}
+          disabled={locked}
+          wrapperClassName='dpdk-control'
+          error={errors && errors.dpdk}
+        />
+      </div>
+    );
   },
   switchActiveSubtab(subTabName) {
     var currentActiveTab = this.state.activeInterfaceSectionName;
