@@ -949,9 +949,10 @@ models.Interface = BaseModel.extend({
     var interfaceProperties = this.get('interface_properties');
 
     if (interfaceProperties) {
-      if (this.validateInterfaceProperties(interfaceProperties).length) {
+      var interfacePropertiesErrors = this.validateInterfaceProperties(interfaceProperties, attrs);
+      if (interfacePropertiesErrors.length) {
         errors.push({
-          interface_properties: this.validateInterfaceProperties(interfaceProperties)
+          interface_properties: interfacePropertiesErrors
         });
       }
     }
@@ -975,14 +976,22 @@ models.Interface = BaseModel.extend({
 
     return errors;
   },
-  validateInterfaceProperties(interfaceProperties) {
+  validateInterfaceProperties(interfaceProperties, attrs) {
     var errors = [];
+    var networks = new models.Networks(this.get('assigned_networks')
+      .invoke('getFullNetwork', attrs.networks));
     var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
     if (interfaceProperties.mtu) {
       var mtuValue = interfaceProperties.mtu;
       if (mtuValue && (mtuValue < 42 || mtuValue > 65536)) {
         errors.push({mtu: i18n(ns + 'invalid_mtu')});
       }
+    }
+    if (interfaceProperties.dpdk.enabled &&
+      (!(networks.any({name: 'private'}) && networks.length === 1) ||
+      !attrs.networkingParameters.segmentation_type === 'vlan')
+    ) {
+      errors.push({dpdk: i18n(ns + 'dpdk_placement_error')});
     }
     return errors;
   }

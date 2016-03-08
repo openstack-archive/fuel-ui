@@ -3586,6 +3586,17 @@ input[type=range] {
             float: left;
           }
         }
+        .configuration-panel {
+          .dpdk-control {
+            text-align: left;
+            &.has-error {
+              .help-block {
+                color: @red;
+                display: inline;
+              }
+            }
+          }
+        }
       }
       // Offline modes control
       .offloading-modes {
