@@ -583,7 +583,7 @@ var NodeInterface = React.createClass({
       }
     })
   ],
-  renderedIfcProperties: ['offloading_modes', 'mtu'],
+  renderedIfcProperties: ['offloading_modes', 'mtu', 'dpdk'],
   propTypes: {
     bondingAvailable: React.PropTypes.bool,
     locked: React.PropTypes.bool
@@ -678,7 +678,11 @@ var NodeInterface = React.createClass({
       value = convertToNullIfNaN(value);
     }
     var interfaceProperties = _.cloneDeep(this.props.interface.get('interface_properties') || {});
-    interfaceProperties[name] = value;
+    if (_.contains(name, '.')) {
+      _.set(interfaceProperties, name, value);
+    } else {
+      interfaceProperties[name] = value;
+    }
     this.props.interface.set('interface_properties', interfaceProperties);
   },
   renderCalculatedInterfaceProperties() {
@@ -689,6 +693,20 @@ var NodeInterface = React.createClass({
       <div className='properties-list'>
         {_.map(interfaceProperties, (propertyValue, propertyName) => {
           if (_.contains(this.renderedIfcProperties, propertyName)) {
+            if (propertyName === 'dpdk' && propertyValue.available) {
+              return (
+                <span key={propertyName}>
+                  {i18n(ns + propertyName) + ':'}
+                  <strong>
+                    {propertyValue.enabled ?
+                      i18n(ns + 'dpdk_enabled')
+                    :
+                      i18n(ns + 'dpdk_disabled')
+                    }
+                  </strong>
+                </span>
+              );
+            }
             return (
               <span key={propertyName}>
                 {i18n(ns + propertyName) + ':'}
@@ -751,7 +769,28 @@ var NodeInterface = React.createClass({
             wrapperClassName='pull-left mtu-control'
           />
         );
+      case 'dpdk':
+        return this.renderDPDK();
     }
+  },
+  renderDPDK() {
+    var ifc = this.props.interface;
+    var interfaceProperties = ifc.get('interface_properties');
+    var locked = this.props.locked || !interfaceProperties.dpdk.available;
+    return (
+      <div className='dpdk-panel'>
+        <p>{i18n(ns + 'dpdk_description')}</p>
+        <Input
+          type='checkbox'
+          label={i18n('common.enable')}
+          checked={interfaceProperties.dpdk.enabled}
+          name='dpdk.enabled'
+          onChange={this.onInterfacePropertiesChange}
+          disabled={locked}
+          wrapperClassName='dpdk-control'
+        />
+      </div>
+    );
   },
   switchActiveSubtab(subTabName) {
     this.setState({activeInterfaceSectionName: subTabName});

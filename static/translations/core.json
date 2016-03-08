@@ -54,7 +54,8 @@
                   "neutron_tun": "Neutron with tunneling segmentation"
                 },
                 "count_label": "Count",
-                "size_label": "Size"
+                "size_label": "Size",
+                "enable": "Enable"
             },
             "controls": {
                 "file": {
@@ -435,7 +436,11 @@
                         "mtu": "MTU",
                         "mtu_placeholder": "Default",
                         "configure": "Configure",
-                        "close_configure": "Close Configuration Mode"
+                        "close_configure": "Close Configuration Mode",
+                        "dpdk": "DPDK",
+                        "dpdk_enabled": "Enabled",
+                        "dpdk_disabled": "Disabled",
+                        "dpdk_description": "Data Plane Development Kit is a set of data plane libraries and network interface controller drivers for fast packet processing"
                     },
                     "configure_disks": {
                         "no_disks": "No unassigned disks available.",
