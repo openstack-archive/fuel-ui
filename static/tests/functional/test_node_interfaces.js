@@ -47,7 +47,7 @@ define([
           })
           .clickByCssSelector('.node.pending_addition input[type=checkbox]:not(:checked)')
           .clickByCssSelector('button.btn-configure-interfaces')
-          .assertElementAppears('div.ifc-list', 2000, 'Node interfaces loaded')
+          .assertElementAppears('div.ifc-list', 3000, 'Node interfaces loaded')
           .then(pollUntil(function() {
             return window.$('div.ifc-list').is(':visible') || null;
           }, 1000));
@@ -79,12 +79,31 @@ define([
             1000,
             'MTU control is shown when navigating to MTU tab'
           )
-          .clickByCssSelector('.toggle-configure')
+          .clickByCssSelector(configureBtnSelector)
           .assertElementDisappears(
             '.configuration-panel',
             1000,
             'Interface properties panel is hidden after clicking Close Configuration Mode'
           );
+      },
+      'Test SRIOV panel': function() {
+        return this.remote
+          .clickByCssSelector('.btn.toggle-configure')
+          .waitForCssSelector('.configuration-panel', 1000)
+          .clickByCssSelector('.sriov.group-title a')
+          .waitForCssSelector('.sriov-control', 1000)
+          .clickByCssSelector('.sriov-control input[type=checkbox]')
+          .assertElementAppears(
+            '.sriov-virtual-functions',
+            1000,
+            'Virtual functions input appears after enabling SRIOV'
+          )
+          .assertElementAppears(
+            '.physnet',
+            1000,
+            'Physnet input appears after enabling SRIOV'
+          )
+          .clickByCssSelector('.toggle-configure');
       },
       'Untagged networks error': function() {
         return this.remote

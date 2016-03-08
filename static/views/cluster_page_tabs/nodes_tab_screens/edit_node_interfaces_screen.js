@@ -583,7 +583,7 @@ var NodeInterface = React.createClass({
       }
     })
   ],
-  renderedIfcProperties: ['offloading_modes', 'mtu'],
+  renderedIfcProperties: ['offloading_modes', 'mtu', 'sriov'],
   propTypes: {
     bondingAvailable: React.PropTypes.bool,
     locked: React.PropTypes.bool
@@ -678,7 +678,11 @@ var NodeInterface = React.createClass({
       value = convertToNullIfNaN(value);
     }
     var interfaceProperties = _.cloneDeep(this.props.interface.get('interface_properties') || {});
-    interfaceProperties[name] = value;
+    if (_.contains(name, '.')) {
+      _.set(interfaceProperties, name, value);
+    } else {
+      interfaceProperties[name] = value;
+    }
     this.props.interface.set('interface_properties', interfaceProperties);
   },
   renderCalculatedInterfaceProperties() {
@@ -689,6 +693,21 @@ var NodeInterface = React.createClass({
       <div className='properties-list'>
         {_.map(interfaceProperties, (propertyValue, propertyName) => {
           if (_.contains(this.renderedIfcProperties, propertyName)) {
+            if (_.isPlainObject(propertyValue) && !propertyValue.available) return null;
+            if (propertyName === 'sriov') {
+              return (
+                <span key={propertyName}>
+                  {i18n(ns + propertyName) + ':'}
+                  <strong>
+                    {propertyValue.enabled ?
+                      i18n(ns + 'sriov_enabled')
+                    :
+                      i18n(ns + 'sriov_disabled')
+                    }
+                  </strong>
+                </span>
+              );
+            }
             return (
               <span key={propertyName}>
                 {i18n(ns + propertyName) + ':'}
@@ -719,7 +738,7 @@ var NodeInterface = React.createClass({
     var ifc = this.props.interface;
     var offloadingModes = ifc.get('offloading_modes') || [];
     var {locked} = this.props;
-    var interfaceProperties = ifc.get('interface_properties') || null;
+    var interfaceProperties = ifc.get('interface_properties');
     switch (this.state.activeInterfaceSectionName) {
       case 'offloading_modes':
         return (
@@ -751,7 +770,54 @@ var NodeInterface = React.createClass({
             wrapperClassName='pull-left mtu-control'
           />
         );
+      case 'sriov':
+        return this.renderSRIOV();
     }
+  },
+  renderSRIOV() {
+    var ifc = this.props.interface;
+    var interfaceProperties = ifc.get('interface_properties');
+    var isSRIOVEnabled = interfaceProperties.sriov.enabled;
+    var locked = this.props.locked || !interfaceProperties.sriov.available;
+    return (
+      <div className='sriov-panel'>
+        <p>{i18n(ns + 'sriov_description')}</p>
+        <Input
+          type='checkbox'
+          label={i18n('common.enable')}
+          checked={isSRIOVEnabled}
+          name='sriov.enabled'
+          onChange={this.onInterfacePropertiesChange}
+          disabled={locked}
+          wrapperClassName='sriov-control'
+        />
+        {isSRIOVEnabled &&
+          [
+            <Input
+              key='sriov.sriov_numvfs'
+              type='number'
+              min={0}
+              label={i18n(ns + 'virtual_functions')}
+              value={interfaceProperties.sriov.sriov_numvfs || ''}
+              name='sriov.sriov_numvfs'
+              onChange={this.onInterfacePropertiesChange}
+              disabled={locked}
+              wrapperClassName='sriov-virtual-functions'
+            />,
+            <Input
+              key='sriov.physnet'
+              type='text'
+              label={i18n(ns + 'physical_network')}
+              value={interfaceProperties.sriov.physnet || ''}
+              name='sriov.physnet'
+              onChange={this.onInterfacePropertiesChange}
+              disabled={locked}
+              wrapperClassName='physnet'
+            />
+          ]
+        }
+      </div>
+    );
   },
   switchActiveSubtab(subTabName) {
     this.setState({activeInterfaceSectionName: subTabName});
