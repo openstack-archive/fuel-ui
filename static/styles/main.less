@@ -3547,13 +3547,14 @@ input[type=range] {
         }
       }
       .ifc-properties {
+        @common-offset: 10px;
         border-top: 1px dotted @ifc-container-dark-color;
-        margin-left: 15px;
+        margin-left: @common-offset + 5;
         .checkbox-group {
           text-align: right;
           .custom-tumbler {
             float: right;
-            margin: 0 10px 0 7px;
+            margin: 0  @common-offset 0 7px;
           }
         }
         .toggle-offloading {
@@ -3561,7 +3562,7 @@ input[type=range] {
         }
         .toggle-configure {
           margin-right: 10px;
-          .glyphicon-cog {margin-right: 10px;}
+          .glyphicon-cog {margin-right: @common-offset;}
         }
         .properties-list {
           padding-top: 5px;
@@ -3569,7 +3570,7 @@ input[type=range] {
             cursor: pointer;
           }
           span {
-            margin-right: 10px;
+            margin-right: @common-offset;
           }
         }
         #interface-subtabs {
@@ -3584,6 +3585,24 @@ input[type=range] {
         .mtu-control {
           div {
             float: left;
+          }
+        }
+        .configuration-panel {
+          margin-top: @common-offset;
+          .sriov-control {
+            text-align: left;
+            &.has-error {
+              .help-block {
+                color: @red;
+                display: inline;
+              }
+            }
+          }
+          .sriov-virtual-functions {
+            margin-bottom: @common-offset;
+            input {
+              margin-left: 2px;
+            }
           }
         }
       }
