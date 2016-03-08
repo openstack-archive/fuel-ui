@@ -231,6 +231,10 @@ var EditNodeInterfacesScreen = React.createClass({
     return _.compact(_.flatten(_.map(this.props.bondingConfig.availability,
       (modeAvailabilityData) => {
         return _.map(modeAvailabilityData, (condition, name) => {
+          if (condition === 'true') {
+            return name;
+          }
+          if (!_.has(this.props.configModels, 'interface')) return false;
           var result = utils.evaluateExpression(condition, this.props.configModels).value;
           return result && name;
         });
@@ -591,7 +595,7 @@ var NodeInterface = React.createClass({
       }
     })
   ],
-  renderedIfcProperties: ['offloading_modes', 'mtu', 'sriov'],
+  renderedIfcProperties: ['offloading_modes', 'mtu', 'sriov', 'dpdk'],
   propTypes: {
     bondingAvailable: React.PropTypes.bool,
     locked: React.PropTypes.bool
@@ -679,8 +683,8 @@ var NodeInterface = React.createClass({
   makeOffloadingModesExcerpt() {
     var offloadingNS = 'cluster_page.nodes_tab.configure_interfaces.';
     var states = {
-      true: i18n(offloadingNS + 'offloading_enabled'),
-      false: i18n(offloadingNS + 'offloading_disabled'),
+      true: i18n('common.enabled'),
+      false: i18n('common.disabled'),
       null: i18n(offloadingNS + 'offloading_default')
     };
     var ifcModes = this.props.interface.get('offloading_modes');
@@ -759,14 +763,15 @@ var NodeInterface = React.createClass({
             //@TODO (morale): create some common component out of this
             switch (propertyName) {
               case 'sriov':
+              case 'dpdk':
                 return (
                   <span key={propertyName} className={utils.classNames(classes)}>
                     {i18n(ns + propertyName) + ':'}
                     <button {...commonButtonProps}>
                       {propertyValue.enabled ?
-                        i18n(ns + 'sriov_enabled')
+                        i18n('common.enabled')
                       :
-                        i18n(ns + 'sriov_disabled')
+                        i18n('common.disabled')
                       }
                     </button>
                   </span>
@@ -833,7 +838,29 @@ var NodeInterface = React.createClass({
         );
       case 'sriov':
         return this.renderSRIOV(errors);
+      case 'dpdk':
+        return this.renderDPDK(errors);
     }
+  },
+  renderDPDK(errors) {
+    var ifc = this.props.interface;
+    var interfaceProperties = ifc.get('interface_properties');
+    var locked = this.props.locked || !interfaceProperties.dpdk.available;
+    return (
+      <div className='dpdk-panel'>
+        <div className='description'>{i18n(ns + 'dpdk_description')}</div>
+        <Input
+          type='checkbox'
+          label={i18n('common.enabled')}
+          checked={interfaceProperties.dpdk.enabled}
+          name='dpdk.enabled'
+          onChange={this.onInterfacePropertiesChange}
+          disabled={locked}
+          wrapperClassName='dpdk-control'
+          error={errors}
+        />
+      </div>
+    );
   },
   renderSRIOV(errors) {
     var ifc = this.props.interface;
