@@ -228,13 +228,26 @@ var EditNodeInterfacesScreen = React.createClass({
     return !!availableBondTypes && !this.configurationTemplateExists();
   },
   getBondType() {
-    return _.compact(_.flatten(_.map(this.props.bondingConfig.availability,
+    var interfaces = this.props.interfaces.filter((ifc) => ifc.get('checked') && !ifc.isBond());
+    var isDPDKEnabledBond;
+    if (interfaces.length) {
+      isDPDKEnabledBond = _.filter(interfaces, (ifc) => {
+        return ifc.isDPDKEnabled() && !ifc.get('pxe');
+      }).length === interfaces.length;
+    }
+    // @FIXME (morale): the function below is hardcoded, please make sure
+    // to rewrite it when Interface mode is deep
+    var availableBondingTypes = _.compact(_.flatten(_.map(this.props.bondingConfig.availability,
       (modeAvailabilityData) => {
         return _.map(modeAvailabilityData, (condition, name) => {
-          var result = utils.evaluateExpression(condition, this.props.configModels).value;
-          return result && name;
+          if (condition === 'true') return name;
+          if (!interfaces.length) return false;
+          if (name === 'ovs' && isDPDKEnabledBond) return name;
+          return false;
         });
-      })))[0];
+      })));
+    // FIXME (morale): hard-coded for now
+    return isDPDKEnabledBond ? 'ovs' : availableBondingTypes[0];
   },
   findOffloadingModesIntersection(set1, set2) {
     return _.map(
@@ -295,6 +308,26 @@ var EditNodeInterfacesScreen = React.createClass({
       // remove the bond to add it later and trigger re-rendering
       this.props.interfaces.remove(bonds, {silent: true});
     }
+
+    var isBondDPDKAvailable = _.filter(interfaces, (ifc) => {
+      return ifc.isDPDKAvailable();
+    }).length === interfaces.length;
+    var isBondDPDKEnabled;
+    if (isBondDPDKAvailable) {
+      isBondDPDKEnabled = _.filter(interfaces, (ifc) => {
+        return ifc.isDPDKEnabled();
+      }).length === interfaces.length;
+    }
+
+    if (isBondDPDKAvailable) {
+      bonds.set('interface_properties', _.extend(bonds.get('interface_properties'), {
+        dpdk: {
+          enabled: isBondDPDKEnabled,
+          available: true
+        }
+      }));
+    }
+
     _.each(interfaces, (ifc) => {
       bonds.get('assigned_networks').add(ifc.get('assigned_networks').models);
       ifc.get('assigned_networks').reset();
@@ -589,7 +622,7 @@ var NodeInterface = React.createClass({
       }
     })
   ],
-  renderedIfcProperties: ['offloading_modes', 'mtu', 'sriov'],
+  renderedIfcProperties: ['offloading_modes', 'mtu', 'sriov', 'dpdk'],
   propTypes: {
     bondingAvailable: React.PropTypes.bool,
     locked: React.PropTypes.bool
@@ -756,6 +789,7 @@ var NodeInterface = React.createClass({
             //@TODO (morale): create some common component out of this
             switch (propertyName) {
               case 'sriov':
+              case 'dpdk':
                 return (
                   <span key={propertyName} className={utils.classNames(classes)}>
                     {i18n(ns + propertyName) + ':'}
@@ -830,7 +864,29 @@ var NodeInterface = React.createClass({
         );
       case 'sriov':
         return this.renderSRIOV(errors);
+      case 'dpdk':
+        return this.renderDPDK(errors);
     }
+  },
+  renderDPDK(errors) {
+    var ifc = this.props.interface;
+    var interfaceProperties = ifc.get('interface_properties');
+    var locked = this.props.locked || !interfaceProperties.dpdk.available;
+    return (
+      <div className='dpdk-panel'>
+        <div className='description'>{i18n(ns + 'dpdk_description')}</div>
+        <Input
+          type='checkbox'
+          label={i18n('common.enabled')}
+          checked={interfaceProperties.dpdk.enabled}
+          name='dpdk.enabled'
+          onChange={this.onInterfacePropertiesChange}
+          disabled={locked}
+          wrapperClassName='dpdk-control'
+          error={errors}
+        />
+      </div>
+    );
   },
   renderSRIOV(errors) {
     var ifc = this.props.interface;
