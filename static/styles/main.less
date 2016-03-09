@@ -4478,6 +4478,7 @@ input[type=range] {
       margin-bottom: @dashboard-offset;
     }
     .task-alerts {
+      padding: 0;
       .invalid {
         .font-semibold;
         font-size: @base-font-size - 1;
@@ -4513,15 +4514,31 @@ input[type=range] {
       }
     }
     &.actions-panel {
-      .no-nodes {
-        color: @gray;
+      margin-left: 0;
+      margin-right: 0;
+      .action-description {
+        padding-right: 0;
+        p:last-child {
+          padding-bottom: @dashboard-offset;
+        }
       }
-      .nav {
+      .dropdown {
         margin-right: 0;
-        li.deployment-modes-label {
+        text-align: right;
+        .deployment-modes-label {
           color: @gray;
-          padding: 7px 0 0;
           cursor: default;
+          margin-right: @dashboard-offset;
+        }
+        .dropdown-toggle {
+          padding: 0;
+          position: relative;
+          top: -1px;
+        }
+        .dropdown-menu {
+          right: 0;
+          left: auto;
+          min-width: auto;
         }
       }
     }

@@ -121,8 +121,8 @@ define([
             1000,
             'Provision VMs action appears on the Dashboard'
           )
-          .clickByCssSelector('.actions-panel .nav button.dropdown-toggle')
-          .clickByCssSelector('.actions-panel .nav .dropdown-menu li.deploy button')
+          .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
+          .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.deploy button')
           .then(function() {
             return dashboardPage.discardChanges();
           });

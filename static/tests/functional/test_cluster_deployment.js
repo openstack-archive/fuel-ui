@@ -71,8 +71,8 @@ define([
       'Provision nodes': function() {
         this.timeout = 100000;
         return this.remote
-          .clickByCssSelector('.actions-panel .nav button.dropdown-toggle')
-          .clickByCssSelector('.actions-panel .nav .dropdown-menu li.provision button')
+          .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
+          .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.provision button')
           .assertElementContainsText(
             '.btn-provision',
             'Provision 1 Node',
@@ -123,8 +123,8 @@ define([
           .then(function() {
             return clusterPage.goToTab('Dashboard');
           })
-          .clickByCssSelector('.actions-panel .nav button.dropdown-toggle')
-          .clickByCssSelector('.actions-panel .nav .dropdown-menu li.provision button')
+          .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
+          .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.provision button')
           .clickByCssSelector('.changes-list .dropdown-toggle')
           .clickByCssSelector('.changes-list .btn-select-nodes')
           .then(function() {
@@ -205,11 +205,11 @@ define([
       'Deploy nodes': function() {
         this.timeout = 100000;
         return this.remote
-          .clickByCssSelector('.actions-panel .nav button.dropdown-toggle')
-          .clickByCssSelector('.actions-panel .nav .dropdown-menu li.deployment button')
+          .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
+          .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.deployment button')
           .assertElementDisabled('.btn-deploy-nodes', 'There are no provisioned nodes to deploy')
-          .clickByCssSelector('.actions-panel .nav button.dropdown-toggle')
-          .clickByCssSelector('.actions-panel .nav .dropdown-menu li.provision button')
+          .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
+          .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.provision button')
           .clickByCssSelector('.btn-provision')
           .then(function() {
             return modal.waitToOpen();
@@ -222,8 +222,8 @@ define([
           })
           .assertElementAppears('div.deploy-process div.progress', 2000, 'Provisioning started')
           .assertElementDisappears('div.deploy-process div.progress', 5000, 'Provisioning finished')
-          .clickByCssSelector('.actions-panel .nav button.dropdown-toggle')
-          .clickByCssSelector('.actions-panel .nav .dropdown-menu li.deployment button')
+          .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
+          .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.deployment button')
           .assertElementContainsText('.btn-deploy-nodes', 'Deploy 1 Node', '1 node to be deployed')
           .clickByCssSelector('.btn-deploy-nodes')
           .then(function() {
