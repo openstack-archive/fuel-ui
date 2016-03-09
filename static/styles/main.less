@@ -4491,6 +4491,8 @@ input[type=range] {
       }
     }
     &.actions-panel {
+      margin-left: 0;
+      margin-right: 0;
       .no-nodes {
         color: @gray;
       }
@@ -4498,8 +4500,14 @@ input[type=range] {
         margin-right: 0;
         li.deployment-modes-label {
           color: @gray;
-          padding: 7px 0 0;
+          padding: 0;
           cursor: default;
+          margin-right: @dashboard-offset;
+        }
+        .dropdown-toggle {
+          padding: 0;
+          position: relative;
+          top: -2px;
         }
       }
     }
