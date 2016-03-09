@@ -1076,6 +1076,13 @@ export var ShowNodeInfoDialog = React.createClass({
         this.setState({actionInProgress: false});
       });
   },
+  cancelNodeAttributesChange() {
+    this.state.nodeAttributes.set(this.state.initialNodeAttributes);
+    this.setState({
+      nodeAttributes: this.state.nodeAttributes,
+      nodeAttributesError: null
+    });
+  },
   hasNodeAttributesChanges() {
     return !_.isEqual(
       this.state.nodeAttributes.attributes,
@@ -1312,17 +1319,31 @@ export var ShowNodeInfoDialog = React.createClass({
         <div className='node-attributes'>
           {attributes}
           {isPendingAdditionNode &&
-            <button
-              className='btn btn-success'
-              onClick={this.saveNodeAttributes}
-              disabled={
-                !_.isNull(nodeAttributesError) ||
-                !this.hasNodeAttributesChanges() ||
-                this.state.actionInProgress
-              }
+            <div className='btn-group'>
+              <button
+                key='cancel-node-attributes'
+                className='btn btn-default'
+                onClick={this.cancelNodeAttributesChange}
+                disabled={
+                  !this.hasNodeAttributesChanges() ||
+                  this.state.actionInProgress
+                }
               >
-              {i18n('common.save_settings_button')}
-            </button>
+                {i18n('common.cancel_changes_button')}
+              </button>
+              <button
+                key='save-node-attributes'
+                className='btn btn-success pull-right'
+                onClick={this.saveNodeAttributes}
+                disabled={
+                  !_.isNull(nodeAttributesError) ||
+                  !this.hasNodeAttributesChanges() ||
+                  this.state.actionInProgress
+                }
+              >
+                {i18n('common.save_settings_button')}
+              </button>
+            </div>
           }
         </div>
       </div>
