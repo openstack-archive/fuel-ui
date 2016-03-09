@@ -638,20 +638,20 @@ var ClusterActionsPanel = React.createClass({
       case 'provision':
         var nodesToProvision = nodes.filter((node) => node.isProvisioningPossible());
         actionControls = [
-          !!nodesToProvision.length &&
-            <div className='action-description' key='action-description'>
-              {i18n(actionNs + 'description')}
-            </div>,
+          <div className='action-description' key='action-description'>
+            {i18n(
+              actionNs + (nodesToProvision.length ? 'description' : 'no_nodes_to_provision'),
+              {os: this.props.cluster.get('release').get('operating_system')}
+            )}
+          </div>,
           <div className='col-xs-3 changes-list' key={action}>
-            <ul>
-              <li>
-                {i18n(
-                  actionNs +
-                    (nodesToProvision.length ? 'nodes_to_provision' : 'no_nodes_to_provision'),
-                  {count: nodesToProvision.length}
-                )}
-              </li>
-            </ul>
+            {!!nodesToProvision.length &&
+              <ul>
+                <li>
+                  {i18n(actionNs + 'nodes_to_provision', {count: nodesToProvision.length})}
+                </li>
+              </ul>
+            }
             <ClusterActionButton
               {...actionButtonProps}
               nodes={nodesToProvision}
@@ -665,19 +665,17 @@ var ClusterActionsPanel = React.createClass({
       case 'deployment':
         var nodesToDeploy = nodes.filter((node) => node.isDeploymentPossible());
         actionControls = [
-          !!nodesToDeploy.length &&
-            <div className='action-description' key='action-description'>
-              {i18n(actionNs + 'description')}
-            </div>,
+          <div className='action-description' key='action-description'>
+            {i18n(actionNs + (nodesToDeploy.length ? 'description' : 'no_nodes_to_deploy'))}
+          </div>,
           <div className='col-xs-3 changes-list' key={action}>
-            <ul>
-              <li>
-                {i18n(
-                  actionNs + (nodesToDeploy.length ? 'nodes_to_deploy' : 'no_nodes_to_deploy'),
-                  {count: nodesToDeploy.length}
-                )}
-              </li>
-            </ul>
+            {!!nodesToDeploy.length &&
+              <ul>
+                <li>
+                  {i18n(actionNs + 'nodes_to_deploy', {count: nodesToDeploy.length})}
+                </li>
+              </ul>
+            }
             <ClusterActionButton
               {...actionButtonProps}
               nodes={nodesToDeploy}

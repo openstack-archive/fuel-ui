@@ -673,15 +673,15 @@
                     "deployment_mode": "Deployment Mode",
                     "actions": {
                         "deploy": {
-                            "title": "Regular deployment",
+                            "title": "Provisioning + Deployment",
                             "button_title_all_nodes": "Deploy Changes"
                         },
                         "provision": {
-                            "title": "Advanced provisioning",
-                            "description": "Provisioning installs an operating system on nodes.",
+                            "title": "Provisioning only",
+                            "description": "\"Provisioning only\" installs the previously selected operating system __os__ on the nodes, but does not deploy OpenStack services. To deploy OpenStack services after provisioning has been completed, select \"Deployment only\" from the Deployment Mode dropdown. To complete provisioning and deployment at the same time, select \"Provisioning + Deployment\" from the Deployment Mode dropdown.",
                             "nodes_to_provision": "__count__ node is discovered",
                             "nodes_to_provision_plural": "__count__ nodes are discovered",
-                            "no_nodes_to_provision": "No online discovered nodes to provision.",
+                            "no_nodes_to_provision": "Nodes can only be provisioned using the \"Provision only\" feature if they have not been provisioned with an operating system. Please select \"Deployment only\" or \"Provisioning + Deployment\" from the Deployment Mode dropdown to continue.",
                             "button_title_all_nodes": "Provision __count__ Node",
                             "button_title_all_nodes_plural": "Provision __count__ Nodes",
                             "button_title_some_nodes": "Provision __selected__ of __count__ Nodes",
@@ -689,11 +689,11 @@
                             "choose_nodes": "Choose nodes for provisioning"
                         },
                         "deployment": {
-                            "title": "Advanced deployment",
-                            "description": "Deploys OpenStack on nodes.",
+                            "title": "Deployment only",
+                            "description": "\"Advanced deployment\" deploys OpenStack services on nodes which have the operating system already provisioned. To complete provisioning and deployment at the same time, select \"Provisioning + Deployment\" from the Deployment Mode dropdown.",
                             "nodes_to_deploy": "__count__ node is provisioned",
                             "nodes_to_deploy_plural": "__count__ nodes are provisioned",
-                            "no_nodes_to_deploy": "No online provisioned nodes to deploy.",
+                            "no_nodes_to_deploy": "Nodes can only be deployed using the \"Deployment only\" feature if they have been provisioned with an operating system. Please select \"Provisioning only\" or \"Provisioning + Deployment\" from the Deployment Mode dropdown to continue.",
                             "button_title_all_nodes": "Deploy __count__ Node",
                             "button_title_all_nodes_plural": "Deploy __count__ Nodes",
                             "button_title_some_nodes": "Deploy __selected__ of __count__ Nodes",
