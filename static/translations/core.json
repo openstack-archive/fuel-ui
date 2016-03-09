@@ -561,7 +561,7 @@
                         "storage": "Storage",
                         "logging": "Logging",
                         "network": "Network",
-                        "openstack_services": "OpenStack Services",
+                        "openstack_services": "OpenStack\nServices",
                         "other": "Other"
                     },
                     "dependent_role_warning": "The environment contains __roles__ node.",
