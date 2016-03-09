@@ -1687,7 +1687,7 @@ var NetworkingL3Parameters = React.createClass({
           <div className='network-description'>
             {i18n(networkTabNS + 'networking_parameters.dns_servers_description')}
           </div>
-          <customControls.text_list {...this.composeProps('dns_nameservers', true)} />
+          <customControls.text_list max={5} {...this.composeProps('dns_nameservers', true)} />
         </div>
       </div>
     );
