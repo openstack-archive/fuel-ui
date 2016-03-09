@@ -688,6 +688,7 @@ var NodeInterface = React.createClass({
     return (
       <div className='properties-list'>
         {_.map(interfaceProperties, (propertyValue, propertyName) => {
+          if (propertyName === 'bond_mode') return null;
           if (_.contains(this.renderedIfcProperties, propertyName)) {
             return (
               <span key={propertyName}>
@@ -751,12 +752,58 @@ var NodeInterface = React.createClass({
             wrapperClassName='pull-left mtu-control'
           />
         );
+      case 'bond_mode':
+        var bondingPossible = this.props.bondingAvailable && !locked;
+        var availableBondingModes = this.getAvailableBondingModes();
+        var bondProperties = ifc.get('bond_properties');
+        return (
+          <div className='bond-properties clearfix forms-box'>
+            <Input
+              type='select'
+              disabled={!bondingPossible}
+              onChange={this.bondingModeChanged}
+              value={this.getBondMode()}
+              label={i18n(ns + 'bonding_mode')}
+              children={this.getBondingOptions(availableBondingModes, 'bonding_modes')}
+            />
+            {this.isHashPolicyNeeded() &&
+              <Input
+                type='select'
+                value={bondProperties.xmit_hash_policy}
+                disabled={!bondingPossible}
+                onChange={this.onPolicyChange}
+                label={i18n(ns + 'bonding_policy')}
+                children={this.getBondingOptions(
+                  this.getBondPropertyValues('xmit_hash_policy', 'values'),
+                  'hash_policy'
+                )}
+              />
+            }
+            {this.isLacpRateAvailable() &&
+              <Input
+                type='select'
+                value={bondProperties.lacp_rate}
+                disabled={!bondingPossible}
+                onChange={this.onLacpChange}
+                label={i18n(ns + 'lacp_rate')}
+                children={this.getBondingOptions(
+                  this.getBondPropertyValues('lacp_rate', 'values'),
+                  'lacp_rates'
+                )}
+              />
+            }
+          </div>
+      );
     }
   },
   switchActiveSubtab(subTabName) {
     this.setState({activeInterfaceSectionName: subTabName});
   },
   renderConfigurationPanel() {
+    var ifc = this.props.interface;
+    if (ifc.isBond() && !_.contains(this.renderedIfcProperties, 'bond_mode')) {
+      this.renderedIfcProperties.push('bond_mode');
+    }
     return (
       <div className='row configuration-panel'>
         <div className='col-xs-2'>
@@ -803,7 +850,6 @@ var NodeInterface = React.createClass({
   render() {
     var ifc = this.props.interface;
     var {cluster, locked} = this.props;
-    var availableBondingModes = ifc.isBond() ? this.getAvailableBondingModes() : [];
     var networkConfiguration = cluster.get('networkConfiguration');
     var networks = networkConfiguration.get('networks');
     var networkingParameters = networkConfiguration.get('networking_parameters');
@@ -817,7 +863,6 @@ var NodeInterface = React.createClass({
         'ifc-offline': slaveDown
       };
     };
-    var bondProperties = ifc.get('bond_properties');
     var bondingPossible = this.props.bondingAvailable && !locked;
 
     return this.props.connectDropTarget(
@@ -844,46 +889,8 @@ var NodeInterface = React.createClass({
                   : ifc.get('name')
                 }
               </div>
-              <Input
-                type='select'
-                disabled={!bondingPossible}
-                onChange={this.bondingModeChanged}
-                value={this.getBondMode()}
-                label={i18n(ns + 'bonding_mode')}
-                children={this.getBondingOptions(availableBondingModes, 'bonding_modes')}
-                wrapperClassName='pull-right'
-              />
-              {this.isHashPolicyNeeded() &&
-                <Input
-                  type='select'
-                  value={bondProperties.xmit_hash_policy}
-                  disabled={!bondingPossible}
-                  onChange={this.onPolicyChange}
-                  label={i18n(ns + 'bonding_policy')}
-                  children={this.getBondingOptions(
-                    this.getBondPropertyValues('xmit_hash_policy', 'values'),
-                    'hash_policy'
-                  )}
-                  wrapperClassName='pull-right'
-                />
-              }
-              {this.isLacpRateAvailable() &&
-                <Input
-                  type='select'
-                  value={bondProperties.lacp_rate}
-                  disabled={!bondingPossible}
-                  onChange={this.onLacpChange}
-                  label={i18n(ns + 'lacp_rate')}
-                  children={this.getBondingOptions(
-                    this.getBondPropertyValues('lacp_rate', 'values'),
-                    'lacp_rates'
-                  )}
-                  wrapperClassName='pull-right'
-                />
-              }
             </div>
           }
-
           <div className='networks-block row'>
             <div className='col-xs-3'>
               <div className='ifc-checkbox pull-left'>
