@@ -1284,11 +1284,14 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
     return errors;
   },
   validateNameServers(nameservers) {
+    var maxNameservers = 5;
     var errors = _.map(nameservers,
       (nameserver) => !utils.validateIP(nameserver) ?
         i18n('cluster_page.network_tab.validation.invalid_nameserver') : null
     );
-    if (_.compact(errors).length) return {dns_nameservers: errors};
+    errors.push(nameservers.length <= maxNameservers ? null :
+      i18n('cluster_page.network_tab.validation.too_many_nameservers'));
+    if (_.compact(errors).length) return {dns_nameservers: _.compact(errors)};
   },
   validate(attrs, options = {}) {
     var networkingParameters = attrs.networking_parameters;
