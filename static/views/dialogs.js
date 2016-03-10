@@ -959,42 +959,36 @@ export var ShowNodeInfoDialog = React.createClass({
   showSummary(group) {
     var meta = this.props.node.get('meta');
     var formatSummary = (dict) => _.keys(dict).sort().map((key) => dict[key] + ' x ' + key);
-
+    var groupFormatters = {
+      system: () => (meta.system.manufacturer || '') + ' ' + (meta.system.product || ''),
+      memory: () =>
+        (
+          _.isArray(meta.memory.devices) ?
+            formatSummary(
+              _.countBy(_.pluck(meta.memory.devices, 'size'), (value) => utils.showSize(value))
+            )
+          :
+            []
+        )
+        .concat(utils.showSize(meta.memory.total) + ' ' + i18n('dialog.show_node.total'))
+        .join(', '),
+      disks: () => meta.disks.length + ' ' +
+        i18n('dialog.show_node.drive', {count: meta.disks.length}) + ', ' +
+        utils.showSize(_.reduce(_.pluck(meta.disks, 'size'), (sum, n) => sum + n, 0)) + ' ' +
+        i18n('dialog.show_node.total'),
+      cpu: () => formatSummary(
+        _.countBy(_.pluck(meta.cpu.spec, 'frequency'), utils.showFrequency)
+      ).join(', '),
+      interfaces: () => formatSummary(
+        _.countBy(_.pluck(meta.interfaces, 'current_speed'), utils.showBandwidth)
+      ).join(', '),
+      numa_topology: () => i18n('dialog.show_node.numa_nodes', {
+        count: meta.numa_topology.numa_nodes.length
+      }),
+      default: () => ''
+    };
     try {
-      switch (group) {
-        case 'system':
-          return (meta.system.manufacturer || '') + ' ' + (meta.system.product || '');
-        case 'memory':
-          return (
-            _.isArray(meta.memory.devices) ?
-              formatSummary(
-                _.countBy(_.pluck(meta.memory.devices, 'size'), (value) => utils.showSize(value))
-              )
-            :
-              []
-          )
-          .concat(utils.showSize(meta.memory.total) + ' ' + i18n('dialog.show_node.total'))
-          .join(', ');
-        case 'disks':
-          return meta.disks.length + ' ' +
-            i18n('dialog.show_node.drive', {count: meta.disks.length}) + ', ' +
-            utils.showSize(_.reduce(_.pluck(meta.disks, 'size'), (sum, n) => sum + n, 0)) + ' ' +
-            i18n('dialog.show_node.total');
-        case 'cpu':
-          return formatSummary(
-            _.countBy(_.pluck(meta.cpu.spec, 'frequency'), utils.showFrequency)
-          ).join(', ');
-        case 'interfaces':
-          return formatSummary(
-            _.countBy(_.pluck(meta.interfaces, 'current_speed'), utils.showBandwidth)
-          ).join(', ');
-        case 'numa_topology':
-          return i18n('dialog.show_node.numa_nodes', {
-            count: meta.numa_topology.numa_nodes.length
-          });
-        default:
-          return '';
-      }
+      return (groupFormatters[group] || groupFormatters.default)();
     } catch (ignore) {}
   },
   showPropertyName(propertyName) {
