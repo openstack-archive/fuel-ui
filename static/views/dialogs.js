@@ -1277,38 +1277,46 @@ export var ShowNodeInfoDialog = React.createClass({
       .map(
         (sectionName) => {
           var metadata = nodeAttributes.get(utils.makePath(sectionName, 'metadata'));
-          return _.map(attributesToDisplay,
-            (attributeName) => {
-              var path = utils.makePath(sectionName, attributeName);
-              var attribute = nodeAttributes.get(path);
-
-              var commonProps = {
-                name: path,
-                error: (nodeAttributesError || {})[path],
-                disabled: !isPendingAdditionNode ||
-                  nodeAttributes.checkRestrictions(configModels, 'disable', metadata).result,
-                onChange: this.onNodeAttributesChange,
-                placeholder: 'None'
-              };
-
-              if (attribute.type === 'custom_hugepages') {
-                return (
-                  <customControls.custom_hugepages
-                    {...commonProps}
-                    config={attribute}
-                    name='hugepages.nova'
-                  />
-                );
+          return (
+            <div className='section' key={sectionName}>
+              {metadata.label &&
+                <h3>{metadata.label}</h3>
               }
+              {_.map(attributesToDisplay,
+                (attributeName) => {
+                  var path = utils.makePath(sectionName, attributeName);
+                  var attribute = nodeAttributes.get(path);
 
-              return (
-                <div className='row'>
-                  <div className='col-xs-12'>
-                    <Input {...attribute} {...commonProps} />
-                  </div>
-                </div>
-              );
-            }
+                  var commonProps = {
+                    name: path,
+                    error: (nodeAttributesError || {})[path],
+                    disabled: !isPendingAdditionNode ||
+                      nodeAttributes.checkRestrictions(configModels, 'disable', metadata).result,
+                    onChange: this.onNodeAttributesChange,
+                    placeholder: 'None'
+                  };
+
+                  if (attribute.type === 'custom_hugepages') {
+                    return (
+                      <customControls.custom_hugepages
+                        {...commonProps}
+                        config={attribute}
+                        name='hugepages.nova'
+                        key={attributeName + 'hugepages'}
+                      />
+                    );
+                  }
+
+                  return (
+                    <div className='row' key={attributeName}>
+                      <div className='col-xs-12'>
+                        <Input {...attribute} {...commonProps} />
+                      </div>
+                    </div>
+                  );
+                }
+              )}
+            </div>
           );
         }
       )

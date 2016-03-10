@@ -3267,17 +3267,37 @@ input[type=range] {
   .node-attributes {
     @node-attributes-padding: 10px;
     padding: @node-attributes-padding;
+    h3 {
+      margin-top: 0;
+      border-bottom: 1px solid @gray + 50%;
+      color: @base-text-color + 10%;
+      font-size: @base-font-size + 7px;
+    }
+    .section {
+      margin-bottom: @node-attributes-padding * 2;
+    }
     .form-group {
       label {
         display: block;
+        float: left;
+        padding-top: 8px;
+        .font-normal;
+        width: 26%;
+        .break-word;
       }
       input {
         float: left;
-        width: 200px;
+        width: 20%;
+        margin-left: @node-attributes-padding;
+        margin-bottom: 3px;
       }
       .help-block {
-        display: inline-block;
+        display: block;
+        float: left;
         margin-left: @node-attributes-padding;
+        padding-top: 3px;
+        width: 50%;
+        .break-word;
       }
     }
     .huge-pages {
