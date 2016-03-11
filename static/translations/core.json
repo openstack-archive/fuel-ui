@@ -515,7 +515,8 @@
                             "removing": "Removing",
                             "provisioning": "Installing __os__",
                             "provisioned": "__os__ is installed",
-                            "deploying": "Installing OpenStack"
+                            "deploying": "Installing OpenStack",
+                            "stopped": "Stopped"
                         },
                         "remove": "Remove",
                         "delete_node": "Delete node",
@@ -654,6 +655,8 @@
                     "deleted_node_plural": "Deleted __count__ nodes",
                     "provisioned_node": "Provisioned __count__ node",
                     "provisioned_node_plural": "Provisioned __count__ nodes",
+                    "stopped_node": "Stopped __count__ node",
+                    "stopped_node_plural": "Stopped __count__ nodes",
                     "verification_not_performed": "Please verify your network settings before deployment.",
                     "verification_in_progress": "Network verification is in progress.",
                     "verification_failed": "Networks verification failed with an error.",

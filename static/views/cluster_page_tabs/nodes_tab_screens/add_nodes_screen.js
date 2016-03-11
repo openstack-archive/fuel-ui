@@ -46,7 +46,8 @@ var AddNodesScreen = React.createClass({
         'pending_deletion',
         'provisioned',
         'provisioning',
-        'deploying'
+        'deploying',
+        'stopped'
       )}
       defaultFilters={{status: []}}
     />;

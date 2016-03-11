@@ -589,6 +589,7 @@ var ClusterActionsPanel = React.createClass({
                 nodes.where({pending_deletion: false, status: 'provisioned'}),
                 'provisioned_node'
               )}
+              {this.renderNodesNumber(nodes.where({status: 'stopped'}), 'stopped_node')}
               {this.renderNodesNumber(nodes.where({pending_deletion: true}), 'deleted_node', true)}
             </ul>,
           <ClusterActionButton
@@ -624,6 +625,7 @@ var ClusterActionsPanel = React.createClass({
             className='btn-provision'
             dialog={ProvisionNodesDialog}
             canSelectNodes
+            nodeStatuses={['pending_addition', 'error']}
           />
         ];
         break;
@@ -646,6 +648,7 @@ var ClusterActionsPanel = React.createClass({
             className='btn-deploy-nodes'
             dialog={DeployNodesDialog}
             canSelectNodes
+            nodeStatuses={['provisioned', 'stopped', 'error']}
           />
         ];
         break;
@@ -672,6 +675,7 @@ var ClusterActionsPanel = React.createClass({
             key='action-button'
             className='btn-provision-vms'
             dialog={ProvisionVMsDialog}
+            nodeStatuses={['pending_addition', 'error']}
           />
         ];
         break;
@@ -787,7 +791,7 @@ var ClusterActionButton = React.createClass({
     };
   },
   showSelectNodesDialog() {
-    var {nodes, cluster} = this.props;
+    var {nodes, cluster, nodeStatuses} = this.props;
     nodes.fetch = function(options) {
       return this.constructor.__super__.fetch.call(this,
         _.extend({data: {cluster_id: cluster.id}}, options));
@@ -801,7 +805,8 @@ var ClusterActionButton = React.createClass({
         cluster,
         selectedNodeIds: this.state.selectedNodeIds,
         roles: cluster.get('roles'),
-        nodeNetworkGroups: cluster.get('nodeNetworkGroups')
+        nodeNetworkGroups: cluster.get('nodeNetworkGroups'),
+        statusesToFilter: nodeStatuses
       })
       .done((selectedNodeIds) => this.setState({selectedNodeIds}));
   },
@@ -1013,10 +1018,7 @@ var ClusterInfo = React.createClass({
   renderStatistics() {
     var {cluster} = this.props;
     var roles = _.union(['total'], cluster.get('roles').pluck('name'));
-    var statuses = [
-      'offline', 'error', 'pending_addition', 'pending_deletion', 'ready',
-      'provisioned', 'provisioning', 'deploying', 'removing'
-    ];
+    var statuses = _.without(models.Node.prototype.statuses, 'discover');
     return (
       <div className='row statistics-block'>
         <div className='title'>{i18n(ns + 'cluster_info_fields.statistics')}</div>

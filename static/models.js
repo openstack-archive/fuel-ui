@@ -413,6 +413,7 @@ models.Node = BaseModel.extend({
     'provisioned',
     'provisioning',
     'deploying',
+    'stopped',
     'discover',
     'error',
     'offline',
@@ -468,11 +469,14 @@ models.Node = BaseModel.extend({
   },
   isDeploymentPossible() {
     var status = this.get('status');
-    return status === 'provisioned' || status === 'error' && this.get('error_type') === 'deploy';
+    return status === 'provisioned' ||
+      status === 'stopped' ||
+      status === 'error' && this.get('error_type') === 'deploy';
   },
   hasChanges() {
     return this.get('pending_addition') ||
       this.get('pending_deletion') ||
+      this.get('status') === 'stopped' ||
       !!this.get('cluster') && !!this.get('pending_roles').length;
   },
   areDisksConfigurable() {

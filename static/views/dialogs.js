@@ -619,6 +619,7 @@ export var SelectNodesDialog = React.createClass({
   },
   renderBody() {
     return <NodeListScreen
+      statusesToFilter={models.Node.prototype.statuses}
       {...this.props}
       ref='screen'
       mode='list'
@@ -627,7 +628,6 @@ export var SelectNodesDialog = React.createClass({
       sorters={_.without(models.Nodes.prototype.sorters, 'cluster')}
       defaultSorting={[{roles: 'asc'}]}
       filters={_.without(models.Nodes.prototype.filters, 'cluster')}
-      statusesToFilter={['pending_addition', 'error']}
       defaultFilters={{roles: [], status: []}}
       showBatchActionButtons={false}
       showLabeManagementButton={false}

@@ -518,49 +518,39 @@ var Node = React.createClass({
     });
   },
   render() {
+    var {node, locked, mode, cluster, checked, viewMode} = this.props;
     var ns = 'cluster_page.nodes_tab.node.';
-    var node = this.props.node;
-    var isSelectable = node.isSelectable() && !this.props.locked && this.props.mode !== 'edit';
+    var isSelectable = node.isSelectable() && !locked && mode !== 'edit';
     var status = node.getStatusSummary();
-    var roles = this.props.cluster ? node.sortedRoles(
-      this.props.cluster.get('roles').pluck('name')
-    ) : [];
+    var roles = cluster ? node.sortedRoles(cluster.get('roles').pluck('name')) : [];
 
-    // compose classes
     var nodePanelClasses = {
       node: true,
-      selected: this.props.checked,
-      'col-xs-12': this.props.viewMode !== 'compact',
-      unavailable: !isSelectable
+      selected: checked,
+      'col-xs-12': viewMode !== 'compact',
+      unavailable: !isSelectable,
+      [status]: true
     };
-    nodePanelClasses[status] = status;
 
     var manufacturer = node.get('manufacturer') || '';
     var logoClasses = {
-      'manufacturer-logo': true
+      'manufacturer-logo': true,
+      [manufacturer.toLowerCase()]: !!manufacturer
     };
-    logoClasses[manufacturer.toLowerCase()] = manufacturer;
 
-    var statusClasses = {
-      'node-status': true
-    };
     var statusClass = {
       pending_addition: 'text-success',
       pending_deletion: 'text-warning',
       error: 'text-danger',
-      ready: 'text-info',
-      provisioning: 'text-info',
-      deploying: 'text-success',
-      provisioned: 'text-info'
-    }[status];
-    statusClasses[statusClass] = true;
+      deploying: 'text-success'
+    }[status] || 'text-info';
+    var statusClasses = {
+      'node-status': true,
+      [statusClass]: true
+    };
 
-    var renderMethod = this.props.viewMode === 'compact' ? this.renderCompactNode :
-      this.renderStandardNode;
-
-    return renderMethod({
-      ns, status, roles, nodePanelClasses,
-      logoClasses, statusClasses, isSelectable
+    return (viewMode === 'compact' ? this.renderCompactNode : this.renderStandardNode)({
+      ns, status, roles, nodePanelClasses, logoClasses, statusClasses, isSelectable
     });
   }
 });
