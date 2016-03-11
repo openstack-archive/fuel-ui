@@ -97,7 +97,7 @@ define([
             .assertElementsExist('.node-list .node', 4, 'Search was reset')
             .assertElementNotExists(searchButtonSelector,
               'Search input is still shown after search reset')
-            .clickByCssSelector('.node-list')
+            .clickByCssSelector('.page-title')
             .assertElementExists(searchButtonSelector,
               'Empty search control is closed when clicking outside the input');
         },

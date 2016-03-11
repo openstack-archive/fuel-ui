@@ -71,11 +71,18 @@ define([
             })
             .end()
           // the following timeout as we have 0.5s transition time for role popover
-          .sleep(600)
+          .sleep(1000)
           .assertElementExists(
             '.role-block.mongo .popover .text-warning',
             'Role popover is opened and the role warning is shown in the popover'
           )
+          // closing role popover by moving mouse
+          .findByCssSelector('.page-title')
+            .then(function(element) {
+              return self.remote.moveMouseTo(element);
+            })
+            .end()
+          .sleep(500)
           .then(function() {
             return clusterPage.checkNodeRoles(['Controller', 'Cinder']);
           })
