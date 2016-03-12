@@ -29,7 +29,7 @@ define(['tests/functional/helpers'], function() {
           function() {
             return this.parent
               .clickByCssSelector('.welcome-button-box button')
-              .waitForDeletedByCssSelector('.welcome-button-box button', 2000)
+              .waitForDeletedByCssSelector('.welcome-button-box button', 3000)
               .then(
                 function() {
                   return true;

@@ -96,7 +96,8 @@ var LicenseUsage = React.createClass({
           tableClassName={tableClassName}
         />
         <a href='/api/capacity/csv' target='_blank' className='btn btn-info'>
-          <i className='glyphicon glyphicon-download-alt' />{' '}
+          <i className='glyphicon glyphicon-download-alt' />
+          &nbsp;
           {i18n('capacity_page.download_report')}
         </a>
       </div>
