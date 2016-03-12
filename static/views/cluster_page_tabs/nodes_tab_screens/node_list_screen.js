@@ -1883,7 +1883,7 @@ Role = React.createClass({
                 'glyphicon-warning-sign': !!warnings.length
               })}
             />
-            {role.get('label')}
+            <span>{role.get('label')}</span>
           </div>
         </div>
         {this.state.isPopoverVisible &&
