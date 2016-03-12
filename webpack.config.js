@@ -2,7 +2,6 @@
 
 module.exports = {
   entry: [
-    'babel-core/polyfill',
     './static/app.js'
   ],
   output: {
@@ -18,7 +17,11 @@ module.exports = {
         test: /\.js$/,
         loader: 'babel',
         exclude: [/(node_modules|vendor\/custom)\//, /\/expression\/parser\.js$/],
-        query: {cacheDirectory: true}
+        query: {
+          cacheDirectory: true,
+          plugins: ['transform-runtime', 'transform-es2015-modules-commonjs'],
+          presets: ['es2015-webpack', 'react']
+        }
       },
       {test: /\/expression\/parser\.js$/, loader: 'exports?parser'},
       {test: require.resolve('jquery'), loader: 'expose?jQuery!expose?$'},
