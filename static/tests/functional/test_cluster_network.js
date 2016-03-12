@@ -106,7 +106,7 @@ define([
         return this.remote
           .findByCssSelector(cidrElementSelector)
           .then(function(element) {
-            return element.getAttribute('value')
+            return element.getProperty('value')
               .then(function(value) {
                 cidrInitialValue = value;
               });
