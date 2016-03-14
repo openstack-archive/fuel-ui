@@ -90,6 +90,31 @@ define([
             'Interface properties panel is hidden after clicking Close Configuration Mode'
           );
       },
+      // @TODO (morale): restore when sriov will be available by default
+      //'Test SRIOV panel': function() {
+      //  return this.remote
+      //    .clickByCssSelector('.sriov .btn-link')
+      //    .waitForCssSelector('.sriov-panel', 1000)
+      //    .assertElementExists(
+      //      '.sriov-control input[type=checkbox]',
+      //      'Enable SRIOV input appears'
+      //    )
+      //    .clickByCssSelector('.sriov-control input[type=checkbox]')
+      //    .assertElementExists(
+      //      '.text-danger.sriov',
+      //      'Error style is applied if there are networks assigned to the interface'
+      //    )
+      //    .setInputValue('.sriov-virtual-functions input', 'bla')
+      //    .assertElementExists(
+      //      '.has-error.sriov-virtual-functions',
+      //      'Error style is applied when inputting incorrect value to Virtual Functions control'
+      //    )
+      //    .setInputValue('.physnet input', '!!!')
+      //    .assertElementExists(
+      //      '.has-error.physnet',
+      //      'Error style is applied when inputting incorrect value to Physnet control'
+      //    );
+      //},
       'Untagged networks error': function() {
         return this.remote
           .then(function() {

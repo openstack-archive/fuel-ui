@@ -161,6 +161,7 @@ var EditNodeInterfacesScreen = React.createClass({
     var bondingMap = _.map(bonds,
       (bond) => _.map(bond.get('slaves'), (slave) => interfaces.indexOf(interfaces.find(slave)))
     );
+
     this.setState({actionInProgress: true});
     return $.when(...nodes.map((node) => {
       var oldNodeBonds, nodeBonds;
@@ -197,6 +198,13 @@ var EditNodeInterfacesScreen = React.createClass({
           ifc.set({
             offloading_modes: updatedIfc.get('offloading_modes')
           });
+        }
+
+        // (@morale): removing 'sriov_totalvfs' and 'available' fields to not PUT them to server
+        var formatedSRIOV = ifc.get('interface_properties').sriov;
+        if (formatedSRIOV) {
+          formatedSRIOV = _.omit(formatedSRIOV, ['sriov_totalvfs', 'available']);
+          ifc.get('interface_properties').sriov = formatedSRIOV;
         }
       });
 
@@ -599,7 +607,7 @@ var NodeInterface = React.createClass({
       }
     })
   ],
-  renderedIfcProperties: ['offloading_modes', 'mtu'],
+  renderedIfcProperties: ['offloading_modes', 'mtu', 'sriov'],
   propTypes: {
     bondingAvailable: React.PropTypes.bool,
     locked: React.PropTypes.bool
@@ -722,11 +730,15 @@ var NodeInterface = React.createClass({
       var convertedValue = parseInt(value, 10);
       return _.isNaN(convertedValue) ? null : convertedValue;
     }
-    if (name === 'mtu') {
+    if (_.contains(['mtu', 'sriov.sriov_numvfs'], name)) {
       value = convertToNullIfNaN(value);
     }
     var interfaceProperties = _.cloneDeep(this.props.interface.get('interface_properties') || {});
-    interfaceProperties[name] = value;
+    if (_.contains(name, '.')) {
+      _.set(interfaceProperties, name, value);
+    } else {
+      interfaceProperties[name] = value;
+    }
     this.props.interface.set('interface_properties', interfaceProperties);
   },
   renderConfigurableAttributes() {
@@ -753,22 +765,42 @@ var NodeInterface = React.createClass({
           </button>
         </span>
         {_.map(ifcProperties, (propertyValue, propertyName) => {
+          if (_.isPlainObject(propertyValue) && !propertyValue.available) return null;
           if (_.contains(this.renderedIfcProperties, propertyName)) {
             var classes = {
               'text-danger': _.has(errors, propertyName),
+              'property-item-container': true,
               [propertyName]: true
             };
-            return (
-              <span key={propertyName} className={utils.classNames(classes)}>
-                {i18n(ns + propertyName) + ':'}
-                <button
-                  className='btn btn-link property-item'
-                  onClick={() => this.switchActiveSubtab(propertyName)}
-                >
-                  {propertyValue || i18n(ns + propertyName + '_placeholder')}
-                </button>
-              </span>
-            );
+            var commonButtonProps = {
+              className: 'btn btn-link property-item',
+              onClick: () => this.switchActiveSubtab(propertyName)
+            };
+            //@TODO (morale): create some common component out of this
+            switch (propertyName) {
+              case 'sriov':
+                return (
+                  <span key={propertyName} className={utils.classNames(classes)}>
+                    {i18n(ns + propertyName) + ':'}
+                    <button {...commonButtonProps}>
+                      {propertyValue.enabled ?
+                        i18n(ns + 'sriov_enabled')
+                      :
+                        i18n(ns + 'sriov_disabled')
+                      }
+                    </button>
+                  </span>
+                );
+              default:
+                return (
+                  <span key={propertyName} className={utils.classNames(classes)}>
+                    {i18n(ns + propertyName) + ':'}
+                    <button {...commonButtonProps}>
+                      {propertyValue || i18n(ns + propertyName + '_placeholder')}
+                    </button>
+                  </span>
+                );
+            }
           }
         })}
       </div>
@@ -818,7 +850,58 @@ var NodeInterface = React.createClass({
             error={errors && !_.isEmpty(errors) && _.values(errors).join(', ') || null}
           />
         );
+      case 'sriov':
+        return this.renderSRIOV(errors);
     }
+  },
+  renderSRIOV(errors) {
+    var ifc = this.props.interface;
+    var interfaceProperties = ifc.get('interface_properties');
+    var isSRIOVEnabled = interfaceProperties.sriov.enabled;
+    var locked = this.props.locked || !interfaceProperties.sriov.available;
+    errors = errors.sriov;
+    return (
+      <div className='sriov-panel'>
+        <p>{i18n(ns + 'sriov_description')}</p>
+        <Input
+          type='checkbox'
+          label={i18n('common.enable')}
+          checked={isSRIOVEnabled}
+          name='sriov.enabled'
+          onChange={this.onInterfacePropertiesChange}
+          disabled={locked}
+          wrapperClassName='sriov-control'
+          error={errors && errors.common}
+        />
+        {isSRIOVEnabled &&
+          [
+            <Input
+              key='sriov.sriov_numvfs'
+              type='number'
+              min={0}
+              label={i18n(ns + 'virtual_functions')}
+              value={interfaceProperties.sriov.sriov_numvfs || ''}
+              name='sriov.sriov_numvfs'
+              onChange={this.onInterfacePropertiesChange}
+              disabled={locked}
+              wrapperClassName='sriov-virtual-functions'
+              error={errors && errors.sriov_numvfs}
+            />,
+            <Input
+              key='sriov.physnet'
+              type='text'
+              label={i18n(ns + 'physical_network')}
+              value={interfaceProperties.sriov.physnet || ''}
+              name='sriov.physnet'
+              onChange={this.onInterfacePropertiesChange}
+              disabled={locked}
+              wrapperClassName='physnet'
+              error={errors && errors.physnet}
+            />
+          ]
+        }
+      </div>
+    );
   },
   switchActiveSubtab(subTabName) {
     var currentActiveTab = this.state.activeInterfaceSectionName;
