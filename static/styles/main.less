@@ -3480,7 +3480,7 @@ input[type=range] {
     .ifc-inner-container {
       @ifc-container-dark-color: @tab-color - 30%;
       @ifc-container-light-color: @tab-color;
-
+      border: 1px solid @ifc-container-light-color;
       background: @ifc-container-light-color;
       border-radius: 4px;
       padding: 0;
@@ -3590,16 +3590,17 @@ input[type=range] {
             }
           }
           .propety-item-container {
-            margin-right: 10px;
+            margin-right: 20px;
             .property-item {
               cursor: pointer;
               padding-top: 4px;
               padding-left: 0;
-              margin-left: 10px;
+              margin-left: 5px;
             }
           }
         }
         .configuration-panel {
+          margin-top: 20px;
           margin-bottom: 10px;
         }
         .mtu-control {
@@ -3609,7 +3610,7 @@ input[type=range] {
         }
         button.close {
           margin-right: 5px;
-          margin-top: 5px;
+          margin-top: 6px;
         }
       }
       // Offline modes control
@@ -3674,7 +3675,8 @@ input[type=range] {
         .ifc-networks {
           @network-block-width: 120px;
           @network-block-height: @network-block-width / 2;
-
+          text-align: center;
+          font-weight: 100;
           min-height: @network-block-height + @base-ifc-indent;
           margin-right: 5px;
 
