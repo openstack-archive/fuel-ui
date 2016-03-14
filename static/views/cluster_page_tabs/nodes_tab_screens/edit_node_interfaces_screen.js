@@ -736,7 +736,7 @@ var NodeInterface = React.createClass({
     var offloadingModes = ifc.get('offloading_modes') || [];
     return (
       <div className='properties-list'>
-        <span className='propety-item-container'>
+        <span className='property-item-container'>
           {i18n(ns + 'offloading_modes') + ':'}
           <button
             className='btn btn-link property-item'
@@ -756,7 +756,8 @@ var NodeInterface = React.createClass({
           if (_.contains(this.renderedIfcProperties, propertyName)) {
             var classes = {
               'text-danger': _.has(errors, propertyName),
-              [propertyName]: true
+              [propertyName]: true,
+              'property-item-container': true
             };
             return (
               <span key={propertyName} className={utils.classNames(classes)}>
