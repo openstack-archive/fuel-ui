@@ -77,8 +77,7 @@ var EditNodeInterfacesScreen = React.createClass({
   getInitialState() {
     return {
       actionInProgress: false,
-      interfaceNetworksErrors: {},
-      interfacePropertiesErrors: {}
+      interfacesErrors: {}
     };
   },
   componentWillMount() {
@@ -161,6 +160,7 @@ var EditNodeInterfacesScreen = React.createClass({
     var bondingMap = _.map(bonds,
       (bond) => _.map(bond.get('slaves'), (slave) => interfaces.indexOf(interfaces.find(slave)))
     );
+
     this.setState({actionInProgress: true});
     return $.when(...nodes.map((node) => {
       var oldNodeBonds, nodeBonds;
@@ -197,6 +197,13 @@ var EditNodeInterfacesScreen = React.createClass({
           ifc.set({
             offloading_modes: updatedIfc.get('offloading_modes')
           });
+        }
+
+        // (@morale): removing 'sriov_totalvfs' and 'available' fields to not PUT them to server
+        var formatedSRIOV = ifc.get('interface_properties').sriov;
+        if (formatedSRIOV) {
+          formatedSRIOV = _.omit(formatedSRIOV, ['sriov_totalvfs', 'available']);
+          ifc.get('interface_properties').sriov = formatedSRIOV;
         }
       });
 
@@ -365,8 +372,7 @@ var EditNodeInterfacesScreen = React.createClass({
     }
   },
   validate() {
-    var interfaceNetworksErrors = {};
-    var interfacePropertiesErrors = {};
+    var interfacesErrors = {};
     var validationResult;
     var networkConfiguration = this.props.cluster.get('networkConfiguration');
     var networkingParameters = networkConfiguration.get('networking_parameters');
@@ -379,19 +385,14 @@ var EditNodeInterfacesScreen = React.createClass({
         networkingParameters: networkingParameters,
         networks: networks
       });
-      if (validationResult.length) {
-        interfacePropertiesErrors[ifc.get('name')] =
-          _.compact(_.pluck(validationResult, 'interface_properties'))[0];
-        validationResult = _.without(validationResult,
-          _.find(validationResult, 'interface_properties'));
-        interfaceNetworksErrors[ifc.get('name')] = validationResult.join(' ');
+
+      if (!_.isEmpty(validationResult)) {
+        interfacesErrors[ifc.get('name')] = validationResult;
       }
     });
-    if (!_.isEqual(this.state.interfaceNetworksErrors, interfaceNetworksErrors)) {
-      this.setState({interfaceNetworksErrors: interfaceNetworksErrors});
-    }
-    if (!_.isEqual(this.state.interfacePropertiesErrors, interfacePropertiesErrors)) {
-      this.setState({interfacePropertiesErrors: interfacePropertiesErrors});
+
+    if (!_.isEqual(this.state.interfacesErrors, interfacesErrors)) {
+      this.setState({interfacesErrors: interfacesErrors});
     }
   },
   validateSpeedsForBonding(interfaces) {
@@ -401,8 +402,7 @@ var EditNodeInterfacesScreen = React.createClass({
     return _.uniq(speeds).length > 1 || !_.compact(speeds).length;
   },
   isSavingPossible() {
-    return !_.chain(this.state.interfaceNetworksErrors).values().some().value() &&
-      !_.chain(this.state.interfacePropertiesErrors).values().some().value() &&
+    return !_.chain(this.state.interfacesErrors).values().some().value() &&
       !this.state.actionInProgress && this.hasChanges();
   },
   getIfcProperty(property) {
@@ -510,8 +510,7 @@ var EditNodeInterfacesScreen = React.createClass({
                   locked={locked}
                   bondingAvailable={bondingAvailable}
                   configurationTemplateExists={configurationTemplateExists}
-                  errors={this.state.interfaceNetworksErrors[ifcName]}
-                  interfacePropertiesErrors={this.state.interfacePropertiesErrors[ifcName]}
+                  errors={this.state.interfacesErrors[ifcName]}
                   validate={this.validate}
                   removeInterfaceFromBond={this.removeInterfaceFromBond}
                   bondingProperties={this.props.bondingConfig.properties}
@@ -599,7 +598,7 @@ var NodeInterface = React.createClass({
       }
     })
   ],
-  renderedIfcProperties: ['offloading_modes', 'mtu'],
+  renderedIfcProperties: ['offloading_modes', 'mtu', 'sriov'],
   propTypes: {
     bondingAvailable: React.PropTypes.bool,
     locked: React.PropTypes.bool
@@ -722,21 +721,21 @@ var NodeInterface = React.createClass({
       var convertedValue = parseInt(value, 10);
       return _.isNaN(convertedValue) ? null : convertedValue;
     }
-    if (name === 'mtu') {
+    if (_.contains(['mtu', 'sriov.sriov_numvfs'], name)) {
       value = convertToNullIfNaN(value);
     }
     var interfaceProperties = _.cloneDeep(this.props.interface.get('interface_properties') || {});
-    interfaceProperties[name] = value;
+    _.set(interfaceProperties, name, value);
     this.props.interface.set('interface_properties', interfaceProperties);
   },
   renderConfigurableAttributes() {
     var ifc = this.props.interface;
     var ifcProperties = ifc.get('interface_properties');
-    var errors = this.props.interfacePropertiesErrors;
+    var errors = (this.props.errors || {}).interface_properties;
     var offloadingModes = ifc.get('offloading_modes') || [];
     return (
       <div className='properties-list'>
-        <span className='propety-item-container'>
+        <span className='property-item-container'>
           {i18n(ns + 'offloading_modes') + ':'}
           <button
             className='btn btn-link property-item'
@@ -753,36 +752,57 @@ var NodeInterface = React.createClass({
           </button>
         </span>
         {_.map(ifcProperties, (propertyValue, propertyName) => {
+          if (_.isPlainObject(propertyValue) && !propertyValue.available) return null;
           if (_.contains(this.renderedIfcProperties, propertyName)) {
             var classes = {
               'text-danger': _.has(errors, propertyName),
+              'property-item-container': true,
               [propertyName]: true
             };
-            return (
-              <span key={propertyName} className={utils.classNames(classes)}>
-                {i18n(ns + propertyName) + ':'}
-                <button
-                  className='btn btn-link property-item'
-                  onClick={() => this.switchActiveSubtab(propertyName)}
-                >
-                  {propertyValue || i18n(ns + propertyName + '_placeholder')}
-                </button>
-              </span>
-            );
+            var commonButtonProps = {
+              className: 'btn btn-link property-item',
+              onClick: () => this.switchActiveSubtab(propertyName)
+            };
+            //@TODO (morale): create some common component out of this
+            switch (propertyName) {
+              case 'sriov':
+                return (
+                  <span key={propertyName} className={utils.classNames(classes)}>
+                    {i18n(ns + propertyName) + ':'}
+                    <button {...commonButtonProps}>
+                      {propertyValue.enabled ?
+                        i18n(ns + 'sriov_enabled')
+                      :
+                        i18n(ns + 'sriov_disabled')
+                      }
+                    </button>
+                  </span>
+                );
+              default:
+                return (
+                  <span key={propertyName} className={utils.classNames(classes)}>
+                    {i18n(ns + propertyName) + ':'}
+                    <button {...commonButtonProps}>
+                      {propertyValue || i18n(ns + propertyName + '_placeholder')}
+                    </button>
+                  </span>
+                );
+            }
           }
         })}
       </div>
     );
+  },
+  getInterfacePropertyError() {
+    return ((this.props.errors ||
+      {}).interface_properties || {})[this.state.activeInterfaceSectionName];
   },
   renderInterfaceSubtab() {
     var ifc = this.props.interface;
     var offloadingModes = ifc.get('offloading_modes') || [];
     var {locked} = this.props;
     var ifcProperties = ifc.get('interface_properties') || null;
-    var errors = _.pick(
-      this.props.interfacePropertiesErrors,
-      this.state.activeInterfaceSectionName
-    );
+    var errors = this.getInterfacePropertyError();
     switch (this.state.activeInterfaceSectionName) {
       case 'offloading_modes':
         return (
@@ -815,10 +835,60 @@ var NodeInterface = React.createClass({
             onChange={this.onInterfacePropertiesChange}
             disabled={locked}
             wrapperClassName='pull-left mtu-control'
-            error={errors && !_.isEmpty(errors) && _.values(errors).join(', ') || null}
+            error={errors && _.values(errors).join(', ') || null}
           />
         );
+      case 'sriov':
+        return this.renderSRIOV(errors);
     }
+  },
+  renderSRIOV(errors) {
+    var ifc = this.props.interface;
+    var interfaceProperties = ifc.get('interface_properties');
+    var isSRIOVEnabled = interfaceProperties.sriov.enabled;
+    var locked = this.props.locked || !interfaceProperties.sriov.available;
+    return (
+      <div className='sriov-panel'>
+        <p>{i18n(ns + 'sriov_description')}</p>
+        <Input
+          type='checkbox'
+          label={i18n('common.enable')}
+          checked={isSRIOVEnabled}
+          name='sriov.enabled'
+          onChange={this.onInterfacePropertiesChange}
+          disabled={locked}
+          wrapperClassName='sriov-control'
+          error={errors && errors.common}
+        />
+        {isSRIOVEnabled &&
+          [
+            <Input
+              key='sriov.sriov_numvfs'
+              type='number'
+              min={0}
+              label={i18n(ns + 'virtual_functions')}
+              value={interfaceProperties.sriov.sriov_numvfs || ''}
+              name='sriov.sriov_numvfs'
+              onChange={this.onInterfacePropertiesChange}
+              disabled={locked}
+              wrapperClassName='sriov-virtual-functions'
+              error={errors && errors.sriov_numvfs}
+            />,
+            <Input
+              key='sriov.physnet'
+              type='text'
+              label={i18n(ns + 'physical_network')}
+              value={interfaceProperties.sriov.physnet || ''}
+              name='sriov.physnet'
+              onChange={this.onInterfacePropertiesChange}
+              disabled={locked}
+              wrapperClassName='physnet'
+              error={errors && errors.physnet}
+            />
+          ]
+        }
+      </div>
+    );
   },
   switchActiveSubtab(subTabName) {
     var currentActiveTab = this.state.activeInterfaceSectionName;
@@ -862,7 +932,7 @@ var NodeInterface = React.createClass({
         </div>
         {isConfigurationModeOn &&
           <div className='row configuration-panel'>
-            <div className='col-xs-12'>
+            <div className='col-xs-12 interface-sub-tab'>
               {this.renderInterfaceSubtab()}
             </div>
           </div>
@@ -889,11 +959,12 @@ var NodeInterface = React.createClass({
     };
     var bondProperties = ifc.get('bond_properties');
     var bondingPossible = this.props.bondingAvailable && !locked;
+    var networkErrors = (this.props.errors || {}).network_errors;
     return this.props.connectDropTarget(
       <div className='ifc-container'>
         <div className={utils.classNames({
           'ifc-inner-container': true,
-          nodrag: this.props.errors,
+          nodrag: networkErrors,
           over: this.props.isOver && this.props.canDrop,
           'has-changes': this.props.hasChanges,
           [ifc.get('name')]: true
@@ -1041,9 +1112,9 @@ var NodeInterface = React.createClass({
                 }
               </div>
             </div>
-            {this.props.errors &&
+            {networkErrors && !!networkErrors.length &&
               <div className='ifc-error alert alert-danger'>
-                {this.props.errors}
+                {networkErrors.join(', ')}
               </div>
             }
           </div>
