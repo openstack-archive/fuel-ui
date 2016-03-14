@@ -950,7 +950,7 @@ models.Interface = BaseModel.extend({
 
     if (interfaceProperties) {
       var ifcPropertiesErrors =
-        this.validateInterfaceProperties(interfaceProperties);
+        this.validateInterfaceProperties(interfaceProperties, attrs);
       if (!_.isEmpty(ifcPropertiesErrors)) {
         errors.push({
           interface_properties: ifcPropertiesErrors
@@ -977,7 +977,7 @@ models.Interface = BaseModel.extend({
 
     return errors;
   },
-  validateInterfaceProperties(interfaceProperties) {
+  validateInterfaceProperties(interfaceProperties, attrs) {
     var errors = {};
     var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
     var mtuValue = interfaceProperties.mtu;
@@ -985,6 +985,29 @@ models.Interface = BaseModel.extend({
       if (mtuValue < 42 || mtuValue > 65536) {
         errors.mtu = i18n(ns + 'invalid_mtu');
       }
+    }
+    var sriov = interfaceProperties.sriov;
+    if (sriov && sriov.enabled) {
+      errors.sriov = this.validateSRIOV(attrs, sriov);
+    }
+    return _.isEmpty(errors) ? null : errors;
+  },
+  validateSRIOV(attrs, sriov) {
+    var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
+    var errors = {};
+    var networks = new models.Networks(this.get('assigned_networks')
+      .invoke('getFullNetwork', attrs.networks));
+    if (networks.length && attrs.networkingParameters.segmentation_type !== 'vlan') {
+      errors.common = i18n(ns + 'sriov_placement_error');
+    }
+    if (sriov.sriov_numvfs < 0 ||
+      sriov.sriov_numvfs > sriov.sriov_totalvfs ||
+      _.isNaN(parseInt(sriov.sriov_numvfs, 10))
+    ) {
+      errors.sriov_numvfs = i18n(ns + 'invalid_virtual_functions_number');
+    }
+    if (!sriov.physnet.match(utils.regexes.name)) {
+      errors.physnet = i18n(ns + 'invalid_physnet');
     }
     return _.isEmpty(errors) ? null : errors;
   }
