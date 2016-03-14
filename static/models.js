@@ -986,6 +986,29 @@ models.Interface = BaseModel.extend({
         errors.mtu = i18n(ns + 'invalid_mtu');
       }
     }
+    var sriov = interfaceProperties.sriov;
+    if (sriov.enabled) {
+      errors.sriov = this.validateSRIOV(attrs, sriov);
+    }
+    return _.isEmpty(errors) ? null : errors;
+  },
+  validateSRIOV(attrs, sriov) {
+    var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
+    var errors = {};
+    var networks = new models.Networks(this.get('assigned_networks')
+      .invoke('getFullNetwork', attrs.networks));
+    if (networks.length && attrs.networkingParameters.segmentation_type !== 'vlan') {
+      errors.common = i18n(ns + 'sriov_placement_error');
+    }
+    if (sriov.sriov_numvfs < 0 ||
+      sriov.sriov_numvfs > sriov.sriov_totalvfs ||
+      _.isNaN(parseInt(sriov.sriov_numvfs, 10))
+    ) {
+      errors.sriov_numvfs = i18n(ns + 'invalid_virtual_functions_number');
+    }
+    if (!sriov.physnet.match(utils.regexes.name)) {
+      errors.physnet = i18n(ns + 'invalid_physnet');
+    }
     return _.isEmpty(errors) ? null : errors;
   }
 });
