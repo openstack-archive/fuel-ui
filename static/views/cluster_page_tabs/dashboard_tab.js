@@ -828,7 +828,7 @@ var ClusterActionButton = React.createClass({
             disabled={disabled}
             onClick={() => dialog.show({cluster, nodeIds: selectedNodeIds})}
           >
-            {!!iconClassName && <div className={iconClassName} />}
+            {!!iconClassName && <i className={iconClassName} />}
             {i18n(
               this.props.ns + (
                 selectedNodeIds.length === nodes.length ?
@@ -866,7 +866,7 @@ var ClusterActionButton = React.createClass({
         disabled={disabled}
         onClick={() => dialog.show({cluster, nodeIds: selectedNodeIds})}
       >
-        {!!iconClassName && <div className={iconClassName} />}
+        {!!iconClassName && <i className={iconClassName} />}
         {i18n(
           this.props.ns +
             (nodes.length ? 'button_title_all_nodes' : 'button_title_no_nodes'),
