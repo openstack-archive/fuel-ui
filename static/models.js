@@ -933,7 +933,8 @@ models.Interface = BaseModel.extend({
     });
   },
   validate(attrs) {
-    var errors = [];
+    var errors = {};
+    var networkErrors = [];
     var networks = new models.Networks(this.get('assigned_networks')
       .invoke('getFullNetwork', attrs.networks));
     var untaggedNetworks = networks.filter((network) => {
@@ -944,23 +945,16 @@ models.Interface = BaseModel.extend({
     var maxUntaggedNetworksCount = networks.any({name: 'public'}) &&
       networks.any({name: 'floating'}) ? 2 : 1;
     if (untaggedNetworks.length > maxUntaggedNetworksCount) {
-      errors.push(i18n(ns + 'too_many_untagged_networks'));
+      networkErrors.push(i18n(ns + 'too_many_untagged_networks'));
     }
-    var interfaceProperties = this.get('interface_properties');
 
-    if (interfaceProperties) {
-      var ifcPropertiesErrors =
-        this.validateInterfaceProperties(interfaceProperties);
-      if (!_.isEmpty(ifcPropertiesErrors)) {
-        errors.push({
-          interface_properties: ifcPropertiesErrors
-        });
-      }
-    }
+    _.extend(errors, this.validateInterfaceProperties(attrs));
 
     // check interface networks have the same vlan id
     var vlans = _.reject(networks.pluck('vlan_start'), _.isNull);
-    if (_.uniq(vlans).length < vlans.length) errors.push(i18n(ns + 'networks_with_the_same_vlan'));
+    if (_.uniq(vlans).length < vlans.length) {
+      networkErrors.push(i18n(ns + 'networks_with_the_same_vlan'));
+    }
 
     // check interface network vlan ids included in Neutron L2 vlan range
     var vlanRanges = _.reject(networks.map(
@@ -973,20 +967,47 @@ models.Interface = BaseModel.extend({
             range[1] >= currentRange[0] && range[0] <= currentRange[1]
         )
       )
-    ) errors.push(i18n(ns + 'vlan_range_intersection'));
+    ) networkErrors.push(i18n(ns + 'vlan_range_intersection'));
 
+    if (networkErrors.length) {
+      errors.network_errors = networkErrors;
+    }
     return errors;
   },
-  validateInterfaceProperties(interfaceProperties) {
+  validateInterfaceProperties(attrs) {
+    var interfaceProperties = this.get('interface_properties');
+    if (!interfaceProperties) return null;
     var errors = {};
     var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
     var mtuValue = interfaceProperties.mtu;
     if (mtuValue) {
-      if (mtuValue < 42 || mtuValue > 65536) {
+      if (_.isNaN(parseInt(mtuValue, 10)) || mtuValue < 42 || mtuValue > 65536) {
         errors.mtu = i18n(ns + 'invalid_mtu');
       }
     }
-    return _.isEmpty(errors) ? null : errors;
+    _.extend(errors, this.validateSRIOV(attrs));
+    return _.isEmpty(errors) ? null : {interface_properties: errors};
+  },
+  validateSRIOV(attrs) {
+    var sriov = (this.get('interface_properties') || {}).sriov;
+    if (sriov && !sriov.available || !sriov.enabled) return null;
+    var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
+    var errors = {};
+    var networks = new models.Networks(this.get('assigned_networks')
+      .invoke('getFullNetwork', attrs.networks));
+    if (networks.length && attrs.networkingParameters.segmentation_type !== 'vlan') {
+      errors.common = i18n(ns + 'sriov_placement_error');
+    }
+    if (sriov.sriov_numvfs < 0 ||
+      sriov.sriov_numvfs > sriov.sriov_totalvfs ||
+      _.isNaN(parseInt(sriov.sriov_numvfs, 10))
+    ) {
+      errors.sriov_numvfs = i18n(ns + 'invalid_virtual_functions_number');
+    }
+    if (sriov.physnet && !sriov.physnet.match(utils.regexes.name)) {
+      errors.physnet = i18n(ns + 'invalid_physnet');
+    }
+    return _.isEmpty(errors) ? null : {sriov: errors};
   }
 });
 
