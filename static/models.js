@@ -1016,7 +1016,7 @@ models.Interface = BaseModel.extend({
         {max: sriov.sriov_totalvfs}
       );
     }
-    if (sriov.physnet && !sriov.physnet.match(utils.regexes.networkName)) {
+    if (sriov.physnet && !sriov.physnet.match(/^[A-Za-z0-9 _]*[A-Za-z0-9][A-Za-z0-9 _]*$/)) {
       errors.physnet = i18n(ns + 'invalid_physnet');
     } else if (!(_.trim(sriov.physnet) || '')) {
       errors.physnet = i18n(ns + 'empty_physnet');
