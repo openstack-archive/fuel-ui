@@ -1,0 +1,9 @@
+Code-Review+2: Vitaly Kramskikh <vkramskikh@mirantis.com>
+Code-Review+1: Kyrylo Galanov <kgalanov@mirantis.com>
+Workflow+1: Vitaly Kramskikh <vkramskikh@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 15 Mar 2016 15:25:27 +0000
+Reviewed-on: https://review.openstack.org/291724
+Project: openstack/fuel-ui
+Branch: refs/heads/master
