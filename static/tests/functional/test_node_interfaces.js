@@ -90,6 +90,21 @@ define([
             'Interface properties panel is hidden after clicking Close Configuration Mode'
           );
       },
+      'Test SRIOV panel': function() {
+        return this.remote
+          .clickByCssSelector('.sriov .btn-link')
+          .clickByCssSelector('.sriov-control input[type=checkbox]')
+          .assertElementExists(
+            '.ifc-inner-container.nodrag .ifc-error.alert-danger',
+            'Error message appears if there are networks assigned to the interface'
+          )
+          .then(function() {
+            return interfacesPage.assignNetworkToInterface('Public', 'eth2');
+          })
+          .clickByCssSelector('.btn-apply')
+          .assertElementDisabled('.btn-apply', 'Save button is disabled after save')
+          .assertElementNotExists('.modal', 'No dialog is shown after save');
+      },
       'Untagged networks error': function() {
         return this.remote
           .then(function() {
