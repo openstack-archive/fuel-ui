@@ -1121,9 +1121,9 @@ var RenameEnvironmentAction = React.createClass({
   applyAction(e) {
     e.preventDefault();
     var {cluster, endRenaming} = this.props;
-    var name = this.state.name;
+    var name = _.trim(this.state.name);
     if (name !== cluster.get('name')) {
-      var deferred = cluster.save({name: name}, {patch: true, wait: true});
+      var deferred = cluster.save({name}, {patch: true, wait: true});
       if (deferred) {
         this.setState({disabled: true});
         deferred

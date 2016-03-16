@@ -273,10 +273,10 @@ var NameAndRelease = React.createClass({
       wizard.get('clusters')
     ];
     // test cluster name is already taken
-    if (clusters.findWhere({name: name})) {
-      var error = i18n('dialog.create_cluster_wizard.name_release.existing_environment',
-        {name: name});
-      wizard.set({name_error: error});
+    if (clusters.findWhere({name: _.trim(name)})) {
+      wizard.set({
+        name_error: i18n('dialog.create_cluster_wizard.name_release.existing_environment')
+      });
       return false;
     }
     // validate cluster fields
