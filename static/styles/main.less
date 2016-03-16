@@ -1,5 +1,5 @@
 @import "../../node_modules/bootstrap/dist/css/bootstrap.css";
-@import "color-theme.less";
+@import "default-theme.less";
 
 // BASE SETTINGS
 @page-width: 1170px;
@@ -318,9 +318,6 @@ button, .btn:not(.btn-link) {.font-semibold;}
   }
 }
 
-
-@common-icons-sprite: "../img/icons/icons-sprite.svg";
-
 .loading-ticket {
   display: inline-block;
   padding: 10px;
@@ -490,17 +487,17 @@ button, .btn:not(.btn-link) {.font-semibold;}
   overflow: hidden;
   font-size: 1px;
   line-height: 0;
-  background: url("../img/ui/radio_checkbox.svg") no-repeat 0 0 transparent;
+  background: url(@radio-checkbox-img) no-repeat 0 0 transparent;
   width: 22px;
   height: 22px;
 }
 
 .custom-tumbler input:checked + span {
-  background: url("../img/ui/radio_checkbox.svg") no-repeat -22px 0px;
+  background: url(@radio-checkbox-img) no-repeat -22px 0px;
 }
 
 .custom-tumbler input:indeterminate + span {
-  background: url("../img/ui/radio_checkbox.svg") no-repeat -44px 0px;
+  background: url(@radio-checkbox-img) no-repeat -44px 0px;
 }
 
 .custom-tumbler input[disabled] + span {
@@ -513,11 +510,11 @@ button, .btn:not(.btn-link) {.font-semibold;}
 }
 
 .custom-tumbler input[type=radio] + span {
-  background: url("../img/ui/radio_checkbox.svg") no-repeat 0px -22px;
+  background: url(@radio-checkbox-img) no-repeat 0px -22px;
 }
 
 .custom-tumbler input[type=radio]:checked + span {
-  background: url("../img/ui/radio_checkbox.svg") no-repeat -22px -22px;
+  background: url(@radio-checkbox-img) no-repeat -22px -22px;
 }
 
 // CUSTOM RANGE INPUT
@@ -651,7 +648,7 @@ input[type=range] {
   padding: 0px;
   margin-top: 2px;
   width: 166px;
-  background: url("../img/logos/navbar-logo.svg") no-repeat top left;
+  background: url(@navbar-logo-img) no-repeat top left;
 }
 
 .navbar-icons {
@@ -695,7 +692,6 @@ input[type=range] {
       }
     }
     .navbar-icon-sprite-index(@index) {
-      @icon-sprite-img: "../img/icons/header-icons-sprite.svg";
       background: url(@icon-sprite-img) no-repeat 0 -@navbar-icon-size * @index;
       &:hover {
         background: url(@icon-sprite-img) no-repeat -@navbar-icon-size -@navbar-icon-size * @index;
@@ -1483,7 +1479,6 @@ input[type=range] {
 .tabs-box {
   @tab-height: 52px;
   @tab-icon-size: 40px;
-  @tab-icons-sprite: "../img/tabs/tabs-icons-sprite.svg";
   width: 100%;
   height: @tab-height;
   overflow: hidden;
@@ -1592,7 +1587,7 @@ input[type=range] {
     height: @tab-scroller-height;
     float: left;
     opacity: 0.7;
-    background: url(../img/tabs/tab-arrow-left-icon.svg) no-repeat top left;
+    background: url(@tab-arrow-left-img) no-repeat top left;
     cursor: pointer;
     &:hover {
       opacity: 1;
@@ -1602,10 +1597,10 @@ input[type=range] {
       cursor: default;
     }
     &.left {
-      background: url(../img/tabs/tab-arrow-left-icon.svg) no-repeat top left;
+      background: url(@tab-arrow-left-img) no-repeat top left;
     }
     &.right {
-      background: url(../img/tabs/tab-arrow-right-icon.svg) no-repeat top left;
+      background: url(@tab-arrow-right-img) no-repeat top left;
     }
   }
 }
@@ -2567,14 +2562,14 @@ input[type=range] {
         display: block;
         width: 100%;
         height: 160px;
-        background: url(../img/login-bg.jpg) no-repeat top left;
+        background: url(@login-img) no-repeat top left;
         background-size: cover;
         border-radius: 12px 12px 0px 0px;
       }
       .logo {
         @logo-width: 100%;
         @logo-height: 160px;
-        background: url("../img/login-logo.svg") no-repeat scroll 0 0 rgba(0, 0, 0, 0);
+        background: url(@login-logo-img) no-repeat scroll 0 0 rgba(0, 0, 0, 0);
         background-size: contain;
         background-position: center;
         position: relative;
@@ -2710,13 +2705,13 @@ input[type=range] {
     margin-bottom: 30px;
     padding: 16px;
     text-decoration: none;
-    background: url(../img/icons/new-environment.svg) no-repeat center 20px;
+    background: url(@new-env-img) no-repeat center 20px;
     text-align: center;
     text-decoration: none;
     box-sizing: border-box;
     .font-bold;
     &:hover {
-      background: @white url(../img/icons/new-environment.svg) no-repeat center 20px;
+      background: @white url(@new-env-img) no-repeat center 20px;
       text-decoration: none;
     }
     span {
@@ -2749,7 +2744,7 @@ input[type=range] {
     @support-icon-background-color: @navbar-color;
     background: @support-icon-background-color;
     .support-icon-sprite-index(@index) {
-        background: @support-icon-background-color url(../img/icons/support-images.svg) no-repeat 0 -120px * @index;
+        background: @support-icon-background-color url(@support-icon-img) no-repeat 0 -120px * @index;
     }
     &.img-register-fuel {
       .support-icon-sprite-index(0);
