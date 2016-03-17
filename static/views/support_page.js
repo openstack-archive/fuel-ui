@@ -17,6 +17,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
+import utils from 'utils';
 import models from 'models';
 import {backboneMixin, pollingMixin, unsavedChangesMixin} from 'component_mixins';
 import statisticsMixin from 'views/statistics_mixin';
@@ -31,12 +32,8 @@ var SupportPage = React.createClass({
     breadcrumbsPath: [['home', '#'], 'support'],
     fetchData() {
       var tasks = new models.Tasks();
-      return $.when(app.fuelSettings.fetch({cache: true}), tasks.fetch()).then(() => {
-        return {
-          tasks: tasks,
-          settings: app.fuelSettings
-        };
-      });
+      return $.when(app.fuelSettings.fetch({cache: true}), tasks.fetch())
+        .then(() => ({tasks, settings: app.fuelSettings}));
     }
   },
   render() {
@@ -115,18 +112,31 @@ var StatisticsSettings = React.createClass({
     unsavedChangesMixin
   ],
   hasChanges() {
-    return !_.isEqual(
-      this.state.initialAttributes.statistics, this.props.settings.get('statistics')
-    );
+    return _.any(this.props.renderableStatisticsFields, (settingName) => {
+      return this.state.initialSettings.statistics[settingName].value !==
+        this.props.settings.get(utils.makePath('statistics', settingName, 'value'));
+    });
   },
   isSavingPossible() {
     return !this.state.actionInProgress && this.hasChanges();
   },
+  saveChanges() {
+    var data = this.getStatisticsSettingsToSave();
+    this.saveSettings(data)
+      .done(() => this.setState({initialSettings: data}))
+      .fail((response) => utils.showErrorDialog({response}))
+      .always(() => this.setState({actionInProgress: false}));
+  },
   applyChanges() {
-    return this.isSavingPossible() ? this.saveSettings() : $.Deferred().resolve();
+    return this.isSavingPossible() ? this.saveChanges() : $.Deferred().resolve();
   },
   revertChanges() {
-    this.props.settings.set(this.state.initialAttributes);
+    _.each(this.props.renderableStatisticsFields, (settingName) => {
+      this.props.settings.set(
+        utils.makePath('statistics', settingName, 'value'),
+        this.state.initialSettings.statistics[settingName].value
+      );
+    });
   },
   render() {
     var statistics = this.props.settings.get('statistics');
@@ -148,7 +158,7 @@ var StatisticsSettings = React.createClass({
             <button
               className='btn btn-default'
               disabled={!this.isSavingPossible()}
-              onClick={this.saveSettings}
+              onClick={this.saveChanges}
             >
               {i18n('support_page.save_changes')}
             </button>
