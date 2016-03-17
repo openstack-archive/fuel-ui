@@ -55,7 +55,9 @@
                 },
                 "count_label": "Count",
                 "size_label": "Size",
-                "enabled": "Enabled"
+                "enabled": "Enabled",
+                "disabled": "Disabled",
+                "default": "Default"
             },
             "controls": {
                 "file": {
@@ -434,14 +436,11 @@
                         "default_offloading": "Default Offloading",
                         "offloading_modes": "Offloading Modes",
                         "offloading_mode": "Mode",
-                        "offloading_enabled": "Enabled",
                         "offloading_disabled": "Disabled",
                         "offloading_default": "Default",
                         "mtu": "MTU",
                         "mtu_placeholder": "Default",
                         "sriov": "SR-IOV",
-                        "sriov_enabled": "Enabled",
-                        "sriov_disabled": "Disabled",
                         "sriov_description": "Single root input/output virtualization -  is a network interface that allows the isolation of the PCI Express resources for manageability and performance reasons",
                         "virtual_functions": "Number of Virtual Functions",
                         "physical_network": "Physical Network Name"
