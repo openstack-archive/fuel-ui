@@ -15,6 +15,7 @@
  **/
 import i18n from 'i18n';
 import React from 'react';
+import utils from 'utils';
 import {backboneMixin} from 'component_mixins';
 import statisticsMixin from 'views/statistics_mixin';
 
@@ -27,21 +28,18 @@ var WelcomePage = React.createClass({
     title: i18n('welcome_page.title'),
     hiddenLayout: true,
     fetchData() {
-      return app.fuelSettings.fetch().then(() => {
-        return {
-          settings: app.fuelSettings
-        };
-      });
+      return app.fuelSettings.fetch()
+        .then(() => ({settings: app.fuelSettings}));
     }
   },
   onStartButtonClick() {
-    this.props.settings.get('statistics').user_choice_saved.value = true;
+    this.props.settings.set(utils.makePath('statistics', 'user_choice_saved', 'value'), true);
     this.setState({locked: true});
-    this.saveSettings()
+    this.saveSettings(this.getStatisticsSettingsToSave())
       .done(() => app.navigate('', {trigger: true}))
-      .fail(() => {
-        this.setState({locked: false});
-        this.props.settings.get('statistics').user_choice_saved.value = false;
+      .fail((response) => {
+        this.setState({locked: false, actionInProgress: false});
+        utils.showErrorDialog({response});
       });
   },
   render() {
@@ -49,7 +47,7 @@ var WelcomePage = React.createClass({
     var statsCollectorLink = 'https://stats.fuel-infra.org/';
     var disabled = this.state.actionInProgress || this.state.locked;
     var buttonProps = {
-      disabled: disabled,
+      disabled,
       onClick: this.onStartButtonClick,
       className: 'btn btn-lg btn-block btn-success'
     };
