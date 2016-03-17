@@ -25,6 +25,7 @@ import OffloadingModes from 'views/cluster_page_tabs/nodes_tab_screens/offloadin
 import {Input} from 'views/controls';
 import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
 import {DragSource, DropTarget} from 'react-dnd';
+import ReactDOM from 'react-dom';
 
 var ns = 'cluster_page.nodes_tab.configure_interfaces.';
 
@@ -594,9 +595,15 @@ var NodeInterface = React.createClass({
     bondingAvailable: React.PropTypes.bool,
     locked: React.PropTypes.bool
   },
+  componentDidMount() {
+    $('.configuration-panel', ReactDOM.findDOMNode(this))
+      .on('show.bs.collapse', () => this.setState({collapsed: true}))
+      .on('hide.bs.collapse', () => this.setState({collapsed: false}));
+  },
   getInitialState() {
     return {
-      activeInterfaceSectionName: null
+      activeInterfaceSectionName: null,
+      collapsed: true
     };
   },
   isLacpRateAvailable() {
@@ -677,8 +684,8 @@ var NodeInterface = React.createClass({
   makeOffloadingModesExcerpt() {
     var offloadingNS = 'cluster_page.nodes_tab.configure_interfaces.';
     var states = {
-      true: i18n(offloadingNS + 'offloading_enabled'),
-      false: i18n(offloadingNS + 'offloading_disabled'),
+      true: i18n('common.enabled'),
+      false: i18n('common.disabled'),
       null: i18n(offloadingNS + 'offloading_default')
     };
     var ifcModes = this.props.interface.get('offloading_modes');
@@ -762,9 +769,9 @@ var NodeInterface = React.createClass({
                     {i18n(ns + propertyName) + ':'}
                     <button {...commonButtonProps}>
                       {propertyValue.enabled ?
-                        i18n(ns + 'sriov_enabled')
+                        i18n('common.enabled')
                       :
-                        i18n(ns + 'sriov_disabled')
+                        i18n('common.disabled')
                       }
                     </button>
                   </span>
@@ -884,15 +891,14 @@ var NodeInterface = React.createClass({
   },
   switchActiveSubtab(subTabName) {
     var currentActiveTab = this.state.activeInterfaceSectionName;
-    this.setState({
-      activeInterfaceSectionName: currentActiveTab === subTabName ?
-        null
-      :
-        subTabName
-    });
+    var isSameTab = currentActiveTab === subTabName;
+    $(ReactDOM.findDOMNode(this.refs[this.props.interface.get('name')]))
+      .collapse(isSameTab ? 'hide' : 'show');
+    this.setState({activeInterfaceSectionName: isSameTab ? null : subTabName});
   },
   renderInterfaceProperties() {
     if (!this.props.interface.get('interface_properties')) return null;
+    var name = this.props.interface.get('name');
     var isConfigurationModeOn = !_.isNull(this.state.activeInterfaceSectionName);
     var toggleConfigurationPanelClasses = utils.classNames({
       glyphicon: true,
@@ -916,13 +922,15 @@ var NodeInterface = React.createClass({
             />
           </div>
         </div>
-        {isConfigurationModeOn &&
-          <div className='row configuration-panel'>
-            <div className='col-xs-12 interface-sub-tab'>
-              {this.renderInterfaceSubtab()}
-            </div>
+        <div
+          className='row configuration-panel collapse'
+          ref={name}
+          id={name}
+        >
+          <div className='col-xs-12 interface-sub-tab'>
+            {this.renderInterfaceSubtab()}
           </div>
-        }
+        </div>
       </div>
     );
   },
