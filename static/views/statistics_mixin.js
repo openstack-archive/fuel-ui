@@ -21,23 +21,33 @@ import {Input} from 'views/controls';
 
 export default {
   propTypes: {
-    settings: React.PropTypes.object.isRequired
+    settings: React.PropTypes.object.isRequired,
+    model: React.PropTypes.object.isRequired
+  },
+  getDefaultProps() {
+    return {statsCheckboxes: ['send_anonymous_statistic', 'send_user_info']};
   },
   getInitialState() {
     return {
-      initialAttributes: _.cloneDeep(this.props.settings.attributes),
       actionInProgress: false
     };
   },
-  saveSettings() {
+  prepareStatisticsToSave() {
+    var currentSettings = _.cloneDeep(this.props.settings.attributes);
+    _.each(this.props.statsCheckboxes, (field) => {
+      var path = utils.makePath('statistics', field, 'value');
+      this.props.settings.set(path, this.props.model.get(path));
+    });
+    return this.saveSettings(currentSettings);
+  },
+  saveSettings(initialSettings) {
     var settings = this.props.settings;
     this.setState({actionInProgress: true});
     return settings.save(null, {patch: true, wait: true, validate: false})
       .fail((response) => {
-        settings.set(this.state.initialAttributes);
-        utils.showErrorDialog({response: response});
+        settings.set(initialSettings);
+        utils.showErrorDialog({response});
       })
-      .done(() => this.setState({initialAttributes: _.cloneDeep(settings.attributes)}))
       .always(() => this.setState({actionInProgress: false}));
   },
   checkRestrictions(name, action = 'disable') {
@@ -49,26 +59,25 @@ export default {
   },
   componentWillMount() {
     this.configModels = {
-      fuel_settings: this.props.settings,
+      fuel_settings: this.props.model,
       version: app.version,
-      default: this.props.settings
+      default: this.props.model
     };
   },
-  getError(model, name) {
-    return (model.validationError || {})[utils.makePath('statistics', name)];
-  },
   renderInput(settingName, wrapperClassName, disabledState) {
-    var settings = this.props.settings;
-    var setting = settings.get(utils.makePath('statistics', settingName));
+    var path = utils.makePath('statistics', settingName);
+    var setting = this.props.model.get(path);
     if (
       this.checkRestrictions('metadata', 'hide').result ||
       this.checkRestrictions(settingName, 'hide').result ||
       setting.type === 'hidden'
     ) return null;
-    var error = this.getError(settings, settingName);
+
+    var error = (this.props.model.validationError || {})[path];
     var disabled = this.checkRestrictions('metadata').result ||
       this.checkRestrictions(settingName).result ||
       disabledState;
+
     return <Input
       key={settingName}
       type={setting.type}
@@ -134,7 +143,7 @@ export default {
     return (
       <div>
         <div className='statistics-text-box'>
-          <div>
+          <div className='notice'>
             {i18n(ns + 'help_to_improve')}
           </div>
           <button
@@ -153,7 +162,7 @@ export default {
       </div>
     );
   },
-  onCheckboxChange(name, value) {
-    this.props.settings.set(utils.makePath('statistics', name, 'value'), value);
+  onCheckboxChange(settingName, value) {
+    this.props.model.set(utils.makePath('statistics', settingName, 'value'), value);
   }
 };

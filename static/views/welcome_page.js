@@ -13,31 +13,33 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  **/
+import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
+import models from 'models';
 import {backboneMixin} from 'component_mixins';
 import statisticsMixin from 'views/statistics_mixin';
 
 var WelcomePage = React.createClass({
   mixins: [
     statisticsMixin,
-    backboneMixin('settings')
+    backboneMixin('model')
   ],
   statics: {
     title: i18n('welcome_page.title'),
     hiddenLayout: true,
     fetchData() {
-      return app.fuelSettings.fetch().then(() => {
-        return {
-          settings: app.fuelSettings
-        };
-      });
+      return app.fuelSettings.fetch()
+        .then(() => ({
+          settings: app.fuelSettings,
+          model: new models.FuelSettings(_.cloneDeep(app.fuelSettings.attributes))
+        }));
     }
   },
   onStartButtonClick() {
     this.props.settings.get('statistics').user_choice_saved.value = true;
     this.setState({locked: true});
-    this.saveSettings()
+    this.prepareStatisticsToSave()
       .done(() => app.navigate('', {trigger: true}))
       .fail(() => {
         this.setState({locked: false});

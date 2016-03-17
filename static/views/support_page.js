@@ -51,6 +51,7 @@ var SupportPage = React.createClass({
       <StatisticsSettings
         key='StatisticsSettings'
         settings={this.props.settings}
+        model={new models.FuelSettings(_.cloneDeep(app.fuelSettings.attributes))}
       />
     ];
     return (
@@ -111,25 +112,25 @@ var DocumentationLink = React.createClass({
 var StatisticsSettings = React.createClass({
   mixins: [
     statisticsMixin,
-    backboneMixin('settings'),
+    backboneMixin('model'),
     unsavedChangesMixin
   ],
   hasChanges() {
     return !_.isEqual(
-      this.state.initialAttributes.statistics, this.props.settings.get('statistics')
+      this.props.settings.get('statistics'), this.props.model.get('statistics')
     );
   },
   isSavingPossible() {
     return !this.state.actionInProgress && this.hasChanges();
   },
   applyChanges() {
-    return this.isSavingPossible() ? this.saveSettings() : $.Deferred().resolve();
+    return this.isSavingPossible() ? this.prepareStatisticsToSave() : $.Deferred().resolve();
   },
   revertChanges() {
-    this.props.settings.set(this.state.initialAttributes);
+    this.props.model.set(this.props.settings.attributes);
   },
   render() {
-    var statistics = this.props.settings.get('statistics');
+    var statistics = this.props.model.get('statistics');
     var sortedSettings = _.chain(_.keys(statistics))
       .without('metadata')
       .sortBy((settingName) => statistics[settingName].weight)
@@ -148,7 +149,7 @@ var StatisticsSettings = React.createClass({
             <button
               className='btn btn-default'
               disabled={!this.isSavingPossible()}
-              onClick={this.saveSettings}
+              onClick={this.prepareStatisticsToSave}
             >
               {i18n('support_page.save_changes')}
             </button>
