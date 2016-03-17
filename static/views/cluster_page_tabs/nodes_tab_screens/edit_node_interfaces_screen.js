@@ -903,6 +903,11 @@ var NodeInterface = React.createClass({
   renderInterfaceProperties() {
     if (!this.props.interface.get('interface_properties')) return null;
     var isConfigurationModeOn = !_.isNull(this.state.activeInterfaceSectionName);
+    var toggleConfigurationPanelClasses = utils.classNames({
+      glyphicon: true,
+      'glyphicon-arrow-up': isConfigurationModeOn,
+      'glyphicon-arrow-down': !isConfigurationModeOn
+    });
     return (
       <div className='ifc-properties clearfix forms-box'>
         <div className='row'>
@@ -910,16 +915,12 @@ var NodeInterface = React.createClass({
             {this.renderConfigurableAttributes()}
           </div>
           <div className='col-xs-1'>
-            {isConfigurationModeOn &&
-              <button
-                type='button'
-                className='close'
-                aria-label='Close'
-                onClick={() => this.setState({activeInterfaceSectionName: null})}
-              >
-                <span aria-hidden='true'>&times;</span>
-              </button>
-            }
+            <i
+              className={toggleConfigurationPanelClasses}
+              onClick={() => this.switchActiveSubtab(
+                isConfigurationModeOn ? this.state.activeInterfaceSectionName : 'offloading_modes'
+              )}
+            />
           </div>
         </div>
         {isConfigurationModeOn &&
