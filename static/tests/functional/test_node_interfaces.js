@@ -86,8 +86,8 @@ define([
           )
           .clickByCssSelector('button.close')
           .assertElementNotExists(
-            '.configuration-panel',
-            'Interface properties panel is hidden after clicking Close Configuration Mode'
+            '.mtu-control',
+            'MTU control is hidden after clicking Close Configuration Mode'
           );
       },
       'Untagged networks error': function() {
