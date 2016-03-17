@@ -25,6 +25,7 @@ import OffloadingModes from 'views/cluster_page_tabs/nodes_tab_screens/offloadin
 import {Input} from 'views/controls';
 import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
 import {DragSource, DropTarget} from 'react-dnd';
+import ReactDOM from 'react-dom';
 
 var ns = 'cluster_page.nodes_tab.configure_interfaces.';
 
@@ -596,9 +597,15 @@ var NodeInterface = React.createClass({
     bondingAvailable: React.PropTypes.bool,
     locked: React.PropTypes.bool
   },
+  componentDidMount() {
+    $('.configuration-panel', ReactDOM.findDOMNode(this))
+      .on('show.bs.collapse', this.setState.bind(this, {collapsed: true}, null))
+      .on('hide.bs.collapse', this.setState.bind(this, {collapsed: false}, null));
+  },
   getInitialState() {
     return {
-      activeInterfaceSectionName: null
+      activeInterfaceSectionName: null,
+      collapsed: true
     };
   },
   isLacpRateAvailable() {
@@ -886,8 +893,11 @@ var NodeInterface = React.createClass({
   },
   switchActiveSubtab(subTabName) {
     var currentActiveTab = this.state.activeInterfaceSectionName;
+    var isSameTab = currentActiveTab === subTabName;
+    $(ReactDOM.findDOMNode(this.refs[this.props.interface.get('name')]))
+      .collapse(isSameTab ? 'hide' : 'show');
     this.setState({
-      activeInterfaceSectionName: currentActiveTab === subTabName ?
+      activeInterfaceSectionName: isSameTab ?
         null
       :
         subTabName
@@ -905,6 +915,7 @@ var NodeInterface = React.createClass({
   renderInterfaceProperties() {
     if (!this.props.interface.get('interface_properties')) return null;
     var isConfigurationModeOn = !_.isNull(this.state.activeInterfaceSectionName);
+    var name = this.props.interface.get('name');
     return (
       <div className='ifc-properties clearfix forms-box'>
         <div className='row'>
@@ -912,7 +923,7 @@ var NodeInterface = React.createClass({
             {this.renderConfigurableAttributes()}
           </div>
           <div className='col-xs-1'>
-            {isConfigurationModeOn &&
+            {isConfigurationModeOn && this.state.collapsed &&
               <button
                 type='button'
                 className='close'
@@ -924,13 +935,15 @@ var NodeInterface = React.createClass({
             }
           </div>
         </div>
-        {isConfigurationModeOn &&
-          <div className='row configuration-panel'>
-            <div className='col-xs-12 interface-sub-tab'>
-              {this.renderInterfaceSubtab()}
-            </div>
+        <div
+          className='row configuration-panel collapse'
+          ref={name}
+          id={name}
+        >
+          <div className='col-xs-12 interface-sub-tab'>
+            {this.renderInterfaceSubtab()}
           </div>
-        }
+        </div>
       </div>
     );
   },
