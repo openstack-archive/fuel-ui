@@ -132,7 +132,6 @@ define([
       var commonSelector = 'div.setting-section-common';
       var kvmSelector = 'input[value="kvm"]';
       var qemuSelector = 'input[value="qemu"]';
-      var novaSelector = 'input[name="nova_quota"]';
       var stateSelector = 'input[name="resume_guests_state_on_host_boot"]';
       return this.remote
         // Check Common subgroup
@@ -144,8 +143,6 @@ define([
           .assertElementNotSelected(kvmSelector, '"KVM" radiobutton is not selected')
           .assertElementEnabled(qemuSelector, '"QEMU" radiobutton is enabled')
           .assertElementSelected(qemuSelector, '"QEMU" radiobutton is selected')
-          .assertElementEnabled(novaSelector, '"Nova quotas" checkbox is enabled')
-          .assertElementNotSelected(novaSelector, '"Nova quotas" checkbox is not selected')
           .assertElementEnabled(stateSelector,
             '"Resume guests state on host boot" checkbox is enabled')
           .assertElementSelected(stateSelector,

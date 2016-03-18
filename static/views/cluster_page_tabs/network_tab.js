@@ -24,7 +24,7 @@ import models from 'models';
 import dispatcher from 'dispatcher';
 import {CreateNodeNetworkGroupDialog, RemoveNodeNetworkGroupDialog} from 'views/dialogs';
 import {backboneMixin, dispatcherMixin, unsavedChangesMixin, renamingMixin} from 'component_mixins';
-import {Input, RadioGroup, Table, Popover} from 'views/controls';
+import {Input, Table, Popover} from 'views/controls';
 import customControls from 'views/custom_controls';
 import SettingSection from 'views/cluster_page_tabs/setting_section';
 import CSSTransitionGroup from 'react-addons-transition-group';
@@ -434,106 +434,6 @@ var CidrControl = React.createClass({
   }
 });
 
-// FIXME(morale): this component is a lot of copy-paste from Range component
-// and should be rewritten either as a mixin or as separate component for
-// multiplying other components (eg accepting Range, Input etc)
-var MultipleValuesInput = React.createClass({
-  mixins: [
-    NetworkModelManipulationMixin
-  ],
-  propTypes: {
-    name: React.PropTypes.string,
-    placeholder: React.PropTypes.string,
-    label: React.PropTypes.string,
-    value: React.PropTypes.array
-  },
-  getInitialState() {
-    return {elementToFocus: null};
-  },
-  componentDidUpdate() {
-    // this glitch is needed to fix
-    // when pressing '+' or '-' buttons button remains focused
-    if (this.state.elementToFocus && this.getModel().get(this.props.name).length) {
-      $(this.refs[this.state.elementToFocus].getInputDOMNode()).focus();
-      this.setState({elementToFocus: null});
-    }
-  },
-  onChange(attribute, value, index) {
-    var model = this.getModel();
-    var valueToSet = _.cloneDeep(model.get(attribute));
-    valueToSet[index] = value;
-    this.setValue(attribute, valueToSet);
-  },
-  addValue(attribute, index) {
-    var newValue = _.clone(this.getModel().get(attribute));
-    newValue.splice(index + 1, 0, '');
-    this.setValue(attribute, newValue);
-    this.setState({
-      elementToFocus: 'row' + (index + 1)
-    });
-  },
-  removeValue(attribute, index) {
-    var newValue = _.clone(this.getModel().get(attribute));
-    newValue.splice(index, 1);
-    this.setValue(attribute, newValue);
-    this.setState({
-      elementToFocus: 'row' + _.min([newValue.length - 1, index])
-    });
-  },
-  renderControls(attributeName, index, length) {
-    return (
-      <div className='ip-ranges-control'>
-        <button
-          className='btn btn-link ip-ranges-add'
-          disabled={this.props.disabled}
-          onClick={_.partial(this.addValue, attributeName, index)}
-        >
-          <i className='glyphicon glyphicon-plus-sign' />
-        </button>
-        {length > 1 &&
-          <button
-            className='btn btn-link ip-ranges-delete'
-            disabled={this.props.disabled}
-            onClick={_.partial(this.removeValue, attributeName, index)}
-          >
-            <i className='glyphicon glyphicon-minus-sign' />
-          </button>
-        }
-      </div>
-    );
-  },
-  render() {
-    var attributeName = this.props.name;
-    var values = this.props.value;
-    return (
-      <div className={'form-group row multiple-values ' + attributeName}>
-        <div className='col-xs-12'>
-          <label>{this.props.label}</label>
-          {_.map(values, (value, index) => {
-            var inputError = (this.props.error || {})[index];
-            return (
-              <div className='range-row clearfix' key={attributeName + index}>
-                <Input
-                  type='text'
-                  disabled={this.props.disabled}
-                  name={attributeName}
-                  error={(inputError || this.props.verificationError) && ''}
-                  value={value}
-                  onChange={_.partialRight(this.onChange, index)}
-                  ref={'row' + index}
-                  placeholder={inputError ? '' : this.props.placeholder}
-                  extraContent={this.renderControls(attributeName, index, values.length)}
-                />
-                <div className='validation-error text-danger pull-left'>{inputError}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-});
-
 var NetworkTab = React.createClass({
   mixins: [
     NetworkInputsMixin,
@@ -599,13 +499,7 @@ var NetworkTab = React.createClass({
           cluster.get('nodeNetworkGroups')
         .map((nodeNetworkGroup) => 'group/' + nodeNetworkGroup.id);
       return nodeNetworkGroupSubtabs
-        .concat(
-          cluster.get('net_provider') === 'nova_network' ?
-            ['nova_configuration']
-          :
-            ['neutron_l2', 'neutron_l3']
-        )
-        .concat(['network_settings', 'network_verification']);
+        .concat(['neutron_l2', 'neutron_l3', 'network_settings', 'network_verification']);
     },
     checkSubroute(tabProps) {
       var {activeTab, cluster, tabOptions, showAllNetworks} = tabProps;
@@ -756,20 +650,6 @@ var NetworkTab = React.createClass({
         floating_ranges: removeEmptyRanges(floatingRanges)
       });
     }
-  },
-  onManagerChange(name, value) {
-    var networkConfiguration = this.props.cluster.get('networkConfiguration');
-    var networkingParameters = networkConfiguration.get('networking_parameters');
-    var fixedAmount =
-      networkConfiguration.get('networking_parameters').get('fixed_networks_amount') || 1;
-    networkingParameters.set({
-      net_manager: value,
-      fixed_networks_amount: value === 'FlatDHCPManager' ? 1 : fixedAmount
-    });
-    networkConfiguration.isValid({
-      nodeNetworkGroups: this.props.cluster.get('nodeNetworkGroups')
-    });
-    this.setState({hideVerificationResult: true});
   },
   verifyNetworks() {
     this.setState({actionInProgress: true});
@@ -1024,26 +904,10 @@ var NetworkTab = React.createClass({
     var nodeNetworkGroups = cluster.get('nodeNetworkGroups');
     var networkConfiguration = this.props.cluster.get('networkConfiguration');
     var networkingParameters = networkConfiguration.get('networking_parameters');
-    var manager = networkingParameters.get('net_manager');
-    var managers = [
-      {
-        label: i18n(networkTabNS + 'flatdhcp_manager'),
-        data: 'FlatDHCPManager',
-        checked: manager === 'FlatDHCPManager',
-        disabled: isLocked
-      },
-      {
-        label: i18n(networkTabNS + 'vlan_manager'),
-        data: 'VlanManager',
-        checked: manager === 'VlanManager',
-        disabled: isLocked
-      }
-    ];
     var classes = {
       row: true,
       'changes-locked': isLocked
     };
-    var isNovaEnvironment = cluster.get('net_provider') === 'nova_network';
     var networks = networkConfiguration.get('networks');
     var isMultiRack = nodeNetworkGroups.length > 1;
     var networkVerifyTask = cluster.task('verify_networks');
@@ -1073,32 +937,28 @@ var NetworkTab = React.createClass({
           <div className='row'>
             <div className='title col-xs-6'>
               {i18n(networkTabNS + 'title')}
-              {!isNovaEnvironment &&
-                <div className='forms-box segmentation-type'>
-                  {'(' + i18n('common.network.neutron_' +
-                    networkingParameters.get('segmentation_type')) + ')'}
-                </div>
-              }
+              <div className='forms-box segmentation-type'>
+                {'(' + i18n('common.network.neutron_' +
+                  networkingParameters.get('segmentation_type')) + ')'}
+              </div>
             </div>
             <div className='col-xs-6 node-network-groups-controls'>
-              {!isNovaEnvironment &&
-                <button
-                  key='add_node_group'
-                  className='btn btn-success add-nodegroup-btn pull-right'
-                  onClick={_.partial(this.addNodeNetworkGroup, hasChanges)}
-                  disabled={
-                    !!cluster.task({group: ['deployment', 'network'], active: true}) ||
-                    this.state.actionInProgress
+              <button
+                key='add_node_group'
+                className='btn btn-success add-nodegroup-btn pull-right'
+                onClick={_.partial(this.addNodeNetworkGroup, hasChanges)}
+                disabled={
+                  !!cluster.task({group: ['deployment', 'network'], active: true}) ||
+                  this.state.actionInProgress
+                }
+              >
+                <i
+                  className={
+                    'glyphicon ' + (hasChanges ? 'glyphicon-danger-sign' : 'glyphicon-plus')
                   }
-                >
-                  <i
-                    className={
-                      'glyphicon ' + (hasChanges ? 'glyphicon-danger-sign' : 'glyphicon-plus')
-                    }
-                  />
-                  {i18n(networkTabNS + 'add_node_network_group')}
-                </button>
-              }
+                />
+                {i18n(networkTabNS + 'add_node_network_group')}
+              </button>
               {isMultiRack &&
                 <Input
                   type='checkbox'
@@ -1113,17 +973,6 @@ var NetworkTab = React.createClass({
             </div>
           </div>
         </div>
-        {isNovaEnvironment &&
-          <div className='col-xs-12 forms-box nova-managers'>
-            <RadioGroup
-              key='net_provider'
-              name='net_provider'
-              values={managers}
-              onChange={this.onManagerChange}
-              wrapperClassName='pull-left'
-            />
-          </div>
-        }
         <div className='network-tab-content col-xs-12'>
           <div className='row'>
             <NetworkSubtabs
@@ -1175,12 +1024,6 @@ var NetworkTab = React.createClass({
                   isVerificationDisabled={isVerificationDisabled}
                   notEnoughNodes={notEnoughOnlineNodesForVerification}
                   verifyNetworks={this.verifyNetworks}
-                />
-              }
-              {activeNetworkSectionName === 'nova_configuration' &&
-                <NovaParameters
-                  cluster={cluster}
-                  validationError={validationError}
                 />
               }
               {activeNetworkSectionName === 'neutron_l2' &&
@@ -1280,9 +1123,6 @@ var NetworkSubtabs = React.createClass({
     }
     if (subtab === 'neutron_l3') {
       return !!_.intersection(NetworkingL3Parameters.renderedParameters, _.keys(errors)).length;
-    }
-    if (subtab === 'nova_configuration') {
-      return !!_.intersection(NovaParameters.renderedParameters, _.keys(errors)).length;
     }
     if (subtab === 'network_settings') {
       var settings = this.props.cluster.get('settings');
@@ -1510,66 +1350,6 @@ var Network = React.createClass({
           label={i18n(networkTabNS + 'network.use_vlan_tagging')}
           value={this.props.network.get('vlan_start')}
         />
-      </div>
-    );
-  }
-});
-
-var NovaParameters = React.createClass({
-  mixins: [
-    NetworkInputsMixin,
-    NetworkModelManipulationMixin
-  ],
-  statics: {
-    renderedParameters: [
-      'floating_ranges', 'fixed_networks_cidr', 'fixed_network_size',
-      'fixed_networks_amount', 'fixed_networks_vlan_start', 'dns_nameservers'
-    ]
-  },
-  render() {
-    var networkConfiguration = this.props.cluster.get('networkConfiguration');
-    var networkingParameters = networkConfiguration.get('networking_parameters');
-    var manager = networkingParameters.get('net_manager');
-    var fixedNetworkSizeValues = _.map(_.range(3, 12), _.partial(Math.pow, 2));
-    return (
-      <div className='forms-box nova-config' key='nova-config'>
-        <h3 className='networks'>{i18n(parametersNS + 'nova_configuration')}</h3>
-        <Range
-          {...this.composeProps('floating_ranges', true)}
-          rowsClassName='floating-ranges-rows'
-        />
-        {this.renderInput('fixed_networks_cidr')}
-        {(manager === 'VlanManager') ?
-          <div>
-            <Input
-              {...this.composeProps('fixed_network_size', false, true)}
-              type='select'
-              children={_.map(fixedNetworkSizeValues, (value) => {
-                return <option key={value} value={value}>{value}</option>;
-              })}
-              inputClassName='pull-left'
-            />
-            {this.renderInput('fixed_networks_amount', true)}
-            <Range
-              {...this.composeProps('fixed_networks_vlan_start', true)}
-              wrapperClassName='clearfix vlan-id-range'
-              label={i18n(parametersNS + 'fixed_vlan_range')}
-              extendable={false}
-              autoIncreaseWith={
-                parseInt(networkingParameters.get('fixed_networks_amount'), 10) || 0
-              }
-              integerValue
-              placeholder=''
-              mini
-            />
-          </div>
-        :
-          <VlanTagInput
-            {...this.composeProps('fixed_networks_vlan_start')}
-            label={i18n(parametersNS + 'use_vlan_tagging_fixed')}
-          />
-        }
-        <MultipleValuesInput {...this.composeProps('dns_nameservers', true)} />
       </div>
     );
   }

@@ -911,9 +911,6 @@ var ClusterInfo = React.createClass({
         return computeLabel;
       case 'network':
         var networkingParameters = cluster.get('networkConfiguration').get('networking_parameters');
-        if (cluster.get('net_provider') === 'nova_network') {
-          return i18n(ns + 'nova_with') + ' ' + networkingParameters.get('net_manager');
-        }
         return (i18n('common.network.neutron_' + networkingParameters.get('segmentation_type')));
       case 'storage_backends':
         return _.map(_.where(settings.get('storage'), {value: true}), 'label') ||

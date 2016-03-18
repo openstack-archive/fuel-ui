@@ -653,7 +653,6 @@
                     "for_more_information_roles": "for more information on how to assign roles to nodes and add them to an OpenStack environment.",
                     "for_more_information_configuration": " for more information on how to configure an OpenStack environment and node settings.",
                     "and_vcenter": "and VCenter",
-                    "nova_with": "Nova Network with",
                     "neutron_with": "Neutron with",
                     "horizon": "Horizon",
                     "horizon_description": "The OpenStack dashboard Horizon is now available.",
@@ -722,8 +721,6 @@
                 },
                 "network_tab": {
                     "title": "Network Settings",
-                    "flatdhcp_manager": "FlatDHCP Manager",
-                    "vlan_manager": "VLAN Manager",
                     "verify_networks_button": "Verify Networks",
                     "network_verification": "Network verification",
                     "untagged": "untagged",
@@ -771,7 +768,6 @@
                         "fixed_networks_amount": "Number of fixed networks",
                         "fixed_vlan_range": "Fixed VLAN ID range",
                         "use_vlan_tagging_fixed": "Use VLAN tagging for fixed networks",
-                        "nova_configuration": "Nova-network Configuration",
                         "dns_nameservers": "Guest OS DNS Servers",
                         "l2_configuration": "Neutron L2 Configuration",
                         "l3_configuration": "Neutron L3 Configuration",
@@ -820,7 +816,6 @@
                         "invalid_name": "Invalid network name"
                     },
                     "subtabs": {
-                        "nova_configuration": "Nova Configuration",
                         "neutron_l2": "Neutron L2",
                         "neutron_l3": "Neutron L3",
                         "network_settings": "Other",
@@ -1784,7 +1779,6 @@
                     "for_more_information_roles": "有关如何将角色分配给节点并将它们添加到OpenStack环境的详细信息",
                     "for_more_information_configuration": "关于如何配置OpenStack环境和节点设置的详细信息",
                     "and_vcenter": "和VCenter",
-                    "nova_with": "Nova Network with",
                     "neutron_with": "Neutron with",
                     "horizon": "Horizon",
                     "horizon_description": "The OpenStack dashboard Horizon现在可用",
@@ -1794,8 +1788,6 @@
                 },
                 "network_tab": {
                     "title": "网络设置",
-                    "flatdhcp_manager": "FlatDHCP管理",
-                    "vlan_manager": "VLAN管理",
                     "verify_networks_button": "验证网络",
                     "untagged": "未标记",
                     "range_start": "开始",
@@ -1842,7 +1834,6 @@
                         "fixed_networks_amount": "固定网络数量",
                         "fixed_vlan_range": "固定VLAN ID范围",
                         "use_vlan_tagging_fixed": "Use VLAN tagging for fixed networks",
-                        "nova_configuration": "Nova-network配置",
                         "dns_nameservers": "宿主机操作系统DNS服务器",
                         "l2_configuration": "Neutron L2配置",
                         "l3_configuration": "Neutron L3配置",
@@ -1891,7 +1882,6 @@
                         "invalid_name": "非法网络名称"
                     },
                     "subtabs": {
-                        "nova_configuration": "Nova配置",
                         "neutron_l2": "Neutron L2",
                         "neutron_l3": "Neutron L3",
                         "network_settings": "其它",
@@ -2603,8 +2593,6 @@
                 },
                 "network_tab": {
                     "title": "ネットワーク設定",
-                    "flatdhcp_manager": "FlatDHCP Manager",
-                    "vlan_manager": "VLAN Manager",
                     "verify_networks_button": "ネットワークの確認",
                     "network_verification": "ネットワークを検証",
                     "untagged": "タグなし",
@@ -2639,7 +2627,6 @@
                         "fixed_networks_amount": "固定ネットワークの数",
                         "fixed_vlan_range": "固定VLAN IDのレンジ",
                         "use_vlan_tagging_fixed": "固定ネットワークのためにタグ付きVLANを使う",
-                        "nova_configuration": "Nova-network設定",
                         "dns_nameservers": "ゲストOS用のDNSサーバ",
                         "l2_configuration": "Neutron L2 設定",
                         "l3_configuration": "Neutron L3 設定",
@@ -2779,8 +2766,6 @@
                         "description_link": "Mirantis OpenStackプランニングガイド ネットワークトポロジー編",
                         "release_alert": "__NameAndRelease.release_name__ ではNeutronがサポートされません",
                         "hypervisor_alert": "VLANまたはGREセグメンテーションとNeutronはコンピュートオプションとして __Compute.vcenter__ では使用できません。",
-                        "nova_network": "(非推奨)レガシーネットワーキング(nova-network)",
-                        "nova_network_description": "VMware vCenterを使用するか、パブリックとフローティングIPのアドレスが異なるサブネットが必要な場合は、このオプションを選択してください。 OpenStackでは、今後のリリースでnova-networkが非推奨になることに注意してください。",
                         "neutron_gre_description": "ネットワーク機器がGREセグメンテーションをサポートしている必要があります。このオプションは、65535までのネットワークをサポートします。",
                         "neutron_vlan_description": "ネットワーク機器がVLANセグメンテーション用に設定されている必要があります。このオプションは、4095までのネットワークをサポートします。"
                     },
@@ -3152,8 +3137,6 @@
                 },
                 "network_tab": {
                     "title": "네트워크 설정",
-                    "flatdhcp_manager": "FlatDHCP Manager",
-                    "vlan_manager": "VLAN Manager",
                     "verify_networks_button": "네트워크를 검증",
                     "network_verification": "네트워크 검증",
                     "untagged": "태그없이",
@@ -3180,7 +3163,6 @@
                         "fixed_networks_amount": "고정 네트워크의 수",
                         "fixed_vlan_range": "고정 VLAN ID 범위",
                         "use_vlan_tagging_fixed": "고정 네트워크를위한 VLAN 태그를 사용",
-                        "nova_configuration": "Nova-network 설정",
                         "dns_nameservers": "DNS 서버",
                         "l2_configuration": "Neutron L2 설정",
                         "l3_configuration": "Neutron L3 설정",
