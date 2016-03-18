@@ -34,6 +34,14 @@ var superMixin = models.superMixin = {
   }
 };
 
+// Lightweight mixin for DeepModel-like nested attributes, useful for restriction processing
+
+var nestedGetterMixin = {
+  get(path) {
+    return _.get(this.attributes, path);
+  }
+};
+
 // Mixin for adjusting some collection functions to work properly with model.get.
 // Lodash supports some methods with predicate objects, not functions.
 // Underscore has only pure predicate functions.
@@ -914,7 +922,7 @@ models.Volumes = BaseCollection.extend({
   url: '/api/volumes/'
 });
 
-models.Interface = BaseModel.extend({
+models.Interface = BaseModel.extend(nestedGetterMixin).extend({
   constructorName: 'Interface',
   parse(response) {
     response.assigned_networks = new models.InterfaceNetworks(response.assigned_networks);
