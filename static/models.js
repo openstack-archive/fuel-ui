@@ -1223,7 +1223,7 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
 
     return error;
   },
-  validateNetwork(network, networksToCheck, novaNetworking = false) {
+  validateNetwork(network) {
     var cidr = network.get('cidr');
     var errors = {};
 
@@ -1239,60 +1239,7 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
       );
     }
 
-    // same VLAN IDs are not permitted for nova-network
-    var forbiddenVlans = novaNetworking ? networksToCheck.map((net) => {
-      return net.id !== network.id ? net.get('vlan_start') : null;
-    }) : [];
-    _.extend(
-      errors,
-      utils.validateVlan(network.get('vlan_start'), forbiddenVlans, 'vlan_start')
-    );
-
-    return errors;
-  },
-  validateNovaNetworkParameters(parameters, networks, manager) {
-    var errors = {};
-
-    _.extend(
-      errors,
-      utils.validateCidr(parameters.get('fixed_networks_cidr'), 'fixed_networks_cidr')
-    );
-
-    var fixedNetworkVlan = parameters.get('fixed_networks_vlan_start');
-    var fixedNetworkVlanError = utils.validateVlan(
-      fixedNetworkVlan,
-      networks.pluck('vlan_start'),
-      'fixed_networks_vlan_start',
-      manager === 'VlanManager'
-    );
-    _.extend(errors, fixedNetworkVlanError);
-
-    var fixedNetworksAmount = parameters.get('fixed_networks_amount');
-    _.extend(
-      errors,
-      this.validateFixedNetworksAmount(
-        fixedNetworksAmount,
-        _.isEmpty(fixedNetworkVlanError) ? null : fixedNetworkVlan
-      )
-    );
-
-    if (_.isEmpty(fixedNetworkVlanError)) {
-      var vlanIntersection = _.any(_.compact(networks.pluck('vlan_start')),
-        (vlan) => utils.validateVlanRange(
-          fixedNetworkVlan,
-          fixedNetworkVlan + fixedNetworksAmount - 1, vlan
-        )
-      );
-      if (vlanIntersection) {
-        errors.fixed_networks_vlan_start =
-          i18n('cluster_page.network_tab.validation.vlan_intersection');
-      }
-    }
-
-    var floatingRangeErrors = utils.validateIPRanges(parameters.get('floating_ranges'));
-    if (floatingRangeErrors.length) {
-      errors.floating_ranges = floatingRangeErrors;
-    }
+    _.extend(errors, utils.validateVlan(network.get('vlan_start')));
 
     return errors;
   },
@@ -1371,7 +1318,6 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
   },
   validate(attrs, options = {}) {
     var networkingParameters = attrs.networking_parameters;
-    var novaNetworkManager = networkingParameters.get('net_manager');
 
     var errors = {};
 
@@ -1383,7 +1329,7 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
         return network.get('group_id') === nodeNetworkGroup.id && network.get('meta').configurable;
       }));
       networksToCheck.each((network) => {
-        var networkErrors = this.validateNetwork(network, networksToCheck, !!novaNetworkManager);
+        var networkErrors = this.validateNetwork(network);
         if (!_.isEmpty(networkErrors)) nodeNetworkGroupErrors[network.id] = networkErrors;
       });
       if (!_.isEmpty(nodeNetworkGroupErrors)) {
@@ -1393,15 +1339,12 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
     if (!_.isEmpty(nodeNetworkGroupsErrors)) errors.networks = nodeNetworkGroupsErrors;
 
     // validate networking parameters
-    var networkingParametersErrors = novaNetworkManager ?
-        this.validateNovaNetworkParameters(networkingParameters, attrs.networks, novaNetworkManager)
-      :
-        this.validateNeutronParameters(
-          networkingParameters,
-          attrs.networks,
-          errors.networks,
-          options.nodeNetworkGroups
-        );
+    var networkingParametersErrors = this.validateNeutronParameters(
+      networkingParameters,
+      attrs.networks,
+      errors.networks,
+      options.nodeNetworkGroups
+    );
 
     // it is only one baremetal network in environment
     // so node network group filter is not needed here

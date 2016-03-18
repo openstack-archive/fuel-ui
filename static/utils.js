@@ -132,17 +132,11 @@ var utils = {
   isNaturalNumber(n) {
     return _.isNumber(n) && n > 0 && n % 1 === 0;
   },
-  validateVlan(vlan, forbiddenVlans, field, disallowNullValue) {
-    var error = {};
-    if ((_.isNull(vlan) && disallowNullValue) || (!_.isNull(vlan) &&
-        (!utils.isNaturalNumber(vlan) || vlan < 1 || vlan > 4094))) {
-      error[field] = i18n('cluster_page.network_tab.validation.invalid_vlan');
-      return error;
+  validateVlan(vlan) {
+    if (!_.isNull(vlan) && (!utils.isNaturalNumber(vlan) || vlan < 1 || vlan > 4094)) {
+      return {vlan_start: i18n('cluster_page.network_tab.validation.invalid_vlan')};
     }
-    if (_.contains(_.compact(forbiddenVlans), vlan)) {
-      error[field] = i18n('cluster_page.network_tab.validation.forbidden_vlan');
-    }
-    return error[field] ? error : {};
+    return {};
   },
   validateCidr(cidr, attributeName = 'cidr') {
     var error = {};
