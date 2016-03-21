@@ -303,16 +303,26 @@ export var NailgunUnavailabilityDialog = React.createClass({
   }
 });
 
-export var DiscardNodeChangesDialog = React.createClass({
+export var DiscardClusterChangesDialog = React.createClass({
   mixins: [dialogMixin],
   getDefaultProps() {
     return {
-      title: i18n('dialog.discard_changes.title')
+      title: i18n('dialog.discard_changes.title'),
+      ns: 'dialog.discard_changes.'
     };
   },
-  discardNodeChanges() {
+  discardChanges() {
     this.setState({actionInProgress: true});
-    var nodes = new models.Nodes(this.props.nodes.map((node) => {
+    var {cluster, changeName, ns} = this.props;
+
+    if (changeName === 'changed_networks') {
+
+    }
+    if (changeName === 'changed_settings') {
+
+    }
+
+    var nodes = new models.Nodes(nodes.map((node) => {
       if (node.get('pending_deletion')) {
         return {
           id: node.id,
@@ -327,22 +337,26 @@ export var DiscardNodeChangesDialog = React.createClass({
       };
     }));
     Backbone.sync('update', nodes)
-      .then(() => this.props.cluster.fetchRelated('nodes'))
+      .then(() => cluster.fetchRelated('nodes'))
       .done(() => {
         dispatcher
           .trigger('updateNodeStats networkConfigurationUpdated labelsConfigurationUpdated');
         this.state.result.resolve();
         this.close();
       })
-      .fail((response) => this.showError(response, i18n('dialog.discard_changes.cant_discard')));
+      .fail((response) => this.showError(response, i18n(ns + 'cant_discard')));
   },
   renderBody() {
+    var {nodes, changeName, ns} = this.props;
+    var text = changeName === 'changed_networks' ?
+      i18n(ns + 'discard_network_changes')
+    : changeName === 'changed_settings' ?
+      i18n(ns + 'discard_settings_changes')
+    : nodes[0].get('pending_deletion') ? 'discard_deletion' : 'discard_addition';
     return (
       <div className='text-danger'>
         {this.renderImportantLabel()}
-        {i18n('dialog.discard_changes.' + (
-          this.props.nodes[0].get('pending_deletion') ? 'discard_deletion' : 'discard_addition'
-        ))}
+        {text}
       </div>
     );
   },
@@ -360,7 +374,7 @@ export var DiscardNodeChangesDialog = React.createClass({
         key='discard'
         className='btn btn-danger'
         disabled={this.state.actionInProgress}
-        onClick={this.discardNodeChanges}
+        onClick={this.discardChanges}
       >
         {i18n('dialog.discard_changes.discard_button')}
       </button>
@@ -397,32 +411,40 @@ export var DeployClusterDialog = React.createClass({
   },
   renderBody() {
     var cluster = this.props.cluster;
+    var warningNs = 'cluster_page.dashboard_tab.';
     return (
       <div className='display-changes-dialog'>
-        {!cluster.needsRedeployment() &&
-          _.contains(['new', 'stopped', 'partially_deployed'], cluster.get('status')) &&
-          <div>
+        {!cluster.needsRedeployment() && (
+          cluster.get('status') !== 'new' ?
             <div className='text-warning'>
               <i className='glyphicon glyphicon-warning-sign' />
               <div className='instruction'>
-                {i18n('cluster_page.dashboard_tab.locked_settings_alert') + ' '}
+                {i18n(warningNs + 'redeployment_alert')}
               </div>
             </div>
-            <div className='text-warning'>
-              <i className='glyphicon glyphicon-warning-sign' />
-              <div className='instruction'>
-                {i18n('cluster_page.dashboard_tab.package_information') + ' '}
-                <a
-                  target='_blank'
-                  href={utils.composeDocumentationLink('operations.html#troubleshooting')}
-                >
-                  {i18n('cluster_page.dashboard_tab.operations_guide')}
-                </a>
-                {i18n('cluster_page.dashboard_tab.for_more_information_configuration')}
+          :
+            <div>
+              <div className='text-warning'>
+                <i className='glyphicon glyphicon-warning-sign' />
+                <div className='instruction'>
+                  {i18n(warningNs + 'locked_settings_alert') + ' '}
+                </div>
+              </div>
+              <div className='text-warning'>
+                <i className='glyphicon glyphicon-warning-sign' />
+                <div className='instruction'>
+                  {i18n(warningNs + 'package_information') + ' '}
+                  <a
+                    target='_blank'
+                    href={utils.composeDocumentationLink('operations.html#troubleshooting')}
+                  >
+                    {i18n(warningNs + 'operations_guide')}
+                  </a>
+                  {i18n(warningNs + 'for_more_information_configuration')}
+                </div>
               </div>
             </div>
-          </div>
-        }
+        )}
         <div className='confirmation-question'>
           {i18n(this.ns + 'are_you_sure_deploy')}
         </div>

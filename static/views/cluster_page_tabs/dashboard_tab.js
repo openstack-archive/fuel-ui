@@ -23,7 +23,7 @@ import models from 'models';
 import dispatcher from 'dispatcher';
 import {Input, ProgressBar, Tooltip} from 'views/controls';
 import {
-  DiscardNodeChangesDialog, DeployClusterDialog, ProvisionVMsDialog, ProvisionNodesDialog,
+  DiscardClusterChangesDialog, DeployClusterDialog, ProvisionVMsDialog, ProvisionNodesDialog,
   DeployNodesDialog, RemoveClusterDialog, ResetEnvironmentDialog, StopDeploymentDialog,
   SelectNodesDialog
 } from 'views/dialogs';
@@ -500,18 +500,24 @@ var ClusterActionsPanel = React.createClass({
         return [];
     }
   },
-  renderNodesNumber(nodes, dictKey, showDeleteButton = false) {
-    if (!nodes.length) return null;
+  renderClusterChangeItem(changeName, nodes, showDeleteButton = true) {
+    if (_.isArray(nodes) && !nodes.length) return null;
+    var {cluster} = this.props;
+    if (changeName === 'changed_networks' && !_.any(cluster.get('changes'), {name: 'networks'})) {
+      return null;
+    }
+    if (changeName === 'changed_settings' && !_.any(cluster.get('changes'), {name: 'attributes'})) {
+      return null;
+    }
+
     return (
       <li className='changes-item'>
-        {i18n(ns + dictKey, {count: nodes.length})}
+        {i18n(ns + changeName, {count: nodes && nodes.length}) + ''}
         {showDeleteButton &&
-          <button
-            className='btn btn-link btn-discard-changes'
-            onClick={() => DiscardNodeChangesDialog.show({cluster: this.props.cluster, nodes})}
-          >
-            <i className='discard-changes-icon' />
-          </button>
+          <i
+            className='btn btn-link btn-discard-changes discard-changes-icon'
+            onClick={() => DiscardClusterChangesDialog.show({cluster, nodes, changeName})}
+          />
         }
       </li>
     );
@@ -585,16 +591,24 @@ var ClusterActionsPanel = React.createClass({
     var actionControls;
     switch (action) {
       case 'deploy':
+        var isNew = cluster.get('status') === 'new';
         actionControls = [
-          nodes.hasChanges() &&
-            <ul key='node-changes'>
-              {this.renderNodesNumber(nodes.where({pending_addition: true}), 'added_node', true)}
-              {this.renderNodesNumber(
+          cluster.hasChanges() &&
+            <ul key='cluster-changes'>
+              {this.renderClusterChangeItem('added_node', nodes.where({pending_addition: true}))}
+              {this.renderClusterChangeItem(
+                'provisioned_node',
                 nodes.where({pending_deletion: false, status: 'provisioned'}),
-                'provisioned_node'
+                false
               )}
-              {this.renderNodesNumber(nodes.where({status: 'stopped'}), 'stopped_node')}
-              {this.renderNodesNumber(nodes.where({pending_deletion: true}), 'deleted_node', true)}
+              {this.renderClusterChangeItem(
+                'stopped_node',
+                nodes.where({status: 'stopped'}),
+                false
+              )}
+              {this.renderClusterChangeItem('deleted_node', nodes.where({pending_deletion: true}))}
+              {!isNew && this.renderClusterChangeItem('changed_networks')}
+              {!isNew && this.renderClusterChangeItem('changed_settings')}
             </ul>,
           <ClusterActionButton
             {...actionButtonProps}
@@ -754,7 +768,7 @@ var ClusterActionsPanel = React.createClass({
   render() {
     var {cluster} = this.props;
     var nodes = cluster.get('nodes');
-    if (nodes.length && !nodes.hasChanges() && !cluster.needsRedeployment()) return null;
+    if (nodes.length && !cluster.hasChanges() && !cluster.needsRedeployment()) return null;
 
     if (!nodes.length) {
       return (

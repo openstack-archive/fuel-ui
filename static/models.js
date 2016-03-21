@@ -360,7 +360,7 @@ models.Cluster = BaseModel.extend({
     return this.get(related).fetch(_.extend({data: {cluster_id: this.id}}, options));
   },
   isAvailableForSettingsChanges() {
-    return !this.get('is_locked');
+    return this.get('is_locked');
   },
   isDeploymentPossible() {
     return this.get('release').get('state') !== 'unavailable' &&
@@ -393,6 +393,12 @@ models.Cluster = BaseModel.extend({
       });
     });
     return result;
+  },
+  hasChanges() {
+    return this.get('nodes').hasChanges() ||
+      this.get('status') !== 'new' && _.any(this.get('changes'),
+        (changeObject) => changeObject.name === 'networks' || changeObject.name === 'attributes'
+      );
   }
 });
 
