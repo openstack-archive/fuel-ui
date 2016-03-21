@@ -1139,7 +1139,7 @@ var NetworkTab = React.createClass({
                 >
                   <i
                     className={
-                      'glyphicon ' + (hasChanges ? 'glyphicon-danger-sign' : 'glyphicon-plus')
+                      'glyphicon ' + (hasChanges ? 'glyphicon-danger-sign' : 'glyphicon-plus-white')
                     }
                   />
                   {i18n(networkTabNS + 'add_node_network_group')}
