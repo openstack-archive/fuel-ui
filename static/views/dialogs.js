@@ -1185,9 +1185,9 @@ export var ShowNodeInfoDialog = React.createClass({
   assignAccordionEvents() {
     $('.panel-collapse', ReactDOM.findDOMNode(this))
       .on('show.bs.collapse', (e) => $(e.currentTarget).siblings('.panel-heading').find('i')
-        .removeClass('glyphicon-plus').addClass('glyphicon-minus'))
+        .removeClass('glyphicon-plus-dark').addClass('glyphicon-minus-dark'))
       .on('hide.bs.collapse', (e) => $(e.currentTarget).siblings('.panel-heading').find('i')
-        .removeClass('glyphicon-minus').addClass('glyphicon-plus'))
+        .removeClass('glyphicon-minus-dark').addClass('glyphicon-plus-dark'))
       .on('hidden.bs.collapse', (e) => e.stopPropagation());
   },
   toggle(groupIndex) {
@@ -1594,7 +1594,7 @@ export var ShowNodeInfoDialog = React.createClass({
                   >
                     <strong>{i18n('node_details.' + group, {defaultValue: group})}</strong>
                     {this.showSummary(group)}
-                    <i className='glyphicon glyphicon-plus pull-right' />
+                    <i className='glyphicon glyphicon-plus-dark pull-right' />
                   </div>
                 </div>
               </div>

@@ -2,7 +2,7 @@
 <!-- Generator: Adobe Illustrator 15.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="80px" height="1080px" viewBox="0 0 80 1080" enable-background="new 0 0 80 1080" xml:space="preserve">
+	 width="80px" height="1120px" viewBox="0 0 80 1120" enable-background="new 0 0 80 1120" xml:space="preserve">
 <g>
 	<circle fill="#48A565" cx="20.5" cy="819.5" r="7.5"/>
 </g>
@@ -932,4 +932,10 @@
 		C67,816.796,65.349,814.479,63,813.5z"/>
 	<rect x="59" y="812" fill="#FFFFFF" width="3" height="6"/>
 </g>
+<polygon fill="#FFFFFF" points="27,1058 22,1058 22,1053 19,1053 19,1058 14,1058 14,1061 19,1061 19,1066 22,1066 22,1061 27,1061 
+	"/>
+<polygon fill="#8C8C8C" points="67,1058 62,1058 62,1053 59,1053 59,1058 54,1058 54,1061 59,1061 59,1066 62,1066 62,1061 67,1061 
+	"/>
+<rect x="54" y="1098" fill="#8C8C8C" width="13" height="3"/>
+<rect x="14" y="1098" fill="#FFFFFF" width="13" height="3"/>
 </svg>

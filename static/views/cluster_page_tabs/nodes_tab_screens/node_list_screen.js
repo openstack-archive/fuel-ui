@@ -1259,7 +1259,7 @@ ManagementPanel = React.createClass({
                         onClick={_.partial(this.changeScreen, 'add', false)}
                         disabled={locked}
                       >
-                        <i className='glyphicon glyphicon-plus' />
+                        <i className='glyphicon glyphicon-plus-white' />
                         {i18n(ns + 'add_nodes_button')}
                       </button>
                     </div>
@@ -1283,7 +1283,7 @@ ManagementPanel = React.createClass({
                         className='btn btn-link pull-right btn-reset-sorting'
                         onClick={this.resetSorters}
                       >
-                        <i className='glyphicon glyphicon-remove-sign' /> {i18n(ns + 'reset')}
+                        <i className='glyphicon discard-changes-icon' /> {i18n(ns + 'reset')}
                       </button>
                     }
                   </div>
@@ -1336,7 +1336,7 @@ ManagementPanel = React.createClass({
                         className='btn btn-link pull-right btn-reset-filters'
                         onClick={this.resetFilters}
                       >
-                        <i className='glyphicon glyphicon-remove-sign' /> {i18n(ns + 'reset')}
+                        <i className='glyphicon discard-changes-icon' /> {i18n(ns + 'reset')}
                       </button>
                     }
                   </div>
@@ -1423,7 +1423,7 @@ ManagementPanel = React.createClass({
                         className='btn btn-link btn-reset-filters'
                         onClick={this.resetFilters}
                       >
-                        <i className='glyphicon glyphicon-remove-sign' />
+                        <i className='glyphicon discard-changes-icon' />
                       </button>
                     </div>
                   }
@@ -1453,7 +1453,7 @@ ManagementPanel = React.createClass({
                           className='btn btn-link btn-reset-sorting'
                           onClick={this.resetSorters}
                         >
-                          <i className='glyphicon glyphicon-remove-sign' />
+                          <i className='glyphicon discard-changes-icon' />
                         </button>
                       }
                     </div>

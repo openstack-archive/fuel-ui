@@ -1120,7 +1120,7 @@ var AddNodesButton = React.createClass({
         className='btn btn-success btn-add-nodes'
         href={'#cluster/' + this.props.cluster.id + '/nodes/add'}
       >
-        <i className='glyphicon glyphicon-plus' />
+        <i className='glyphicon glyphicon-plus-white' />
         {i18n(ns + 'go_to_nodes')}
       </a>
     );
