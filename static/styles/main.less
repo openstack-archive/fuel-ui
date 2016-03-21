@@ -83,28 +83,39 @@
 }
 
 .glyphicon-warning-sign {
-  .icon-default-styles(-52px, -132px);
+  .icon-default-styles(-51px, -132px);
+  width: 17px;
+  height: 17px;
 }
 
 .glyphicon-danger-sign {
-  .icon-default-styles(-13px, -132px);
-  width: 16px;
+  .icon-default-styles(-12px, -132px);
+  width: 17px;
+  height: 17px;
 }
 
 .glyphicon-info-sign {
-  .icon-default-styles(-13px, -612px);
+  .icon-default-styles(-12px, -611px);
+  width: 17px;
+  height: 17px;
 }
 
 .glyphicon-bell {
-  .icon-default-styles(-13px, -652px);
+  .icon-default-styles(-12px, -651px);
+  width: 17px;
+  height: 17px;
 }
 
 .glyphicon-trash {
-  .icon-default-styles(-13px, -691px);
+  .icon-default-styles(-12px, -691px);
+  width: 17px;
+  height: 17px;
 }
 
 .glyphicon-edit {
-  .icon-default-styles(-56px, -691px);
+  .icon-default-styles(-52px, -691px);
+  width: 17px;
+  height: 17px;
 }
 
 .node-management-button-sizes {
@@ -184,14 +195,18 @@
 }
 
 .discard-changes-icon {
-  .icon-default-styles(-13px, -572px);
+  .icon-default-styles(-12px, -571px);
+  width: 17px;
+  height: 17px;
   &:hover {
-    background: url(@common-icons-sprite) -53px -572px no-repeat;
+    background: url(@common-icons-sprite) -52px -571px no-repeat;
   }
 }
 
 .glyphicon-ok-sign {
-  .icon-default-styles(-13px, -812px);
+  .icon-default-styles(-12px, -811px);
+  width: 17px;
+  height: 17px;
 }
 
 .glyphicon-lock {
@@ -210,6 +225,12 @@
   .icon-default-styles(-54px, -812px);
   width: 13px;
   height: 14px;
+}
+
+.glyphicon-plus {
+  .icon-default-styles(-12px, -1051px);
+  width: 17px;
+  height: 17px;
 }
 
 .base-btn-link-colors() {
@@ -294,6 +315,15 @@ button, .btn:not(.btn-link) {.font-semibold;}
   border-color: @navbar-color;
   outline: 0;
   box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(red(@navbar-color), green(@navbar-color), blue(@navbar-color), 0.6);
+}
+
+.btn > i {
+  display: inline-block;
+  float: left;
+  top: 1px;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
 }
 
 .btn-success {
@@ -789,7 +819,7 @@ input[type=range] {
           font-size: @base-font-size + 2px;
           float: left;
           width: 10%;
-          margin-top: 2px;
+          top: 0;
         }
         p {
           display: block;
@@ -1628,7 +1658,7 @@ input[type=range] {
   }
 
   .view-mode-switcher .btn-group label, .node-list-management-buttons button {
-    padding: 7px 10px 3px;
+    padding: 7px 10px 8px;
   }
 
   .well {
@@ -2782,9 +2812,6 @@ input[type=range] {
         }
         &.notification-type {
           width: 3%;
-          .glyphicon {
-            margin: 2px 0px;
-          }
         }
         &.notification-message {
           width: 91%;
@@ -2792,6 +2819,7 @@ input[type=range] {
             padding: 0;
             border: 0;
             user-select: text;
+            vertical-align: baseline;
           }
         }
       }
@@ -2869,7 +2897,7 @@ input[type=range] {
       i {
         display: block;
         position: absolute;
-        top: 16px;
+        top: 15px;
         & + span {
           display: inline-block;
           margin-left: 24px;
@@ -2998,6 +3026,10 @@ input[type=range] {
       .wizard-steps-box {
         height: @wizard-body-height - @wizard-body-padding;
         overflow: auto;
+        i {
+          margin-top: -2px;
+          top: 4px;
+        }
         .form-group {
           margin-right: 0;
           margin-bottom: 0;
@@ -3120,6 +3152,9 @@ input[type=range] {
   .modal-footer {
     .btn-group {
       margin-left: 5px;
+    }
+    button > i {
+      float: none;
     }
   }
   &.always-show-scrollbar {
@@ -3843,8 +3878,8 @@ input[type=range] {
     left: 5px;
     top: 10px;
     z-index: 1;
-    width: 15px;
-    height: 15px;
+    width: 17px;
+    height: 17px;
   }
   .forms-box {
     .setting-section {
@@ -4328,7 +4363,7 @@ input[type=range] {
 
   .btn-add-nodes {
     .glyphicon {
-      margin-right: @dashboard-offset;
+      margin-right: @dashboard-offset / 2;
     }
   }
 
@@ -4402,7 +4437,7 @@ input[type=range] {
       input[type=text] {
         width: 240px;
         height: 32px;
-        margin: -9px 0 0 -13px;
+        margin: -21px 0 0 -12px;
         float: left;
       }
     }
@@ -4498,6 +4533,7 @@ input[type=range] {
         height: 15px;
         .discard-changes-icon {
           display: inline-block;
+          margin-top: -1px;
         }
       }
     }
