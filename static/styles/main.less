@@ -83,16 +83,19 @@
 }
 
 .glyphicon-warning-sign {
-  .icon-default-styles(-52px, -132px);
+  .icon-default-styles(-51px, -132px);
+  width: 17px;
 }
 
 .glyphicon-danger-sign {
-  .icon-default-styles(-13px, -132px);
-  width: 16px;
+  .icon-default-styles(-12px, -132px);
+  width: 17px;
 }
 
 .glyphicon-info-sign {
-  .icon-default-styles(-13px, -612px);
+  .icon-default-styles(-12px, -611px);
+  width: 17px;
+  height: 17px;
 }
 
 .glyphicon-bell {
@@ -184,14 +187,20 @@
 }
 
 .discard-changes-icon {
-  .icon-default-styles(-13px, -572px);
+  .icon-default-styles(-12px, -571px);
+  width: 17px;
+  height: 17px;
   &:hover {
-    background: url(@common-icons-sprite) -53px -572px no-repeat;
+    background: url(@common-icons-sprite) -52px -571px no-repeat;
   }
 }
 
 .glyphicon-ok-sign {
-  .icon-default-styles(-13px, -812px);
+  .icon-default-styles(-12px, -811px);
+  width: 17px;
+  height: 17px;
+  margin-top: -1px;
+  top: 2px;
 }
 
 .glyphicon-lock {
@@ -789,7 +798,6 @@ input[type=range] {
           font-size: @base-font-size + 2px;
           float: left;
           width: 10%;
-          margin-top: 2px;
         }
         p {
           display: block;
@@ -2782,9 +2790,6 @@ input[type=range] {
         }
         &.notification-type {
           width: 3%;
-          .glyphicon {
-            margin: 2px 0px;
-          }
         }
         &.notification-message {
           width: 91%;
@@ -2869,7 +2874,7 @@ input[type=range] {
       i {
         display: block;
         position: absolute;
-        top: 16px;
+        top: 15px;
         & + span {
           display: inline-block;
           margin-left: 24px;
@@ -3843,8 +3848,8 @@ input[type=range] {
     left: 5px;
     top: 10px;
     z-index: 1;
-    width: 15px;
-    height: 15px;
+    width: 17px;
+    height: 17px;
   }
   .forms-box {
     .setting-section {
@@ -4402,7 +4407,7 @@ input[type=range] {
       input[type=text] {
         width: 240px;
         height: 32px;
-        margin: -9px 0 0 -13px;
+        margin: -21px 0 0 -12px;
         float: left;
       }
     }
