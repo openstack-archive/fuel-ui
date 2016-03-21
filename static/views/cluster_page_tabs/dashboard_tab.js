@@ -567,6 +567,7 @@ var ClusterActionsPanel = React.createClass({
     var offlineNodes = nodes.where({online: false});
 
     var alerts = this.validate(action);
+    var alerts = this.validate(action);
     var blockerDescriptions = {
       deploy: <InstructionElement
         description='deployment_of_environment_cannot_be_started'
@@ -611,7 +612,7 @@ var ClusterActionsPanel = React.createClass({
             key='action-button'
             nodes={nodes}
             className='deploy-btn'
-            iconClassName='deploy-icon'
+            iconClassName='glyphicon glyphicon-deploy'
             warning={
               _.isEmpty(alerts.blocker) &&
               (!_.isEmpty(alerts.error) || !_.isEmpty(alerts.warning))
@@ -1120,7 +1121,7 @@ var AddNodesButton = React.createClass({
         className='btn btn-success btn-add-nodes'
         href={'#cluster/' + this.props.cluster.id + '/nodes/add'}
       >
-        <i className='glyphicon glyphicon-plus' />
+        <i className='glyphicon glyphicon-plus-white' />
         {i18n(ns + 'go_to_nodes')}
       </a>
     );
