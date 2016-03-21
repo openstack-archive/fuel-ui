@@ -7,6 +7,7 @@
                 "title": "Fuel Dashboard",
                 "select_all": "Select All",
                 "load_defaults_button": "Load Defaults",
+                "load_deployed_button": "Load Deployed Settings",
                 "cancel_changes_button": "Cancel Changes",
                 "apply_button": "Apply",
                 "delete_button": "Delete",
@@ -418,7 +419,7 @@
                         "configuration_error": {
                             "title": "Interfaces Configuration Error",
                             "saving_warning": "Unable to apply changes.",
-                            "load_defaults_warning": "Unable to load the default configuration."
+                            "load_settings_warning": "Unable to load settings."
                         },
                         "validation": {
                             "too_many_untagged_networks": "Untagged networks cannot be assigned to the same interface.",
@@ -598,7 +599,8 @@
                             "invalid_priority": "Invalid priority"
                         }
                     },
-                    "plugin_versions": "Versions"
+                    "plugin_versions": "Versions",
+                    "active_not_hot_pluggable_plugin": "You have just activated __plugin__. The developer of this plugin hasn't specified it as \"hot pluggable\", so cloud environment may stop functioning properly if such plugin is applied in post-deployment stage. Please consult with plugin developer on further appropriate course of actions."
                 },
                 "dashboard_tab": {
                     "delete_environment": "Delete Environment",
@@ -647,6 +649,7 @@
                     "unsuccessful_deploy": "Your deployment was unsuccessful. See the Troubleshooting section of the ",
                     "no_nodes_instruction": "You must add at least one node to your environment in order to deploy. See the ",
                     "locked_settings_alert": "Before you proceed, review the environment configuration, including the node disk partitioning and network settings. You will not be able to change these settings after Fuel deploys the OpenStack environment.",
+                    "redeployment_alert": "You have made configuration changes which will now be applied to nodes in this environment. Please note that during settings change some services on OpenStack nodes may be restarted, availability of some APIs and resources may be interrupted. For Production clouds, please make sure that the cloud is properly set into maintenance mode prior to performing configuration changes.",
                     "package_information": "Packages and updates are fetched from the repositories defined in the Settings tab. If your environment uses the default external repositories, verify that the Fuel Master node can access the Internet. If the Fuel Master node is not connected to the Internet, you must set up a local mirror and configure Fuel to upload packages from the local mirror. Fuel must have network access to the local mirror. You may also configure alternate repositories for installation. For more information, see ",
                     "user_guide": "User Guide",
                     "operations_guide": "Operations Guide",
@@ -664,6 +667,8 @@
                     "added_node_plural": "Added __count__ nodes",
                     "deleted_node": "Deleted __count__ node",
                     "deleted_node_plural": "Deleted __count__ nodes",
+                    "changed_networks": "Changed network configuration",
+                    "changed_settings": "Changed OpenStack settings",
                     "provisioned_node": "Provisioned __count__ node",
                     "provisioned_node_plural": "Provisioned __count__ nodes",
                     "stopped_node": "Stopped __count__ node",
@@ -1094,6 +1099,8 @@
                     "discard_button": "Discard",
                     "discard_addition": "Are you sure you want to discard node addition?",
                     "discard_deletion": "Are you sure you want to discard node deletion?",
+                    "discard_network_changes": "Are you sure you want to discard changes in the environment network configuration? The configuration will be reset to its deployed state.",
+                    "discard_settings_changes": "Are you sure you want to discard changes in the environment OpenStack Settings? The settings will be reset to their deployed state.",
                     "cant_discard": "Cannot discard the changes."
                 },
                 "remove_node": {

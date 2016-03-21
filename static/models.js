@@ -393,6 +393,12 @@ models.Cluster = BaseModel.extend({
       });
     });
     return result;
+  },
+  hasChanges() {
+    return this.get('nodes').hasChanges() ||
+      this.get('status') !== 'new' && _.any(this.get('changes'),
+        (changeObject) => changeObject.name === 'networks' || changeObject.name === 'attributes'
+      );
   }
 });
 

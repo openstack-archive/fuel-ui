@@ -303,46 +303,105 @@ export var NailgunUnavailabilityDialog = React.createClass({
   }
 });
 
-export var DiscardNodeChangesDialog = React.createClass({
+export var DiscardClusterChangesDialog = React.createClass({
   mixins: [dialogMixin],
   getDefaultProps() {
     return {
-      title: i18n('dialog.discard_changes.title')
+      title: i18n('dialog.discard_changes.title'),
+      ns: 'dialog.discard_changes.'
     };
   },
-  discardNodeChanges() {
+  discardChanges() {
     this.setState({actionInProgress: true});
-    var nodes = new models.Nodes(this.props.nodes.map((node) => {
-      if (node.get('pending_deletion')) {
+    var {cluster, changeName, ns} = this.props;
+
+    if (changeName === 'changed_networks' || changeName === 'changed_settings') {
+      var networkConfiguration = cluster.get('network_configuration');
+      var settings = cluster.get('settings');
+      var deployedSettings = new models.Settings();
+      var requests = [
+        deployedSettings.fetch({url: _.result(cluster, 'url') + '/attributes/deployed'})
+      ];
+
+      if (changeName === 'changed_networks') {
+        requests.push(
+          networkConfiguration.fetch({url: _.result(networkConfiguration, 'url') + '/deployed'})
+        );
+        return $.when(...requests)
+          .done(() => {
+            _.each(settings.attributes, (section, sectionName) => {
+              if (section.metadata.group === 'network') {
+                _.each(section, (setting, settingName) => {
+                  // do not update hidden settings (hack for #1442143),
+                  if (setting.type === 'hidden') return;
+                  var path = utils.makePath(sectionName, settingName);
+                  settings.set(path, deployedSettings.get(path), {silent: true});
+                });
+              }
+            });
+            settings.mergePluginSettings();
+            settings.isValid({models: this.state.configModels});
+            networkConfiguration.isValid({nodeNetworkGroups: cluster.get('nodeNetworkGroups')});
+          })
+          .fail((response) => this.showError(response, i18n(ns + 'cant_discard')));
+      }
+
+      if (changeName === 'changed_settings') {
+        return $.when(...requests)
+          .done(() => {
+            _.each(settings.attributes, (section, sectionName) => {
+              if (section.metadata.group !== 'network') {
+                _.each(section, (setting, settingName) => {
+                  // do not update hidden settings (hack for #1442143),
+                  if (setting.type === 'hidden' || setting.group === 'network') return;
+                  var path = utils.makePath(sectionName, settingName);
+                  settings.set(path, deployedSettings.get(path), {silent: true});
+                });
+              }
+            });
+            settings.mergePluginSettings();
+            settings.isValid({models: this.state.configModels});
+          })
+          .fail((response) => this.showError(response, i18n(ns + 'cant_discard')));
+      }
+    } else {
+      var nodes = new models.Nodes(this.props.nodes.map((node) => {
+        if (node.get('pending_deletion')) {
+          return {
+            id: node.id,
+            pending_deletion: false
+          };
+        }
         return {
           id: node.id,
-          pending_deletion: false
+          cluster_id: null,
+          pending_addition: false,
+          pending_roles: []
         };
-      }
-      return {
-        id: node.id,
-        cluster_id: null,
-        pending_addition: false,
-        pending_roles: []
-      };
-    }));
-    Backbone.sync('update', nodes)
-      .then(() => this.props.cluster.fetchRelated('nodes'))
-      .done(() => {
-        dispatcher
-          .trigger('updateNodeStats networkConfigurationUpdated labelsConfigurationUpdated');
-        this.state.result.resolve();
-        this.close();
-      })
-      .fail((response) => this.showError(response, i18n('dialog.discard_changes.cant_discard')));
+      }));
+      Backbone.sync('update', nodes)
+        .then(() => cluster.fetchRelated('nodes'))
+        .done(() => {
+          dispatcher
+            .trigger('updateNodeStats networkConfigurationUpdated labelsConfigurationUpdated');
+          this.state.result.resolve();
+          this.close();
+        })
+        .fail((response) => this.showError(response, i18n(ns + 'cant_discard')));
+    }
   },
   renderBody() {
+    var {nodes, changeName, ns} = this.props;
+    var text = changeName === 'changed_networks' ?
+      i18n(ns + 'discard_network_changes')
+    : changeName === 'changed_settings' ?
+      i18n(ns + 'discard_settings_changes')
+    :
+      i18n(ns + (nodes[0].get('pending_deletion') ? 'discard_deletion' : 'discard_addition'));
     return (
       <div className='text-danger'>
         {this.renderImportantLabel()}
-        {i18n('dialog.discard_changes.' + (
-          this.props.nodes[0].get('pending_deletion') ? 'discard_deletion' : 'discard_addition'
-        ))}
+        {text}
       </div>
     );
   },
@@ -360,7 +419,7 @@ export var DiscardNodeChangesDialog = React.createClass({
         key='discard'
         className='btn btn-danger'
         disabled={this.state.actionInProgress}
-        onClick={this.discardNodeChanges}
+        onClick={this.discardChanges}
       >
         {i18n('dialog.discard_changes.discard_button')}
       </button>
@@ -397,32 +456,43 @@ export var DeployClusterDialog = React.createClass({
   },
   renderBody() {
     var cluster = this.props.cluster;
+    var warningNs = 'cluster_page.dashboard_tab.';
+    var areSettingsChanged = _.any(cluster.get('changes'),
+      (changeObject) => changeObject.name === 'networks' || changeObject.name === 'attributes'
+    );
     return (
       <div className='display-changes-dialog'>
-        {!cluster.needsRedeployment() &&
-          _.contains(['new', 'stopped', 'partially_deployed'], cluster.get('status')) &&
-          <div>
-            <div className='text-warning'>
+        {!cluster.needsRedeployment() && [
+          cluster.get('status') !== 'new' && !areSettingsChanged &&
+            <div className='text-warning' key='redeployment-alert'>
               <i className='glyphicon glyphicon-warning-sign' />
               <div className='instruction'>
-                {i18n('cluster_page.dashboard_tab.locked_settings_alert') + ' '}
+                {i18n(warningNs + 'redeployment_alert')}
+              </div>
+            </div>,
+          cluster.get('nodes').any({pending_addition: true}) &&
+            <div key='new-nodes-alerts'>
+              <div className='text-warning'>
+                <i className='glyphicon glyphicon-warning-sign' />
+                <div className='instruction'>
+                  {i18n(warningNs + 'locked_settings_alert') + ' '}
+                </div>
+              </div>
+              <div className='text-warning'>
+                <i className='glyphicon glyphicon-warning-sign' />
+                <div className='instruction'>
+                  {i18n(warningNs + 'package_information') + ' '}
+                  <a
+                    target='_blank'
+                    href={utils.composeDocumentationLink('operations.html#troubleshooting')}
+                  >
+                    {i18n(warningNs + 'operations_guide')}
+                  </a>
+                  {i18n(warningNs + 'for_more_information_configuration')}
+                </div>
               </div>
             </div>
-            <div className='text-warning'>
-              <i className='glyphicon glyphicon-warning-sign' />
-              <div className='instruction'>
-                {i18n('cluster_page.dashboard_tab.package_information') + ' '}
-                <a
-                  target='_blank'
-                  href={utils.composeDocumentationLink('operations.html#troubleshooting')}
-                >
-                  {i18n('cluster_page.dashboard_tab.operations_guide')}
-                </a>
-                {i18n('cluster_page.dashboard_tab.for_more_information_configuration')}
-              </div>
-            </div>
-          </div>
-        }
+        ]}
         <div className='confirmation-question'>
           {i18n(this.ns + 'are_you_sure_deploy')}
         </div>

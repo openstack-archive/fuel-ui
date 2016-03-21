@@ -184,47 +184,14 @@ var SettingSection = React.createClass({
   },
   togglePlugin(pluginName, settingName, enabled) {
     this.props.onChange(settingName, enabled);
-    var pluginMetadata = this.props.settings.get(pluginName).metadata;
-    if (enabled) {
-      // check for editable plugin version
-      var chosenVersionData = _.find(pluginMetadata.versions, (version) => {
-        return version.metadata.plugin_id === pluginMetadata.chosen_id;
-      });
-      if (this.props.lockedCluster && !chosenVersionData.metadata.always_editable) {
-        var editableVersion = _.find(pluginMetadata.versions, (version) => {
-          return version.metadata.always_editable;
-        }).metadata.plugin_id;
-        this.onPluginVersionChange(pluginName, editableVersion);
-      }
-    } else {
+    if (!enabled) {
+      // reset to initial plugin version
+      var currentVersion = this.props.settings.get(pluginName).metadata.chosen_id;
       var initialVersion = this.props.initialAttributes[pluginName].metadata.chosen_id;
-      if (pluginMetadata.chosen_id !== initialVersion) {
+      if (currentVersion !== initialVersion) {
         this.onPluginVersionChange(pluginName, initialVersion);
       }
     }
-  },
-  renderTitle(options) {
-    var {metadata, sectionName, isGroupDisabled, processedGroupDependencies,
-      showSettingGroupWarning, groupWarning, isPlugin} = options;
-    return metadata.toggleable ?
-      <Input
-        type='checkbox'
-        name='metadata'
-        label={metadata.label || sectionName}
-        defaultChecked={metadata.enabled}
-        disabled={isGroupDisabled || processedGroupDependencies.result}
-        tooltipText={showSettingGroupWarning && groupWarning}
-        onChange={isPlugin ? _.partial(this.togglePlugin, sectionName) : this.props.onChange}
-      />
-    :
-      <span
-        className={'subtab-group-' + sectionName}
-      >
-        {
-          sectionName === 'common' ?
-          i18n('cluster_page.settings_tab.groups.common') : metadata.label || sectionName
-        }
-      </span>;
   },
   renderCustomControl(options) {
     var {
@@ -296,31 +263,50 @@ var SettingSection = React.createClass({
     />;
   },
   render() {
-    var {settings, sectionName} = this.props;
+    var {cluster, settings, sectionName, locked, settingsToDisplay} = this.props;
     var section = settings.get(sectionName);
     var isPlugin = settings.isPlugin(section);
     var metadata = section.metadata;
-    var sortedSettings = _.sortBy(this.props.settingsToDisplay, (settingName) => {
-      return section[settingName].weight;
-    });
+    var sortedSettings = _.sortBy(settingsToDisplay, (settingName) => section[settingName].weight);
     var processedGroupRestrictions = this.processRestrictions(metadata);
     var processedGroupDependencies = this.checkDependencies(sectionName, 'metadata');
-    var isGroupAlwaysEditable = isPlugin ? _.any(metadata.versions, (version) => {
-      return version.metadata.always_editable;
-    }) : metadata.always_editable;
-    var isGroupDisabled = this.props.locked ||
-      (this.props.lockedCluster && !isGroupAlwaysEditable) || processedGroupRestrictions.result;
-    var showSettingGroupWarning = !this.props.lockedCluster || metadata.always_editable;
-    var groupWarning = _.compact([processedGroupRestrictions.message,
-      processedGroupDependencies.message]).join(' ');
+    var isGroupDisabled = locked || processedGroupRestrictions.result;
+    var showSettingGroupWarning = !locked;
+    var groupWarning = _.compact(
+      [processedGroupRestrictions.message, processedGroupDependencies.message]
+    ).join(' ');
+    var groupLabel = sectionName === 'common' ?
+      i18n('cluster_page.settings_tab.groups.common')
+    :
+      metadata.label || sectionName;
 
     return (
       <div className={'setting-section setting-section-' + sectionName}>
         <h3>
-          {this.renderTitle({metadata, sectionName, isGroupDisabled, processedGroupDependencies,
-            showSettingGroupWarning, groupWarning, isPlugin})}
+          {metadata.toggleable ?
+            <Input
+              type='checkbox'
+              name='metadata'
+              label={groupLabel}
+              defaultChecked={metadata.enabled}
+              disabled={isGroupDisabled || processedGroupDependencies.result}
+              tooltipText={showSettingGroupWarning && groupWarning}
+              onChange={isPlugin ? _.partial(this.togglePlugin, sectionName) : this.props.onChange}
+            />
+          :
+            <span className={'subtab-group-' + sectionName}>{groupLabel}</span>
+          }
         </h3>
         <div>
+          {cluster.get('status') !== 'new' &&
+            isPlugin && metadata.enabled && !metadata.hot_pluggable &&
+            <div className='alert alert-warning'>
+              {i18n(
+                'cluster_page.settings_tab.active_not_hot_pluggable_plugin',
+                {plugin: groupLabel}
+              )}
+            </div>
+          }
           {isPlugin &&
             <div className='plugin-versions clearfix'>
               <RadioGroup
@@ -332,8 +318,7 @@ var SettingSection = React.createClass({
                     data: version.metadata.plugin_id,
                     label: version.metadata.plugin_version,
                     defaultChecked: version.metadata.plugin_id === metadata.chosen_id,
-                    disabled: this.props.locked || (this.props.lockedCluster &&
-                      !version.metadata.always_editable) || processedGroupRestrictions.result ||
+                    disabled: locked || processedGroupRestrictions.result ||
                       (metadata.toggleable && !metadata.enabled)
                   };
                 }, this)}

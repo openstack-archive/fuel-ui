@@ -101,12 +101,8 @@ var SettingsTab = React.createClass({
   applyChanges() {
     if (!this.isSavingPossible()) return $.Deferred().reject();
 
-    // collecting data to save
     var settings = this.props.cluster.get('settings');
-    var dataToSave = this.props.cluster.isAvailableForSettingsChanges() ? settings.attributes :
-      _.pick(settings.attributes, (group) => (group.metadata || {}).always_editable);
-    var options = {url: settings.url, patch: true, wait: true, validate: false};
-    var deferred = new models.Settings(_.cloneDeep(dataToSave)).save(null, options);
+    var deferred = settings.save(null, {patch: true, wait: true, validate: false});
     if (deferred) {
       this.setState({actionInProgress: true});
       deferred
@@ -133,26 +129,25 @@ var SettingsTab = React.createClass({
     }
     return deferred;
   },
-  loadDefaults() {
+  loadDefaults(loadDeployedSettings = false) {
     var settings = this.props.cluster.get('settings');
-    var lockedCluster = !this.props.cluster.isAvailableForSettingsChanges();
-    var defaultSettings = new models.Settings();
-    var deferred = defaultSettings.fetch({url: _.result(this.props.cluster, 'url') +
-      '/attributes/defaults'});
-
+    var loadedSettings = new models.Settings();
+    var deferred = loadedSettings.fetch({
+      url: _.result(this.props.cluster, 'url') + '/attributes/' +
+        loadDeployedSettings ? 'deployed' : 'defaults'
+    });
     if (deferred) {
       this.setState({actionInProgress: true});
       deferred
         .done(() => {
           _.each(settings.attributes, (section, sectionName) => {
-            if ((!lockedCluster || section.metadata.always_editable) &&
-              section.metadata.group !== 'network') {
+            if (section.metadata.group !== 'network') {
               _.each(section, (setting, settingName) => {
                 // do not update hidden settings (hack for #1442143),
                 // the same for settings with group network
                 if (setting.type === 'hidden' || setting.group === 'network') return;
                 var path = utils.makePath(sectionName, settingName);
-                settings.set(path, defaultSettings.get(path), {silent: true});
+                settings.set(path, loadedSettings.get(path), {silent: true});
               });
             }
           });
@@ -166,8 +161,8 @@ var SettingsTab = React.createClass({
         .fail((response) => {
           utils.showErrorDialog({
             title: i18n('cluster_page.settings_tab.settings_error.title'),
-            message: i18n('cluster_page.settings_tab.settings_error.load_defaults_warning'),
-            response: response
+            message: i18n('cluster_page.settings_tab.settings_error.load_settings_warning'),
+            response
           });
         });
     }
@@ -201,10 +196,6 @@ var SettingsTab = React.createClass({
   },
   isSavingPossible() {
     var settings = this.props.cluster.get('settings');
-    var locked = this.state.actionInProgress || !!this.props.cluster.task({
-      group: 'deployment',
-      active: true
-    });
     // network settings are shown on Networks tab, so they should not block
     // saving of changes on Settings tab
     var areSettingsValid = !_.any(_.keys(settings.validationError), (settingPath) => {
@@ -212,18 +203,16 @@ var SettingsTab = React.createClass({
       return settings.get(settingSection).metadata.group !== 'network' &&
         settings.get(settingPath).group !== 'network';
     });
-    return !locked && this.hasChanges() && areSettingsValid;
+    return !this.isLocked() && this.hasChanges() && areSettingsValid;
+  },
+  isLocked() {
+    return this.state.actionInProgress || !this.props.cluster.isAvailableForSettingsChanges();
   },
   render() {
     var cluster = this.props.cluster;
     var settings = cluster.get('settings');
     var settingsGroupList = this.constructor.getSubtabs({cluster});
-    var locked = this.state.actionInProgress || !!cluster.task({group: 'deployment', active: true});
-    var lockedCluster = !cluster.isAvailableForSettingsChanges();
-    var someSettingsEditable = _.any(
-      settings.attributes,
-      (group) => group.metadata.always_editable
-    );
+    var locked = this.isLocked();
     var hasChanges = this.hasChanges();
     var allocatedRoles = _.uniq(_.flatten(_.union(
       cluster.get('nodes').pluck('roles'),
@@ -231,7 +220,7 @@ var SettingsTab = React.createClass({
     )));
     var classes = {
       row: true,
-      'changes-locked': lockedCluster
+      'changes-locked': locked
     };
 
     var invalidSections = {};
@@ -330,7 +319,6 @@ var SettingsTab = React.createClass({
                   settings={settings}
                   getValueAttribute={settings.getValueAttribute}
                   locked={locked}
-                  lockedCluster={lockedCluster}
                   checkRestrictions={this.checkRestrictions}
                 />;
               })}
@@ -340,13 +328,6 @@ var SettingsTab = React.createClass({
         <div className='col-xs-12 page-buttons content-elements'>
           <div className='well clearfix'>
             <div className='btn-group pull-right'>
-              <button
-                className='btn btn-default btn-load-defaults'
-                onClick={this.loadDefaults}
-                disabled={locked || (lockedCluster && !someSettingsEditable)}
-              >
-                {i18n('common.load_defaults_button')}
-              </button>
               <button
                 className='btn btn-default btn-revert-changes'
                 onClick={this.revertChanges}
@@ -361,6 +342,24 @@ var SettingsTab = React.createClass({
               >
                 {i18n('common.save_settings_button')}
               </button>
+            </div>
+            <div className='btn-group pull-right'>
+              <button
+                className='btn btn-default btn-load-defaults'
+                onClick={() => this.loadDefaults()}
+                disabled={locked}
+              >
+                {i18n('common.load_defaults_button')}
+              </button>
+              {cluster.get('status') !== 'new' &&
+                <button
+                  className='btn btn-default btn-load-deployed'
+                  onClick={() => this.loadDefaults(true)}
+                  disabled={locked}
+                >
+                  {i18n('common.load_deployed_button')}
+                </button>
+              }
             </div>
           </div>
         </div>

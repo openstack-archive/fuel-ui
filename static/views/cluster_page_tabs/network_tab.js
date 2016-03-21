@@ -737,8 +737,9 @@ var NetworkTab = React.createClass({
     });
   },
   isLocked() {
-    return !!this.props.cluster.task({group: ['deployment', 'network'], active: true}) ||
-      !this.props.cluster.isAvailableForSettingsChanges() || this.state.actionInProgress;
+    return !this.props.cluster.isAvailableForSettingsChanges() ||
+      !!this.props.cluster.task({group: 'network', active: true}) ||
+      this.state.actionInProgress;
   },
   prepareIpRanges() {
     var removeEmptyRanges = (ranges) => {
@@ -857,13 +858,8 @@ var NetworkTab = React.createClass({
     requests.push(result);
 
     if (this.isNetworkSettingsChanged()) {
-      // collecting data to save
       var settings = this.props.cluster.get('settings');
-      var dataToSave = this.props.cluster.isAvailableForSettingsChanges() ? settings.attributes :
-        _.pick(settings.attributes, (group) => (group.metadata || {}).always_editable);
-
-      var options = {url: settings.url, patch: true, wait: true, validate: false};
-      var deferred = new models.Settings(_.cloneDeep(dataToSave)).save(null, options);
+      var deferred = settings.save(null, {patch: true, wait: true, validate: false});
       if (deferred) {
         this.setState({actionInProgress: true});
         deferred
@@ -896,10 +892,48 @@ var NetworkTab = React.createClass({
       _.isNull(this.props.cluster.get('networkConfiguration').validationError) &&
       _.isNull(this.props.cluster.get('settings').validationError);
   },
+  loadDeployedSettings() {
+    this.setState({actionInProgress: true});
+
+    var cluster = this.props.cluster;
+    var networkConfiguration = cluster.get('network_configuration');
+    var settings = cluster.get('settings');
+    var deployedSettings = new models.Settings();
+    var requests = [
+      networkConfiguration.fetch({url: _.result(networkConfiguration, 'url') + '/deployed'}),
+      deployedSettings.fetch({url: _.result(cluster, 'url') + '/attributes/deployed'})
+    ];
+
+    $.when(...requests)
+      .done(() => {
+        _.each(settings.attributes, (section, sectionName) => {
+          if (section.metadata.group === 'network') {
+            _.each(section, (setting, settingName) => {
+              // do not update hidden settings (hack for #1442143),
+              if (setting.type === 'hidden') return;
+              var path = utils.makePath(sectionName, settingName);
+              settings.set(path, deployedSettings.get(path), {silent: true});
+            });
+          }
+        });
+        settings.mergePluginSettings();
+        settings.isValid({models: this.state.configModels});
+        networkConfiguration.isValid({nodeNetworkGroups: cluster.get('nodeNetworkGroups')});
+        this.setState({
+          actionInProgress: false,
+          key: _.now()
+        });
+      })
+      .fail((response) => {
+        utils.showErrorDialog({
+          title: i18n('cluster_page.settings_tab.settings_error.title'),
+          message: i18n('cluster_page.settings_tab.settings_error.load_settings_warning'),
+          response
+        });
+      });
+  },
   renderButtons() {
-    var isCancelChangesDisabled = this.state.actionInProgress ||
-      !!this.props.cluster.task({group: ['deployment', 'network'], active: true}) ||
-      !this.hasChanges();
+    var locked = this.isLocked();
     return (
       <div className='well clearfix'>
         <div className='btn-group pull-right'>
@@ -907,7 +941,7 @@ var NetworkTab = React.createClass({
             key='revert_changes'
             className='btn btn-default btn-revert-changes'
             onClick={this.revertChanges}
-            disabled={isCancelChangesDisabled}
+            disabled={locked || !this.hasChanges()}
           >
             {i18n('common.cancel_changes_button')}
           </button>
@@ -919,6 +953,17 @@ var NetworkTab = React.createClass({
           >
             {i18n('common.save_settings_button')}
           </button>
+        </div>
+        <div className='btn-group pull-right'>
+          {this.props.cluster.get('status') !== 'new' &&
+            <button
+              className='btn btn-default btn-load-deployed'
+              onClick={this.loadDeployedSettings}
+              disabled={locked}
+            >
+              {i18n('common.load_deployed_button')}
+            </button>
+          }
         </div>
       </div>
     );
@@ -1161,7 +1206,7 @@ var NetworkTab = React.createClass({
                 <NetworkSettings
                   {... _.pick(this.state, 'key', 'configModels', 'settingsForChecks')}
                   cluster={this.props.cluster}
-                  locked={this.state.actionInProgress}
+                  locked={isLocked}
                   initialAttributes={this.state.initialSettingsAttributes}
                 />
               }
@@ -1187,14 +1232,14 @@ var NetworkTab = React.createClass({
                 <NetworkingL2Parameters
                   cluster={cluster}
                   validationError={validationError}
-                  disabled={this.isLocked()}
+                  disabled={isLocked}
                 />
               }
               {activeNetworkSectionName === 'neutron_l3' &&
                 <NetworkingL3Parameters
                   cluster={cluster}
                   validationError={validationError}
-                  disabled={this.isLocked()}
+                  disabled={isLocked}
                 />
               }
             </div>
@@ -1218,14 +1263,16 @@ var NetworkTab = React.createClass({
 
 var NodeNetworkGroup = React.createClass({
   render() {
-    var {cluster, networks, nodeNetworkGroup, verificationErrors, validationError} = this.props;
+    var {
+      cluster, networks, nodeNetworkGroup, verificationErrors, validationError, locked
+    } = this.props;
     return (
       <div>
         <NodeNetworkGroupTitle
           {... _.pick(this.props, 'cluster', 'removeNodeNetworkGroup')}
           currentNodeNetworkGroup={nodeNetworkGroup}
-          isRenamingPossible={cluster.isAvailableForSettingsChanges()}
-          isDeletionPossible={!cluster.task({group: ['deployment', 'network'], active: true})}
+          isRenamingPossible={!locked}
+          isDeletionPossible={!locked}
         />
         {networks.map((network) => {
           return (
@@ -1234,7 +1281,7 @@ var NodeNetworkGroup = React.createClass({
               network={network}
               cluster={cluster}
               validationError={(validationError || {}).networks}
-              disabled={this.props.locked}
+              disabled={locked}
               verificationErrorField={
                 _.pluck(_.where(verificationErrors, {network: network.id}), 'field')
               }
@@ -1710,11 +1757,8 @@ var NetworkSettings = React.createClass({
       .checkRestrictions(this.props.configModels, action, setting);
   },
   render() {
-    var cluster = this.props.cluster;
+    var {cluster, locked} = this.props;
     var settings = cluster.get('settings');
-    var locked = this.props.locked ||
-      !!cluster.task({group: ['deployment', 'network'], active: true});
-    var lockedCluster = !cluster.isAvailableForSettingsChanges();
     var allocatedRoles = _.uniq(_.flatten(_.union(cluster.get('nodes').pluck('roles'),
       cluster.get('nodes').pluck('pending_roles'))));
     return (
@@ -1757,7 +1801,6 @@ var NetworkSettings = React.createClass({
                   settings={settings}
                   getValueAttribute={settings.getValueAttribute}
                   locked={locked}
-                  lockedCluster={lockedCluster}
                   checkRestrictions={this.checkRestrictions}
                 />;
               }
