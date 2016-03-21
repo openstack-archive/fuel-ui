@@ -71,7 +71,7 @@ define([
             '"fuel-createmirror --help" on the Fuel master node.\nPlease make sure your Fuel ' +
             'master node has Internet access to the repository before attempting to create a ' +
             'mirror.\nFor more details, please refer to the documentation (https://docs.mirantis' +
-            '.com/openstack/fuel/fuel-9.0/operations.html#external-ubuntu-ops).',
+            '.com/openstack/fuel/fuel-10.0/operations.html#external-ubuntu-ops).',
             'Default subgroup description is observed')
           .assertElementsExist('div.repo-name', 8,
             'Default quantity of Name textfields is observed')
