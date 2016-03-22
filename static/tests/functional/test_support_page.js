@@ -64,8 +64,8 @@ define([
             '"Save changes" button is enabled after changing "Send usage statistics" ' +
             'checkbox value')
           .clickByCssSelector(saveStatisticsSettingsButton)
-          .assertElementDisabled(saveStatisticsSettingsButton,
-            '"Save changes" button is disabled after saving changes');
+          .assertElementAppears(saveStatisticsSettingsButton + ':disabled', 300,
+             '"Save changes" button is disabled after saving changes');
       },
       'Discard changes': function() {
         return this.remote
