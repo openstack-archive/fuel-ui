@@ -918,7 +918,7 @@ var NodeInterface = React.createClass({
         </div>
         {isConfigurationModeOn &&
           <div className='row configuration-panel'>
-            <div className='col-xs-12 interface-sub-tab'>
+            <div className='col-xs-12 forms-box interface-sub-tab'>
               {this.renderInterfaceSubtab()}
             </div>
           </div>

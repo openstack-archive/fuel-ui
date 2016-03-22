@@ -3571,7 +3571,6 @@ input[type=range] {
           }
         }
         .configuration-panel {
-          margin-bottom: @common-offset;
           margin-top: @common-offset * 2;
         }
         .mtu-control {
@@ -3581,8 +3580,14 @@ input[type=range] {
         }
         .configuration-panel {
           margin-top: @common-offset;
+          .forms-box {
+            margin-bottom: 0;
+          }
           .interface-sub-tab {
             text-align: left;
+            .form-group {
+              margin-bottom: 12px;
+            }
             .has-error {
               .help-block {
                 color: @red;
@@ -3601,14 +3606,11 @@ input[type=range] {
           }
           .sriov-virtual-functions {
             margin-bottom: @common-offset;
-            input {
-              margin-left: 2px;
-            }
           }
         }
         .sriov-virtual-functions,
         .physnet {
-          label {width: 200px;}
+          label {width: 250px;}
         }
         .toggle-configuration-control {
           .glyphicon {
