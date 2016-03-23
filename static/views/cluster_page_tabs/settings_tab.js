@@ -46,9 +46,17 @@ var SettingsTab = React.createClass({
         [i18n('cluster_page.tabs.settings'), null, {active: true}]
       ];
     },
-    fetchData(options) {
-      return $.when(options.cluster.get('settings').fetch({cache: true}),
-        options.cluster.get('networkConfiguration').fetch({cache: true})).then(() => ({}));
+    fetchData({cluster, activeTab}) {
+      var currentTab;
+      try {
+        currentTab = app.page.props.activeTab;
+      } catch (ignore) {}
+      // just another subtab has been chosen, do not load tab data again
+      if (!_.isUndefined(currentTab) && currentTab === activeTab) return $.Deferred().resolve();
+      return $.when(
+        cluster.get('settings').fetch({cache: true}),
+        cluster.get('networkConfiguration').fetch({cache: true})
+      ).then(() => ({}));
     },
     getSubtabs(options) {
       return options.cluster.get('settings').getGroupList();

@@ -90,7 +90,9 @@ var ClusterPage = React.createClass({
       if (currentClusterId === id) {
         // just another tab has been chosen, do not load cluster again
         cluster = app.page.props.cluster;
-        promise = tab.fetchData ? tab.fetchData({cluster: cluster, tabOptions: tabOptions}) :
+        promise = tab.fetchData ?
+          tab.fetchData({cluster, activeTab, tabOptions})
+        :
           $.Deferred().resolve();
       } else {
         cluster = new models.Cluster({id: id});

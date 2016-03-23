@@ -583,8 +583,13 @@ var NetworkTab = React.createClass({
         [i18n('cluster_page.tabs.network'), null, {active: true}]
       ];
     },
-    fetchData(options) {
-      var cluster = options.cluster;
+    fetchData({cluster, activeTab}) {
+      var currentTab;
+      try {
+        currentTab = app.page.props.activeTab;
+      } catch (ignore) {}
+      // just another subtab has been chosen, do not load tab data again
+      if (!_.isUndefined(currentTab) && currentTab === activeTab) return $.Deferred().resolve();
       return $.when(
         cluster.get('settings').fetch({cache: true}),
         cluster.get('networkConfiguration').fetch({cache: true})
