@@ -75,9 +75,10 @@ var utils = {
     modelPath.setModel(models);
     return modelPath;
   },
-  evaluateExpression(expression, models, options) {
+  evaluateExpression(expression, models, extraModels, options) {
+    console.log(expression, extraModels.interface.get('name'), extraModels.interface.get('pxe'), extraModels.interface.get('interface_properties.dpdk.enabled'));
     var compiledExpression = new Expression(expression, models, options);
-    var value = compiledExpression.evaluate();
+    var value = compiledExpression.evaluate(extraModels);
     return {
       value: value,
       modelPaths: compiledExpression.modelPaths
