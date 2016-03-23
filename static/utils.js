@@ -75,9 +75,9 @@ var utils = {
     modelPath.setModel(models);
     return modelPath;
   },
-  evaluateExpression(expression, models, options) {
+  evaluateExpression(expression, models, extraModels, options) {
     var compiledExpression = new Expression(expression, models, options);
-    var value = compiledExpression.evaluate();
+    var value = compiledExpression.evaluate(extraModels);
     return {
       value: value,
       modelPaths: compiledExpression.modelPaths
