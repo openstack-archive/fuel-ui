@@ -133,7 +133,7 @@ var restrictionMixin = models.restrictionMixin = {
      *  limitType -- array of limit types to check. Possible choices are 'min', 'max', 'recommended'
     **/
 
-    var evaluateExpressionHelper = (expression, models, options) => {
+    var evaluateExpressionHelper = (expression, models) => {
       var ret;
 
       if (_.isUndefined(expression)) {
@@ -142,7 +142,7 @@ var restrictionMixin = models.restrictionMixin = {
         return {value: expression, modelPaths: {}};
       }
 
-      ret = utils.evaluateExpression(expression, models, options);
+      ret = utils.evaluateExpression(expression, models);
 
       if (ret.value instanceof ModelPath) {
         ret.value = ret.value.model.get(ret.value.attribute);
@@ -914,125 +914,125 @@ models.Volumes = BaseCollection.extend({
   url: '/api/volumes/'
 });
 
-models.Interface = BaseModel.extend({
-  constructorName: 'Interface',
-  parse(response) {
-    response.assigned_networks = new models.InterfaceNetworks(response.assigned_networks);
-    response.assigned_networks.interface = this;
-    return response;
-  },
-  toJSON(options) {
-    return _.omit(_.extend(this.constructor.__super__.toJSON.call(this, options), {
-      assigned_networks: this.get('assigned_networks').toJSON()
-    }), 'checked');
-  },
-  isBond() {
-    return this.get('type') === 'bond';
-  },
-  getSlaveInterfaces() {
-    if (!this.isBond()) return [this];
-    var slaveInterfaceNames = _.pluck(this.get('slaves'), 'name');
-    return this.collection.filter((slaveInterface) => {
-      return _.contains(slaveInterfaceNames, slaveInterface.get('name'));
-    });
-  },
-  validate(attrs) {
-    var errors = {};
-    var networkErrors = [];
-    var networks = new models.Networks(this.get('assigned_networks')
-      .invoke('getFullNetwork', attrs.networks));
-    var untaggedNetworks = networks.filter((network) => {
-      return _.isNull(network.getVlanRange(attrs.networkingParameters));
-    });
-    var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
-    // public and floating networks are allowed to be assigned to the same interface
-    var maxUntaggedNetworksCount = networks.any({name: 'public'}) &&
-      networks.any({name: 'floating'}) ? 2 : 1;
-    if (untaggedNetworks.length > maxUntaggedNetworksCount) {
-      networkErrors.push(i18n(ns + 'too_many_untagged_networks'));
-    }
-
-    _.extend(errors, this.validateInterfaceProperties());
-
-    // check interface networks have the same vlan id
-    var vlans = _.reject(networks.pluck('vlan_start'), _.isNull);
-    if (_.uniq(vlans).length < vlans.length) {
-      networkErrors.push(i18n(ns + 'networks_with_the_same_vlan'));
-    }
-
-    // check interface network vlan ids included in Neutron L2 vlan range
-    var vlanRanges = _.reject(networks.map(
-        (network) => network.getVlanRange(attrs.networkingParameters)
-      ), _.isNull);
-    if (
-      _.any(vlanRanges,
-        (currentRange) => _.any(vlanRanges,
-          (range) => !_.isEqual(currentRange, range) &&
-            range[1] >= currentRange[0] && range[0] <= currentRange[1]
-        )
-      )
-    ) networkErrors.push(i18n(ns + 'vlan_range_intersection'));
-
-    if (this.shouldSRIOVBeValidated() &&
-      networks.length &&
-      attrs.networkingParameters.segmentation_type !== 'vlan') {
-      networkErrors.push(i18n(ns + 'sriov_placement_error'));
-    }
-
-    if (this.get('interface_properties').dpdk.enabled &&
-      (
-        !(networks.any({name: 'private'}) && networks.length === 1 || !networks.length) ||
-        !attrs.networkingParameters.segmentation_type === 'vlan'
-      )
-    ) {
-      networkErrors.push(i18n(ns + 'dpdk_placement_error'));
-    }
-
-    if (networkErrors.length) {
-      errors.network_errors = networkErrors;
-    }
-    return errors;
-  },
-  validateInterfaceProperties() {
-    var interfaceProperties = this.get('interface_properties');
-    if (!interfaceProperties) return null;
-    var errors = {};
-    var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
-    var mtuValue = parseInt(interfaceProperties.mtu, 10);
-    if (mtuValue) {
-      if (_.isNaN(mtuValue) || mtuValue < 42 || mtuValue > 65536) {
-        errors.mtu = i18n(ns + 'invalid_mtu');
+models.Interface = Backbone.DeepModel
+  .extend(superMixin)
+  .extend({
+    constructorName: 'Interface',
+    parse(response) {
+      response.assigned_networks = new models.InterfaceNetworks(response.assigned_networks);
+      response.assigned_networks.interface = this;
+      return response;
+    },
+    toJSON(options) {
+      return _.omit(_.extend(this.constructor.__super__.toJSON.call(this, options), {
+        assigned_networks: this.get('assigned_networks').toJSON()
+      }), 'checked');
+    },
+    isBond() {
+      return this.get('type') === 'bond';
+    },
+    getSlaveInterfaces() {
+      if (!this.isBond()) return [this];
+      var slaveNames = _.pluck(this.get('slaves'), 'name');
+      return this.collection.filter((ifc) => _.contains(slaveNames, ifc.get('name')));
+    },
+    validate(attrs) {
+      var errors = {};
+      var networkErrors = [];
+      var networks = new models.Networks(this.get('assigned_networks')
+        .invoke('getFullNetwork', attrs.networks));
+      var untaggedNetworks = networks.filter((network) => {
+        return _.isNull(network.getVlanRange(attrs.networkingParameters));
+      });
+      var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
+      // public and floating networks are allowed to be assigned to the same interface
+      var maxUntaggedNetworksCount = networks.any({name: 'public'}) &&
+        networks.any({name: 'floating'}) ? 2 : 1;
+      if (untaggedNetworks.length > maxUntaggedNetworksCount) {
+        networkErrors.push(i18n(ns + 'too_many_untagged_networks'));
       }
+
+      _.extend(errors, this.validateInterfaceProperties());
+
+      // check interface networks have the same vlan id
+      var vlans = _.reject(networks.pluck('vlan_start'), _.isNull);
+      if (_.uniq(vlans).length < vlans.length) {
+        networkErrors.push(i18n(ns + 'networks_with_the_same_vlan'));
+      }
+
+      // check interface network vlan ids included in Neutron L2 vlan range
+      var vlanRanges = _.reject(networks.map(
+          (network) => network.getVlanRange(attrs.networkingParameters)
+        ), _.isNull);
+      if (
+        _.any(vlanRanges,
+          (currentRange) => _.any(vlanRanges,
+            (range) => !_.isEqual(currentRange, range) &&
+              range[1] >= currentRange[0] && range[0] <= currentRange[1]
+          )
+        )
+      ) networkErrors.push(i18n(ns + 'vlan_range_intersection'));
+
+      if (this.shouldSRIOVBeValidated() &&
+        networks.length &&
+        attrs.networkingParameters.segmentation_type !== 'vlan') {
+        networkErrors.push(i18n(ns + 'sriov_placement_error'));
+      }
+
+      if (this.get('interface_properties').dpdk.enabled &&
+        (
+          !(networks.any({name: 'private'}) && networks.length === 1 || !networks.length) ||
+          !attrs.networkingParameters.segmentation_type === 'vlan'
+        )
+      ) {
+        networkErrors.push(i18n(ns + 'dpdk_placement_error'));
+      }
+
+      if (networkErrors.length) {
+        errors.network_errors = networkErrors;
+      }
+      return errors;
+    },
+    validateInterfaceProperties() {
+      var interfaceProperties = this.get('interface_properties');
+      if (!interfaceProperties) return null;
+      var errors = {};
+      var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
+      var mtuValue = parseInt(interfaceProperties.mtu, 10);
+      if (mtuValue) {
+        if (_.isNaN(mtuValue) || mtuValue < 42 || mtuValue > 65536) {
+          errors.mtu = i18n(ns + 'invalid_mtu');
+        }
+      }
+      _.extend(errors, this.validateSRIOV());
+      return _.isEmpty(errors) ? null : {interface_properties: errors};
+    },
+    shouldSRIOVBeValidated() {
+      var sriov = (this.get('interface_properties') || {}).sriov;
+      return sriov && sriov.available && sriov.enabled && !this.isBond();
+    },
+    validateSRIOV() {
+      if (!this.shouldSRIOVBeValidated()) return null;
+      var sriov = (this.get('interface_properties') || {}).sriov;
+      var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
+      var errors = {};
+      var virtualFunctionsNumber = parseInt(sriov.sriov_numvfs, 10);
+      if (virtualFunctionsNumber < 0 ||
+        virtualFunctionsNumber > sriov.sriov_totalvfs ||
+        _.isNaN(virtualFunctionsNumber)
+      ) {
+        errors.sriov_numvfs = i18n(ns + 'invalid_virtual_functions_number',
+          {max: sriov.sriov_totalvfs}
+        );
+      }
+      if (sriov.physnet && !sriov.physnet.match(utils.regexes.networkName)) {
+        errors.physnet = i18n(ns + 'invalid_physnet');
+      } else if (!(_.trim(sriov.physnet) || '')) {
+        errors.physnet = i18n(ns + 'empty_physnet');
+      }
+      return _.isEmpty(errors) ? null : {sriov: errors};
     }
-    _.extend(errors, this.validateSRIOV());
-    return _.isEmpty(errors) ? null : {interface_properties: errors};
-  },
-  shouldSRIOVBeValidated() {
-    var sriov = (this.get('interface_properties') || {}).sriov;
-    return sriov && sriov.available && sriov.enabled && !this.isBond();
-  },
-  validateSRIOV() {
-    if (!this.shouldSRIOVBeValidated()) return null;
-    var sriov = (this.get('interface_properties') || {}).sriov;
-    var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
-    var errors = {};
-    var virtualFunctionsNumber = parseInt(sriov.sriov_numvfs, 10);
-    if (virtualFunctionsNumber < 0 ||
-      virtualFunctionsNumber > sriov.sriov_totalvfs ||
-      _.isNaN(virtualFunctionsNumber)
-    ) {
-      errors.sriov_numvfs = i18n(ns + 'invalid_virtual_functions_number',
-        {max: sriov.sriov_totalvfs}
-      );
-    }
-    if (sriov.physnet && !sriov.physnet.match(utils.regexes.networkName)) {
-      errors.physnet = i18n(ns + 'invalid_physnet');
-    } else if (!(_.trim(sriov.physnet) || '')) {
-      errors.physnet = i18n(ns + 'empty_physnet');
-    }
-    return _.isEmpty(errors) ? null : {sriov: errors};
-  }
-});
+  });
 
 models.Interfaces = BaseCollection.extend({
   constructorName: 'Interfaces',
