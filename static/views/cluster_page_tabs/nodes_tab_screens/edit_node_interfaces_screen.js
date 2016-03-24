@@ -25,6 +25,7 @@ import OffloadingModes from 'views/cluster_page_tabs/nodes_tab_screens/offloadin
 import {Input} from 'views/controls';
 import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
 import {DragSource, DropTarget} from 'react-dnd';
+import ReactDOM from 'react-dom';
 
 var ns = 'cluster_page.nodes_tab.configure_interfaces.';
 
@@ -596,7 +597,9 @@ var NodeInterface = React.createClass({
   },
   getInitialState() {
     return {
-      activeInterfaceSectionName: null
+      activeInterfaceSectionName: null,
+      pendingToggle: false,
+      collapsed: true
     };
   },
   isLacpRateAvailable() {
@@ -636,9 +639,6 @@ var NodeInterface = React.createClass({
     if (!this.isHashPolicyNeeded()) bondProperties = _.omit(bondProperties, 'xmit_hash_policy');
     if (!this.isLacpRateAvailable()) bondProperties = _.omit(bondProperties, 'lacp_rate');
     this.props.interface.set('bond_properties', bondProperties);
-  },
-  componentDidUpdate() {
-    this.props.validate();
   },
   bondingChanged(name, value) {
     this.props.interface.set({checked: value});
@@ -904,13 +904,23 @@ var NodeInterface = React.createClass({
       </div>
     );
   },
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this.refs.configurator))
+      .on('show.bs.collapse', () => this.setState({pendingToggle: false, collapsed: false}))
+      .on('hide.bs.collapse', () => this.setState({pendingToggle: false, collapsed: true}));
+  },
+  componentDidUpdate() {
+    this.props.validate();
+    if (this.state.pendingToggle) {
+      $(ReactDOM.findDOMNode(this.refs.configurator))
+       .collapse('toggle');
+    }
+  },
   switchActiveSubtab(subTabName) {
     var currentActiveTab = this.state.activeInterfaceSectionName;
     this.setState({
-      activeInterfaceSectionName: currentActiveTab === subTabName ?
-        null
-      :
-        subTabName
+      pendingToggle: !currentActiveTab || currentActiveTab === subTabName || this.state.collapsed,
+      activeInterfaceSectionName: subTabName
     });
   },
   renderInterfaceProperties() {
@@ -918,8 +928,8 @@ var NodeInterface = React.createClass({
     var isConfigurationModeOn = !_.isNull(this.state.activeInterfaceSectionName);
     var toggleConfigurationPanelClasses = utils.classNames({
       glyphicon: true,
-      'glyphicon-menu-up': isConfigurationModeOn,
-      'glyphicon-menu-down': !isConfigurationModeOn
+      'glyphicon-menu-up': !this.state.collapsed,
+      'glyphicon-menu-down': this.state.collapsed
     });
     return (
       <div className='ifc-properties clearfix forms-box'>
@@ -938,13 +948,11 @@ var NodeInterface = React.createClass({
             />
           </div>
         </div>
-        {isConfigurationModeOn &&
-          <div className='row configuration-panel'>
-            <div className='col-xs-12 forms-box interface-sub-tab'>
-              {this.renderInterfaceSubtab()}
-            </div>
+        <div className='row configuration-panel collapse' ref='configurator'>
+          <div className='col-xs-12 forms-box interface-sub-tab'>
+            {this.renderInterfaceSubtab()}
           </div>
-        }
+        </div>
       </div>
     );
   },
