@@ -148,8 +148,8 @@ var EditNodeInterfacesScreen = React.createClass({
 
     var nodes = this.props.nodes;
     var interfaces = this.props.interfaces;
-    var bonds = interfaces.filter((ifc) => ifc.isBond());
-    var bondsByName = bonds.reduce((result, bond) => {
+    var bond = interfaces.filter((ifc) => ifc.isBond());
+    var bondsByName = bond.reduce((result, bond) => {
       result[bond.get('name')] = bond;
       return result;
     }, {});
@@ -157,18 +157,18 @@ var EditNodeInterfacesScreen = React.createClass({
     // bonding map contains indexes of slave interfaces
     // it is needed to build the same configuration for all the nodes
     // as interface names might be different, so we use indexes
-    var bondingMap = _.map(bonds,
+    var bondingMap = _.map(bond,
       (bond) => _.map(bond.get('slaves'), (slave) => interfaces.indexOf(interfaces.find(slave)))
     );
 
     this.setState({actionInProgress: true});
     return $.when(...nodes.map((node) => {
       var oldNodeBonds, nodeBonds;
-      // removing previously configured bonds
+      // removing previously configured bond
       oldNodeBonds = node.interfaces.filter((ifc) => ifc.isBond());
       node.interfaces.remove(oldNodeBonds);
-      // creating node-specific bonds without slaves
-      nodeBonds = _.map(bonds, (bond) => {
+      // creating node-specific bond without slaves
+      nodeBonds = _.map(bond, (bond) => {
         return new models.Interface(_.omit(bond.toJSON(), 'slaves'), {parse: true});
       });
       node.interfaces.add(nodeBonds);
@@ -264,13 +264,15 @@ var EditNodeInterfacesScreen = React.createClass({
   bondInterfaces() {
     this.setState({actionInProgress: true});
     var interfaces = this.props.interfaces.filter((ifc) => ifc.get('checked') && !ifc.isBond());
-    var bonds = this.props.interfaces.find((ifc) => ifc.get('checked') && ifc.isBond());
-    var bondingProperties = this.props.bondingConfig.properties;
+    var bond = this.props.interfaces.find((ifc) => ifc.get('checked') && ifc.isBond());
 
-    if (!bonds) {
+    if (!bond) {
       // if no bond selected - create new one
-      var bondMode = _.flatten(_.pluck(bondingProperties[this.getBondType()].mode, 'values'))[0];
-      bonds = new models.Interface({
+      var bondMode = _.flatten(
+        _.pluck(this.props.bondingConfig.properties[this.getBondType()].mode, 'values')
+      )[0];
+
+      bond = new models.Interface({
         type: 'bond',
         name: this.props.interfaces.generateBondName(this.getBondType() ===
           'linux' ? 'bond' : 'ovs-bond'),
@@ -282,25 +284,36 @@ var EditNodeInterfacesScreen = React.createClass({
         },
         interface_properties: {
           mtu: null,
-          disable_offloading: true
+          disable_offloading: true,
+          dpdk: {
+            enabled: !_.any(interfaces, (ifc) => !ifc.isDPDKEnabled()),
+            available: !_.any(interfaces,
+              (ifc) => !ifc.get('interface_properties').dpdk.available
+            )
+          }
         },
         offloading_modes: this.getIntersectedOffloadingModes(interfaces)
       });
     } else {
       // adding interfaces to existing bond
-      bonds.set({
-        slaves: bonds.get('slaves').concat(_.invoke(interfaces, 'pick', 'name')),
-        offloading_modes: this.getIntersectedOffloadingModes(interfaces.concat(bonds))
+      var bondProperties = _.cloneDeep(bond.get('interface_properties'));
+      if (bond.isDPDKEnabled()) {
+        bondProperties.dpdk.enabled = !_.any(interfaces, (ifc) => !ifc.isDPDKEnabled());
+      }
+      bond.set({
+        slaves: bond.get('slaves').concat(_.invoke(interfaces, 'pick', 'name')),
+        offloading_modes: this.getIntersectedOffloadingModes(interfaces.concat(bond)),
+        interface_properties: bondProperties
       });
       // remove the bond to add it later and trigger re-rendering
-      this.props.interfaces.remove(bonds, {silent: true});
+      this.props.interfaces.remove(bond, {silent: true});
     }
     _.each(interfaces, (ifc) => {
-      bonds.get('assigned_networks').add(ifc.get('assigned_networks').models);
+      bond.get('assigned_networks').add(ifc.get('assigned_networks').models);
       ifc.get('assigned_networks').reset();
       ifc.set({checked: false});
     });
-    this.props.interfaces.add(bonds);
+    this.props.interfaces.add(bond);
     this.setState({actionInProgress: false});
   },
   unbondInterfaces() {
