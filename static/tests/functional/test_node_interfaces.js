@@ -84,10 +84,11 @@ define([
             '.ifc-inner-container.has-changes',
             'Has-Changes style is applied'
           )
-          .clickByCssSelector('.toggle-configuration-control .glyphicon')
-          .assertElementNotExists(
-            '.configuration-panel',
-            'Interface properties panel is hidden after clicking Close Configuration Mode'
+          .clickByCssSelector('.mtu .btn-link')
+          .sleep(300)
+          .assertElementNotDisplayed(
+            '.mtu-control',
+            'MTU control is hidden after clicking MTU link again'
           );
       },
       'Untagged networks error': function() {

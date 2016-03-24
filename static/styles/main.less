@@ -3550,8 +3550,13 @@ input[type=range] {
             margin-bottom: @common-offset;
           }
         }
-        .toggle-offloading {
-          min-height: 38px;
+        .toggle-offloading, .dpdk-control, .sriov-control {
+          label {padding-top: 0;}
+          .custom-tumbler {margin-bottom: 3px;}
+          .help-block {display: none;}
+        }
+        .dpdk-control, .sriov-control {
+          label {padding-top: 5px;}
         }
         .properties-list {
           .btn-link {
@@ -3572,23 +3577,21 @@ input[type=range] {
             }
           }
         }
-        .configuration-panel {
-          margin-top: @common-offset * 2;
-        }
         .mtu-control {
           div {
             float: left;
           }
         }
         .configuration-panel {
-          margin-top: @common-offset;
+          margin-top: 0;
+          > div {padding-top: @common-offset;}
           .forms-box {
             margin-bottom: 0;
           }
           .interface-sub-tab {
             text-align: left;
             .form-group {
-              margin-bottom: 12px;
+              margin-bottom: 7px;
             }
             .has-error {
               .help-block {
