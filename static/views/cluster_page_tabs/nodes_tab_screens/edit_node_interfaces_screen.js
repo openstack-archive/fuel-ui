@@ -25,6 +25,7 @@ import OffloadingModes from 'views/cluster_page_tabs/nodes_tab_screens/offloadin
 import {Input} from 'views/controls';
 import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
 import {DragSource, DropTarget} from 'react-dnd';
+import ReactDOM from 'react-dom';
 
 var ns = 'cluster_page.nodes_tab.configure_interfaces.';
 
@@ -596,7 +597,8 @@ var NodeInterface = React.createClass({
   },
   getInitialState() {
     return {
-      activeInterfaceSectionName: null
+      activeInterfaceSectionName: null,
+      pendingToggle: false
     };
   },
   isLacpRateAvailable() {
@@ -636,9 +638,6 @@ var NodeInterface = React.createClass({
     if (!this.isHashPolicyNeeded()) bondProperties = _.omit(bondProperties, 'xmit_hash_policy');
     if (!this.isLacpRateAvailable()) bondProperties = _.omit(bondProperties, 'lacp_rate');
     this.props.interface.set('bond_properties', bondProperties);
-  },
-  componentDidUpdate() {
-    this.props.validate();
   },
   bondingChanged(name, value) {
     this.props.interface.set({checked: value});
@@ -904,13 +903,28 @@ var NodeInterface = React.createClass({
       </div>
     );
   },
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this.refs[this.props.interface.get('name')]))
+      .on('show.bs.collapse', this.setState.bind(this, {pendingToggle: false}, null))
+      .on('hide.bs.collapse', this.setState.bind(this, {
+        pendingToggle: false,
+        activeInterfaceSectionName: null,
+        previousInterfaceSectionName: this.state.activeInterfaceSectionName
+      }, null));
+  },
+  componentDidUpdate() {
+    this.props.validate();
+    if (this.state.pendingToggle) {
+      $(ReactDOM.findDOMNode(this.refs[this.props.interface.get('name')]))
+       .collapse('toggle');
+    }
+  },
   switchActiveSubtab(subTabName) {
     var currentActiveTab = this.state.activeInterfaceSectionName;
     this.setState({
-      activeInterfaceSectionName: currentActiveTab === subTabName ?
-        null
-      :
-        subTabName
+      pendingToggle: !currentActiveTab || currentActiveTab === subTabName,
+      activeInterfaceSectionName: subTabName,
+      previousInterfaceSectionName: currentActiveTab
     });
   },
   renderInterfaceProperties() {
@@ -938,13 +952,11 @@ var NodeInterface = React.createClass({
             />
           </div>
         </div>
-        {isConfigurationModeOn &&
-          <div className='row configuration-panel'>
-            <div className='col-xs-12 forms-box interface-sub-tab'>
-              {this.renderInterfaceSubtab()}
-            </div>
+        <div className='row configuration-panel collapse' ref={this.props.interface.get('name')}>
+          <div className='col-xs-12 forms-box interface-sub-tab'>
+            {this.renderInterfaceSubtab()}
           </div>
-        }
+        </div>
       </div>
     );
   },
