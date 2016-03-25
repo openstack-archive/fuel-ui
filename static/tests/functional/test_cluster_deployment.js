@@ -324,7 +324,7 @@ define([
             return clusterPage.isTabLocked('Networks');
           })
           .then(function(isLocked) {
-            assert.isTrue(isLocked, 'Networks tab should turn locked after deployment');
+            assert.isFalse(isLocked, 'Networks tab should not be locked after deployment');
           })
           .assertElementEnabled(
             '.add-nodegroup-btn',
@@ -334,7 +334,7 @@ define([
             return clusterPage.isTabLocked('Settings');
           })
           .then(function(isLocked) {
-            assert.isTrue(isLocked, 'Settings tab should turn locked after deployment');
+            assert.isFalse(isLocked, 'Settings tab should not be locked after deployment');
           })
           .then(function() {
             return clusterPage.goToTab('Dashboard');
