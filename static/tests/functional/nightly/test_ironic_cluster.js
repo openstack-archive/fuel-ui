@@ -19,8 +19,9 @@ define([
   'tests/functional/pages/common',
   'tests/functional/pages/cluster',
   'tests/functional/nightly/library/networks',
-  'tests/functional/nightly/library/settings'
-], function(registerSuite, Common, ClusterPage, NetworksLib, SettingsLib) {
+  'tests/functional/nightly/library/settings',
+  'tests/functional/nightly/library/equipment'
+], function(registerSuite, Common, ClusterPage, NetworksLib, SettingsLib, EquipmentLib) {
   'use strict';
 
   registerSuite(function() {
@@ -28,7 +29,8 @@ define([
       clusterPage,
       clusterName,
       networksLib,
-      settingsLib;
+      settingsLib,
+      equipmentLib;
     var networkName = 'Baremetal';
     var baremetalSelector = 'div.' + networkName.toLowerCase() + ' ';
     var ipRangesSelector = baremetalSelector + 'div.ip_ranges ';
@@ -47,6 +49,7 @@ define([
         clusterPage = new ClusterPage(this.remote);
         networksLib = new NetworksLib(this.remote);
         settingsLib = new SettingsLib(this.remote);
+        equipmentLib = new EquipmentLib(this.remote);
         clusterName = common.pickRandomName('Ironic Cluster');
 
         return this.remote
@@ -58,6 +61,10 @@ define([
             return common.createCluster(
               clusterName,
               {
+                'Storage Backends': function() {
+                  return this.remote
+                    .clickByCssSelector('input[value$="block:ceph"]');
+                },
                 'Additional Services': function() {
                   return this.remote
                     .clickByCssSelector('input[value$="ironic"]');
@@ -260,6 +267,98 @@ define([
           .then(function() {
             return networksLib.saveSettings();
           });
+      },
+      'Combinations ironic role with other roles validation': function() {
+        var nodesAmount = 1;
+        return this.remote
+          .then(function() {
+            return clusterPage.goToTab('Nodes');
+          })
+          .clickByCssSelector('.btn-add-nodes')
+          .waitForElementDeletion('.btn-add-nodes', 3000)
+          .assertElementsAppear('.node', 3000, 'Unallocated nodes loaded')
+          .assertElementExists('.role-block.ironic:not(.disabled)', 'Ironic role is unlocked')
+          // Select node
+          .then(function() {
+            return clusterPage.checkNodes(nodesAmount);
+          })
+          .then(function() {
+            return clusterPage.checkNodeRoles(['Ironic']);
+          })
+          .assertElementExists(
+            '.role-block.ironic i.glyphicon-selected-role',
+            'Selected role has checkbox icon'
+          )
+          .assertElementExists(
+            '.role-block.compute.disabled',
+            'Compute role can not be added together with selected roles'
+          )
+          .assertElementEnabled(
+            'button.btn-apply',
+            'Apply button is enabled'
+          )
+          .then(function() {
+            return equipmentLib.uncheckNodeRoles();
+          })
+          // Check Ironic + Compute roles are available
+          .then(function() {
+            return clusterPage.checkNodeRoles(['Ironic', 'Controller']);
+          })
+          .assertElementExists(
+            '.role-block.ironic i.glyphicon-selected-role',
+            'Selected role has checkbox icon'
+          )
+          .assertElementExists(
+            '.role-block.controller i.glyphicon-selected-role',
+            'Selected role has checkbox icon'
+          )
+          .assertElementEnabled(
+            'button.btn-apply',
+            'Apply button is enabled'
+          )
+          .then(function() {
+            return equipmentLib.uncheckNodeRoles();
+          })
+          // Check Ironic + Ceph roles are available
+          .then(function() {
+            return clusterPage.checkNodeRoles(['Ironic', 'Ceph OSD']);
+          })
+          .assertElementExists(
+            '.role-block.ironic i.glyphicon-selected-role',
+            'Selected role has checkbox icon'
+          )
+          .assertElementExists(
+            '.role-block.ceph-osd i.glyphicon-selected-role',
+            'Selected role has checkbox icon'
+          )
+          .assertElementEnabled(
+            'button.btn-apply',
+            'Apply button is enabled'
+          )
+          .then(function() {
+            return equipmentLib.uncheckNodeRoles();
+          });
+      },
+      'Disabling ironic service': function() {
+        return this.remote
+          .then(function() {
+            return clusterPage.goToTab('Settings');
+          })
+          .then(function() {
+            return settingsLib.gotoOpenStackSettings('OpenStack Services');
+          })
+          .clickByCssSelector('input[name=ironic]')
+          .waitForCssSelector('.btn-apply-changes:not(:disabled)', 200)
+          .clickByCssSelector('.btn-apply-changes')
+          .waitForCssSelector('.btn-load-defaults:not(:disabled)', 1000)
+          // Check that ironic disabled
+          .then(function() {
+            return clusterPage.goToTab('Nodes');
+          })
+          .clickByCssSelector('.btn-add-nodes')
+          .waitForElementDeletion('.btn-add-nodes', 3000)
+          .assertElementsAppear('.node', 3000, 'Unallocated nodes loaded')
+          .assertElementExists('.role-block.ironic.disabled', 'Ironic role is unlocked');
       }
     };
   });

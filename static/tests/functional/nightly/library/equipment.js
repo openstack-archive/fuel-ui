@@ -163,6 +163,17 @@ define([
           '"Offline" node group is correctly sorted')
         .assertElementsExist(groupSelector + sortOrder[3] + ') div.node.offline',
           nodesQuantity[4], 'Default quantity of "Offline" nodes is observed');
+    },
+    uncheckNodeRoles: function() {
+      var selectedRolesSelector = '.role-panel .role-block .role i.glyphicon-selected-role';
+      return this.remote
+        .findAllByCssSelector(selectedRolesSelector)
+        .then(function(nodes) {
+          nodes.forEach(function(node) {
+            node.click();
+          });
+        })
+        .end();
     }
   };
   return EquipmentLib;
