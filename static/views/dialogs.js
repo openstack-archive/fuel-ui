@@ -27,7 +27,7 @@ import {Input, ProgressBar} from 'views/controls';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 import {backboneMixin, renamingMixin} from 'component_mixins';
 import LinkedStateMixin from 'react-addons-linked-state-mixin';
-import customControls from 'views/custom_controls';
+import SettingSection from 'views/cluster_page_tabs/setting_section';
 
 function getActiveDialog() {
   return app.dialog;
@@ -1038,6 +1038,7 @@ export var ShowNodeInfoDialog = React.createClass({
       hostnameChangingError: null,
       nodeAttributes: null,
       initialNodeAttributes: null,
+      nodeAttributesForChecks: null,
       nodeAttributesError: null,
       configModels: null
     };
@@ -1133,18 +1134,20 @@ export var ShowNodeInfoDialog = React.createClass({
           actionInProgress: false,
           nodeAttributes: nodeAttributesModel,
           initialNodeAttributes: _.cloneDeep(nodeAttributesModel.attributes),
+          nodeAttributesForChecks: new models.NodeAttributes(nodeAttributesModel.attributes),
           nodeAttributesError: nodeAttributesModel.validationError,
           configModels: this.props.cluster && {settings: this.props.cluster.get('settings')}
         });
       });
   },
-  onNodeAttributesChange(name, value, nestedValue) {
+  onNodeAttributesChange(groupName, name, value, nestedValue) {
     this.setState({nodeAttributesError: null});
     var attributesModel = this.state.nodeAttributes;
-    name = utils.makePath(name, 'value');
+    name = utils.makePath(groupName, name, 'value');
     if (nestedValue) {
       name = utils.makePath(name, nestedValue);
     }
+    this.state.nodeAttributesForChecks.set(name, value);
     attributesModel.set(name, value);
     attributesModel.isValid();
     this.setState({
@@ -1169,7 +1172,8 @@ export var ShowNodeInfoDialog = React.createClass({
     this.state.nodeAttributes.set(this.state.initialNodeAttributes);
     this.setState({
       nodeAttributes: this.state.nodeAttributes,
-      nodeAttributesError: null
+      nodeAttributesError: null,
+      key: _.now()
     });
   },
   hasNodeAttributesChanges() {
@@ -1347,6 +1351,13 @@ export var ShowNodeInfoDialog = React.createClass({
       </div>
     );
   },
+  checkRestrictions(action, setting) {
+    return this.state.nodeAttributes.checkRestrictions(
+      this.state.configModels,
+      'hide',
+      setting
+    );
+  },
   renderNodeAttributes() {
     var {nodeAttributes, configModels, nodeAttributesError} = this.state;
     var attributesToDisplay = ['nova', 'dpdk'];
@@ -1367,43 +1378,21 @@ export var ShowNodeInfoDialog = React.createClass({
         (sectionName) => {
           var metadata = nodeAttributes.get(utils.makePath(sectionName, 'metadata'));
           return (
-            <div className='section' key={sectionName}>
-              {metadata.label &&
-                <h3>{metadata.label}</h3>
-              }
-              {_.map(attributesToDisplay,
-                (attributeName) => {
-                  var path = utils.makePath(sectionName, attributeName);
-                  var attribute = nodeAttributes.get(path);
-
-                  var commonProps = {
-                    name: path,
-                    error: (nodeAttributesError || {})[path],
-                    disabled: isLocked ||
-                      nodeAttributes.checkRestrictions(configModels, 'disable', metadata).result,
-                    onChange: this.onNodeAttributesChange,
-                    placeholder: 'None'
-                  };
-                  if (attribute.type === 'custom_hugepages') {
-                    return (
-                      <customControls.custom_hugepages
-                        {...commonProps}
-                        config={attribute}
-                        name='hugepages.nova'
-                        key={attributeName + 'hugepages'}
-                      />
-                    );
-                  }
-
-                  return (
-                    <div className='row' key={attributeName}>
-                      <div className='col-xs-12'>
-                        <Input {...attribute} {...commonProps} />
-                      </div>
-                    </div>
-                  );
-                }
-              )}
+            <div className='section-container' key={sectionName + this.state.key}>
+              <SettingSection
+                configModels={this.state.configModels}
+                initialAttributes={this.state.initialNodeAttributes}
+                settingsForChecks={this.state.nodeAttributesForChecks}
+                key={sectionName}
+                cluster={this.props.cluster}
+                sectionName={sectionName}
+                settingsToDisplay={attributesToDisplay}
+                onChange={_.partial(this.onNodeAttributesChange, sectionName)}
+                settings={nodeAttributes}
+                locked={isLocked ||
+                  nodeAttributes.checkRestrictions(configModels, 'disable', metadata).result}
+                checkRestrictions={this.checkRestrictions}
+              />
             </div>
           );
         }

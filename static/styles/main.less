@@ -3324,38 +3324,31 @@ input[type=range] {
       color: @base-text-color + 10%;
       font-size: @base-font-size + 7px;
     }
-    .section {
+    .section, .setting-section {
       margin-bottom: @node-attributes-padding * 2;
     }
     .form-group {
+      margin-bottom: 5px;
+      > div {
+        display: inline-block;
+      }
       label {
-        display: block;
-        float: left;
-        padding-top: 8px;
-        .font-normal;
+        display: inline-block;
         width: 26%;
-        .break-word;
       }
       input {
-        float: left;
-        width: 20%;
-        margin-left: @node-attributes-padding;
-        margin-bottom: 3px;
+        width: 100px;
+        margin: 0 @node-attributes-padding;
       }
       .help-block {
-        display: block;
-        float: left;
-        margin-left: @node-attributes-padding;
-        color: @base-text-color + 60%;
-        padding-top: 3px;
-        width: 50%;
-        .break-word;
+        display: inline-block;
+        color: @gray;
       }
     }
     .huge-pages {
       margin-bottom: @node-attributes-padding;
-      .labels {
-        margin-left: 0;
+      .labels, input {
+        margin-left: 4px;
       }
       .contents {
         .row {
