@@ -90,7 +90,7 @@ var SettingSection = React.createClass({
     return result;
   },
   checkDependentRoles(sectionName, settingName) {
-    if (!this.props.allocatedRoles.length) return [];
+    if (!this.props.allocatedRoles || !this.props.allocatedRoles.length) return [];
     var path = utils.makePath(sectionName, settingName);
     var setting = this.props.settings.get(path);
     if (!this.areCalculationsPossible(setting)) return [];
@@ -265,7 +265,7 @@ var SettingSection = React.createClass({
   render() {
     var {cluster, settings, sectionName, locked, settingsToDisplay} = this.props;
     var section = settings.get(sectionName);
-    var isPlugin = settings.isPlugin(section);
+    var isPlugin = settings.isPlugin && settings.isPlugin(section);
     var metadata = section.metadata;
     var sortedSettings = _.sortBy(settingsToDisplay, (settingName) => section[settingName].weight);
     var processedGroupRestrictions = this.processRestrictions(metadata);
