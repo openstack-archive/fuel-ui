@@ -21,12 +21,13 @@ define([
   'tests/functional/pages/modal',
   'tests/functional/pages/common',
   'tests/functional/pages/cluster',
+  'tests/functional/pages/settings',
   'tests/functional/helpers'
-], function(registerSuite, assert, NodeComponent, ModalWindow, Common, ClusterPage) {
+], function(registerSuite, assert, NodeComponent, ModalWindow, Common, ClusterPage, SettingsPage) {
   'use strict';
 
   registerSuite(function() {
-    var common, node, modal, clusterPage, clusterName;
+    var common, node, modal, clusterPage, settingsPage, clusterName;
     var nodeNewName = 'Node new name';
 
     return {
@@ -36,6 +37,7 @@ define([
         node = new NodeComponent(this.remote);
         modal = new ModalWindow(this.remote);
         clusterPage = new ClusterPage(this.remote);
+        settingsPage = new SettingsPage(this.remote);
         clusterName = common.pickRandomName('Test Cluster');
 
         return this.remote
@@ -151,6 +153,47 @@ define([
             return node.discardNode(true);
           })
           .assertElementNotExists('.node', 'Node has been removed');
+      },
+      'Additional tests for Node Attributes': function() {
+        return this.remote
+          .then(function() {
+            return common.addNodesToCluster(1, ['Controller']);
+          })
+          .then(function() {
+            return clusterPage.goToTab('Settings');
+          })
+          .clickLinkByText('Compute')
+          .clickByCssSelector('input[type=radio][name=libvirt_type]:not(:checked)')
+          .waitForCssSelector('.btn-apply-changes:not(:disabled)', 200)
+          .clickByCssSelector('.btn-apply-changes')
+          .then(function() {
+            return settingsPage.waitForRequestCompleted();
+          })
+          .then(function() {
+            return clusterPage.goToTab('Nodes');
+          })
+          .then(function() {
+            return node.openCompactNodeExtendedView();
+          })
+          .then(function() {
+            return node.openNodePopup(true);
+          })
+          .clickByCssSelector('#headingattributes')
+          .setInputValue('.setting-section-cpu_pinning input[type=text][name=nova]', 'test')
+          .assertElementTextEquals('.setting-section-cpu_pinning .form-group.has-error .help-block',
+            'Incorrect value', 'Invalid field marked as error')
+          .clickByCssSelector('.node-attributes .btn.discard-changes')
+          .assertElementNotExists('.setting-section-cpu_pinning .form-group.has-error',
+            'Validation error is cleared after resetting changes')
+          .setInputValue('.setting-section-cpu_pinning input[type=text][name=nova]', '2')
+          .clickByCssSelector('.node-attributes .btn.apply-changes')
+          .assertElementsAppear('.setting-section-cpu_pinning input:not(:disabled)', 2000,
+            'Inputs are not disabled after changes were saved successfully')
+          .assertElementExists('.node-attributes .btn.discard-changes:disabled',
+            'Cancel changes button is disabled after changes were saved successfully')
+          .then(function() {
+            return modal.close();
+          });
       },
       'Additional tests for unallocated node': function() {
         return this.remote

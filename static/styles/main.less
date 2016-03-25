@@ -3324,38 +3324,43 @@ input[type=range] {
       color: @base-text-color + 10%;
       font-size: @base-font-size + 7px;
     }
-    .section {
+    .section, .setting-section {
       margin-bottom: @node-attributes-padding * 2;
     }
     .form-group {
+      margin-bottom: 3px;
+      > div {
+        display: inline-block;
+        vertical-align: top;
+      }
       label {
-        display: block;
-        float: left;
-        padding-top: 8px;
-        .font-normal;
+        display: inline-block;
+        padding-top: 5px;
         width: 26%;
-        .break-word;
+        .font-normal;
       }
       input {
-        float: left;
-        width: 20%;
-        margin-left: @node-attributes-padding;
-        margin-bottom: 3px;
+        width: 100px;
+        margin: 0 @node-attributes-padding;
       }
       .help-block {
-        display: block;
-        float: left;
-        margin-left: @node-attributes-padding;
-        color: @base-text-color + 60%;
         padding-top: 3px;
-        width: 50%;
-        .break-word;
+        display: inline-block;
+        color: @gray;
       }
+      &.has-error .help-block {color: @red;}
     }
     .huge-pages {
       margin-bottom: @node-attributes-padding;
+      label {
+        .font-normal;
+      }
+      .labels, input {
+        margin-left: 4px;
+      }
       .labels {
-        margin-left: 0;
+        .font-semibold;
+        > div:first-child {padding-left: 10px;}
       }
       .contents {
         .row {
