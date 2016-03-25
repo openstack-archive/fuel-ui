@@ -280,6 +280,65 @@ define([
             '.go-to-healthcheck',
             'Healthcheck link is not visible after stopped deploy'
           );
+      },
+      'Test cluster page state before and after deployment': function() {
+        this.timeout = 100000;
+        return this.remote
+          .then(function() {
+            return clusterPage.isTabLocked('Networks');
+          })
+          .then(function(isLocked) {
+            assert.isFalse(isLocked, 'Networks tab is not locked for undeployed cluster');
+          })
+          .then(function() {
+            return clusterPage.isTabLocked('Settings');
+          })
+          .then(function(isLocked) {
+            assert.isFalse(isLocked, 'Settings tab is not locked for undeployed cluster');
+          })
+          .then(function() {
+            return clusterPage.goToTab('Dashboard');
+          })
+          .then(function() {
+            return dashboardPage.startDeployment();
+          })
+          .assertElementDisappears(
+            '.dashboard-block .progress',
+            60000,
+            'Progress bar disappears after deployment'
+          )
+          .assertElementAppears('.links-block', 5000, 'Deployment completed')
+          .assertElementExists('.go-to-healthcheck', 'Healthcheck link is visible after deploy')
+          .findByLinkText('Horizon')
+            .getAttribute('href')
+            .then(function(href) {
+              // check the link includes 'http(s)' and there is '.' in it's domain
+              return assert.match(
+                href,
+                /^https?:\/\/[-\w]+\.[-\w.]+(:\d+)?\/?$/,
+                'Link to Horizon is formed'
+              );
+            })
+            .end()
+          .then(function() {
+            return clusterPage.isTabLocked('Networks');
+          })
+          .then(function(isLocked) {
+            assert.isFalse(isLocked, 'Networks tab should not be locked after deployment');
+          })
+          .assertElementEnabled(
+            '.add-nodegroup-btn',
+            'Add Node network group button is enabled after cluster deploy'
+          )
+          .then(function() {
+            return clusterPage.isTabLocked('Settings');
+          })
+          .then(function(isLocked) {
+            assert.isFalse(isLocked, 'Settings tab should not be locked after deployment');
+          })
+          .then(function() {
+            return clusterPage.goToTab('Dashboard');
+          });
       }
     };
   });
