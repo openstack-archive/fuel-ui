@@ -27,7 +27,7 @@ import {Input, ProgressBar} from 'views/controls';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 import {backboneMixin, renamingMixin} from 'component_mixins';
 import LinkedStateMixin from 'react-addons-linked-state-mixin';
-import customControls from 'views/custom_controls';
+import SettingSection from 'views/cluster_page_tabs/setting_section';
 
 function getActiveDialog() {
   return app.dialog;
@@ -1028,7 +1028,10 @@ export var ShowNodeInfoDialog = React.createClass({
     'cpu', 'disks', 'interfaces', 'memory', 'system', 'numa_topology', 'attributes'
   ],
   getDefaultProps() {
-    return {modalClass: 'always-show-scrollbar'};
+    return {
+      modalClass: 'always-show-scrollbar',
+      backdrop: 'static'
+    };
   },
   getInitialState() {
     return {
@@ -1138,10 +1141,10 @@ export var ShowNodeInfoDialog = React.createClass({
         });
       });
   },
-  onNodeAttributesChange(name, value, nestedValue) {
+  onNodeAttributesChange(groupName, name, value, nestedValue) {
     this.setState({nodeAttributesError: null});
     var attributesModel = this.state.nodeAttributes;
-    name = utils.makePath(name, 'value');
+    name = utils.makePath(groupName, name, 'value');
     if (nestedValue) {
       name = utils.makePath(name, nestedValue);
     }
@@ -1167,9 +1170,11 @@ export var ShowNodeInfoDialog = React.createClass({
   },
   cancelNodeAttributesChange() {
     this.state.nodeAttributes.set(this.state.initialNodeAttributes);
+    this.state.nodeAttributes.isValid();
     this.setState({
       nodeAttributes: this.state.nodeAttributes,
-      nodeAttributesError: null
+      nodeAttributesError: null,
+      key: _.now()
     });
   },
   hasNodeAttributesChanges() {
@@ -1347,10 +1352,17 @@ export var ShowNodeInfoDialog = React.createClass({
       </div>
     );
   },
+  checkRestrictions(action, setting) {
+    return this.state.nodeAttributes.checkRestrictions(
+      this.state.configModels,
+      action,
+      setting
+    );
+  },
   renderNodeAttributes() {
     var {nodeAttributes, configModels, nodeAttributesError} = this.state;
     var attributesToDisplay = ['nova', 'dpdk'];
-    var isLocked = !this.props.node.get('pending_addition');
+    var isLocked = !this.props.node.get('pending_addition') || this.state.actionInProgress;
 
     var attributes = _.chain(_.keys(nodeAttributes.attributes))
       .filter(
@@ -1367,57 +1379,32 @@ export var ShowNodeInfoDialog = React.createClass({
         (sectionName) => {
           var metadata = nodeAttributes.get(utils.makePath(sectionName, 'metadata'));
           return (
-            <div className='section' key={sectionName}>
-              {metadata.label &&
-                <h3>{metadata.label}</h3>
-              }
-              {_.map(attributesToDisplay,
-                (attributeName) => {
-                  var path = utils.makePath(sectionName, attributeName);
-                  var attribute = nodeAttributes.get(path);
-
-                  var commonProps = {
-                    name: path,
-                    error: (nodeAttributesError || {})[path],
-                    disabled: isLocked ||
-                      nodeAttributes.checkRestrictions(configModels, 'disable', metadata).result,
-                    onChange: this.onNodeAttributesChange,
-                    placeholder: 'None'
-                  };
-                  if (attribute.type === 'custom_hugepages') {
-                    return (
-                      <customControls.custom_hugepages
-                        {...commonProps}
-                        config={attribute}
-                        name='hugepages.nova'
-                        key={attributeName + 'hugepages'}
-                      />
-                    );
-                  }
-
-                  return (
-                    <div className='row' key={attributeName}>
-                      <div className='col-xs-12'>
-                        <Input {...attribute} {...commonProps} />
-                      </div>
-                    </div>
-                  );
-                }
-              )}
-            </div>
+            <SettingSection
+              configModels={this.state.configModels}
+              initialAttributes={this.state.initialNodeAttributes}
+              key={sectionName}
+              cluster={this.props.cluster}
+              sectionName={sectionName}
+              settingsToDisplay={attributesToDisplay}
+              onChange={_.partial(this.onNodeAttributesChange, sectionName)}
+              settings={nodeAttributes}
+              locked={isLocked ||
+                nodeAttributes.checkRestrictions(configModels, 'disable', metadata).result}
+              checkRestrictions={this.checkRestrictions}
+            />
           );
         }
       )
       .value();
 
     return (
-      <div className='panel-body'>
+      <div className='panel-body' key={this.state.key}>
         <div className='node-attributes'>
           {attributes}
           {!isLocked &&
             <div className='btn-group'>
               <button
-                className='btn btn-default'
+                className='btn btn-default discard-changes'
                 onClick={this.cancelNodeAttributesChange}
                 disabled={
                   !this.hasNodeAttributesChanges() ||
@@ -1427,7 +1414,7 @@ export var ShowNodeInfoDialog = React.createClass({
                 {i18n('common.cancel_changes_button')}
               </button>
               <button
-                className='btn btn-success'
+                className='btn btn-success apply-changes'
                 onClick={this.saveNodeAttributes}
                 disabled={
                   !_.isNull(nodeAttributesError) ||
