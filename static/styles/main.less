@@ -3017,7 +3017,7 @@ input[type=range] {
                 font-weight: 600;
                 &:hover {
                   color: @white;
-                  background-color: @base-light-color;
+                  background-color: @navbar-color-hover;
                 }
               }
             }
@@ -3030,6 +3030,12 @@ input[type=range] {
               &.disabled {
                 font-weight: 100;
                 color: @base-light-color;
+              }
+            }
+            &.disabled {
+              a {
+                font-weight: 400;
+                color: @base-text-color + 60% !important;
               }
             }
           }
