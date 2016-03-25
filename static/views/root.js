@@ -20,7 +20,9 @@ import React from 'react';
 import dispatcher from 'dispatcher';
 import utils from 'utils';
 import {dispatcherMixin} from 'component_mixins';
-import {Navbar, Breadcrumbs, DefaultPasswordWarning, BootstrapError, Footer} from 'views/layout';
+import {
+  Navbar, Breadcrumbs, PageLoadProgressBar, DefaultPasswordWarning, BootstrapError, Footer
+} from 'views/layout';
 import {DragDropContext} from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 
@@ -68,6 +70,7 @@ var RootComponent = React.createClass({
       <div id='content-wrapper'>
         <div className={utils.classNames(layoutClasses)}>
           {!Page.hiddenLayout && [
+            <PageLoadProgressBar key='page-load-progress' />,
             <Navbar
               key='navbar'
               ref='navbar'

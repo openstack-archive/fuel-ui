@@ -373,6 +373,54 @@ export var Footer = React.createClass({
   }
 });
 
+export var PageLoadProgressBar = React.createClass({
+  mixins: [
+    dispatcherMixin('pageLoadStarted', 'showProgressBar'),
+    dispatcherMixin('pageLoadFinished', 'hideProgressBar')
+  ],
+  getDefaultProps() {
+    return {
+      initialProgress: 10,
+      maxProgress: 95,
+      progressStep: 5,
+      stepDelay: 100
+    };
+  },
+  getInitialState() {
+    return {
+      visible: false,
+      progress: this.props.initialProgress
+    };
+  },
+  showProgressBar() {
+    this.setState({progress: this.props.initialProgress, visible: true});
+    this.activeInterval = setInterval(() => {
+      if (this.state.progress < this.props.maxProgress) {
+        this.setState({progress: this.state.progress + this.props.progressStep});
+      }
+    }, this.props.stepDelay);
+  },
+  hideProgressBar() {
+    clearInterval(this.activeInterval);
+    this.setState({progress: 100, visible: false}, () => {
+      setTimeout(() => this.setState({progress: this.props.initialProgress}), 400);
+    });
+  },
+  componentWillUnmount() {
+    clearInterval(this.activeInterval);
+  },
+  render() {
+    return (
+      <div className='page-load-progress' style={{opacity: this.state.visible ? 1 : 0}}>
+        <div
+          className='page-load-progress-bar'
+          style={{width: this.state.progress + '%'}}
+        />
+      </div>
+    );
+  }
+});
+
 export var Breadcrumbs = React.createClass({
   mixins: [
     dispatcherMixin('updatePageLayout', 'refresh')
