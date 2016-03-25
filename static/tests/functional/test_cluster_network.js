@@ -495,6 +495,30 @@ define([
             3000,
             'Node network group was successfully removed'
           );
+      },
+      'Node network group renaming in deployed environment': function() {
+        this.timeout = 100000;
+        return this.remote
+          .then(function() {
+            return common.addNodesToCluster(1, ['Controller']);
+          })
+          .then(function() {
+            return clusterPage.goToTab('Dashboard');
+          })
+          .then(function() {
+            return dashboardPage.startDeployment();
+          })
+          .waitForElementDeletion('.dashboard-block .progress', 60000)
+          .then(function() {
+            return clusterPage.goToTab('Networks');
+          })
+          .then(function() {
+            return networkPage.goToNodeNetworkGroup('default');
+          })
+          .assertElementContainsText(
+            '.network-group-name .btn-link', 'default',
+            'Node network group was successfully renamed to "default"'
+          );
       }
     };
   });
