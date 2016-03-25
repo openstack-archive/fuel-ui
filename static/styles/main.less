@@ -905,6 +905,25 @@ input[type=range] {
   }
 }
 
+.page-load-progress {
+  position: absolute;
+  height: 5px;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  opacity: 1;
+  transition: opacity 0.2s linear 0.2s;
+  .page-load-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    background: @navbar-color-hover;
+    box-shadow: 0 0 8px @navbar-color-hover;
+    transition: width 0.35s ease;
+  }
+}
+
 // BREADCRUMBS
 
 .breadcrumb {

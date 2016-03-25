@@ -21,6 +21,7 @@ import Backbone from 'backbone';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import models from 'models';
+import dispatcher from 'dispatcher';
 import {NailgunUnavailabilityDialog} from 'views/dialogs';
 import KeystoneClient from 'keystone_client';
 import RootComponent from 'views/root';
@@ -217,11 +218,13 @@ class App {
   }
 
   loadPage(Page, options = []) {
+    dispatcher.trigger('pageLoadStarted');
     return (Page.fetchData ? Page.fetchData(...options) : $.Deferred().resolve())
       .done((pageOptions) => {
         if (!this.rootComponent) this.renderLayout();
         this.setPage(Page, pageOptions);
-      });
+      })
+      .always(() => dispatcher.trigger('pageLoadFinished'));
   }
 
   setPage(Page, options) {
