@@ -495,31 +495,6 @@ define([
             3000,
             'Node network group was successfully removed'
           );
-      },
-      'Node network group renaming in deployed environment': function() {
-        this.timeout = 100000;
-        return this.remote
-          .then(function() {
-            return common.addNodesToCluster(1, ['Controller']);
-          })
-          .then(function() {
-            return clusterPage.goToTab('Dashboard');
-          })
-          .then(function() {
-            return dashboardPage.startDeployment();
-          })
-          .waitForElementDeletion('.dashboard-block .progress', 60000)
-          .then(function() {
-            return clusterPage.goToTab('Networks');
-          })
-          .then(function() {
-            return networkPage.goToNodeNetworkGroup('default');
-          })
-          .assertElementNotExists('.glyphicon-pencil',
-            'Renaming of a node network group is fobidden in deployed environment')
-          .clickByCssSelector('.network-group-name .name')
-          .assertElementNotExists('.network-group-name input[type=text]',
-            'Renaming is not started on a node network group name click');
       }
     };
   });
