@@ -370,7 +370,8 @@ customControls.custom_hugepages = React.createClass({
       name: this.props.name,
       disabled: this.props.disabled
     };
-    if (_.isEmpty(this.props.config.value)) return null;
+    var attribute = this.props.settings.get(this.props.path);
+    if (_.isEmpty(attribute.value)) return null;
     return (
       <div className='row huge-pages'>
         <div className='col-xs-12'>
@@ -379,25 +380,26 @@ customControls.custom_hugepages = React.createClass({
           </label>
         </div>
         <div className='row labels'>
-          <div className='col-xs-2'>
+          <div className='col-xs-3'>
             {i18n('common.size_label')}
           </div>
-          <div className='col-xs-10'>
+          <div className='col-xs-9'>
             {i18n('common.count_label')}
           </div>
         </div>
         <div className='contents'>
-          {_.map(this.props.config.value, (number, size) => {
+          {_.map(attribute.value, (number, size) => {
             return (
               <div className='row' key={size}>
-                <div className='col-xs-2'>
+                <div className='col-xs-3'>
                   <p>
                     {utils.showSize(size, 1)}
                   </p>
                 </div>
-                <div className='col-xs-10'>
+                <div className='col-xs-9'>
                   <Input
                     {...inputProps}
+                    min={0}
                     value={number}
                     key={size}
                     onChange={_.partialRight(this.props.onChange, size)}
