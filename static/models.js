@@ -134,25 +134,12 @@ var restrictionMixin = models.restrictionMixin = {
     **/
 
     var evaluateExpressionHelper = (expression, models) => {
-      var ret;
+      if (_.isUndefined(expression) || _.isNumber(expression)) return expression;
 
-      if (_.isUndefined(expression)) {
-        return {value: undefined, modelPaths: {}};
-      } else if (_.isNumber(expression)) {
-        return {value: expression, modelPaths: {}};
-      }
+      var result = (new Expression(expression, models)).evaluate();
+      if (result instanceof ModelPath) result = result.model.get(result.attribute);
 
-      var compiledExpression = new Expression(expression, models);
-      ret = {
-        value: compiledExpression.evaluate(),
-        modelPaths: compiledExpression.modelPaths
-      };
-
-      if (ret.value instanceof ModelPath) {
-        ret.value = ret.value.model.get(ret.value.attribute);
-      }
-
-      return ret;
+      return result;
     };
 
     var checkedLimitTypes = {};
@@ -160,9 +147,9 @@ var restrictionMixin = models.restrictionMixin = {
     var limits = this.expandedLimits[name] || {};
     var overrides = limits.overrides || [];
     var limitValues = {
-      max: evaluateExpressionHelper(limits.max, models).value,
-      min: evaluateExpressionHelper(limits.min, models).value,
-      recommended: evaluateExpressionHelper(limits.recommended, models).value
+      max: evaluateExpressionHelper(limits.max, models),
+      min: evaluateExpressionHelper(limits.min, models),
+      recommended: evaluateExpressionHelper(limits.recommended, models)
     };
     var count = nodes.nodesAfterDeploymentWithRole(name).length;
     var messages;
@@ -184,7 +171,7 @@ var restrictionMixin = models.restrictionMixin = {
         default:
           comparator = (a, b) => a < b;
       }
-      limitValue = parseInt(evaluateExpressionHelper(obj[limitType], models).value, 10);
+      limitValue = parseInt(evaluateExpressionHelper(obj[limitType], models), 10);
       // Update limitValue with overrides, this way at the end we have a flattened
       // limitValues with overrides having priority
       limitValues[limitType] = limitValue;
@@ -202,7 +189,7 @@ var restrictionMixin = models.restrictionMixin = {
     // Check the overridden limit types
     messages = _.chain(overrides)
       .map((override) => {
-        var exp = evaluateExpressionHelper(override.condition, models).value;
+        var exp = evaluateExpressionHelper(override.condition, models);
 
         if (exp) {
           return _.map(limitTypes, _.partial(checkOneLimit, override));
