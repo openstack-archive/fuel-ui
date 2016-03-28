@@ -33,7 +33,6 @@ class Expression {
     // only via ExpressionParser.yy. It is unsafe and could lead to
     // issues in case we start to use webworkers
     ExpressionParser.yy.expression = this;
-    this.modelPaths = {};
     this.extraModels = extraModels;
     var value = this.compiledExpression.evaluate();
     delete this.extraModels;

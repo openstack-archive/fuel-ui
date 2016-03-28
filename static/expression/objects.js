@@ -98,7 +98,6 @@ export class ModelPathWrapper {
       result = null;
     }
     this.lastResult = result;
-    expression.modelPaths[this.modelPathText] = this.modelPath;
     return this.modelPath;
   }
 

@@ -19,7 +19,6 @@ import i18n from 'i18n';
 import React from 'react';
 import classNames from 'classnames';
 import naturalSort from 'javascript-natural-sort';
-import ModelPath from 'expression/objects';
 import IP from 'ip';
 import {ErrorDialog} from 'views/dialogs';
 import models from 'models';
@@ -69,11 +68,6 @@ var utils = {
       '$1<b>$2</b>$3');
   },
   classNames: classNames,
-  parseModelPath(path, models) {
-    var modelPath = new ModelPath(path);
-    modelPath.setModel(models);
-    return modelPath;
-  },
   expandRestriction(restriction) {
     var result = {
       action: 'disable',
