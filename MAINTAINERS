@@ -39,6 +39,10 @@ maintainers:
         email:  kpimenova@mirantis.com
         IRC:    kpimenova
   -
+      - name:   Nikolay Bogdanov
+        email:  nbogdanov@mirantis.com
+        IRC:    nbogdanov
+  -
     static/translations/core.json:
       - name:   Svetlana Karslioglu
         email:  skarslioglu@mirantis.com
