@@ -3470,10 +3470,10 @@ input[type=range] {
   .ifc-container {
     @base-ifc-indent: 5px;
     margin-bottom: @base-ifc-indent * 2;
+    @ifc-container-dark-color: @tab-color - 30%;
+    @ifc-container-light-color: @tab-color;
 
     .ifc-inner-container {
-      @ifc-container-dark-color: @tab-color - 30%;
-      @ifc-container-light-color: @tab-color;
       border: 1px solid @ifc-container-light-color;
       background: @ifc-container-light-color;
       border-radius: 4px;
@@ -3593,13 +3593,20 @@ input[type=range] {
             }
           }
           .property-item-container {
+            display: inline-block;
             margin-right: @common-offset * 2;
+            margin-left: -@common-offset;
+            padding: 5px 10px;
             .property-item {
               cursor: pointer;
               padding-top: 4px;
               padding-left: 0;
               margin-left: @common-offset / 2;
             }
+          }
+          .active {
+            background-color: @ifc-container-light-color - 17%;
+            border-radius: 6px;
           }
         }
         .mtu-control {
