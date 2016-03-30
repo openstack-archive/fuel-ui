@@ -374,19 +374,20 @@ var EditNodeInterfacesScreen = React.createClass({
     }
   },
   validate() {
+    if (!this.props.interfaces) return;
+
     var interfacesErrors = {};
     var validationResult;
-    var networkConfiguration = this.props.cluster.get('networkConfiguration');
+    var {cluster} = this.props;
+    var networkConfiguration = cluster.get('networkConfiguration');
     var networkingParameters = networkConfiguration.get('networking_parameters');
     var networks = networkConfiguration.get('networks');
-    if (!this.props.interfaces) {
-      return;
-    }
+
     this.props.interfaces.each((ifc) => {
       validationResult = ifc.validate({
         networkingParameters: networkingParameters,
         networks: networks
-      });
+      }, {cluster});
 
       if (!_.isEmpty(validationResult)) {
         interfacesErrors[ifc.get('name')] = validationResult;
@@ -892,7 +893,6 @@ var NodeInterface = React.createClass({
     var ifc = this.props.interface;
     var interfaceProperties = ifc.get('interface_properties');
     var isSRIOVEnabled = interfaceProperties.sriov.enabled;
-    var locked = this.props.locked || !interfaceProperties.sriov.available;
     var physnet = interfaceProperties.sriov.physnet;
     return (
       <div className='sriov-panel'>
@@ -903,7 +903,7 @@ var NodeInterface = React.createClass({
           checked={isSRIOVEnabled}
           name='sriov.enabled'
           onChange={this.onInterfacePropertiesChange}
-          disabled={locked}
+          disabled={this.props.locked}
           wrapperClassName='sriov-control'
           error={errors && errors.common}
         />
@@ -918,7 +918,7 @@ var NodeInterface = React.createClass({
               value={interfaceProperties.sriov.sriov_numvfs}
               name='sriov.sriov_numvfs'
               onChange={this.onInterfacePropertiesChange}
-              disabled={locked}
+              disabled={this.props.locked}
               wrapperClassName='sriov-virtual-functions'
               error={errors && errors.sriov_numvfs}
             />,
@@ -929,7 +929,7 @@ var NodeInterface = React.createClass({
               value={physnet}
               name='sriov.physnet'
               onChange={this.onInterfacePropertiesChange}
-              disabled={locked}
+              disabled={this.props.locked}
               wrapperClassName='physnet'
               error={errors && errors.physnet}
               tooltipText={_.trim(physnet) && _.trim(physnet) !== 'physnet2' &&
