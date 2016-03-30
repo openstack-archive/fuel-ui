@@ -264,6 +264,7 @@ var NodeDisk = React.createClass({
     $(ReactDOM.findDOMNode(this.refs[name])).collapse('toggle');
   },
   render() {
+    var ns = 'cluster_page.nodes_tab.configure_disks.';
     var disk = this.props.disk;
     var volumesInfo = this.props.volumesInfo;
     var diskMetaData = this.props.diskMetaData;
@@ -271,14 +272,18 @@ var NodeDisk = React.createClass({
       return volume
         .getMinimalSize(this.props.volumes.findWhere({name: volume.get('name')}).get('min_size'));
     }));
-    var diskError = disk.get('size') < requiredDiskSize;
+    var diskError = disk.get('size') < requiredDiskSize &&
+      i18n(ns + 'not_enough_space', {
+        diskSize: utils.showSize(disk.get('size'), 2),
+        requiredDiskSize: utils.showSize(requiredDiskSize, 2)
+      });
     var sortOrder = ['name', 'model', 'size'];
-    var ns = 'cluster_page.nodes_tab.configure_disks.';
 
     return (
       <div className='col-xs-12 disk-box' data-disk={disk.id} key={this.props.key}>
         <div className='row'>
           <h4 className='col-xs-6'>
+            {diskError && <i className='glyphicon glyphicon-danger-sign' />}
             {disk.get('name')} ({disk.id})
           </h4>
           <h4 className='col-xs-6 text-right'>
@@ -360,6 +365,11 @@ var NodeDisk = React.createClass({
           </div>
           <div className='col-xs-7'>
             <h5>{i18n(ns + 'volume_groups')}</h5>
+            {diskError &&
+              <div className='volume-group-notice alert alert-danger'>
+                {diskError}
+              </div>
+            }
             <div className='form-horizontal disk-utility-box'>
               {this.props.volumes.map((volume, index) => {
                 var volumeName = volume.get('name');
@@ -417,11 +427,6 @@ var NodeDisk = React.createClass({
                   </div>
                 );
               })}
-              {diskError &&
-                <div className='volume-group-notice text-danger'>
-                  {i18n(ns + 'not_enough_space')}
-                </div>
-              }
             </div>
           </div>
         </div>
