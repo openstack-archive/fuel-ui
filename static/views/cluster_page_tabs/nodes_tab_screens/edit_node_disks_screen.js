@@ -264,6 +264,7 @@ var NodeDisk = React.createClass({
     $(ReactDOM.findDOMNode(this.refs[name])).collapse('toggle');
   },
   render() {
+    var ns = 'cluster_page.nodes_tab.configure_disks.';
     var disk = this.props.disk;
     var volumesInfo = this.props.volumesInfo;
     var diskMetaData = this.props.diskMetaData;
@@ -271,9 +272,12 @@ var NodeDisk = React.createClass({
       return volume
         .getMinimalSize(this.props.volumes.findWhere({name: volume.get('name')}).get('min_size'));
     }));
-    var diskError = disk.get('size') < requiredDiskSize;
+    var diskError = disk.get('size') < requiredDiskSize &&
+      i18n(ns + 'not_enough_space', {
+        diskSize: utils.showSize(disk.get('size'), 2),
+        requiredDiskSize: utils.showSize(requiredDiskSize, 2)
+      });
     var sortOrder = ['name', 'model', 'size'];
-    var ns = 'cluster_page.nodes_tab.configure_disks.';
 
     return (
       <div className='col-xs-12 disk-box' data-disk={disk.id} key={this.props.key}>
@@ -419,7 +423,8 @@ var NodeDisk = React.createClass({
               })}
               {diskError &&
                 <div className='volume-group-notice text-danger'>
-                  {i18n(ns + 'not_enough_space')}
+                  <i className='glyphicon glyphicon-danger-sign' />
+                  {diskError}
                 </div>
               }
             </div>
