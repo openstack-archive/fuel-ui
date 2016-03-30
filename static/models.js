@@ -935,7 +935,7 @@ models.Interface = Backbone.DeepModel
       var slaveNames = _.pluck(this.get('slaves'), 'name');
       return this.collection.filter((ifc) => _.contains(slaveNames, ifc.get('name')));
     },
-    validate(attrs) {
+    validate(attrs, options) {
       var errors = {};
       var networkErrors = [];
       var networks = new models.Networks(this.get('assigned_networks')
@@ -951,7 +951,7 @@ models.Interface = Backbone.DeepModel
         networkErrors.push(i18n(ns + 'too_many_untagged_networks'));
       }
 
-      _.extend(errors, this.validateInterfaceProperties());
+      _.extend(errors, this.validateInterfaceProperties(options));
 
       // check interface networks have the same vlan id
       var vlans = _.reject(networks.pluck('vlan_start'), _.isNull);
@@ -972,7 +972,8 @@ models.Interface = Backbone.DeepModel
         )
       ) networkErrors.push(i18n(ns + 'vlan_range_intersection'));
 
-      if (this.shouldSRIOVBeValidated() &&
+      var sriov = this.get('interface_properties').sriov;
+      if (sriov && sriov.enabled &&
         networks.length &&
         attrs.networkingParameters.segmentation_type !== 'vlan') {
         networkErrors.push(i18n(ns + 'sriov_placement_error'));
@@ -992,7 +993,7 @@ models.Interface = Backbone.DeepModel
       }
       return errors;
     },
-    validateInterfaceProperties() {
+    validateInterfaceProperties(options) {
       var interfaceProperties = this.get('interface_properties');
       if (!interfaceProperties) return null;
       var errors = {};
@@ -1003,18 +1004,17 @@ models.Interface = Backbone.DeepModel
           errors.mtu = i18n(ns + 'invalid_mtu');
         }
       }
-      _.extend(errors, this.validateSRIOV());
+      _.extend(errors, this.validateSRIOV(options));
       return _.isEmpty(errors) ? null : {interface_properties: errors};
     },
-    shouldSRIOVBeValidated() {
-      var sriov = (this.get('interface_properties') || {}).sriov;
-      return sriov && sriov.available && sriov.enabled && !this.isBond();
-    },
-    validateSRIOV() {
-      if (!this.shouldSRIOVBeValidated()) return null;
-      var sriov = (this.get('interface_properties') || {}).sriov;
+    validateSRIOV({cluster}) {
+      var sriov = this.get('interface_properties').sriov;
+      if (!sriov || !sriov.enabled) return null;
       var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
       var errors = {};
+      if (cluster.get('settings').get('common.libvirt_type.value') !== 'kvm') {
+        errors.common = i18n(ns + 'sriov_hypervisor_alert');
+      }
       var virtualFunctionsNumber = parseInt(sriov.sriov_numvfs, 10);
       if (virtualFunctionsNumber < 0 ||
         virtualFunctionsNumber > sriov.sriov_totalvfs ||

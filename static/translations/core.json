@@ -433,7 +433,8 @@
                             "invalid_virtual_functions_number": "Virtual Functions number should be a positive number less than __max__",
                             "invalid_physnet": "Invalid name",
                             "empty_physnet": "Physical Network Name should not be empty",
-                            "dpdk_placement_error": "Only Private network with VLAN segmentation could be placed on DPDK enabled interface"
+                            "dpdk_placement_error": "Only Private network with VLAN segmentation could be placed on DPDK enabled interface",
+                            "sriov_hypervisor_alert": "Only KVM hypervisor works with SR-IOV."
                         },
                         "disable_offloading": "Offloading Disabled",
                         "default_offloading": "Default Offloading",
