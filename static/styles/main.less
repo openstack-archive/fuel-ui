@@ -3375,6 +3375,7 @@ input[type=range] {
 // Disks styles
 .disk-box {
   margin-bottom: 20px;
+  i {margin-right: 5px;}
   @colors: disk-green, disk-blue, disk-orange, disk-yellow, disk-violet, disk-cyan, disk-red;
   .generate-colors(length(@colors));
   .generate-colors(@n, @i: 1) when (@i =< @n) {
@@ -3433,6 +3434,10 @@ input[type=range] {
   }
   .disk-details {
     background: @tab-color;
+    padding-bottom: 15px;
+    .volume-group-notice {
+      font-size: @base-font-size - 2px;
+    }
     h5 {
       font-size: @base-font-size + 1;
       .font-semibold;
@@ -3506,11 +3511,6 @@ input[type=range] {
         label {
           padding-left: 0;
         }
-      }
-      .volume-group-notice {
-        font-size: @base-font-size - 2px;
-        margin: 0 @disk-form-margin @disk-form-margin * 2 0;
-        text-align: right;
       }
     }
   }

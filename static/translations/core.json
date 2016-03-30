@@ -464,7 +464,7 @@
                         "use_all_allowed_space": "Use All Allowed Space",
                         "validation_error": "The total size of volume groups exceeds available space of __size__ MB.",
                         "minimum_reached": "Minimum allowed size reached.",
-                        "not_enough_space": "Not enough space for assigned volume groups.",
+                        "not_enough_space": "Not enough space for assigned volume groups: there is total __diskSize__ space on the disk, but volumes require at least __requiredDiskSize__.",
                         "volume_error": "The size is too small. Allocate at least __size__ MB.",
                         "configuration_error": {
                             "title": "Disks Configuration Error",
