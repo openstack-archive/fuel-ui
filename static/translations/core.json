@@ -6,7 +6,7 @@
             "common": {
                 "title": "Fuel Dashboard",
                 "select_all": "Select All",
-                "load_defaults_button": "Load Defaults",
+                "load_defaults_button": "Reset All Settings",
                 "load_deployed_button": "Load Deployed Settings",
                 "cancel_changes_button": "Cancel Changes",
                 "apply_button": "Apply",
