@@ -583,8 +583,7 @@
                     },
                     "dependent_role_warning": "The environment contains __roles__ node.",
                     "dependent_role_warning_plural": "The environment contains __roles__ nodes.",
-                    "dependent_settings_warning": "__settings__ is active",
-                    "dependent_settings_warning_plural": "__settings__ are active",
+                    "dependent_settings_warning": "__setting__ is active",
                     "images_ceph_warning": "The environment contains controllers.",
                     "custom_repo_configuration": {
                         "add_repo_button": "Add Extra Repo",
@@ -1715,7 +1714,6 @@
                     "dependent_role_warning": "环境包含__roles__节点.",
                     "dependent_role_warning_plural": "环境包含__roles__节点",
                     "dependent_settings_warning": "__settings__已激活",
-                    "dependent_settings_warning_plural": "__settings__已激活",
                     "images_ceph_warning": "环境包含controllers.",
                     "custom_repo_configuration": {
                         "add_repo_button": "添加额外源",
@@ -2564,7 +2562,6 @@
                     "dependent_role_warning": "この環境には __roles__ ノードが含まれています",
                     "dependent_role_warning_plural": "この環境には __roles__ ノードが含まれています",
                     "dependent_settings_warning": "__settings__ はアクティブです",
-                    "dependent_settings_warning_plural": "__settings__ はアクティブです",
                     "images_ceph_warning": "The environment contains controllers",
                     "custom_repo_configuration": {
                         "add_repo_button": "リポジトリを追加",

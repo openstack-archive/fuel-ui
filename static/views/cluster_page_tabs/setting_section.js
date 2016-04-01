@@ -55,17 +55,19 @@ var SettingSection = React.createClass({
         )
       );
     }
-    if (dependentSettings.length) {
+    if (!_.isEmpty(dependentSettings)) {
       messages.push(
-        i18n(
-          'cluster_page.settings_tab.dependent_settings_warning',
-          {settings: dependentSettings.join(', '), count: dependentSettings.length}
-        )
+        _.map(dependentSettings, (message, label) => {
+          return _.trim(message) ? message : i18n(
+            'cluster_page.settings_tab.dependent_settings_warning',
+            {setting: label}
+          );
+        }).join(' ')
       );
     }
 
     return {
-      result: !!dependentRoles.length || !!dependentSettings.length,
+      result: !!dependentRoles.length || !_.isEmpty(dependentSettings),
       message: messages.join(' ')
     };
   },
@@ -116,7 +118,7 @@ var SettingSection = React.createClass({
   checkDependentSettings(sectionName, settingName) {
     var path = utils.makePath(sectionName, settingName);
     var currentSetting = this.props.settings.get(path);
-    if (!this.areCalculationsPossible(currentSetting)) return [];
+    if (!this.areCalculationsPossible(currentSetting)) return {};
     var dependentRestrictions = {};
     var addDependentRestrictions = (setting, label) => {
       var result = _.filter(_.map(setting.restrictions, utils.expandRestriction),
@@ -157,11 +159,21 @@ var SettingSection = React.createClass({
         this.checkValues,
         valuesToCheck, pathToCheck, currentSetting[valueAttribute]
       );
-      return _.compact(_.map(dependentRestrictions, (restrictions, label) => {
-        if (_.any(restrictions, checkValues)) return label;
-      }));
+      var result = {};
+      _.each(dependentRestrictions, (restrictions, label) => {
+        var satisfiedRestrictions = _.filter(
+          _.map(restrictions,
+            (restriction) => checkValues(restriction) ? (restriction.message || '') : null
+          ),
+          (message) => !_.isNull(message)
+        );
+        if (satisfiedRestrictions.length) {
+          result[label] = satisfiedRestrictions.join(' ');
+        }
+      });
+      return result;
     }
-    return [];
+    return {};
   },
   composeOptions(values) {
     return _.map(values, (value, index) => {
