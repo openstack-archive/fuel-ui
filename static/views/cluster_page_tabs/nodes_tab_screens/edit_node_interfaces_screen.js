@@ -690,9 +690,10 @@ var NodeInterface = React.createClass({
   },
   getBondingOptions(bondingModes, attributeName) {
     return _.map(bondingModes, (mode) => {
+      var modeLabel = mode.replace('.', '_');
       return (
         <option key={'option-' + mode} value={mode}>
-          {i18n(ns + attributeName + '.' + mode.replace('.', '_'))}
+          {i18n(ns + attributeName + '.' + modeLabel, {defaultValue: modeLabel})}
         </option>
       );
     });
