@@ -977,11 +977,9 @@ models.Interface = Backbone.DeepModel
         networkErrors.push(i18n(ns + 'sriov_placement_error'));
       }
 
-      if (this.get('interface_properties').dpdk.enabled &&
-        (
-          !(networks.any({name: 'private'}) && networks.length === 1 || !networks.length) ||
-          !attrs.networkingParameters.segmentation_type === 'vlan'
-        )
+      if (
+        this.get('interface_properties').dpdk.enabled &&
+        !_.isEqual(networks.pluck('name'), ['private'])
       ) {
         networkErrors.push(i18n(ns + 'dpdk_placement_error'));
       }
