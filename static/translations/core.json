@@ -455,7 +455,8 @@
                         "dpdk_description": "The Data Plane Development Kit (DPDK) provides high-performance packet processing libraries and user space drivers.",
                         "dpdk_in_ovs_bond": "DPDK can not be disabled in OVS bond",
                         "different_availability": "<Different Availability>",
-                        "availability_tooltip": "Some network interfaces do not support this feature, therefore, these properties will not change after saving."
+                        "availability_tooltip": "Some network interfaces do not support this feature, therefore, these properties will not change after saving.",
+                        "locked_dpdk_bond": "DPDK can not be enabled because not all slave interfaces support it."
                     },
                     "configure_disks": {
                         "no_disks": "No unassigned disks available.",
