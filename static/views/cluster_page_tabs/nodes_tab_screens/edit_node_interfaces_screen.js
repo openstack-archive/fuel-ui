@@ -266,7 +266,7 @@ var EditNodeInterfacesScreen = React.createClass({
 
       bond = new models.Interface({
         type: 'bond',
-        name: this.props.interfaces.generateBondName(bondType === 'linux' ? 'bond' : 'ovs-bond'),
+        name: this.props.interfaces.generateBondName('bond'),
         mode: bondMode,
         assigned_networks: new models.InterfaceNetworks(),
         slaves: _.invoke(interfaces, 'pick', 'name'),
@@ -374,23 +374,22 @@ var EditNodeInterfacesScreen = React.createClass({
     }
   },
   validate() {
-    if (!this.props.interfaces) return;
+    var {interfaces, cluster} = this.props;
+    if (!interfaces) return;
 
     var interfacesErrors = {};
-    var validationResult;
-    var {cluster} = this.props;
     var networkConfiguration = cluster.get('networkConfiguration');
     var networkingParameters = networkConfiguration.get('networking_parameters');
     var networks = networkConfiguration.get('networks');
+    var slaveInterfaceNames = _.pluck(_.flatten(_.filter(interfaces.pluck('slaves'))), 'name');
 
-    this.props.interfaces.each((ifc) => {
-      validationResult = ifc.validate({
-        networkingParameters: networkingParameters,
-        networks: networks
-      }, {cluster});
-
-      if (!_.isEmpty(validationResult)) {
-        interfacesErrors[ifc.get('name')] = validationResult;
+    interfaces.each((ifc) => {
+      if (!_.contains(slaveInterfaceNames, ifc.get('name'))) {
+        var errors = ifc.validate({
+          networkingParameters: networkingParameters,
+          networks: networks
+        }, {cluster});
+        if (!_.isEmpty(errors)) interfacesErrors[ifc.get('name')] = errors;
       }
     });
 
@@ -536,6 +535,7 @@ var EditNodeInterfacesScreen = React.createClass({
                     this.props.bondingConfig.properties[availableBondingTypes[ifcName][0]]
                   }
                   availableBondingTypes={availableBondingTypes[ifcName]}
+                  getAvailableBondingTypes={this.getAvailableBondingTypes}
                   interfaceSpeeds={interfaceSpeeds[index]}
                   interfaceNames={interfaceNames[index]}
                 />
@@ -869,9 +869,31 @@ var NodeInterface = React.createClass({
         return this.renderDPDK(errors);
     }
   },
+  changeBondType(newType) {
+    var bond = this.props.interface;
+    var bondProperties = _.cloneDeep(bond.get('bond_properties'));
+    bondProperties.type__ = newType;
+    bond.set({bond_properties: bondProperties});
+  },
   renderDPDK(errors) {
     var ifc = this.props.interface;
-    var isOVSBond = ifc.isBond() && ifc.get('bond_properties').type__ === 'ovs';
+    var isBond = ifc.isBond();
+
+    var newBondType;
+    if (isBond) {
+      var currentDPDKValue = ifc.get('interface_properties').dpdk.enabled;
+      var slaves = ifc.getSlaveInterfaces();
+      _.each(slaves, (slave) => {
+        slave.get('interface_properties').dpdk.enabled = !currentDPDKValue;
+      });
+      newBondType = _.without(_.intersection(... _.compact(
+        _.map(slaves, (ifc) => this.props.getAvailableBondingTypes(ifc))
+      )), ifc.get('bond_properties').type__)[0];
+      _.each(slaves, (slave) => {
+        slave.get('interface_properties').dpdk.enabled = currentDPDKValue;
+      });
+    }
+
     return (
       <div className='dpdk-panel'>
         <div className='description'>{i18n(ns + 'dpdk_description')}</div>
@@ -880,9 +902,12 @@ var NodeInterface = React.createClass({
           label={i18n('common.enabled')}
           checked={ifc.get('interface_properties').dpdk.enabled}
           name='dpdk.enabled'
-          onChange={this.onInterfacePropertiesChange}
-          disabled={this.props.locked || isOVSBond}
-          tooltipText={isOVSBond && i18n(ns + 'dpdk_in_ovs_bond')}
+          onChange={(name, value) => {
+            this.onInterfacePropertiesChange(name, value);
+            if (isBond) this.changeBondType(newBondType);
+          }}
+          disabled={this.props.locked || isBond && !newBondType}
+          tooltipText={isBond && !newBondType && i18n(ns + 'locked_bond_type_change')}
           wrapperClassName='dpdk-control'
           error={errors}
         />
