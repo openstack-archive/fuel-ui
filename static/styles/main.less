@@ -3760,6 +3760,16 @@ input[type=range] {
               padding-left: 0;
               margin-left: @property-offset;
             }
+            &.forbidden {
+              opacity: 0.8;
+              .glyphicon {
+                margin-right: 4px;
+              }
+              button {
+                text-decoration: none;
+                color: grey;
+              }
+            }
           }
         }
         .mtu-control {

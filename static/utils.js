@@ -324,6 +324,15 @@ var utils = {
   },
   makePath(...args) {
     return args.join('.');
+  },
+  deepOmit(object, keys) {
+    if (!_.isObject(object) && !_.isArray(object)) {
+      return object;
+    }
+    return _.reduce(_.difference(_.keys(object), keys), (result, key) => {
+      result[key] = this.deepOmit(object[key], keys);
+      return result;
+    }, _.isArray(object) ? [] : {});
   }
 };
 
