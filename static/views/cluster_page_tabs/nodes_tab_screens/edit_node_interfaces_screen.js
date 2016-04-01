@@ -356,9 +356,7 @@ var EditNodeInterfacesScreen = React.createClass({
       var bondMode = _.flatten(
         _.pluck(this.props.bondingConfig.properties[bondType].mode, 'values')
       )[0];
-      bondName = this.props.interfaces.generateBondName(
-        bondType === 'linux' ? 'bond' : 'ovs-bond'
-      );
+      bondName = this.props.interfaces.generateBondName('bond');
 
       bond = new models.Interface({
         type: 'bond',
@@ -657,10 +655,9 @@ var EditNodeInterfacesScreen = React.createClass({
                   errors={this.state.interfacesErrors[ifcName]}
                   validate={this.validate}
                   removeInterfaceFromBond={this.removeInterfaceFromBond}
-                  bondingProperties={
-                    this.props.bondingConfig.properties[availableBondingTypes[ifcName][0]]
-                  }
+                  bondingProperties={this.props.bondingConfig.properties}
                   availableBondingTypes={availableBondingTypes[ifcName]}
+                  getAvailableBondingTypes={this.getAvailableBondingTypes}
                   interfaceSpeeds={interfaceSpeeds[index]}
                   interfaceNames={interfaceNames[index]}
                 />
@@ -765,10 +762,12 @@ var NodeInterface = React.createClass({
   },
   getAvailableBondingModes() {
     var {configModels, bondingProperties} = this.props;
-    var modes = bondingProperties.mode;
+    var ifc = this.props.interface;
+    var bondType = ifc.get('bond_properties').type__;
+    var modes = bondingProperties[bondType].mode;
+
     var availableModes = [];
-    var interfaces = this.props.interface.isBond() ? this.props.interface.getSlaveInterfaces() :
-      [this.props.interface];
+    var interfaces = ifc.isBond() ? ifc.getSlaveInterfaces() : [ifc];
     _.each(interfaces, (ifc) => {
       availableModes.push(_.reduce(modes, (result, modeSet) => {
         if (
@@ -784,7 +783,8 @@ var NodeInterface = React.createClass({
     return _.intersection(...availableModes);
   },
   getBondPropertyValues(propertyName, value) {
-    return _.flatten(_.pluck(this.props.bondingProperties[propertyName], value));
+    var bondType = this.props.interface.get('bond_properties').type__;
+    return _.flatten(_.pluck(this.props.bondingProperties[bondType][propertyName], value));
   },
   updateBondProperties(options) {
     var bondProperties = _.cloneDeep(this.props.interface.get('bond_properties')) || {};
@@ -1021,20 +1021,45 @@ var NodeInterface = React.createClass({
         return this.renderDPDK(errors);
     }
   },
+  changeBondType(newType) {
+    this.props.interface.set('bond_properties.type__', newType);
+    var newMode = _.flatten(
+      _.pluck(this.props.bondingProperties[newType].mode, 'values')
+    )[0];
+    this.bondingModeChanged(null, newMode);
+  },
   renderDPDK(errors) {
     var ifc = this.props.interface;
-    var isOVSBond = ifc.isBond() && ifc.get('bond_properties').type__ === 'ovs';
+    var currentDPDKValue = ifc.get('interface_properties').dpdk.enabled;
+    var isBond = ifc.isBond();
+
+    // check if DPDK can be switched
+    var newBondType = isBond ?
+      _.without(_.intersection(... _.compact(
+        _.map(ifc.getSlaveInterfaces(), (slave) => {
+          slave.get('interface_properties').dpdk.enabled = !currentDPDKValue;
+          var bondTypes = this.props.getAvailableBondingTypes(slave);
+          slave.get('interface_properties').dpdk.enabled = currentDPDKValue;
+          return bondTypes;
+        })
+      )), ifc.get('bond_properties').type__)[0]
+    :
+      null;
+
     return (
       <div className='dpdk-panel'>
         <div className='description'>{i18n(ns + 'dpdk_description')}</div>
         <Input
           type='checkbox'
           label={i18n('common.enabled')}
-          checked={ifc.get('interface_properties').dpdk.enabled}
+          checked={currentDPDKValue}
           name='dpdk.enabled'
-          onChange={this.onInterfacePropertiesChange}
-          disabled={this.props.locked || isOVSBond}
-          tooltipText={isOVSBond && i18n(ns + 'dpdk_in_ovs_bond')}
+          onChange={(propertyName, propertyValue) => {
+            this.onInterfacePropertiesChange('dpdk.enabled', propertyValue);
+            if (isBond) this.changeBondType(newBondType);
+          }}
+          disabled={this.props.locked || isBond && !newBondType}
+          tooltipText={isBond && !newBondType && i18n(ns + 'locked_dpdk_bond')}
           wrapperClassName='dpdk-control'
           error={errors && errors.common}
         />

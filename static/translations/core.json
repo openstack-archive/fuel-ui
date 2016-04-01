@@ -453,7 +453,7 @@
                         "physical_network": "Physical Network Name",
                         "dpdk": "DPDK",
                         "dpdk_description": "The Data Plane Development Kit (DPDK) provides high-performance packet processing libraries and user space drivers.",
-                        "dpdk_in_ovs_bond": "DPDK can not be disabled in OVS bond",
+                        "locked_dpdk_bond": "DPDK can not be enabled because not all slave interfaces support it",
                         "different_availability": "<Different Availability>",
                         "availability_tooltip": "Some network interfaces do not support this feature, therefore, these properties will not change after saving."
                     },
