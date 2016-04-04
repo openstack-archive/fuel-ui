@@ -884,11 +884,18 @@ var NetworkTab = React.createClass({
     return $.when(...requests);
   },
   isSavingPossible() {
+    // not network related settings should not block saving of changes on Networks tab
+    var settings = this.props.cluster.get('settings');
+    var areNetworkSettingsValid = !_.any(settings.validationError, (error, path) => {
+      return settings.get(utils.makePath(path.split('.')[0], 'metadata')).group === 'network' ||
+        settings.get(path).group === 'network';
+    });
+
     return !this.state.actionInProgress &&
       this.props.cluster.isAvailableForSettingsChanges() &&
       this.hasChanges() &&
       _.isNull(this.props.cluster.get('networkConfiguration').validationError) &&
-      _.isNull(this.props.cluster.get('settings').validationError);
+      areNetworkSettingsValid;
   },
   loadDeployedSettings() {
     this.setState({actionInProgress: true});

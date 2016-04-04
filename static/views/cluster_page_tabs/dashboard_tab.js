@@ -427,18 +427,42 @@ var ClusterActionsPanel = React.createClass({
           },
           // check cluster settings
           function(cluster) {
-            var configModels = this.getConfigModels();
-            var areSettingsInvalid = !cluster.get('settings').isValid({models: configModels});
-            return areSettingsInvalid &&
-              {blocker: [
+            var settings = cluster.get('settings');
+            settings.isValid({models: this.getConfigModels()});
+            if (_.isNull(settings.validationError)) return {};
+
+            var areOpenStackSettingsValid = true;
+            var areNetworkSettingsValid = true;
+            _.each(settings.validationError, (error, path) => {
+              if (
+                settings.get(utils.makePath(path.split('.')[0], 'metadata')).group === 'network' ||
+                settings.get(path).group === 'network'
+              ) {
+                areNetworkSettingsValid = false;
+              } else {
+                areOpenStackSettingsValid = false;
+              }
+              return areOpenStackSettingsValid || areNetworkSettingsValid;
+            });
+
+            return {blocker: [
+              !areOpenStackSettingsValid &&
                 <span key='invalid_settings'>
                   {i18n(ns + 'invalid_settings')}
                   {' ' + i18n(ns + 'get_more_info') + ' '}
                   <a href={'#cluster/' + cluster.id + '/settings'}>
                     {i18n(ns + 'settings_link')}
                   </a>.
+                </span>,
+              !areNetworkSettingsValid &&
+                <span key='invalid_network_settings'>
+                  {i18n(ns + 'invalid_network_settings')}
+                  {' ' + i18n(ns + 'get_more_info') + ' '}
+                  <a href={'#cluster/' + cluster.id + '/network/network_settings'}>
+                    {i18n(ns + 'network_settings_link')}
+                  </a>.
                 </span>
-              ]};
+            ]};
           },
           // check node amount restrictions according to their roles
           function(cluster) {
