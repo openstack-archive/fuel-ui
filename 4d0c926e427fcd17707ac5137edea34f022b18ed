@@ -1,0 +1,9 @@
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Code-Review+2: Julia Aranovich <jkirnosova@mirantis.com>
+Workflow+1: Julia Aranovich <jkirnosova@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Mon, 04 Apr 2016 10:53:11 +0000
+Reviewed-on: https://review.openstack.org/300999
+Project: openstack/fuel-ui
+Branch: refs/heads/master
