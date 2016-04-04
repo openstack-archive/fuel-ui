@@ -101,7 +101,9 @@ export var Input = React.createClass({
     var {onChange, name, type} = this.props;
     if (onChange) {
       var input = this.getInputDOMNode();
-      return onChange(name, type === 'checkbox' ? input.checked : input.value);
+      var value = type === 'checkbox' ? input.checked : input.value;
+      if (type === 'number') value = parseInt(value, 10);
+      return onChange(name, value);
     }
   },
   handleFocus(e) {
