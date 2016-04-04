@@ -985,34 +985,16 @@ var NetworkTab = React.createClass({
     return fieldsWithVerificationErrors;
   },
   removeNodeNetworkGroup(nodeNetworkGroup) {
-    var nodeNetworkGroups = this.props.cluster.get('nodeNetworkGroups');
-    RemoveNodeNetworkGroupDialog
-      .show({
-        showUnsavedChangesWarning: this.hasChanges()
-      })
-      .done(() => {
-        return nodeNetworkGroup
-          .destroy({wait: true})
-          .then(
-            () => $.when(
-              nodeNetworkGroups.fetch(),
-              this.props.cluster.get('networkConfiguration').fetch()
-            ),
-            (response) => utils.showErrorDialog({
-              title: i18n(networkTabNS + 'node_network_group_deletion_error'),
-              response: response
-            })
-          )
-          .then(() => {
-            this.validateNetworkConfiguration();
-            this.updateInitialConfiguration();
-            var defaultSubtab = this.constructor.getSubtabs(this.props)[0];
-            app.navigate(
-              '#cluster/' + this.props.cluster.id + '/network/' + defaultSubtab,
-              {trigger: true, replace: true}
-            );
-          });
-      });
+    RemoveNodeNetworkGroupDialog.show({
+      cluster: this.props.cluster,
+      showAllNetworks: this.props.showAllNetworks,
+      showUnsavedChangesWarning: this.hasChanges(),
+      nodeNetworkGroup,
+      nodeNetworkGroups: this.props.cluster.get('nodeNetworkGroups'),
+      updateInitialConfiguration: this.updateInitialConfiguration,
+      validateNetworkConfiguration: this.validateNetworkConfiguration,
+      getSubtabs: this.constructor.getSubtabs
+    });
   },
   addNodeNetworkGroup(hasChanges) {
     var nodeNetworkGroups = this.props.cluster.get('nodeNetworkGroups');

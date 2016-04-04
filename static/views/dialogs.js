@@ -2075,10 +2075,38 @@ export var RemoveNodeNetworkGroupDialog = React.createClass({
           'btn btn-danger remove-cluster-btn': true,
           'btn-progress': this.state.actionInProgress
         })}
-        onClick={this.submitAction}
+        onClick={this.removeNetworkGroup}
       >
         {i18n('common.delete_button')}
       </button>
     ]);
+  },
+  removeNetworkGroup() {
+    var {cluster, nodeNetworkGroup, nodeNetworkGroups, updateInitialConfiguration,
+      validateNetworkConfiguration, getSubtabs} = this.props;
+
+    this.setState({actionInProgress: true});
+    return nodeNetworkGroup
+      .destroy({wait: true})
+      .then(
+        () => $.when(
+          nodeNetworkGroups.fetch(),
+          cluster.get('networkConfiguration').fetch()
+        ),
+        (response) => utils.showErrorDialog({
+          title: i18n('verify_networks.verification_error.node_network_group_deletion_error'),
+          response: response
+        })
+      )
+      .then(() => {
+        updateInitialConfiguration();
+        validateNetworkConfiguration();
+        var defaultSubtab = getSubtabs(this.props)[0];
+        this.close();
+        app.navigate(
+          '#cluster/' + cluster.id + '/network/' + defaultSubtab,
+          {trigger: true, replace: true}
+        );
+      });
   }
 });
