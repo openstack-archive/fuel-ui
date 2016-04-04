@@ -1769,7 +1769,9 @@ RolePanel = React.createClass({
     );
     return (
       <div className='well role-panel'>
-        <h4>{i18n('cluster_page.nodes_tab.assign_roles')}</h4>
+        <h4>{i18n('cluster_page.nodes_tab.assign_roles')}
+          <div className='description'>If you want to get a hint, please move mouse cursor over role.</div>
+        </h4>
         {_.map(groups, (group) =>
           <div key={group} className={group + ' row'}>
             <div className='col-xs-1'>
