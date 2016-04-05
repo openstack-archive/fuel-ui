@@ -86,6 +86,7 @@
                 "vms_config_msg": "You can define a custom virtual machine configuration in a JSON file.",
                 "invalid_vms_conf_msg": "Invalid JSON object",
                 "attributes": "Node Attributes",
+                "save_error": "Failed to save changes: ",
                 "numa_topology": "NUMA topology"
             },
             "cluster": {

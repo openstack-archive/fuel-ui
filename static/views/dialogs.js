@@ -1395,6 +1395,12 @@ export var ShowNodeInfoDialog = React.createClass({
       <div className='panel-body' key={this.state.key}>
         <div className='node-attributes'>
           {attributes}
+          {typeof nodeAttributesError === 'string' &&
+            <div className='alert alert-danger'>
+              <div>{i18n('node_details.save_error')}</div>
+              {nodeAttributesError}
+            </div>
+          }
           <div className='btn-group'>
             <button
               className='btn btn-default discard-changes'
