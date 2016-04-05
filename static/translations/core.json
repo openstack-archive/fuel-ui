@@ -60,6 +60,7 @@
                 "disabled": "Disabled"
             },
             "controls": {
+                "min_size_error": "Value must be greater than or equal to __min__",
                 "file": {
                     "placeholder": "No file selected"
                 }
