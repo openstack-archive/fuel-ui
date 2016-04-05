@@ -98,11 +98,14 @@ export var Input = React.createClass({
     }
   },
   onChange() {
-    var {onChange, name, type} = this.props;
+    var {onChange, name, type, max} = this.props;
     if (onChange) {
       var input = this.getInputDOMNode();
       var value = type === 'checkbox' ? input.checked : input.value;
-      if (type === 'number') value = parseInt(value, 10);
+      if (type === 'number') {
+        value = parseInt(value, 10) || 0;
+        if (_.isNumber(max) && value > max) value = max;
+      }
       return onChange(name, value);
     }
   },
