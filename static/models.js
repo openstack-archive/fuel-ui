@@ -22,6 +22,7 @@ import Expression from 'expression';
 import {ModelPath} from 'expression/objects';
 import utils from 'utils';
 import customControls from 'views/custom_controls';
+import {Input} from 'views/controls';
 import 'deep-model';
 
 var models = {};
@@ -579,29 +580,6 @@ models.NodesStatistics = BaseModel.extend({
   urlRoot: '/api/nodes/allocation/stats'
 });
 
-models.NodeAttributes = Backbone.DeepModel
-  .extend(restrictionMixin)
-  .extend({
-    constructorName: 'NodeAttributes',
-    isNew() {
-      return false;
-    },
-    validate(attrs) {
-      var errors = {};
-      var listOfFields = ['dpdk', 'nova'];
-      _.each(attrs, (group, groupName) => {
-        _.each(listOfFields, (field) => {
-          var groupSetting = group[field];
-          if (!(groupSetting.regex || {}).source) return;
-          if (!new RegExp(groupSetting.regex.source).test(groupSetting.value)) {
-            errors[utils.makePath(groupName, field)] = groupSetting.regex.error;
-          }
-        });
-      });
-      return _.isEmpty(errors) ? null : errors;
-    }
-  });
-
 models.Task = BaseModel.extend({
   constructorName: 'Task',
   urlRoot: '/api/tasks',
@@ -721,7 +699,7 @@ models.Settings = Backbone.DeepModel
       return (section.metadata || {}).class === 'plugin';
     },
     parse(response) {
-      return response[this.root];
+      return this.root ? response[this.root] : response;
     },
     mergePluginSettings() {
       _.each(this.attributes, (section, sectionName) => {
@@ -740,8 +718,6 @@ models.Settings = Backbone.DeepModel
     },
     toJSON() {
       var settings = this._super('toJSON', arguments);
-      if (!this.root) return settings;
-
       // update plugin settings
       _.each(settings, (section, sectionName) => {
         if (this.isPlugin(section)) {
@@ -756,6 +732,8 @@ models.Settings = Backbone.DeepModel
           settings[sectionName] = _.pick(section, 'metadata');
         }
       });
+
+      if (!this.root) return settings;
       return {[this.root]: settings};
     },
     initialize() {
@@ -778,11 +756,8 @@ models.Settings = Backbone.DeepModel
             if (error) errors[path] = error;
             return;
           }
-
-          if (!(setting.regex || {}).source) return;
-          if (!setting.value.match(new RegExp(setting.regex.source))) {
-            errors[path] = setting.regex.error;
-          }
+          var inputError = Input.validate(setting);
+          if (inputError) errors[path] = inputError;
         });
       });
       return _.isEmpty(errors) ? null : errors;
@@ -828,6 +803,11 @@ models.Settings = Backbone.DeepModel
       return _.intersection(this.groupList, groups);
     }
   });
+
+models.NodeAttributes = models.Settings.extend({
+  constructorName: 'NodeAttributes',
+  root: null
+});
 
 models.FuelSettings = models.Settings.extend({
   constructorName: 'FuelSettings',
