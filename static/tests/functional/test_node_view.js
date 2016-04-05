@@ -179,13 +179,15 @@ define([
             return node.openNodePopup(true);
           })
           .clickByCssSelector('#headingattributes')
-          .setInputValue('.setting-section-hugepages input[type=text][name=dpdk]', 'test')
-          .assertElementTextEquals('.setting-section-hugepages .form-group.has-error .help-block',
-            'Incorrect value', 'Invalid field marked as error')
+          .assertElementExists('.node-attributes .btn.discard-changes:disabled',
+            'Cancel changes button is disabled')
+          .setInputValue('.setting-section-hugepages input[name=dpdk]', '2')
+          .assertElementExists('.node-attributes .btn.discard-changes:not(:disabled)',
+            'Cancel changes button is enabled')
           .clickByCssSelector('.node-attributes .btn.discard-changes')
-          .assertElementNotExists('.setting-section-hugepages .form-group.has-error',
-            'Validation error is cleared after resetting changes')
-          .setInputValue('.setting-section-hugepages input[type=text][name=dpdk]', '2')
+          .assertElementTextEquals('.setting-section-hugepages input[name=dpdk]',
+            0, 'Input restored default value')
+          .setInputValue('.setting-section-hugepages input[name=dpdk]', '5')
           .clickByCssSelector('.node-attributes .btn.apply-changes')
           .assertElementsAppear('.setting-section-hugepages input:not(:disabled)', 2000,
             'Inputs are not disabled after changes were saved successfully')
