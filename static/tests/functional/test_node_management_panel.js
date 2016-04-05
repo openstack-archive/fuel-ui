@@ -185,7 +185,8 @@ define([
               '.filter-by-disks_amount input[type=number]:not(:disabled)', 2,
               'Number filter has 2 fields to set min and max value')
             // set min value more than max value
-            .setInputValue('.filters .filter-by-disks_amount input[type=number][name=start]', '100')
+            .setInputValue('.filters .filter-by-disks_amount input[type=number][name=end]', '2')
+            .setInputValue('.filters .filter-by-disks_amount input[type=number][name=start]', '5')
             .assertElementsAppear('.filters .filter-by-disks_amount .form-group.has-error', 2000,
               'Validation works for Number range filter')
             .assertElementNotExists('.node-list .node', 'No nodes match invalid filter')

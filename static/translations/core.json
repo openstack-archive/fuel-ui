@@ -60,6 +60,11 @@
                 "disabled": "Disabled"
             },
             "controls": {
+                "error": {
+                    "min_size": "Value must be greater than or equal to __min__",
+                    "max_size": "Value must be less than or equal to __max__",
+                    "invalid_value": "Invalid value"
+                },
                 "file": {
                     "placeholder": "No file selected"
                 }
