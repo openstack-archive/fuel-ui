@@ -243,7 +243,7 @@ var SettingSection = React.createClass({
     var settingDescription = setting.description &&
       <span dangerouslySetInnerHTML={{__html: utils.urlify(_.escape(setting.description))}} />;
     return <Input
-      {... _.pick(setting, 'type', 'label')}
+      {... _.pick(setting, 'type', 'label', 'min', 'max')}
       key={settingKey}
       name={settingName}
       description={settingDescription}

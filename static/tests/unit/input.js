@@ -74,6 +74,72 @@ suite('Text input', () => {
   });
 });
 
+suite('Number input', () => {
+  setup(() => {
+    var renderNumberInput = function(value, error) {
+      return ReactTestUtils.renderIntoDocument(
+        <Input
+          type='number'
+          name='some_name'
+          defaultValue={value}
+          label='Some label'
+          description='Some description'
+          onChange={sinon.spy()}
+          error={error || null}
+          min={2}
+          max={10}
+        />
+      );
+    };
+    input1 = renderNumberInput(2);
+    input2 = renderNumberInput('0', 'Invalid value');
+  });
+
+  test('Test input number render', () => {
+    assert.equal(
+      ReactTestUtils.findRenderedDOMComponentWithClass(input1, 'help-block').textContent,
+      'Some description',
+      'Input description is shown'
+    );
+    assert.equal(
+      ReactTestUtils.findRenderedDOMComponentWithClass(input2, 'help-block').textContent,
+      'Invalid value',
+      'Input error is shown instead of description for input with invalid value'
+    );
+  });
+
+  test('Test input type number validation', () => {
+    var validateControl = function(value) {
+      return Input.validate({
+        value: value,
+        type: 'number',
+        min: 2,
+        max: 10
+      });
+    };
+    assert.equal(
+      validateControl(2),
+      null,
+      'Control has valid value'
+    );
+    assert.equal(
+      validateControl(-1),
+      'Value must be greater than or equal to 2',
+      'Control has invalid value'
+    );
+    assert.equal(
+      validateControl(20),
+      'Value must be less than or equal to 10',
+      'Control has invalid value'
+    );
+    assert.equal(
+      validateControl('t'),
+      'Invalid value',
+      'Control has invalid value'
+    );
+  });
+});
+
 suite('Password input', () => {
   setup(() => {
     var renderControl = function(disabled) {

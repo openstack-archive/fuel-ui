@@ -29,6 +29,29 @@ import utils from 'utils';
 import {outerClickMixin} from 'component_mixins';
 
 export var Input = React.createClass({
+  statics: {
+    validate(setting) {
+      var error = null;
+      if (setting.type === 'number') {
+        if (!_.isNumber(setting.value) || _.isNaN(setting.value)) {
+          error = i18n('controls.invalid_value');
+        } else if (_.isNumber(setting.min) && setting.value < setting.min) {
+          error = i18n('controls.number.min_size', {min: setting.min});
+        } else if (_.isNumber(setting.max) && setting.value > setting.max) {
+          error = i18n('controls.number.max_size', {max: setting.max});
+        }
+      }
+      if (_.isNull(error)) {
+        if (
+          (setting.regex || {}).source &&
+          !setting.value.match(new RegExp(setting.regex.source))
+        ) {
+          error = setting.regex.error;
+        }
+      }
+      return error;
+    }
+  },
   propTypes: {
     type: React.PropTypes.oneOf([
       'text', 'password', 'textarea', 'checkbox', 'radio',
