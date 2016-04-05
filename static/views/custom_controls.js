@@ -362,16 +362,26 @@ customControls.text_list = customControls.textarea_list = React.createClass({
 });
 
 customControls.custom_hugepages = React.createClass({
+  statics: {
+    validate(setting) {
+      var errors = {};
+      _.each(setting.value, (value, size) => {
+        errors[size] = Input.validate({value, min: 0, type: 'number'});
+      });
+      return errors;
+    }
+  },
   render() {
+    var attribute = this.props.settings.get(this.props.path);
+    if (_.isEmpty(attribute.value)) return null;
     var inputProps = {
       placeholder: 'None',
       description: null,
       type: 'number',
+      min: 0,
       name: this.props.name,
       disabled: this.props.disabled
     };
-    var attribute = this.props.settings.get(this.props.path);
-    if (_.isEmpty(attribute.value)) return null;
     return (
       <div className='row huge-pages'>
         <div className='col-xs-12'>
@@ -399,8 +409,8 @@ customControls.custom_hugepages = React.createClass({
                 <div className='col-xs-9'>
                   <Input
                     {...inputProps}
-                    min={0}
-                    value={number}
+                    error={this.props.error[size]}
+                    defaultValue={parseInt(number, 10)}
                     key={size}
                     onChange={_.partialRight(this.props.onChange, size)}
                   />
