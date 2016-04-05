@@ -332,36 +332,28 @@ export var DiscardClusterChangesDialog = React.createClass({
 
     if (changeName === 'changed_configuration') {
       var settings = cluster.get('settings');
-      var deployedSettings = new models.Settings();
       var networkConfiguration = cluster.get('networkConfiguration');
-      var deployedNetworkConfiguration = new models.NetworkConfiguration();
 
       return $.when(... [
-        deployedSettings.fetch({
-          url: _.result(cluster, 'url') + '/attributes/deployed'
+        settings.save(null, {
+          url: _.result(cluster, 'url') + '/attributes/reset/deployed',
+          validate: false
         }),
-        deployedNetworkConfiguration.fetch({
-          url: _.result(cluster, 'url') + '/network_configuration/deployed'
+        networkConfiguration.save(null, {
+          url: _.result(cluster, 'url') + '/network_configuration/reset/deployed',
+          validate: false
         })
       ])
         .then(
           () => {
-            settings.set(deployedSettings.attributes, {silent: true, validate: false});
-            networkConfiguration.set(deployedNetworkConfiguration.attributes, {silent: true});
-            return $.when(... [
-              settings.save(null, {patch: true, validate: false}),
-              networkConfiguration.save(null, {patch: true, validate: false})
-            ]);
+            settings.mergePluginSettings();
+            settings.isValid({models: this.state.configModels});
+            networkConfiguration.isValid({nodeNetworkGroups: cluster.get('nodeNetworkGroups')});
+            return cluster.fetch();
           },
           (response) => this.showError(response, i18n(ns + 'cant_discard'))
         )
-        .then(() => {
-          settings.mergePluginSettings();
-          settings.isValid({models: this.state.configModels});
-          networkConfiguration.isValid({nodeNetworkGroups: cluster.get('nodeNetworkGroups')});
-          cluster.fetch();
-          this.close();
-        });
+        .then(() => this.close());
     } else {
       var nodes = new models.Nodes(this.props.nodes.map((node) => {
         if (node.get('pending_deletion')) {
