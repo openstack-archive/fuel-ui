@@ -1042,6 +1042,7 @@ export var ShowNodeInfoDialog = React.createClass({
       nodeAttributes: null,
       initialNodeAttributes: null,
       nodeAttributesError: null,
+      responseError: null,
       configModels: null
     };
   },
@@ -1152,14 +1153,15 @@ export var ShowNodeInfoDialog = React.createClass({
     attributesModel.isValid();
     this.setState({
       nodeAttributes: attributesModel,
-      nodeAttributesError: attributesModel.validationError
+      nodeAttributesError: attributesModel.validationError,
+      responseError: null
     });
   },
   saveNodeAttributes() {
     this.setState({actionInProgress: true});
     this.state.nodeAttributes.save()
       .fail((response) => {
-        this.setState({nodeAttributesError: utils.getResponseText(response)});
+        this.setState({responseError: utils.getResponseText(response)});
       })
       .done(() => {
         this.setState({initialNodeAttributes: _.cloneDeep(this.state.nodeAttributes.attributes)});
@@ -1174,6 +1176,7 @@ export var ShowNodeInfoDialog = React.createClass({
     this.setState({
       nodeAttributes: this.state.nodeAttributes,
       nodeAttributesError: null,
+      responseError: null,
       key: _.now()
     });
   },
@@ -1353,7 +1356,7 @@ export var ShowNodeInfoDialog = React.createClass({
     );
   },
   renderNodeAttributes() {
-    var {nodeAttributes, configModels, nodeAttributesError} = this.state;
+    var {nodeAttributes, configModels, nodeAttributesError, responseError} = this.state;
     var attributesToDisplay = ['nova', 'dpdk'];
     var isLocked = !this.props.node.get('pending_addition') || this.state.actionInProgress;
 
@@ -1395,6 +1398,12 @@ export var ShowNodeInfoDialog = React.createClass({
       <div className='panel-body' key={this.state.key}>
         <div className='node-attributes'>
           {attributes}
+          {responseError &&
+            <div className='alert alert-danger'>
+              <h4>{i18n('node_details.save_error')}</h4>
+              {responseError}
+            </div>
+          }
           <div className='btn-group'>
             <button
               className='btn btn-default discard-changes'
