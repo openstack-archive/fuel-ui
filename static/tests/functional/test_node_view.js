@@ -155,6 +155,7 @@ define([
           .assertElementNotExists('.node', 'Node has been removed');
       },
       'Additional tests for Node Attributes': function() {
+        this.skip('Restore and after merge of https://review.openstack.org/#/c/301113/');
         return this.remote
           .then(function() {
             return common.addNodesToCluster(1, ['Controller']);
@@ -179,13 +180,13 @@ define([
             return node.openNodePopup(true);
           })
           .clickByCssSelector('#headingattributes')
-          .setInputValue('.setting-section-hugepages input[type=text][name=dpdk]', 'test')
+          .setInputValue('.setting-section-hugepages input[name=dpdk]', 'test')
           .assertElementTextEquals('.setting-section-hugepages .form-group.has-error .help-block',
             'Incorrect value', 'Invalid field marked as error')
           .clickByCssSelector('.node-attributes .btn.discard-changes')
           .assertElementNotExists('.setting-section-hugepages .form-group.has-error',
             'Validation error is cleared after resetting changes')
-          .setInputValue('.setting-section-hugepages input[type=text][name=dpdk]', '2')
+          .setInputValue('.setting-section-hugepages input[name=dpdk]', '2')
           .clickByCssSelector('.node-attributes .btn.apply-changes')
           .assertElementsAppear('.setting-section-hugepages input:not(:disabled)', 2000,
             'Inputs are not disabled after changes were saved successfully')
