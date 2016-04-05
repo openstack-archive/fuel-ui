@@ -374,23 +374,22 @@ var EditNodeInterfacesScreen = React.createClass({
     }
   },
   validate() {
-    if (!this.props.interfaces) return;
+    var {interfaces, cluster} = this.props;
+    if (!interfaces) return;
 
     var interfacesErrors = {};
-    var validationResult;
-    var {cluster} = this.props;
     var networkConfiguration = cluster.get('networkConfiguration');
     var networkingParameters = networkConfiguration.get('networking_parameters');
     var networks = networkConfiguration.get('networks');
+    var slaveInterfaceNames = _.pluck(_.flatten(_.filter(interfaces.pluck('slaves'))), 'name');
 
-    this.props.interfaces.each((ifc) => {
-      validationResult = ifc.validate({
-        networkingParameters: networkingParameters,
-        networks: networks
-      }, {cluster});
-
-      if (!_.isEmpty(validationResult)) {
-        interfacesErrors[ifc.get('name')] = validationResult;
+    interfaces.each((ifc) => {
+      if (!_.contains(slaveInterfaceNames, ifc.get('name'))) {
+        var errors = ifc.validate({
+          networkingParameters: networkingParameters,
+          networks: networks
+        }, {cluster});
+        if (!_.isEmpty(errors)) interfacesErrors[ifc.get('name')] = errors;
       }
     });
 
