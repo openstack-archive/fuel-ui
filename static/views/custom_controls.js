@@ -400,7 +400,7 @@ customControls.custom_hugepages = React.createClass({
                   <Input
                     {...inputProps}
                     min={0}
-                    value={number}
+                    defaultValue={parseInt(number, 10)}
                     key={size}
                     onChange={_.partialRight(this.props.onChange, size)}
                   />
