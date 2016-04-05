@@ -242,24 +242,26 @@ var SettingSection = React.createClass({
       settingName} = options;
     var settingDescription = setting.description &&
       <span dangerouslySetInnerHTML={{__html: utils.urlify(_.escape(setting.description))}} />;
-    return <Input
-      {... _.pick(setting, 'type', 'label')}
-      key={settingKey}
-      name={settingName}
-      description={settingDescription}
-      children={setting.type === 'select' ? this.composeOptions(setting.values) : null}
-      debounce={
-        setting.type === 'text' ||
+    var inputProps = {
+      key: settingKey,
+      name: settingName,
+      description: settingDescription,
+      children: setting.type === 'select' ? this.composeOptions(setting.values) : null,
+      debounce: setting.type === 'text' ||
         setting.type === 'password' ||
-        setting.type === 'textarea'
-      }
-      defaultValue={setting.value}
-      defaultChecked={_.isBoolean(setting.value) ? setting.value : false}
-      toggleable={setting.type === 'password'}
-      error={error}
-      disabled={isSettingDisabled}
-      tooltipText={showSettingWarning && settingWarning}
-      onChange={this.props.onChange}
+        setting.type === 'textarea',
+      defaultValue: setting.value,
+      defaultChecked: _.isBoolean(setting.value) ? setting.value : false,
+      toggleable: setting.type === 'password',
+      error: error,
+      disabled: isSettingDisabled,
+      tooltipText: showSettingWarning && settingWarning,
+      onChange: this.props.onChange
+    };
+    if (setting.type === 'number') inputProps.value = setting.value;
+    return <Input
+      {... _.pick(setting, 'type', 'label', 'min', 'max')}
+      {...inputProps}
     />;
   },
   render() {
