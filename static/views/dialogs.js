@@ -1132,13 +1132,14 @@ export var ShowNodeInfoDialog = React.createClass({
     this.setState({actionInProgress: true});
     nodeAttributesModel.fetch()
       .always(() => {
-        nodeAttributesModel.isValid();
+        var configModels = this.props.cluster && {settings: this.props.cluster.get('settings')};
+        nodeAttributesModel.isValid({models: configModels});
         this.setState({
           actionInProgress: false,
           nodeAttributes: nodeAttributesModel,
           initialNodeAttributes: _.cloneDeep(nodeAttributesModel.attributes),
           nodeAttributesError: nodeAttributesModel.validationError,
-          configModels: this.props.cluster && {settings: this.props.cluster.get('settings')}
+          configModels
         });
       });
   },
@@ -1150,7 +1151,7 @@ export var ShowNodeInfoDialog = React.createClass({
       name = utils.makePath(name, nestedValue);
     }
     attributesModel.set(name, value);
-    attributesModel.isValid();
+    attributesModel.isValid({models: this.state.configModels});
     this.setState({
       nodeAttributes: attributesModel,
       nodeAttributesError: attributesModel.validationError,
@@ -1171,11 +1172,12 @@ export var ShowNodeInfoDialog = React.createClass({
       });
   },
   cancelNodeAttributesChange() {
-    this.state.nodeAttributes.set(this.state.initialNodeAttributes);
-    this.state.nodeAttributes.isValid();
+    var {nodeAttributes, initialNodeAttributes, configModels} = this.state;
+    nodeAttributes.set(initialNodeAttributes);
+    nodeAttributes.isValid({models: configModels});
     this.setState({
-      nodeAttributes: this.state.nodeAttributes,
-      nodeAttributesError: null,
+      nodeAttributes,
+      nodeAttributesError: nodeAttributes.validationError,
       savingError: null,
       key: _.now()
     });
