@@ -101,37 +101,6 @@ gulp.task('karma', function(cb) {
   }, cb).start();
 });
 
-function runIntern(params) {
-  return function() {
-    var baseDir = 'static';
-    var runner = './node_modules/.bin/intern-runner';
-    var browser = argv.browser || process.env.BROWSER || 'firefox';
-    var options = [['config', 'tests/functional/config/intern-' + browser + '.js']];
-    var suiteOptions = [];
-    ['suites', 'functionalSuites'].forEach(function(suiteType) {
-      if (params[suiteType]) {
-        var suiteFiles = glob.sync(path.relative(baseDir, params[suiteType]), {cwd: baseDir});
-        suiteOptions = suiteOptions.concat(suiteFiles.map(function(suiteFile) {
-          return [suiteType, suiteFile.replace(/\.js$/, '')];
-        }));
-      }
-    });
-    if (!suiteOptions.length) {
-      throw new Error('No matching suites');
-    }
-    options = options.concat(suiteOptions);
-    var command = [path.relative(baseDir, runner)].concat(options.map(function(o) {
-      return o.join('=');
-    })).join(' ');
-    gutil.log('Executing', command);
-    return shell.task(command, {cwd: baseDir})();
-  };
-}
-
-gulp.task('intern:functional', runIntern({
-  functionalSuites: argv.suites || 'static/tests/functional/**/test_*.js'
-}));
-
 gulp.task('unit-tests', function(cb) {
   runSequence('selenium', 'karma', function(err) {
     shutdownSelenium();
@@ -139,8 +108,45 @@ gulp.task('unit-tests', function(cb) {
   });
 });
 
+var originalBaseDir = 'static/';
+var transpiledBaseDir = 'static/build/intern/';
+
+function runIntern(suites, browser) {
+  return function() {
+    var runner = './node_modules/.bin/intern-runner';
+    var suiteFiles = glob.sync(path.relative(originalBaseDir, suites), {cwd: originalBaseDir});
+    if (!suiteFiles.length) throw new Error('No matching suites');
+    var suiteOptions = suiteFiles.map(function(suiteFile) {
+      return ['functionalSuites', suiteFile.replace(/\.js$/, '')];
+    });
+    var options = [['config', 'tests/functional/config/intern-' + browser + '.js']];
+    options = options.concat(suiteOptions);
+    var command = [path.relative(transpiledBaseDir, runner)].concat(options.map(function(option) {
+      return option.join('=');
+    })).join(' ');
+    gutil.log('Executing', command);
+    return shell.task(command, {cwd: transpiledBaseDir})();
+  };
+}
+
+gulp.task('intern:transpile', function() {
+  var source = path.join(originalBaseDir, 'tests/functional/**/*.js');
+  var target = path.join(transpiledBaseDir, 'tests/functional/');
+  rimraf.sync(target);
+  return gulp.src(source)
+    .pipe(require('gulp-babel')({
+      presets: ['es2015-webpack']
+    }))
+    .pipe(gulp.dest(target));
+});
+
+gulp.task('intern:run', runIntern(
+  argv.suites || 'static/tests/functional/**/test_*.js',
+  argv.browser || process.env.BROWSER || 'firefox'
+));
+
 gulp.task('functional-tests', function(cb) {
-  runSequence('selenium', 'intern:functional', function(err) {
+  runSequence('selenium', 'intern:transpile', 'intern:run', function(err) {
     shutdownSelenium();
     cb(err);
   });
