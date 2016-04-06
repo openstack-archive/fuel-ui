@@ -1163,7 +1163,7 @@ input[type=range] {
   margin-bottom: @base-indent * 1.5;
   h3 {
     padding-bottom: 6px;
-    margin: 0 0 @base-indent * 1.5;
+    margin: 0 0 @base-indent 0;
     border-bottom: 1px solid @gray + 50%;
     color: @base-text-color + 10%;
     box-sizing: border-box;
@@ -1180,7 +1180,7 @@ input[type=range] {
     }
   }
   h4 {
-    margin: @base-indent * 1.5 0 @base-indent;
+    margin: 0 0 @base-indent 0;
     font-size: @base-font-size + 5px;
     .font-normal;
   }
@@ -4107,9 +4107,6 @@ input[type=range] {
       }
     }
   }
-  .alert {
-    margin-top: -@base-indent;
-  }
   .plugin-versions {
     margin-bottom: 25px;
     .radio-group {
@@ -4186,9 +4183,6 @@ input[type=range] {
     }
     &.network .help-block {
       max-width: 400px;
-    }
-    h3 {
-      margin-bottom: @base-indent;
     }
     .network-description {
       color: @gray;
