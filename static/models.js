@@ -1002,7 +1002,7 @@ models.Interface = Backbone.DeepModel
           errors.mtu = i18n(ns + 'dpdk_mtu_error');
         }
       }
-      _.extend(errors, this.validateSRIOV(options));
+      _.extend(errors, this.validateSRIOV(options), this.validateDPDK(options));
       return _.isEmpty(errors) ? null : {interface_properties: errors};
     },
     validateSRIOV({cluster}) {
@@ -1028,6 +1028,14 @@ models.Interface = Backbone.DeepModel
         errors.physnet = i18n(ns + 'empty_physnet');
       }
       return _.isEmpty(errors) ? null : {sriov: errors};
+    },
+    validateDPDK({cluster}) {
+      var dppk = this.get('interface_properties').dpdk;
+      if (!dppk || !dppk.enabled ||
+          cluster.get('settings').get('common.libvirt_type.value') === 'kvm') return null;
+
+      var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
+      return {dpdk: {common: i18n(ns + 'dpdk_hypervisor_alert')}};
     }
   });
 

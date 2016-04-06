@@ -435,6 +435,7 @@
                             "invalid_physnet": "Invalid name",
                             "empty_physnet": "Physical Network Name should not be empty",
                             "sriov_hypervisor_alert": "Only KVM hypervisor works with SR-IOV.",
+                            "dpdk_hypervisor_alert": "Only KVM hypervisor works with DPDK.",
                             "dpdk_placement_error": "DPDK enabled interface requires Private network to be assigned. Other networks are not allowed."
                         },
                         "disable_offloading": "Offloading Disabled",

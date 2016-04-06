@@ -884,7 +884,7 @@ var NodeInterface = React.createClass({
           disabled={this.props.locked || isOVSBond}
           tooltipText={isOVSBond && i18n(ns + 'dpdk_in_ovs_bond')}
           wrapperClassName='dpdk-control'
-          error={errors}
+          error={errors && errors.common}
         />
       </div>
     );
