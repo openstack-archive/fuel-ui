@@ -187,7 +187,7 @@ class App {
         if (this.version.get('auth_required')) {
           _.extend(this.keystoneClient, this.user.pick('token'));
           return this.keystoneClient.authenticate()
-            .done(() => this.user.set({authenticated: true}));
+            .then(() => this.user.set({authenticated: true}));
         }
         return $.Deferred().resolve();
       })
@@ -220,11 +220,11 @@ class App {
   loadPage(Page, options = []) {
     dispatcher.trigger('pageLoadStarted');
     return (Page.fetchData ? Page.fetchData(...options) : $.Deferred().resolve())
-      .done((pageOptions) => {
+      .then((pageOptions) => {
         if (!this.rootComponent) this.renderLayout();
         this.setPage(Page, pageOptions);
-      })
-      .always(() => dispatcher.trigger('pageLoadFinished'));
+        dispatcher.trigger('pageLoadFinished');
+      });
   }
 
   setPage(Page, options) {

@@ -84,7 +84,7 @@ export function pollingMixin(updateInterval, delayedStart) {
         this.shouldDataBeFetched();
       if (shouldDataBeFetched) {
         this.stopPolling();
-        return this.fetchData().always(this.scheduleDataFetch);
+        return this.fetchData().then(this.scheduleDataFetch);
       }
     },
     stopPolling() {

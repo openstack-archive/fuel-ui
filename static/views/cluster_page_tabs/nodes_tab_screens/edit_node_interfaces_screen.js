@@ -196,16 +196,20 @@ var EditNodeInterfacesScreen = React.createClass({
     this.setState({actionInProgress: true});
     $.when(this.props.interfaces.fetch({
       url: _.result(this.props.nodes.at(0), 'url') + '/interfaces/default_assignment', reset: true
-    }, this)).done(() => {
-      this.setState({actionInProgress: false});
-    }).fail((response) => {
-      var errorNS = ns + 'configuration_error.';
-      utils.showErrorDialog({
-        title: i18n(errorNS + 'title'),
-        message: i18n(errorNS + 'load_defaults_warning'),
-        response: response
-      });
-    });
+    }, this))
+    .then(
+      () => {
+        this.setState({actionInProgress: false});
+      },
+      (response) => {
+        var errorNS = ns + 'configuration_error.';
+        utils.showErrorDialog({
+          title: i18n(errorNS + 'title'),
+          message: i18n(errorNS + 'load_defaults_warning'),
+          response: response
+        });
+      }
+    );
   },
   revertChanges() {
     this.props.interfaces.reset(_.cloneDeep(this.state.initialInterfaces), {parse: true});
@@ -290,20 +294,24 @@ var EditNodeInterfacesScreen = React.createClass({
 
       return Backbone.sync('update', node.interfaces, {url: _.result(node, 'url') + '/interfaces'});
     }))
-      .done(() => {
-        this.setState({initialInterfaces:
-          _.cloneDeep(this.interfacesToJSON(this.props.interfaces))});
-        dispatcher.trigger('networkConfigurationUpdated');
-      })
-      .fail((response) => {
-        var errorNS = ns + 'configuration_error.';
-
-        utils.showErrorDialog({
-          title: i18n(errorNS + 'title'),
-          message: i18n(errorNS + 'saving_warning'),
-          response: response
-        });
-      }).always(() => this.setState({actionInProgress: false}));
+      .then(
+        () => {
+          this.setState({
+            initialInterfaces: _.cloneDeep(this.interfacesToJSON(this.props.interfaces)),
+            actionInProgress: false
+          });
+          dispatcher.trigger('networkConfigurationUpdated');
+        },
+        (response) => {
+          var errorNS = ns + 'configuration_error.';
+          this.setState({actionInProgress: false});
+          utils.showErrorDialog({
+            title: i18n(errorNS + 'title'),
+            message: i18n(errorNS + 'saving_warning'),
+            response: response
+          });
+        }
+      );
   },
   configurationTemplateExists() {
     return !_.isEmpty(this.props.cluster.get('networkConfiguration')

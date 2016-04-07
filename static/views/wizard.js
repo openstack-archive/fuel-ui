@@ -634,7 +634,7 @@ var CreateClusterWizard = React.createClass({
     this.wizard.set({cluster: this.cluster, clusters: this.props.clusters});
   },
   componentDidMount() {
-    this.releases.fetch().done(() => {
+    this.releases.fetch().then(() => {
       var defaultRelease = this.releases.findWhere({is_deployable: true});
       this.wizard.set('release', defaultRelease.id);
       this.selectRelease(defaultRelease.id);
@@ -731,25 +731,27 @@ var CreateClusterWizard = React.createClass({
     if (deferred) {
       this.updateState({disabled: true});
       deferred
-        .done(() => {
-          this.props.clusters.add(cluster);
-          this.close();
-          app.navigate('#cluster/' + this.cluster.id, {trigger: true});
-        })
-        .fail((response) => {
-          this.stopHandlingKeys = false;
-          this.setState({actionInProgress: false});
-          if (response.status === 409) {
-            this.updateState({disabled: false, activePaneIndex: 0});
-            cluster.trigger('invalid', cluster, {name: utils.getResponseText(response)});
-          } else {
+        .then(
+          () => {
+            this.props.clusters.add(cluster);
             this.close();
-            utils.showErrorDialog({
-              response: response,
-              title: i18n('dialog.create_cluster_wizard.create_cluster_error.title')
-            });
+            app.navigate('#cluster/' + this.cluster.id, {trigger: true});
+          },
+          (response) => {
+            this.stopHandlingKeys = false;
+            this.setState({actionInProgress: false});
+            if (response.status === 409) {
+              this.updateState({disabled: false, activePaneIndex: 0});
+              cluster.trigger('invalid', cluster, {name: utils.getResponseText(response)});
+            } else {
+              this.close();
+              utils.showErrorDialog({
+                response: response,
+                title: i18n('dialog.create_cluster_wizard.create_cluster_error.title')
+              });
+            }
           }
-        });
+        );
     }
   },
   selectRelease(releaseId) {
@@ -761,7 +763,7 @@ var CreateClusterWizard = React.createClass({
     this.setState({loading: true});
     this.components = new models.ComponentsCollection([], {releaseId: releaseId});
     this.wizard.set({components: this.components});
-    this.components.fetch().done(() => {
+    this.components.fetch().then(() => {
       this.components.invoke('expandWildcards', this.components);
       this.components.invoke('restoreDefaultValue', this.components);
       this.setState({loading: false});

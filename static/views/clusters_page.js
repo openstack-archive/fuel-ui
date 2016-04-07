@@ -126,7 +126,7 @@ Cluster = React.createClass({
     var deploymentTask = this.props.cluster.task({group: 'deployment', active: true});
     if (deploymentTask) {
       request = deploymentTask.fetch();
-      request.done(() => {
+      request.then(() => {
         if (deploymentTask.match({active: false})) {
           this.props.cluster.fetch();
           dispatcher.trigger('updateNodeStats');

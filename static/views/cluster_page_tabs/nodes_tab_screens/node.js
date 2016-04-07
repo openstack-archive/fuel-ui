@@ -63,7 +63,7 @@ var Node = React.createClass({
   applyNewNodeName(newName) {
     if (newName && newName !== this.props.node.get('name')) {
       this.setState({actionInProgress: true});
-      this.props.node.save({name: newName}, {patch: true, wait: true}).always(this.endRenaming);
+      this.props.node.save({name: newName}, {patch: true, wait: true}).then(this.endRenaming);
     } else {
       this.endRenaming();
     }
@@ -81,17 +81,19 @@ var Node = React.createClass({
     this.setState({actionInProgress: true});
     new models.Node(this.props.node.attributes)
       .save({pending_deletion: false}, {patch: true})
-      .done(() => {
-        this.props.cluster.fetchRelated('nodes').done(() => {
-          this.setState({actionInProgress: false});
-        });
-      })
-      .fail((response) => {
-        utils.showErrorDialog({
-          title: i18n('cluster_page.nodes_tab.node.cant_discard'),
-          response: response
-        });
-      });
+      .then(
+        () => {
+          this.props.cluster.fetchRelated('nodes').then(() => {
+            this.setState({actionInProgress: false});
+          });
+        },
+        (response) => {
+          utils.showErrorDialog({
+            title: i18n('cluster_page.nodes_tab.node.cant_discard'),
+            response: response
+          });
+        }
+      );
   },
   removeNode(e) {
     e.preventDefault();
