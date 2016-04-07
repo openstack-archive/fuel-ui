@@ -94,36 +94,71 @@ var EditNodeInterfacesScreen = React.createClass({
   compareInterfacesProperties(interfaces, path, iteratee = _.identity,
     source = 'interface_properties') {
     // Checks if all the sub parameters are equal for all interfaces property
-    var ifcProperties = _.map(interfaces.map((ifc) => {
-      var interfaceProperty = ifc.get(source);
-      return _.get(interfaceProperty, path, interfaceProperty);
-    }), iteratee);
+    var ifcProperties = _.map(
+      _.map(interfaces, (ifc) => {
+        var interfaceProperty = ifc.get(source);
+        return _.get(interfaceProperty, path, interfaceProperty);
+      }),
+      iteratee
+    );
     var shown = _.first(ifcProperties);
-    var equal = !_.any(ifcProperties, (ifcProperty) => !_.isEqual(ifcProperty, shown));
+    var equal = _.all(ifcProperties, (ifcProperty) => _.isEqual(ifcProperty, shown));
 
     return {equal, shown};
   },
+  getInterfacesLimitations(interfaces) {
+    return {
+      offloading_modes: this.compareInterfacesProperties(
+        interfaces, '',
+        (value) => utils.deepOmit(value, ['state']), 'offloading_modes'
+      ),
+      dpdk: this.compareInterfacesProperties(interfaces, 'dpdk.available'),
+      sriov: this.compareInterfacesProperties(interfaces, 'sriov.available'),
+      mtu: {equal: true, shown: true}
+    };
+  },
   getEditLimitations() {
     // Gets limitations for interfaces parameters editing.
-    // Parameter should not be editable if its differently available
+    // Parameter should not be editable if it is differently available
     // across the nodes interfaces
-    return this.props.interfaces.reduce((result, ifc, index) => {
-      var interfaces = this.props.nodes.map((node) => {
-        return node.interfaces.at(index);
+    var interfacesByIndex = {};
+    var indexByInterface = {};
+    this.props.nodes.each((node) => {
+      var justInterfaces = node.interfaces.filter((ifc) => !ifc.isBond());
+      _.each(justInterfaces, (ifc, index) => {
+        indexByInterface[ifc.id] = index;
+        interfacesByIndex[index] = _.union(interfacesByIndex[index], [ifc]);
       });
-      var key = ifc.isBond() ? ifc.get('name') : ifc.id;
-      result[key] = {
-        offloading_modes: this.compareInterfacesProperties(
-          interfaces, '',
-          (value) => utils.deepOmit(value, ['state']),
-          'offloading_modes'
-        ),
-        dpdk: this.compareInterfacesProperties(interfaces, 'dpdk.available'),
-        sriov: this.compareInterfacesProperties(interfaces, 'sriov.available'),
-        mtu: {equal: true, shown: true}
-      };
-      return result;
-    }, {});
+    });
+
+    // There are 3 types of interfaces to be treaten differently:
+    // 1) interface (supposed to be similar on all nodes by index, unremovable)
+    // 2) saved bonds (might be configured differently across the nodes,
+    //    removable, affect interfaces order)
+    // 3) unsaved bonds (exist on the first node only)
+
+    // Calculate limitations for case 1
+    var result = _.reduce(
+      interfacesByIndex,
+      (result, interfaces) => {
+        result[interfaces[0].id] = this.getInterfacesLimitations(interfaces);
+        return result;
+      }, {}
+    );
+
+    // Limitations for cases 2 and 3
+    _.each(
+      this.props.interfaces.filter((ifc) => ifc.isBond()),
+      (ifc) => {
+        var interfaces = _.flatten(
+          _.map(ifc.getSlaveInterfaces(),
+            (slave) => interfacesByIndex[indexByInterface[slave.id]]
+          )
+        );
+        result[ifc.get('name')] = this.getInterfacesLimitations(interfaces);
+      }
+    );
+    return result;
   },
   isLocked() {
     return !!this.props.cluster.task({group: 'deployment', active: true}) ||
@@ -560,12 +595,26 @@ var EditNodeInterfacesScreen = React.createClass({
     var creatingNewBond = checkedInterfaces.length >= 2 && !checkedBonds.length;
     var addingInterfacesToExistingBond = !!checkedInterfaces.length && checkedBonds.length === 1;
 
-    var availableBondingTypes = {};
+    var availableBondingTypes = nodes.at(0).interfaces.reduce(
+      (result, ifc, index) => {
+        result[ifc.get('name')] = _.intersection(... _.compact(nodes.map(
+            (node) => this.getAvailableBondingTypes(node.interfaces.at(index))
+        )));
+        return result;
+      }, {}
+    );
     interfaces.each((ifc) => {
-      availableBondingTypes[ifc.get('name')] = this.getAvailableBondingTypes(ifc);
+      var name = ifc.get('name');
+      if (!availableBondingTypes[name]) {
+        availableBondingTypes[name] = this.getAvailableBondingTypes(ifc);
+      }
     });
+
     var bondType = _.intersection(... _.compact(_.map(availableBondingTypes,
-      (types, ifcName) => interfaces.find({name: ifcName}).get('checked') ? types : null
+      (types, ifcName) => {
+        var ifc = interfaces.find({name: ifcName});
+        return ifc && ifc.get('checked') ? types : null;
+      }
     )))[0];
     var bondingPossible = (creatingNewBond || addingInterfacesToExistingBond) && !!bondType;
 
@@ -582,6 +631,27 @@ var EditNodeInterfacesScreen = React.createClass({
 
     var interfaceSpeeds = this.getInterfaceProperty('current_speed');
     var interfaceNames = this.getInterfaceProperty('name');
+
+    // Build slice of nodes interfaces by index
+    var nodesInterfaces = nodes.at(0).interfaces.reduce((result, ifc, index) => {
+      result[ifc.isBond() ? ifc.get('name') : ifc.id] = nodes.map(
+        (node) => node.interfaces.at(index));
+      return result;
+    }, {});
+    // Add missing slice information for newly created bonds.
+    // Since bonds created only for the 1st node for the rests just arrays of
+    // slave interfaces are created.
+    var interfacesNames = nodes.at(0).interfaces.pluck('name');
+    _.each(interfaces.filter((ifc) => !ifc.id), (ifc) => {
+      nodesInterfaces[ifc.get('name')] = nodes.map(
+        (node) => _.map(
+          _.map(
+            ifc.getSlaveInterfaces(),
+            (ifc) => interfacesNames.indexOf(ifc.get('name'))
+          ),
+          (index) => node.interfaces.at(index))
+      );
+    });
 
     return (
       <div className='row'>
@@ -644,6 +714,11 @@ var EditNodeInterfacesScreen = React.createClass({
                   key={'interface-' + ifcName}
                   interface={ifc}
                   limitations={limitations}
+                  nodesInterfaces={_.get(
+                    nodesInterfaces,
+                    ifc.isBond() ? ifc.get('name') : ifc.id,
+                    [ifc]
+                  )}
                   hasChanges={
                     !_.isEqual(
                        _.findWhere(this.state.initialInterfaces, {name: ifcName}),
@@ -1029,22 +1104,36 @@ var NodeInterface = React.createClass({
     this.bondingModeChanged(null, newMode);
   },
   renderDPDK(errors) {
-    var ifc = this.props.interface;
-    var currentDPDKValue = ifc.get('interface_properties').dpdk.enabled;
-    var isBond = ifc.isBond();
+    var {nodesInterfaces} = this.props;
+    var currentInterface = this.props.interface;
 
-    // check if DPDK can be switched
+    // If not all of the node interfaces are bonds - no mode changing is
+    // possible
+    var isBond = _.all(nodesInterfaces, (ifc) => _.isArray(ifc) || ifc.isBond());
+
+    var currentDPDKValue = currentInterface.get('interface_properties').dpdk.enabled;
     var newBondType = isBond ?
-      _.without(_.intersection(... _.compact(
-        _.map(ifc.getSlaveInterfaces(), (slave) => {
-          slave.get('interface_properties').dpdk.enabled = !currentDPDKValue;
-          var bondTypes = this.props.getAvailableBondingTypes(slave);
-          slave.get('interface_properties').dpdk.enabled = currentDPDKValue;
-          return bondTypes;
-        })
-      )), ifc.get('bond_properties').type__)[0]
-    :
-      null;
+      _.first(
+        _.without(
+          _.intersection(...
+            // Gathering all available bonding types from all nodes interfaces
+            _.flatten(
+              _.map(nodesInterfaces, (interfaceData) => {
+                var slaves = _.isArray(interfaceData) ?
+                    interfaceData : interfaceData.getSlaveInterfaces();
+                return _.map(slaves, (slave) => {
+                  slave.get('interface_properties').dpdk.enabled = !currentDPDKValue;
+                  var bondTypes = this.props.getAvailableBondingTypes(slave);
+                  slave.get('interface_properties').dpdk.enabled = currentDPDKValue;
+                  return bondTypes;
+                });
+              })
+            )
+          // excluding the current one
+          ), currentInterface.get('bond_properties').type__)
+        )
+      :
+        null;
 
     return (
       <div className='dpdk-panel'>
