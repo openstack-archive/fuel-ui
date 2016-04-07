@@ -87,7 +87,7 @@ var cacheMixin = {
   sync() {
     var deferred = this._super('sync', arguments);
     if (this.cacheFor) {
-      deferred.done(() => {
+      deferred.then(() => {
         this.lastSyncTime = new Date();
       });
     }

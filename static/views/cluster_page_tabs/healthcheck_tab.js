@@ -183,15 +183,16 @@ var HealthcheckTabContent = React.createClass({
       requests.push(Backbone.sync('update', oldTestruns));
     }
     $.when(...requests)
-      .done(() => {
-        this.startPolling(true);
-      })
-      .fail((response) => {
-        utils.showErrorDialog({response: response});
-      })
-      .always(() => {
-        this.setState({actionInProgress: false});
-      });
+      .then(
+        () => {
+          this.startPolling(true);
+          this.setState({actionInProgress: false});
+        },
+        (response) => {
+          this.setState({actionInProgress: false});
+          utils.showErrorDialog({response: response});
+        }
+      );
   },
   getActiveTestRuns() {
     return this.props.testruns.filter({status: 'running'});
@@ -209,7 +210,7 @@ var HealthcheckTabContent = React.createClass({
           _.pick(testrun.attributes, 'id', 'status')
         );
       };
-      Backbone.sync('update', testruns).done(() => {
+      Backbone.sync('update', testruns).then(() => {
         this.setState({actionInProgress: false});
         this.startPolling(true);
       });

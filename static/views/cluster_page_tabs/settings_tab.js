@@ -108,26 +108,30 @@ var SettingsTab = React.createClass({
     if (deferred) {
       this.setState({actionInProgress: true});
       deferred
-        .done(() => {
-          this.setState({initialAttributes: _.cloneDeep(settings.attributes)});
+        .then(() => {
+          this.setState({
+            initialAttributes: _.cloneDeep(settings.attributes),
+            actionInProgress: false,
+            key: _.now()
+          });
           // some networks may have restrictions which are processed by nailgun,
           // so networks need to be refetched after updating cluster attributes
           this.props.cluster.get('networkConfiguration').cancelThrottling();
-        })
-        .always(() => {
+          this.props.cluster.fetch();
+        },
+        (response) => {
           this.setState({
             actionInProgress: false,
             key: _.now()
           });
           this.props.cluster.fetch();
-        })
-        .fail((response) => {
           utils.showErrorDialog({
             title: i18n('cluster_page.settings_tab.settings_error.title'),
             message: i18n('cluster_page.settings_tab.settings_error.saving_warning'),
             response: response
           });
-        });
+        }
+      );
     }
     return deferred;
   },
@@ -138,26 +142,28 @@ var SettingsTab = React.createClass({
     .fetch({
       url: _.result(this.props.cluster, 'url') + '/attributes/defaults'
     })
-    .done(() => {
-      this.props.cluster.get('settings').updateSettings(
-        defaultSettings,
-        this.state.configModels,
-        false
-      );
-      this.setState({
-        actionInProgress: false,
-        key: _.now()
-      });
-    })
-    .fail((response) => {
-      this.setState({actionInProgress: false});
-      var ns = 'cluster_page.settings_tab.settings_error';
-      utils.showErrorDialog({
-        title: i18n(ns + 'title'),
-        message: i18n(ns + 'load_settings_warning'),
-        response
-      });
-    });
+    .then(
+      () => {
+        this.props.cluster.get('settings').updateSettings(
+          defaultSettings,
+          this.state.configModels,
+          false
+        );
+        this.setState({
+          actionInProgress: false,
+          key: _.now()
+        });
+      },
+      (response) => {
+        this.setState({actionInProgress: false});
+        var ns = 'cluster_page.settings_tab.settings_error';
+        utils.showErrorDialog({
+          title: i18n(ns + 'title'),
+          message: i18n(ns + 'load_settings_warning'),
+          response
+        });
+      }
+    );
   },
   loadDeployedSettings() {
     this.props.cluster.get('settings').updateSettings(
