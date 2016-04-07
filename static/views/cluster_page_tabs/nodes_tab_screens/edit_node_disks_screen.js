@@ -77,16 +77,19 @@ var EditNodeDisksScreen = React.createClass({
   loadDefaults() {
     this.setState({actionInProgress: true});
     this.props.disks.fetch({url: _.result(this.props.nodes.at(0), 'url') + '/disks/defaults/'})
-      .fail((response) => {
-        var ns = 'cluster_page.nodes_tab.configure_disks.configuration_error.';
-        utils.showErrorDialog({
-          title: i18n(ns + 'title'),
-          message: utils.getResponseText(response) || i18n(ns + 'load_defaults_warning')
-        });
-      })
-      .always(() => {
-        this.setState({actionInProgress: false});
-      });
+      .then(
+        () => {
+          this.setState({actionInProgress: false});
+        },
+        (response) => {
+          var ns = 'cluster_page.nodes_tab.configure_disks.configuration_error.';
+          this.setState({actionInProgress: false});
+          utils.showErrorDialog({
+            title: i18n(ns + 'title'),
+            message: utils.getResponseText(response) || i18n(ns + 'load_defaults_warning')
+          });
+        }
+      );
   },
   revertChanges() {
     this.props.disks.reset(_.cloneDeep(this.state.initialDisks), {parse: true});
@@ -101,17 +104,20 @@ var EditNodeDisksScreen = React.createClass({
       });
       return Backbone.sync('update', node.disks, {url: _.result(node, 'url') + '/disks'});
     }))
-      .done(this.updateInitialData)
-      .fail((response) => {
-        var ns = 'cluster_page.nodes_tab.configure_disks.configuration_error.';
-        utils.showErrorDialog({
-          title: i18n(ns + 'title'),
-          message: utils.getResponseText(response) || i18n(ns + 'saving_warning')
-        });
-      })
-      .always(() => {
-        this.setState({actionInProgress: false});
-      });
+      .then(
+        () => {
+          this.updateInitialData();
+          this.setState({actionInProgress: false});
+        },
+        (response) => {
+          var ns = 'cluster_page.nodes_tab.configure_disks.configuration_error.';
+          this.setState({actionInProgress: false});
+          utils.showErrorDialog({
+            title: i18n(ns + 'title'),
+            message: utils.getResponseText(response) || i18n(ns + 'saving_warning')
+          });
+        }
+      );
   },
   getDiskMetaData(disk) {
     var result;
