@@ -63,7 +63,8 @@ var Node = React.createClass({
   applyNewNodeName(newName) {
     if (newName && newName !== this.props.node.get('name')) {
       this.setState({actionInProgress: true});
-      this.props.node.save({name: newName}, {patch: true, wait: true}).always(this.endRenaming);
+      this.props.node.save({name: newName}, {patch: true, wait: true})
+        .then(this.endRenaming, this.endRenaming);
     } else {
       this.endRenaming();
     }
@@ -81,16 +82,17 @@ var Node = React.createClass({
     this.setState({actionInProgress: true});
     new models.Node(this.props.node.attributes)
       .save({pending_deletion: false}, {patch: true})
-      .done(() => {
-        this.props.cluster.fetchRelated('nodes').done(() => {
-          this.setState({actionInProgress: false});
-        });
-      })
-      .fail((response) => {
-        utils.showErrorDialog({
-          title: i18n('cluster_page.nodes_tab.node.cant_discard'),
-          response: response
-        });
+      .then(
+        () => this.props.cluster.fetchRelated('nodes'),
+        (response) => {
+          utils.showErrorDialog({
+            title: i18n('cluster_page.nodes_tab.node.cant_discard'),
+            response: response
+          });
+        }
+      )
+      .then(() => {
+        this.setState({actionInProgress: false});
       });
   },
   removeNode(e) {
@@ -98,7 +100,7 @@ var Node = React.createClass({
     if (this.props.viewMode === 'compact') this.toggleExtendedNodePanel();
     RemoveOfflineNodeDialog
       .show()
-      .done(() => {
+      .then(() => {
         // sync('delete') is used instead of node.destroy() because we want
         // to keep showing the 'Removing' status until the node is truly removed
         // Otherwise this node would disappear and might reappear again upon
@@ -282,7 +284,7 @@ var Node = React.createClass({
         nodes: new models.Nodes(this.props.node),
         cluster: this.props.cluster
       })
-      .done(this.props.onNodeSelection);
+      .then(this.props.onNodeSelection);
   },
   renderLabels() {
     var labels = this.props.node.get('labels');

@@ -264,7 +264,7 @@ var DeploymentResult = React.createClass({
     if (task.match({name: 'deploy'})) {
       // deletion of 'deploy' task invokes all deployment tasks deletion in backend
       task.destroy({silent: true})
-        .done(() => cluster.get('tasks').fetch());
+        .then(() => cluster.get('tasks').fetch());
     } else {
       task.destroy();
     }
@@ -863,7 +863,7 @@ var ClusterActionButton = React.createClass({
         nodeNetworkGroups: cluster.get('nodeNetworkGroups'),
         statusesToFilter: nodeStatusesToFilter
       })
-      .done((selectedNodeIds) => this.setState({selectedNodeIds}));
+      .then((selectedNodeIds) => this.setState({selectedNodeIds}));
   },
   render() {
     var {selectedNodeIds} = this.state;
@@ -1190,23 +1190,26 @@ var RenameEnvironmentAction = React.createClass({
       if (deferred) {
         this.setState({disabled: true});
         deferred
-          .fail((response) => {
-            if (response.status === 409) {
-              this.setState({error: utils.getResponseText(response)});
-            } else {
-              utils.showErrorDialog({
-                title: i18n(ns + 'rename_error.title'),
-                response: response
-              });
+          .then(
+            () => {
+              dispatcher.trigger('updatePageLayout');
+              this.setState({disabled: false});
+              if (!this.state.error) endRenaming();
+            },
+            (response) => {
+              var error;
+              if (response.status === 409) {
+                error = utils.getResponseText(response);
+              } else {
+                utils.showErrorDialog({
+                  title: i18n(ns + 'rename_error.title'),
+                  response: response
+                });
+              }
+              this.setState({error, disabled: false});
+              if (!error) endRenaming();
             }
-          })
-          .done(() => {
-            dispatcher.trigger('updatePageLayout');
-          })
-          .always(() => {
-            this.setState({disabled: false});
-            if (!this.state.error) endRenaming();
-          });
+          );
       } else if (cluster.validationError) {
         this.setState({error: cluster.validationError.name});
       }

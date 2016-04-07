@@ -841,7 +841,7 @@ ManagementPanel = React.createClass({
   },
   showDeleteNodesDialog() {
     DeleteNodesDialog.show({nodes: this.props.nodes, cluster: this.props.cluster})
-      .done(_.partial(this.props.selectNodes,
+      .then(_.partial(this.props.selectNodes,
         _.pluck(this.props.nodes.filter({status: 'ready'}), 'id'), null, true)
       );
   },
@@ -869,27 +869,32 @@ ManagementPanel = React.createClass({
       }
       return data;
     }));
+
     return Backbone.sync('update', nodes)
-      .done(() => {
-        $.when(this.props.cluster.fetch(), this.props.cluster.fetchRelated('nodes')).always(() => {
-          if (this.props.mode === 'add') {
-            dispatcher.trigger('updateNodeStats networkConfigurationUpdated ' +
-              'labelsConfigurationUpdated');
-            this.props.selectNodes();
-          }
-        });
-      })
-      .fail((response) => {
-        this.setState({actionInProgress: false});
-        utils.showErrorDialog({
-          message: i18n('cluster_page.nodes_tab.node_management_panel.' +
-            'node_management_error.saving_warning'),
-          response: response
-        });
+      .then(
+        () => $.when(
+          this.props.cluster.fetch(),
+          this.props.cluster.fetchRelated('nodes')
+        ),
+        (response) => {
+          this.setState({actionInProgress: false});
+          utils.showErrorDialog({
+            message: i18n('cluster_page.nodes_tab.node_management_panel.' +
+              'node_management_error.saving_warning'),
+            response
+          });
+        }
+      )
+      .then(null, () => $.Deferred().resolve()).then(() => {
+        if (this.props.mode === 'add') {
+          dispatcher.trigger('updateNodeStats networkConfigurationUpdated ' +
+            'labelsConfigurationUpdated');
+          this.props.selectNodes();
+        }
       });
   },
   applyAndRedirect() {
-    this.applyChanges().done(_.partial(this.changeScreen, '', false));
+    this.applyChanges().then(_.partial(this.changeScreen, '', false));
   },
   searchNodes(name, value) {
     this.setState({isSearchButtonVisible: !!value});
@@ -1593,21 +1598,22 @@ NodeLabelsPanel = React.createClass({
     );
 
     return Backbone.sync('update', nodes)
-      .done(() => {
-        this.props.screenNodes.fetch().always(() => {
-          dispatcher.trigger('labelsConfigurationUpdated');
-          this.props.screenNodes.trigger('change');
-          this.props.toggleLabelsPanel();
-        });
-      })
-      .fail((response) => {
-        utils.showErrorDialog({
-          message: i18n(
-            'cluster_page.nodes_tab.node_management_panel.' +
-            'node_management_error.labels_warning'
-          ),
-          response: response
-        });
+      .then(
+        () => this.props.screenNodes.fetch(),
+        (response) => {
+          utils.showErrorDialog({
+            message: i18n(
+              'cluster_page.nodes_tab.node_management_panel.' +
+              'node_management_error.labels_warning'
+            ),
+            response
+          });
+        }
+      )
+      .then(null, () => $.Deferred().resolve()).then(() => {
+        dispatcher.trigger('labelsConfigurationUpdated');
+        this.props.screenNodes.trigger('change');
+        this.props.toggleLabelsPanel();
       });
   },
   render() {
