@@ -126,7 +126,12 @@ var LogsTab = React.createClass({
   render() {
     return (
       <div className='row'>
-        <div className='title'>{i18n('cluster_page.logs_tab.title')}</div>
+        <div className='title'>
+          {i18n('cluster_page.logs_tab.title')}
+          <div className='subtitle'>
+            {i18n('cluster_page.logs_tab.deprecation_note')}
+          </div>
+        </div>
         <div className='col-xs-12 content-elements'>
           <LogFilterBar
             {... _.pick(this.props, 'selectedLogs', 'changeLogSelection')}

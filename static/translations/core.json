@@ -861,7 +861,8 @@
                     "message": "Message",
                     "bottom_text": "Some lines have been skipped. Show more lines.",
                     "all_logs": "All",
-                    "no_log_text": "No log entries match current filters."
+                    "no_log_text": "No log entries match current filters.",
+                    "deprecation_note": "This tab is deprecated and will be removed in the upcoming release."
                 },
                 "healthcheck_tab": {
                     "title": "OpenStack Health Check",
