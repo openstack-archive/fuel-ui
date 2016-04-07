@@ -375,13 +375,15 @@ export var DiscardClusterChangesDialog = React.createClass({
       }));
       Backbone.sync('update', nodes)
         .then(() => cluster.fetchRelated('nodes'))
-        .done(() => {
-          dispatcher
+        .then(
+          () => {
+            dispatcher
             .trigger('updateNodeStats networkConfigurationUpdated labelsConfigurationUpdated');
-          this.state.result.resolve();
-          this.close();
-        })
-        .fail((response) => this.showError(response, i18n(ns + 'cant_discard')));
+            this.state.result.resolve();
+            this.close();
+          },
+          (response) => this.showError(response, i18n(ns + 'cant_discard'))
+        );
     }
   },
   renderBody() {
@@ -443,11 +445,13 @@ export var DeployClusterDialog = React.createClass({
     dispatcher.trigger('deploymentTasksUpdated');
     var task = new models.Task();
     task.save({}, {url: _.result(this.props.cluster, 'url') + '/changes', type: 'PUT'})
-      .done(() => {
-        this.close();
-        dispatcher.trigger('deploymentTaskStarted');
-      })
-      .fail(this.showError);
+      .then(
+        () => {
+          this.close();
+          dispatcher.trigger('deploymentTaskStarted');
+        },
+        this.showError
+      );
   },
   renderBody() {
     var cluster = this.props.cluster;
@@ -530,11 +534,13 @@ export var ProvisionNodesDialog = React.createClass({
           this.props.nodeIds.join(','),
         type: 'PUT'
       })
-      .done(() => {
-        this.close();
-        dispatcher.trigger('deploymentTaskStarted');
-      })
-      .fail(this.showError);
+      .then(
+        () => {
+          this.close();
+          dispatcher.trigger('deploymentTaskStarted');
+        },
+        this.showError
+      );
   },
   renderBody() {
     return (
@@ -603,11 +609,13 @@ export var DeployNodesDialog = React.createClass({
       url: _.result(this.props.cluster, 'url') + '/deploy?nodes=' + this.props.nodeIds.join(','),
       type: 'PUT'
     })
-    .done(() => {
-      this.close();
-      dispatcher.trigger('deploymentTaskStarted');
-    })
-    .fail(this.showError);
+    .then(
+      () => {
+        this.close();
+        dispatcher.trigger('deploymentTaskStarted');
+      },
+      this.showError
+    );
   },
   renderBody() {
     return (
@@ -749,13 +757,13 @@ export var ProvisionVMsDialog = React.createClass({
     this.setState({actionInProgress: true});
     var task = new models.Task();
     task.save({}, {url: _.result(this.props.cluster, 'url') + '/spawn_vms', type: 'PUT'})
-      .done(() => {
-        this.close();
-        dispatcher.trigger('deploymentTaskStarted');
-      })
-      .fail((response) => {
-        this.showError(response, i18n('dialog.provision_vms.provision_vms_error'));
-      });
+      .then(
+        () => {
+          this.close();
+          dispatcher.trigger('deploymentTaskStarted');
+        },
+        (response) => this.showError(response, i18n('dialog.provision_vms.provision_vms_error'))
+      );
   },
   renderBody() {
     var vmsCount = this.props.cluster.get('nodes').filter(
@@ -797,16 +805,16 @@ export var StopDeploymentDialog = React.createClass({
     this.setState({actionInProgress: true});
     var task = new models.Task();
     task.save({}, {url: _.result(this.props.cluster, 'url') + '/stop_deployment', type: 'PUT'})
-      .done(() => {
-        this.close();
-        dispatcher.trigger('deploymentTaskStarted');
-      })
-      .fail((response) => {
-        this.showError(
+      .then(
+        () => {
+          this.close();
+          dispatcher.trigger('deploymentTaskStarted');
+        },
+        (response) => this.showError(
           response,
           i18n('dialog.stop_deployment.stop_deployment_error.stop_deployment_warning')
-        );
-      });
+        )
+      );
   },
   renderBody() {
     var ns = 'dialog.stop_deployment.';
@@ -953,11 +961,13 @@ export var ResetEnvironmentDialog = React.createClass({
     dispatcher.trigger('deploymentTasksUpdated');
     var task = new models.Task();
     task.save({}, {url: _.result(this.props.cluster, 'url') + '/reset', type: 'PUT'})
-      .done(() => {
-        this.close();
-        dispatcher.trigger('deploymentTaskStarted');
-      })
-      .fail(this.showError);
+      .then(
+        () => {
+          this.close();
+          dispatcher.trigger('deploymentTaskStarted');
+        },
+        this.showError
+      );
   },
   renderBody() {
     var clusterName = this.props.cluster.get('name');
@@ -1110,37 +1120,40 @@ export var ShowNodeInfoDialog = React.createClass({
   componentDidMount() {
     this.assignAccordionEvents();
     this.setDialogTitle();
-    if (this.props.node.get('pending_addition') && this.props.node.hasRole('virt')) {
+
+    var {cluster, node} = this.props;
+
+    if (node.get('pending_addition') && node.hasRole('virt')) {
       var VMsConfModel = new models.BaseModel();
-      VMsConfModel.url = _.result(this.props.node, 'url') + '/vms_conf';
+      VMsConfModel.url = _.result(node, 'url') + '/vms_conf';
       this.updateProps({VMsConfModel: VMsConfModel});
       this.setState({actionInProgress: true});
-      VMsConfModel.fetch()
-        .always(() => {
-          this.setState({
-            actionInProgress: false,
-            VMsConf: JSON.stringify(VMsConfModel.get('vms_conf'))
-          });
-        });
-    }
-    var nodeAttributesModel = new models.NodeAttributes();
-    nodeAttributesModel.url = _.result(this.props.node, 'url') + '/attributes';
-    this.setState({actionInProgress: true});
-    nodeAttributesModel.fetch()
-      .always(() => {
-        var configModels = this.props.cluster && {
-          settings: this.props.cluster.get('settings'),
-          version: app.version
-        };
-        nodeAttributesModel.isValid({models: configModels});
+
+      VMsConfModel.fetch().then(null, () => $.Deferred().resolve()).then(() => {
         this.setState({
           actionInProgress: false,
-          nodeAttributes: nodeAttributesModel,
-          initialNodeAttributes: _.cloneDeep(nodeAttributesModel.attributes),
-          nodeAttributesError: nodeAttributesModel.validationError,
-          configModels
+          VMsConf: JSON.stringify(VMsConfModel.get('vms_conf'))
         });
       });
+    }
+    var nodeAttributesModel = new models.NodeAttributes();
+    nodeAttributesModel.url = _.result(node, 'url') + '/attributes';
+    this.setState({actionInProgress: true});
+
+    nodeAttributesModel.fetch().then(null, () => $.Deferred().resolve()).then(() => {
+      var configModels = cluster && {
+        settings: cluster.get('settings'),
+        version: app.version
+      };
+      nodeAttributesModel.isValid({models: configModels});
+      this.setState({
+        actionInProgress: false,
+        nodeAttributes: nodeAttributesModel,
+        initialNodeAttributes: _.cloneDeep(nodeAttributesModel.attributes),
+        nodeAttributesError: nodeAttributesModel.validationError,
+        configModels
+      });
+    });
   },
   onNodeAttributesChange(groupName, name, value, nestedValue) {
     this.setState({nodeAttributesError: null});
@@ -1160,15 +1173,16 @@ export var ShowNodeInfoDialog = React.createClass({
   saveNodeAttributes() {
     this.setState({actionInProgress: true});
     this.state.nodeAttributes.save(null, {validate: false})
-      .fail((response) => {
-        this.setState({savingError: utils.getResponseText(response)});
-      })
-      .done(() => {
-        this.setState({initialNodeAttributes: _.cloneDeep(this.state.nodeAttributes.attributes)});
-      })
-      .always(() => {
-        this.setState({actionInProgress: false});
-      });
+      .then(
+        () => this.setState({
+          initialNodeAttributes: _.cloneDeep(this.state.nodeAttributes.attributes),
+          actionInProgress: false
+        }),
+        (response) => this.setState({
+          savingError: utils.getResponseText(response),
+          actionInProgress: false
+        })
+      );
   },
   cancelNodeAttributesChange() {
     var {nodeAttributes, initialNodeAttributes, configModels} = this.state;
@@ -1215,12 +1229,17 @@ export var ShowNodeInfoDialog = React.createClass({
     if (parsedVMsConf) {
       this.setState({actionInProgress: true});
       this.props.VMsConfModel.save({vms_conf: parsedVMsConf}, {method: 'PUT'})
-        .fail((response) => {
-          this.setState({VMsConfValidationError: utils.getResponseText(response)});
-        })
-        .always(() => {
-          this.setState({actionInProgress: false});
-        });
+        .then(
+          () => {
+            this.setState({actionInProgress: false});
+          },
+          (response) => {
+            this.setState({
+              VMsConfValidationError: utils.getResponseText(response),
+              actionInProgress: false
+            });
+          }
+        );
     }
   },
   startHostnameRenaming(e) {
@@ -1236,14 +1255,16 @@ export var ShowNodeInfoDialog = React.createClass({
         this.props.node.save({hostname: hostname}, {patch: true, wait: true}) :
         $.Deferred().resolve()
       )
-      .fail((response) => {
-        this.setState({
-          hostnameChangingError: utils.getResponseText(response),
-          actionInProgress: false
-        });
-        this.refs.hostname.getInputDOMNode().focus();
-      })
-      .done(this.endRenaming);
+      .then(
+        this.endRenaming,
+        (response) => {
+          this.setState({
+            hostnameChangingError: utils.getResponseText(response),
+            actionInProgress: false
+          });
+          this.refs.hostname.getInputDOMNode().focus();
+        }
+      );
     } else if (e.key === 'Escape') {
       this.endRenaming();
       e.stopPropagation();
@@ -1684,9 +1705,11 @@ export var DiscardSettingsChangesDialog = React.createClass({
   proceedWith(method) {
     this.setState({actionInProgress: true});
     return $.when(method ? method() : $.Deferred().resolve())
-      .done(this.state.result.resolve)
-      .done(this.close)
-      .fail(_.partial(this.showError, null, i18n('dialog.dismiss_settings.saving_failed_message')));
+      .then(this.state.result.resolve)
+      .then(
+        this.close,
+        _.partial(this.showError, null, i18n('dialog.dismiss_settings.saving_failed_message'))
+        );
   },
   discard() {
     var promise = this.proceedWith(this.props.revertChanges);
@@ -1840,19 +1863,17 @@ export var DeleteNodesDialog = React.createClass({
       };
     }));
     Backbone.sync('update', nodes)
-      .then(() => {
-        return this.props.cluster.fetchRelated('nodes');
-      })
-      .done(() => {
-        dispatcher.trigger('updateNodeStats networkConfigurationUpdated ' +
-          'labelsConfigurationUpdated');
-        this.state.result.resolve();
-        this.close();
-      })
-      .fail((response) => {
-        this.showError(response, i18n('cluster_page.nodes_tab.node_deletion_error.' +
-          'node_deletion_warning'));
-      });
+      .then(() => this.props.cluster.fetchRelated('nodes'))
+      .then(
+        () => {
+          dispatcher.trigger('updateNodeStats networkConfigurationUpdated ' +
+            'labelsConfigurationUpdated');
+          this.state.result.resolve();
+          this.close();
+        },
+        (response) => this.showError(response, i18n('cluster_page.nodes_tab.node_deletion_error.' +
+            'node_deletion_warning'))
+      );
   }
 });
 
@@ -1964,16 +1985,18 @@ export var ChangePasswordDialog = React.createClass({
       var keystoneClient = app.keystoneClient;
       this.setState({actionInProgress: true});
       keystoneClient.changePassword(this.state.currentPassword, this.state.newPassword)
-        .done(() => {
-          dispatcher.trigger(this.state.newPassword === keystoneClient.DEFAULT_PASSWORD ?
-            'showDefaultPasswordWarning' : 'hideDefaultPasswordWarning');
-          app.user.set({token: keystoneClient.token});
-          this.close();
-        })
-        .fail(() => {
-          this.setState({validationError: true, actionInProgress: false});
-          $(this.refs.currentPassword.getInputDOMNode()).focus();
-        });
+        .then(
+          () => {
+            dispatcher.trigger(this.state.newPassword === keystoneClient.DEFAULT_PASSWORD ?
+              'showDefaultPasswordWarning' : 'hideDefaultPasswordWarning');
+            app.user.set({token: keystoneClient.token});
+            this.close();
+          },
+          () => {
+            this.setState({validationError: true, actionInProgress: false});
+            $(this.refs.currentPassword.getInputDOMNode()).focus();
+          }
+        );
     }
   }
 });
