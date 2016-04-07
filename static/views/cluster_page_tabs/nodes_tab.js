@@ -82,18 +82,20 @@ var NodesTab = React.createClass({
         cluster: this.props.cluster,
         screenOptions: screenOptions || this.state.screenOptions
       })
-      .done((data) => {
-        this.setState({
-          loading: false,
-          screenData: data || {}
-        });
-      })
-      .fail(() => {
-        app.navigate(
-          '#cluster/' + this.props.cluster.id + '/nodes',
-          {trigger: true, replace: true}
-        );
-      });
+      .then(
+        (data) => {
+          this.setState({
+            loading: false,
+            screenData: data || {}
+          });
+        },
+        () => {
+          app.navigate(
+            '#cluster/' + this.props.cluster.id + '/nodes',
+            {trigger: true, replace: true}
+          );
+        }
+      );
   },
   getScreen(props) {
     return (props || this.props).tabOptions[0] || 'list';

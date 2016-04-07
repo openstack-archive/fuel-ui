@@ -36,11 +36,13 @@ var WelcomePage = React.createClass({
     this.props.settings.set('statistics.user_choice_saved.value', true);
     this.setState({locked: true});
     this.saveSettings(this.getStatisticsSettingsToSave())
-      .done(() => app.navigate('', {trigger: true}))
-      .fail((response) => {
-        this.setState({locked: false, actionInProgress: false});
-        utils.showErrorDialog({response});
-      });
+      .then(
+        () => app.navigate('', {trigger: true}),
+        (response) => {
+          this.setState({locked: false, actionInProgress: false});
+          utils.showErrorDialog({response});
+        }
+      );
   },
   render() {
     var ns = 'welcome_page.';
