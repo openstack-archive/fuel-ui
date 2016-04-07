@@ -123,9 +123,15 @@ var StatisticsSettings = React.createClass({
   saveChanges() {
     var data = this.getStatisticsSettingsToSave();
     this.saveSettings(data)
-      .done(() => this.setState({initialSettings: data}))
-      .fail((response) => utils.showErrorDialog({response}))
-      .always(() => this.setState({actionInProgress: false}));
+      .then(() => this.setState({
+        initialSettings: data,
+        actionInProgress: false
+      }),
+      (response) => {
+        utils.showErrorDialog({response});
+        this.setState({actionInProgress: false});
+      }
+    );
   },
   applyChanges() {
     return this.isSavingPossible() ? this.saveChanges() : $.Deferred().resolve();
@@ -181,7 +187,7 @@ var DiagnosticSnapshot = React.createClass({
     return this.isDumpTaskActive();
   },
   fetchData() {
-    return this.props.task.fetch().done(() => {
+    return this.props.task.fetch().then(() => {
       if (!this.isDumpTaskActive()) this.setState({generating: false});
     });
   },
@@ -190,7 +196,10 @@ var DiagnosticSnapshot = React.createClass({
   },
   downloadLogs() {
     this.setState({generating: true});
-    (new models.LogsPackage()).save({}, {method: 'PUT'}).always(() => this.props.tasks.fetch());
+    (new models.LogsPackage()).save({}, {method: 'PUT'}).then(
+      () => this.props.tasks.fetch(),
+      () => this.props.tasks.fetch()
+    );
   },
   componentDidUpdate() {
     this.startPolling();
