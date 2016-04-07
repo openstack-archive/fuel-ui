@@ -520,6 +520,7 @@ var EditNodeInterfacesScreen = React.createClass({
                   {...this.props}
                   key={'interface-' + ifcName}
                   interface={ifc}
+                  nodesInterfaces={nodes.map((node) => node.interfaces.at(index))}
                   hasChanges={
                     !_.isEqual(
                        _.findWhere(this.state.initialInterfaces, {name: ifcName}),
@@ -871,29 +872,37 @@ var NodeInterface = React.createClass({
     }
   },
   changeBondType(newType) {
-    this.props.interface.set('bond_properties.type__', newType);
-    var newMode = _.flatten(
-      _.pluck(this.props.bondingProperties[newType].mode, 'values')
-    )[0];
+    this.props.nodeInterfaces.each((ifc) => {
+      ifc.set('bond_properties.type__', newType);
+      var newMode = _.flatten(
+        _.pluck(this.props.bondingProperties[newType].mode, 'values')
+      )[0];
+    });
     this.bondingModeChanged(null, newMode);
   },
   renderDPDK(errors) {
-    var ifc = this.props.interface;
-    var currentDPDKValue = ifc.get('interface_properties').dpdk.enabled;
-    var isBond = ifc.isBond();
+    var {nodesInterfaces} = this.props;
+    var currentInterface = _.first(nodesInterfaces);
+    var isBond = currentInterface.isBond();
 
-    // check if DPDK can be switched
-    var newBondType = isBond ?
+    // If not all of the node interfaces are bonds - no mode changing is
+    // possible
+    if (_.any(nodesInterfaces, (ifc) => !ifc.isBond())) return null;
+
+    var currentDPDKValue = currentInterface.get('interface_properties').dpdk.enabled;
+    var newBondType = _.first(
       _.without(_.intersection(... _.compact(
-        _.map(ifc.getSlaveInterfaces(), (slave) => {
-          slave.get('interface_properties').dpdk.enabled = !currentDPDKValue;
-          var bondTypes = this.props.getAvailableBondingTypes(slave);
-          slave.get('interface_properties').dpdk.enabled = currentDPDKValue;
-          return bondTypes;
+        // Gathering all available bonding types from all nodes interfaces
+        _.map(nodesInterfaces, (ifc) => {
+          _.map(ifc.getSlaveInterfaces(), (slave) => {
+            slave.get('interface_properties').dpdk.enabled = !currentDPDKValue;
+            var bondTypes = this.props.getAvailableBondingTypes(slave);
+            slave.get('interface_properties').dpdk.enabled = currentDPDKValue;
+            return bondTypes;
+          });
         })
-      )), ifc.get('bond_properties').type__)[0]
-    :
-      null;
+        // excluding the current
+      )), currentInterface.get('bond_properties').type__));
 
     return (
       <div className='dpdk-panel'>
