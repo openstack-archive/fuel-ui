@@ -58,7 +58,7 @@ var LogsTab = React.createClass({
     var from = this.state.from;
     var to = this.state.to;
     request = this.fetchLogs({from: from, to: to})
-      .done((data) => {
+      .then((data) => {
         this.setState({
           logsEntries: data.entries.concat(logsEntries),
           from: data.from,
@@ -95,7 +95,7 @@ var LogsTab = React.createClass({
       utils.serializeTabOptions(logOptions), {trigger: false, replace: true});
     params = params || {};
     this.fetchLogs(params)
-      .done((data) => {
+      .then((data) => {
         var logsEntries = this.state.logsEntries || [];
         this.setState({
           showMoreLogsLink: data.has_more || false,
@@ -105,14 +105,15 @@ var LogsTab = React.createClass({
           to: data.to
         });
         this.startPolling();
-      })
-      .fail((response) => {
+      },
+      (response) => {
         this.setState({
           logsEntries: undefined,
           loading: 'fail',
           loadingError: utils.getResponseText(response, i18n('cluster_page.logs_tab.log_alert'))
         });
-      });
+      }
+    );
   },
   onShowButtonClick() {
     this.setState({
@@ -178,39 +179,41 @@ var LogFilterBar = React.createClass({
       this.sources.fetch({url: '/api/logs/sources/nodes/' + chosenNodeId})
     :
       this.sources.fetch();
-    this.sources.deferred.done(() => {
-      var filteredSources = this.sources.filter((source) => {
-        return source.get('remote') === (type !== 'local');
-      });
-      var chosenSource = _.findWhere(filteredSources, {id: this.state.source}) ||
-        _.first(filteredSources);
-      var chosenLevelId = chosenSource ? _.contains(chosenSource.get('levels'), this.state.level) ?
-        this.state.level : _.first(chosenSource.get('levels')) : null;
-      this.setState({
-        type: type,
-        sources: this.sources,
-        sourcesLoadingState: 'done',
-        node: chosenNodeId && type === 'remote' ? chosenNodeId : null,
-        source: chosenSource ? chosenSource.id : null,
-        level: chosenLevelId,
-        locked: false
-      });
-    });
-    this.sources.deferred.fail((response) => {
-      this.setState({
-        type: type,
-        sources: {},
-        sourcesLoadingState: 'fail',
-        sourcesLoadingError: utils.getResponseText(response,
-          i18n('cluster_page.logs_tab.source_alert')),
-        locked: false
-      });
-    });
+    this.sources.deferred.then(
+      () => {
+        var filteredSources = this.sources.filter((source) => {
+          return source.get('remote') === (type !== 'local');
+        });
+        var chosenSource = _.findWhere(filteredSources, {id: this.state.source}) ||
+          _.first(filteredSources);
+        var chosenLevelId = chosenSource ? _.contains(chosenSource.get('levels'), this.state.level)
+          ? this.state.level : _.first(chosenSource.get('levels')) : null;
+        this.setState({
+          type: type,
+          sources: this.sources,
+          sourcesLoadingState: 'done',
+          node: chosenNodeId && type === 'remote' ? chosenNodeId : null,
+          source: chosenSource ? chosenSource.id : null,
+          level: chosenLevelId,
+          locked: false
+        });
+      },
+      (response) => {
+        this.setState({
+          type: type,
+          sources: {},
+          sourcesLoadingState: 'fail',
+          sourcesLoadingError: utils.getResponseText(response,
+            i18n('cluster_page.logs_tab.source_alert')),
+          locked: false
+        });
+      }
+    );
     return this.sources.deferred;
   },
   componentDidMount() {
     this.fetchSources(this.state.type, this.state.node)
-      .done(() => {
+      .then(() => {
         this.setState({locked: true});
         this.props.showLogs();
       });

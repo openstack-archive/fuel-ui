@@ -344,7 +344,7 @@ var VmWareTab = React.createClass({
   },
   onLoadDefaults() {
     this.model.loadDefaults = true;
-    this.model.fetch().done(() => {
+    this.model.fetch().then(() => {
       this.model.loadDefaults = false;
     });
   },
