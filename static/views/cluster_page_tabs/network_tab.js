@@ -786,29 +786,29 @@ var NetworkTab = React.createClass({
     var ns = networkTabNS + 'verify_networks.verification_error.';
 
     task.save({}, options)
-      .fail((response) => {
-        utils.showErrorDialog({
-          title: i18n(ns + 'title'),
-          message: i18n(ns + 'start_verification_warning'),
-          response: response
-        });
-      })
-      .then(() => {
-        return this.props.cluster.fetchRelated('tasks');
-      })
-      .then(() => {
-        // FIXME(vkramskikh): this ugly hack is needed to distinguish
-        // verification tasks for saved config from verification tasks
-        // for unsaved config (which appear after clicking "Verify"
-        // button without clicking "Save Changes" button first).
-        // For proper implementation, this should be managed by backend
-        this.props.cluster.get('tasks').get(task.id).set('unsaved', this.hasChanges());
-        dispatcher.trigger('networkVerificationTaskStarted');
-        return $.Deferred().resolve();
-      })
-      .always(() => {
-        this.setState({actionInProgress: false});
-      });
+      .then(
+        () => {
+          this.props.cluster.fetchRelated('tasks').then(() => {
+            // FIXME(vkramskikh): this ugly hack is needed to distinguish
+            // verification tasks for saved config from verification tasks
+            // for unsaved config (which appear after clicking "Verify"
+            // button without clicking "Save Changes" button first).
+            // For proper implementation, this should be managed by backend
+            this.props.cluster.get('tasks').get(task.id).set('unsaved', this.hasChanges());
+            this.setState({actionInProgress: false});
+            dispatcher.trigger('networkVerificationTaskStarted');
+            return $.Deferred().resolve();
+          });
+        },
+        (response) => {
+          this.setState({actionInProgress: false});
+          utils.showErrorDialog({
+            title: i18n(ns + 'title'),
+            message: i18n(ns + 'start_verification_warning'),
+            response: response
+          });
+        }
+      );
   },
   isDiscardingPossible() {
     return !this.props.cluster.task({group: 'network', active: true});
@@ -826,10 +826,11 @@ var NetworkTab = React.createClass({
         .then((response) => {
           this.updateInitialConfiguration();
           result.resolve(response);
+          this.setState({actionInProgress: false});
         }, (response) => {
           result.reject();
           return this.props.cluster.fetchRelated('tasks')
-            .done(() => {
+            .then(() => {
               // FIXME (morale): this hack is needed until backend response
               // format is unified https://bugs.launchpad.net/fuel/+bug/1521661
               var checkNetworksTask = this.props.cluster.task('check_networks');
@@ -847,10 +848,8 @@ var NetworkTab = React.createClass({
               // FIXME(vkramskikh): the same hack for check_networks task:
               // remove failed tasks immediately, so they won't be taken into account
               this.props.cluster.task('check_networks').set('unsaved', true);
+              this.setState({actionInProgress: false});
             });
-        })
-        .always(() => {
-          this.setState({actionInProgress: false});
         });
     });
     requests.push(result);
@@ -861,22 +860,28 @@ var NetworkTab = React.createClass({
       if (deferred) {
         this.setState({actionInProgress: true});
         deferred
-          .done(() => this.setState({initialSettingsAttributes: _.cloneDeep(settings.attributes)}))
-          .always(() => {
-            this.setState({
-              actionInProgress: false,
-              key: _.now()
-            });
-            this.props.cluster.fetch();
-          })
-          .fail((response) => {
-            utils.showErrorDialog({
-              title: i18n('cluster_page.settings_tab.settings_error.title'),
-              message: i18n('cluster_page.settings_tab.settings_error.saving_warning'),
-              response: response
-            });
-          });
-
+          .then(
+            () => {
+              this.setState({
+                initialSettingsAttributes: _.cloneDeep(settings.attributes),
+                actionInProgress: false,
+                key: _.now()
+              });
+              this.props.cluster.fetch();
+            },
+            (response) => {
+              this.setState({
+                actionInProgress: false,
+                key: _.now()
+              });
+              this.props.cluster.fetch();
+              utils.showErrorDialog({
+                title: i18n('cluster_page.settings_tab.settings_error.title'),
+                message: i18n('cluster_page.settings_tab.settings_error.saving_warning'),
+                response: response
+              });
+            }
+          );
         requests.push(deferred);
       }
     }
@@ -905,32 +910,34 @@ var NetworkTab = React.createClass({
     ];
 
     $.when(...requests)
-      .done(() => {
-        _.each(settings.attributes, (section, sectionName) => {
-          if (section.metadata.group === 'network') {
-            _.each(section, (setting, settingName) => {
-              // do not update hidden settings (hack for #1442143),
-              if (setting.type === 'hidden') return;
-              var path = utils.makePath(sectionName, settingName);
-              settings.set(path, deployedSettings.get(path), {silent: true});
-            });
-          }
-        });
-        settings.mergePluginSettings();
-        settings.isValid({models: this.state.configModels});
-        networkConfiguration.isValid({nodeNetworkGroups: cluster.get('nodeNetworkGroups')});
-        this.setState({
-          actionInProgress: false,
-          key: _.now()
-        });
-      })
-      .fail((response) => {
-        utils.showErrorDialog({
-          title: i18n('cluster_page.settings_tab.settings_error.title'),
-          message: i18n('cluster_page.settings_tab.settings_error.load_settings_warning'),
-          response
-        });
-      });
+      .then(
+        () => {
+          _.each(settings.attributes, (section, sectionName) => {
+            if (section.metadata.group === 'network') {
+              _.each(section, (setting, settingName) => {
+                // do not update hidden settings (hack for #1442143),
+                if (setting.type === 'hidden') return;
+                var path = utils.makePath(sectionName, settingName);
+                settings.set(path, deployedSettings.get(path), {silent: true});
+              });
+            }
+          });
+          settings.mergePluginSettings();
+          settings.isValid({models: this.state.configModels});
+          networkConfiguration.isValid({nodeNetworkGroups: cluster.get('nodeNetworkGroups')});
+          this.setState({
+            actionInProgress: false,
+            key: _.now()
+          });
+        },
+        (response) => {
+          utils.showErrorDialog({
+            title: i18n('cluster_page.settings_tab.settings_error.title'),
+            message: i18n('cluster_page.settings_tab.settings_error.load_settings_warning'),
+            response
+          });
+        }
+      );
   },
   renderButtons() {
     var locked = this.isLocked();
@@ -990,7 +997,7 @@ var NetworkTab = React.createClass({
       .show({
         showUnsavedChangesWarning: this.hasChanges()
       })
-      .done(() => {
+      .then(() => {
         return nodeNetworkGroup
           .destroy({wait: true})
           .then(
@@ -1032,7 +1039,7 @@ var NetworkTab = React.createClass({
         clusterId: this.props.cluster.id,
         nodeNetworkGroups: nodeNetworkGroups
       })
-      .done(() => {
+      .then(() => {
         this.setState({hideVerificationResult: true});
         var newNodeNetworkGroupId;
         return nodeNetworkGroups.fetch()
@@ -1433,13 +1440,15 @@ var NodeNetworkGroupTitle = React.createClass({
         } else {
           currentNodeNetworkGroup
             .save({name: newName}, {validate: false})
-            .fail((response) => {
-              this.setState({
-                nodeNetworkGroupNameChangingError: utils.getResponseText(response)
-              });
-              element.focus();
-            })
-            .done(this.endRenaming);
+            .then(
+              this.endRenaming,
+              (response) => {
+                this.setState({
+                  nodeNetworkGroupNameChangingError: utils.getResponseText(response)
+                });
+                element.focus();
+              }
+            );
         }
       } else {
         this.endRenaming();

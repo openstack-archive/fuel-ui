@@ -43,13 +43,13 @@ var ClusterPage = React.createClass({
     dispatcherMixin('networkConfigurationUpdated', 'removeFinishedNetworkTasks'),
     dispatcherMixin('deploymentTasksUpdated', 'removeFinishedDeploymentTasks'),
     dispatcherMixin('deploymentTaskStarted', function() {
-      this.refreshCluster().always(this.startPolling);
+      this.refreshCluster().then(this.startPolling);
     }),
     dispatcherMixin('networkVerificationTaskStarted', function() {
       this.startPolling();
     }),
     dispatcherMixin('deploymentTaskFinished', function() {
-      this.refreshCluster().always(() => dispatcher.trigger('updateNotifications'));
+      this.refreshCluster().then(() => dispatcher.trigger('updateNotifications'));
     })
   ],
   statics: {
@@ -178,7 +178,7 @@ var ClusterPage = React.createClass({
   },
   removeFinishedNetworkTasks(callback) {
     var request = this.removeFinishedTasks(this.props.cluster.tasks({group: 'network'}));
-    if (callback) request.always(callback);
+    if (callback) request.then(callback);
     return request;
   },
   removeFinishedDeploymentTasks() {
@@ -201,12 +201,10 @@ var ClusterPage = React.createClass({
     var task = this.props.cluster.task({group: 'deployment', active: true});
     if (task) {
       return task.fetch()
-        .done(() => {
+        .then(() => {
           if (task.match({active: false})) dispatcher.trigger('deploymentTaskFinished');
-        })
-        .then(() =>
-          this.props.cluster.fetchRelated('nodes')
-        );
+          this.props.cluster.fetchRelated('nodes');
+        });
     } else {
       task = this.props.cluster.task({name: 'verify_networks', active: true});
       return task ? task.fetch() : $.Deferred().resolve();
@@ -224,7 +222,7 @@ var ClusterPage = React.createClass({
   componentWillMount() {
     this.props.cluster.on('change:release_id', () => {
       var release = new models.Release({id: this.props.cluster.get('release_id')});
-      release.fetch().done(() => {
+      release.fetch().then(() => {
         this.props.cluster.set({release});
       });
     });

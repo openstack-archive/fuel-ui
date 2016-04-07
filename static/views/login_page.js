@@ -51,7 +51,7 @@ var LoginForm = React.createClass({
     var keystoneClient = app.keystoneClient;
 
     return keystoneClient.authenticate(username, password, {force: true})
-      .fail((xhr) => {
+      .then(null, (xhr) => {
         $(ReactDOM.findDOMNode(this.refs.username)).focus();
 
         var status = xhr && xhr.status;
@@ -107,7 +107,7 @@ var LoginForm = React.createClass({
     this.setState({actionInProgress: true});
 
     this.login(username, password)
-      .fail(() => {
+      .then(null, () => {
         this.setState({actionInProgress: false});
       });
   },
