@@ -108,26 +108,30 @@ var SettingsTab = React.createClass({
     if (deferred) {
       this.setState({actionInProgress: true});
       deferred
-        .done(() => {
-          this.setState({initialAttributes: _.cloneDeep(settings.attributes)});
+        .then(() => {
+          this.setState({
+            initialAttributes: _.cloneDeep(settings.attributes),
+            actionInProgress: false,
+            key: _.now()
+          });
           // some networks may have restrictions which are processed by nailgun,
           // so networks need to be refetched after updating cluster attributes
           this.props.cluster.get('networkConfiguration').cancelThrottling();
-        })
-        .always(() => {
+          this.props.cluster.fetch();
+        },
+        (response) => {
           this.setState({
             actionInProgress: false,
             key: _.now()
           });
           this.props.cluster.fetch();
-        })
-        .fail((response) => {
           utils.showErrorDialog({
             title: i18n('cluster_page.settings_tab.settings_error.title'),
             message: i18n('cluster_page.settings_tab.settings_error.saving_warning'),
             response: response
           });
-        });
+        }
+      );
     }
     return deferred;
   },
@@ -141,7 +145,7 @@ var SettingsTab = React.createClass({
     if (deferred) {
       this.setState({actionInProgress: true});
       deferred
-        .done(() => {
+        .then(() => {
           _.each(settings.attributes, (section, sectionName) => {
             if (section.metadata.group !== 'network') {
               _.each(section, (setting, settingName) => {
@@ -159,14 +163,13 @@ var SettingsTab = React.createClass({
             actionInProgress: false,
             key: _.now()
           });
+        },
+        (response) => utils.showErrorDialog({
+          title: i18n('cluster_page.settings_tab.settings_error.title'),
+          message: i18n('cluster_page.settings_tab.settings_error.load_settings_warning'),
+          response
         })
-        .fail((response) => {
-          utils.showErrorDialog({
-            title: i18n('cluster_page.settings_tab.settings_error.title'),
-            message: i18n('cluster_page.settings_tab.settings_error.load_settings_warning'),
-            response
-          });
-        });
+      );
     }
   },
   revertChanges() {
