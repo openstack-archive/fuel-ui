@@ -131,43 +131,40 @@ var SettingsTab = React.createClass({
     }
     return deferred;
   },
-  loadDefaults(loadDeployedSettings = false) {
-    var settings = this.props.cluster.get('settings');
-    var loadedSettings = new models.Settings();
-    var deferred = loadedSettings.fetch({
-      url: _.result(this.props.cluster, 'url') + '/attributes/' +
-        (loadDeployedSettings ? 'deployed' : 'defaults')
+  loadDefaults() {
+    this.setState({actionInProgress: true});
+    var defaultSettings = new models.Settings();
+    defaultSettings
+    .fetch({
+      url: _.result(this.props.cluster, 'url') + '/attributes/defaults'
+    })
+    .done(() => {
+      this.props.cluster.get('settings').updateSettings(
+        defaultSettings,
+        this.state.configModels,
+        false
+      );
+      this.setState({
+        actionInProgress: false,
+        key: _.now()
+      });
+    })
+    .fail((response) => {
+      this.setState({actionInProgress: false});
+      utils.showErrorDialog({
+        title: i18n('cluster_page.settings_tab.settings_error.title'),
+        message: i18n('cluster_page.settings_tab.settings_error.load_settings_warning'),
+        response
+      });
     });
-    if (deferred) {
-      this.setState({actionInProgress: true});
-      deferred
-        .done(() => {
-          _.each(settings.attributes, (section, sectionName) => {
-            if (section.metadata.group !== 'network') {
-              _.each(section, (setting, settingName) => {
-                // do not update hidden settings (hack for #1442143),
-                // the same for settings with group network
-                if (setting.type === 'hidden' || setting.group === 'network') return;
-                var path = utils.makePath(sectionName, settingName);
-                settings.set(path, loadedSettings.get(path), {silent: true});
-              });
-            }
-          });
-          settings.mergePluginSettings();
-          settings.isValid({models: this.state.configModels});
-          this.setState({
-            actionInProgress: false,
-            key: _.now()
-          });
-        })
-        .fail((response) => {
-          utils.showErrorDialog({
-            title: i18n('cluster_page.settings_tab.settings_error.title'),
-            message: i18n('cluster_page.settings_tab.settings_error.load_settings_warning'),
-            response
-          });
-        });
-    }
+  },
+  loadDeployedSettings() {
+    this.props.cluster.get('settings').updateSettings(
+      this.props.cluster.get('deployedSettings'),
+      this.state.configModels,
+      false
+    );
+    this.setState({key: _.now()});
   },
   revertChanges() {
     this.loadInitialSettings();
@@ -348,15 +345,16 @@ var SettingsTab = React.createClass({
             <div className='btn-group pull-right'>
               <button
                 className='btn btn-default btn-load-defaults'
-                onClick={() => this.loadDefaults()}
+                onClick={this.loadDefaults}
                 disabled={locked}
               >
                 {i18n('common.load_defaults_button')}
               </button>
               {cluster.get('status') !== 'new' &&
+                !_.isEmpty(cluster.get('deployedSettings').attributes) &&
                 <button
                   className='btn btn-default btn-load-deployed'
-                  onClick={() => this.loadDefaults(true)}
+                  onClick={this.loadDeployedSettings}
                   disabled={locked}
                 >
                   {i18n('common.load_deployed_button')}

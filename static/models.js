@@ -354,10 +354,10 @@ models.Cluster = BaseModel.extend({
   isAvailableForSettingsChanges() {
     return !this.get('is_locked');
   },
-  isDeploymentPossible() {
+  isDeploymentPossible({configModels}) {
     return this.get('release').get('state') !== 'unavailable' &&
       !this.task({group: 'deployment', active: true}) &&
-      (this.get('status') !== 'operational' || this.hasChanges());
+      (this.get('status') !== 'operational' || this.hasChanges({configModels}));
   },
   getCapacity() {
     var result = {
@@ -386,13 +386,24 @@ models.Cluster = BaseModel.extend({
     });
     return result;
   },
-  isConfigurationChanged() {
-    return this.get('status') !== 'new' && _.any(this.get('changes'),
-      (changeObject) => changeObject.name === 'networks' || changeObject.name === 'attributes'
+  isConfigurationChanged({configModels}) {
+    var deployedSettings = this.get('deployedSettings');
+    var deployedNetworkConfiguration = this.get('deployedNetworkConfiguration');
+    return this.get('status') !== 'new' && (
+      (
+        !_.isEmpty(deployedNetworkConfiguration.attributes) &&
+        !_.isEqual(
+          this.get('networkConfiguration').toJSON(),
+          deployedNetworkConfiguration.toJSON()
+        )
+      ) || (
+        !_.isEmpty(deployedSettings.attributes) &&
+        this.get('settings').hasChanges(deployedSettings.attributes, configModels)
+      )
     );
   },
-  hasChanges() {
-    return this.get('nodes').hasChanges() || this.isConfigurationChanged();
+  hasChanges({configModels}) {
+    return this.get('nodes').hasChanges() || this.isConfigurationChanged({configModels});
   }
 });
 
@@ -801,6 +812,30 @@ models.Settings = Backbone.DeepModel
         }
       });
       return _.intersection(this.groupList, groups);
+    },
+    updateSettings(settings, models, updateNetworkSettings) {
+      _.each(this.attributes, (section, sectionName) => {
+        if (
+          updateNetworkSettings === true && section.metadata.group !== 'network' ||
+          updateNetworkSettings === false && section.metadata.group === 'network'
+        ) return;
+
+        _.each(section, (setting, settingName) => {
+          if (
+            updateNetworkSettings === true && setting.group !== 'network' ||
+            updateNetworkSettings === false && setting.group === 'network'
+          ) return;
+
+          // do not update hidden settings (hack for #1442143)
+          if (setting.type === 'hidden') return;
+
+          var path = utils.makePath(sectionName, settingName);
+          this.set(path, settings.get(path), {silent: true, validate: false});
+        });
+      });
+
+      this.mergePluginSettings();
+      this.isValid({models});
     }
   });
 

@@ -308,12 +308,6 @@ export var NailgunUnavailabilityDialog = React.createClass({
 
 export var DiscardClusterChangesDialog = React.createClass({
   mixins: [dialogMixin],
-  getDefaultProps() {
-    return {
-      title: i18n('dialog.discard_changes.title'),
-      ns: 'dialog.discard_changes.'
-    };
-  },
   getInitialState() {
     var {cluster} = this.props;
     return {
@@ -326,42 +320,44 @@ export var DiscardClusterChangesDialog = React.createClass({
       }
     };
   },
+  getDefaultProps() {
+    return {
+      title: i18n('dialog.discard_changes.title'),
+      ns: 'dialog.discard_changes.'
+    };
+  },
   discardChanges() {
     this.setState({actionInProgress: true});
     var {cluster, changeName, ns} = this.props;
 
     if (changeName === 'changed_configuration') {
       var settings = cluster.get('settings');
-      var deployedSettings = new models.Settings();
+      var currentSettings = _.cloneDeep(settings.attributes);
       var networkConfiguration = cluster.get('networkConfiguration');
-      var deployedNetworkConfiguration = new models.NetworkConfiguration();
 
-      return $.when(... [
-        deployedSettings.fetch({
-          url: _.result(cluster, 'url') + '/attributes/deployed'
-        }),
-        deployedNetworkConfiguration.fetch({
-          url: _.result(cluster, 'url') + '/network_configuration/deployed'
-        })
-      ])
-        .then(
-          () => {
-            settings.set(deployedSettings.attributes, {silent: true, validate: false});
-            networkConfiguration.set(deployedNetworkConfiguration.attributes, {silent: true});
-            return $.when(... [
-              settings.save(null, {patch: true, validate: false}),
-              networkConfiguration.save(null, {patch: true, validate: false})
-            ]);
-          },
-          (response) => this.showError(response, i18n(ns + 'cant_discard'))
+      settings.set(_.cloneDeep(cluster.get('deployedSettings').attributes), {silent: true});
+      return $.when(
+        settings.save(null, {patch: true, wait: true, validate: false}),
+        networkConfiguration.save(
+          cluster.get('deployedNetworkConfiguration').attributes,
+          {patch: true, wait: true, validate: false}
         )
-        .then(() => {
+      )
+      .then(
+        () => {
           settings.mergePluginSettings();
           settings.isValid({models: this.state.configModels});
-          networkConfiguration.isValid({nodeNetworkGroups: cluster.get('nodeNetworkGroups')});
-          cluster.fetch();
+          networkConfiguration.isValid({
+            nodeNetworkGroups: cluster.get('nodeNetworkGroups')
+          });
           this.close();
-        });
+        },
+        (response) => {
+          settings.set(currentSettings);
+          settings.mergePluginSettings();
+          this.showError(response, i18n(ns + 'cant_discard'));
+        }
+      );
     } else {
       var nodes = new models.Nodes(this.props.nodes.map((node) => {
         if (node.get('pending_deletion')) {
@@ -459,7 +455,7 @@ export var DeployClusterDialog = React.createClass({
     return (
       <div className='display-changes-dialog'>
         {!cluster.needsRedeployment() && [
-          cluster.isConfigurationChanged() &&
+          this.props.isClusterConfigurationChanged &&
             <div className='text-warning' key='redeployment-alert'>
               <i className='glyphicon glyphicon-warning-sign' />
               <div className='instruction'>
