@@ -891,46 +891,37 @@ var NetworkTab = React.createClass({
       _.isNull(this.props.cluster.get('settings').validationError);
   },
   loadDeployedSettings() {
-    this.setState({actionInProgress: true});
-
     var cluster = this.props.cluster;
     var networkConfiguration = cluster.get('networkConfiguration');
+    var deployedNetworkConfiguration = cluster.get('deployedNetworkConfiguration');
     var settings = cluster.get('settings');
-    var deployedSettings = new models.Settings();
-    var requests = [
-      networkConfiguration.fetch({
-        url: _.result(cluster, 'url') + '/network_configuration/deployed'
-      }),
-      deployedSettings.fetch({url: _.result(cluster, 'url') + '/attributes/deployed'})
-    ];
+    var deployedSettings = cluster.get('deployedSettings');
 
-    $.when(...requests)
-      .done(() => {
-        _.each(settings.attributes, (section, sectionName) => {
-          if (section.metadata.group === 'network') {
-            _.each(section, (setting, settingName) => {
-              // do not update hidden settings (hack for #1442143),
-              if (setting.type === 'hidden') return;
-              var path = utils.makePath(sectionName, settingName);
-              settings.set(path, deployedSettings.get(path), {silent: true});
-            });
-          }
+    networkConfiguration.get('networks').reset(
+      deployedNetworkConfiguration.get('networks').toJSON()
+    );
+    networkConfiguration.get('networking_parameters').set(
+      _.cloneDeep(deployedNetworkConfiguration.get('networking_parameters').attributes)
+    );
+    networkConfiguration.validationError = null;
+
+    _.each(settings.attributes, (section, sectionName) => {
+      if (section.metadata.group === 'network') {
+        _.each(section, (setting, settingName) => {
+          // do not update hidden settings (hack for #1442143),
+          if (setting.type === 'hidden') return;
+          var path = utils.makePath(sectionName, settingName);
+          settings.set(path, deployedSettings.get(path), {silent: true});
         });
-        settings.mergePluginSettings();
-        settings.isValid({models: this.state.configModels});
-        networkConfiguration.isValid({nodeNetworkGroups: cluster.get('nodeNetworkGroups')});
-        this.setState({
-          actionInProgress: false,
-          key: _.now()
-        });
-      })
-      .fail((response) => {
-        utils.showErrorDialog({
-          title: i18n('cluster_page.settings_tab.settings_error.title'),
-          message: i18n('cluster_page.settings_tab.settings_error.load_settings_warning'),
-          response
-        });
-      });
+      }
+    });
+    settings.mergePluginSettings();
+    settings.validationError = null;
+
+    this.setState({
+      hideVerificationResult: true,
+      key: _.now()
+    });
   },
   renderButtons() {
     var locked = this.isLocked();
@@ -956,6 +947,8 @@ var NetworkTab = React.createClass({
         </div>
         <div className='btn-group pull-right'>
           {this.props.cluster.get('status') !== 'new' &&
+            !_.isEmpty(this.props.cluster.get('deployedSettings').attributes) &&
+            !_.isEmpty(this.props.cluster.get('deployedNetworkConfiguration').attributes) &&
             <button
               className='btn btn-default btn-load-deployed'
               onClick={this.loadDeployedSettings}

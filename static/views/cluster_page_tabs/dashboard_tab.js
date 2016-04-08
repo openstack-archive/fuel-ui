@@ -326,19 +326,17 @@ var ClusterActionsPanel = React.createClass({
     };
   },
   getInitialState() {
-    return {
-      currentAction: this.isActionAvailable('spawn_vms') ? 'spawn_vms' : 'deploy'
-    };
-  },
-  getConfigModels() {
     var {cluster} = this.props;
     return {
-      cluster,
-      settings: cluster.get('settings'),
-      version: app.version,
-      release: cluster.get('release'),
-      default: cluster.get('settings'),
-      networking_parameters: cluster.get('networkConfiguration').get('networking_parameters')
+      currentAction: this.isActionAvailable('spawn_vms') ? 'spawn_vms' : 'deploy',
+      configModels: {
+        cluster,
+        settings: cluster.get('settings'),
+        version: app.version,
+        release: cluster.get('release'),
+        default: cluster.get('settings'),
+        networking_parameters: cluster.get('networkConfiguration').get('networking_parameters')
+      }
     };
   },
   validate(action) {
@@ -413,7 +411,7 @@ var ClusterActionsPanel = React.createClass({
           function(cluster) {
             if (cluster.get('settings').get('common.use_vcenter.value')) {
               var vcenter = cluster.get('vcenter');
-              vcenter.setModels(this.getConfigModels());
+              vcenter.setModels(this.state.configModels);
               return !vcenter.isValid() && {
                 blocker: [
                   <span key='vcenter'>{i18n('vmware.has_errors') + ' '}
@@ -427,8 +425,8 @@ var ClusterActionsPanel = React.createClass({
           },
           // check cluster settings
           function(cluster) {
-            var configModels = this.getConfigModels();
-            var areSettingsInvalid = !cluster.get('settings').isValid({models: configModels});
+            var areSettingsInvalid = !cluster.get('settings')
+              .isValid({models: this.state.configModels});
             return areSettingsInvalid &&
               {blocker: [
                 <span key='invalid_settings'>
@@ -442,7 +440,7 @@ var ClusterActionsPanel = React.createClass({
           },
           // check node amount restrictions according to their roles
           function(cluster) {
-            var configModels = this.getConfigModels();
+            var configModels = this.state.configModels;
             var roleModels = cluster.get('roles');
             var validRoleModels = roleModels.filter(
               (role) => !role.checkRestrictions(configModels).result
@@ -504,17 +502,20 @@ var ClusterActionsPanel = React.createClass({
   renderClusterChangeItem(changeName, nodes, showDeleteButton = true) {
     if (_.isArray(nodes) && !nodes.length) return null;
     var {cluster} = this.props;
+    var isClusterConfigurationChanged = cluster.isConfigurationChanged(
+      _.pick(this.state, 'configModels')
+    );
 
-    if (changeName === 'changed_configuration' && !cluster.isConfigurationChanged()) {
-      return null;
-    }
+    if (changeName === 'changed_configuration' && !isClusterConfigurationChanged) return null;
 
     return (
       <li className='changes-item'>
         {showDeleteButton &&
           <i
             className='btn btn-link btn-discard-changes discard-changes-icon'
-            onClick={() => DiscardClusterChangesDialog.show({cluster, nodes, changeName})}
+            onClick={() => DiscardClusterChangesDialog.show({
+              cluster, nodes, changeName, isClusterConfigurationChanged
+            })}
           />
         }
         {i18n(ns + changeName, {count: nodes && nodes.length}) + ''}
@@ -526,7 +527,7 @@ var ClusterActionsPanel = React.createClass({
     if (this.validate(action).blocker.length) return false;
     switch (action) {
       case 'deploy':
-        return cluster.isDeploymentPossible();
+        return cluster.isDeploymentPossible(_.pick(this.state, 'configModels'));
       case 'provision':
         return cluster.get('nodes').any((node) => node.isProvisioningPossible());
       case 'deployment':
@@ -592,7 +593,7 @@ var ClusterActionsPanel = React.createClass({
     switch (action) {
       case 'deploy':
         actionControls = [
-          cluster.hasChanges() &&
+          cluster.hasChanges(_.pick(this.state, 'configModels')) &&
             <ul key='cluster-changes'>
               {this.renderClusterChangeItem('added_node', nodes.where({pending_addition: true}))}
               {this.renderClusterChangeItem(
@@ -766,7 +767,11 @@ var ClusterActionsPanel = React.createClass({
   render() {
     var {cluster} = this.props;
     var nodes = cluster.get('nodes');
-    if (nodes.length && !cluster.hasChanges() && !cluster.needsRedeployment()) return null;
+    if (
+      nodes.length &&
+      !cluster.hasChanges(_.pick(this.state, 'configModels')) &&
+      !cluster.needsRedeployment()
+    ) return null;
 
     if (!nodes.length) {
       return (
