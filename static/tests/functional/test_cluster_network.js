@@ -279,7 +279,6 @@ define([
   registerSuite(function() {
     var common,
       clusterPage,
-      dashboardPage,
       modal,
       networkPage,
       clustersPage;
@@ -289,7 +288,6 @@ define([
       setup: function() {
         common = new Common(this.remote);
         clusterPage = new ClusterPage(this.remote);
-        dashboardPage = new DashboardPage(this.remote);
         modal = new ModalWindow(this.remote);
         networkPage = new NetworkPage(this.remote);
         clustersPage = new ClustersPage(this.remote);
@@ -497,30 +495,24 @@ define([
           );
       },
       'Node network group renaming in deployed environment': function() {
-        this.skip('Restore after merge of https://review.openstack.org/#/c/297168/');
         this.timeout = 100000;
         return this.remote
           .then(function() {
             return common.addNodesToCluster(1, ['Controller']);
           })
           .then(function() {
-            return clusterPage.goToTab('Dashboard');
+            return clusterPage.deployEnvironment();
           })
-          .then(function() {
-            return dashboardPage.startDeployment();
-          })
-          .waitForElementDeletion('.dashboard-block .progress', 60000)
           .then(function() {
             return clusterPage.goToTab('Networks');
           })
           .then(function() {
             return networkPage.goToNodeNetworkGroup('default');
           })
-          .assertElementNotExists('.glyphicon-pencil',
-            'Renaming of a node network group is fobidden in deployed environment')
-          .clickByCssSelector('.network-group-name .name')
-          .assertElementNotExists('.network-group-name input[type=text]',
-            'Renaming is not started on a node network group name click');
+          .assertElementExists(
+            '.glyphicon-pencil',
+            'Renaming of a node network group is not fobidden in deployed environment'
+          );
       }
     };
   });

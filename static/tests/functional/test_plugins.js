@@ -21,11 +21,11 @@ define([
   'tests/functional/pages/cluster',
   'tests/functional/pages/settings',
   'tests/functional/pages/dashboard'
-], function(registerSuite, assert, Common, ClusterPage, SettingsPage, DashboardPage) {
+], function(registerSuite, assert, Common, ClusterPage, SettingsPage) {
   'use strict';
 
   registerSuite(function() {
-    var common, clusterPage, settingsPage, dashboardPage;
+    var common, clusterPage, settingsPage;
     var clusterName = 'Plugin UI tests';
     var zabbixSectionSelector = '.setting-section-zabbix_monitoring ';
 
@@ -35,7 +35,6 @@ define([
         common = new Common(this.remote);
         clusterPage = new ClusterPage(this.remote);
         settingsPage = new SettingsPage(this.remote);
-        dashboardPage = new DashboardPage(this.remote);
 
         return this.remote
           .then(function() {
@@ -132,7 +131,6 @@ define([
           });
       },
       'Check plugin in deployed environment': function() {
-        this.skip('Restore after merge of https://review.openstack.org/#/c/297168/');
         this.timeout = 100000;
         var self = this;
         var zabbixInitialVersion;
@@ -141,12 +139,8 @@ define([
             return common.addNodesToCluster(1, ['Controller']);
           })
           .then(function() {
-            return clusterPage.goToTab('Dashboard');
+            return clusterPage.deployEnvironment();
           })
-          .then(function() {
-            return dashboardPage.startDeployment();
-          })
-          .waitForElementDeletion('.dashboard-block .progress', 60000)
           .then(function() {
             return clusterPage.goToTab('Settings');
           })
@@ -158,12 +152,17 @@ define([
             .end()
           // activate plugin
           .clickByCssSelector(zabbixSectionSelector + 'h3 input[type=checkbox]')
-          .assertElementExists(zabbixSectionSelector +
-            '.plugin-versions input[type=radio]:not(:disabled)',
-            'Some plugin versions are hotluggable')
-          .assertElementPropertyNotEquals(zabbixSectionSelector +
-            '.plugin-versions input[type=radio]:checked', 'value', zabbixInitialVersion,
-            'Plugin hotpluggable version is automatically chosen')
+          .assertElementExists(
+            zabbixSectionSelector + '.alert-warning',
+            'Warning is shown for activated not hot pluggable version'
+          )
+          .clickByCssSelector(
+            zabbixSectionSelector + '.plugin-versions input[type=radio]:not(:checked)'
+          )
+          .assertElementNotExists(
+            zabbixSectionSelector + '.alert-warning',
+            'Warning is not shown for activated hot pluggable version'
+          )
           // fix validation error
           .setInputValue(zabbixSectionSelector + '[name=zabbix_text_with_regex]', 'aa-aa')
           .waitForElementDeletion('.subtab-link-other .glyphicon-danger-sign', 1000)
@@ -171,9 +170,12 @@ define([
           // deactivate plugin
           .clickByCssSelector(zabbixSectionSelector + 'h3 input[type=checkbox]')
           .then(function() {
-            return self.remote.assertElementPropertyEquals(zabbixSectionSelector +
-                '.plugin-versions input[type=radio]:checked', 'value', zabbixInitialVersion,
-                'Initial plugin version is set for deactivated plugin');
+            return self.remote.assertElementPropertyEquals(
+              zabbixSectionSelector + '.plugin-versions input[type=radio]:checked',
+              'value',
+              zabbixInitialVersion,
+              'Initial plugin version is set for deactivated plugin'
+            );
           })
           .assertElementDisabled('.btn-apply-changes', 'The change as reset successfully');
       }

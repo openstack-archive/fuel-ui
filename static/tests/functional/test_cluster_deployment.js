@@ -281,8 +281,10 @@ define([
             'Healthcheck link is not visible after stopped deploy'
           );
       },
-      'Test cluster page state before and after deployment': function() {
+      'Test cluster configuration before and after deployment': function() {
         this.timeout = 100000;
+        var self = this;
+        var cidrInitialValue;
         return this.remote
           .then(function() {
             return clusterPage.isTabLocked('Networks');
@@ -323,22 +325,87 @@ define([
           .then(function() {
             return clusterPage.isTabLocked('Networks');
           })
-          .then(function(isLocked) {
-            assert.isFalse(isLocked, 'Networks tab should not be locked after deployment');
-          })
           .assertElementEnabled(
             '.add-nodegroup-btn',
             'Add Node network group button is enabled after cluster deploy'
           )
+          .findByCssSelector('.storage input[name=cidr]')
+            .then(function(element) {
+              return element.getProperty('value')
+                .then(function(value) {
+                  cidrInitialValue = value;
+                });
+            })
+            .end()
+          .setInputValue('.storage input[name=cidr]', '192.168.1.0/25')
+          .clickByCssSelector('.apply-btn')
+          .clickByCssSelector('.btn-load-deployed')
           .then(function() {
-            return clusterPage.isTabLocked('Settings');
+            return self.remote.assertElementAttributeEquals(
+              '.storage input[name=cidr]',
+              'value',
+              cidrInitialValue,
+              'Load Deployed Settings button works properly'
+            );
           })
-          .then(function(isLocked) {
-            assert.isFalse(isLocked, 'Settings tab should not be locked after deployment');
-          })
+          .clickByCssSelector('.btn-revert-changes')
           .then(function() {
             return clusterPage.goToTab('Dashboard');
-          });
+          })
+          .assertElementContainsText(
+            '.actions-panel .changes-item',
+            'Changed environment configuration',
+            'Discard changed environment configuration button is shown on Dashboard'
+          )
+          .clickByCssSelector('.actions-panel .btn-discard-changes')
+          .then(function() {
+            return modal.waitToOpen();
+          })
+          .then(function() {
+            return modal.checkTitle('Discard Changes');
+          })
+          .then(function() {
+            return modal.clickFooterButton('Discard');
+          })
+          .then(function() {
+            return modal.waitToClose();
+          })
+          .assertElementNotExists(
+            '.actions-panel .btn-discard-changes',
+            'No changes in the deployed environment'
+          )
+          .then(function() {
+            return clusterPage.goToTab('Networks');
+          })
+          .then(function() {
+            return self.remote.assertElementAttributeEquals(
+              '.storage input[name=cidr]',
+              'value',
+              cidrInitialValue,
+              'Network settings are reset to their deployed state'
+            );
+          })
+          .then(function() {
+            return clusterPage.goToTab('Settings');
+          })
+          .clickLinkByText('Security')
+          .clickByCssSelector('input[type=checkbox]')
+          .clickByCssSelector('.btn-apply-changes:not(:disabled)')
+          .waitForCssSelector('input[type=checkbox]:not(:disabled)', 1000)
+          .clickByCssSelector('.btn-load-deployed')
+          .assertElementEnabled(
+            '.btn-apply-changes:not(:disabled)',
+            'Deployed configuration restored and can be saved'
+          )
+          .clickByCssSelector('.btn-revert-changes')
+          .then(function() {
+            return clusterPage.goToTab('Dashboard');
+          })
+          .assertElementContainsText(
+            '.actions-panel .changes-item',
+            'Changed environment configuration',
+            'There are changes in the environment to deploy'
+          );
       }
     };
   });

@@ -101,15 +101,15 @@ var ClusterPage = React.createClass({
 
         var settings = new models.Settings();
         settings.url = _.result(cluster, 'url') + '/attributes';
-        cluster.set({settings: settings});
+        cluster.set({settings});
 
         var roles = new models.Roles();
         roles.url = _.result(cluster, 'url') + '/roles';
-        cluster.set({roles: roles});
+        cluster.set({roles});
 
         var pluginLinks = new models.PluginLinks();
         pluginLinks.url = _.result(cluster, 'url') + '/plugin_links';
-        cluster.set({pluginLinks: pluginLinks});
+        cluster.set({pluginLinks});
 
         cluster.get('nodeNetworkGroups').fetch = function(options) {
           return this.constructor.__super__.fetch.call(this,
@@ -119,6 +119,7 @@ var ClusterPage = React.createClass({
           return this.constructor.__super__.fetch.call(this,
             _.extend({data: {cluster_id: id}}, options));
         };
+
         promise = $.when(
             cluster.fetch(),
             cluster.get('settings').fetch(),
@@ -132,28 +133,44 @@ var ClusterPage = React.createClass({
             var networkConfiguration = new models.NetworkConfiguration();
             networkConfiguration.url = _.result(cluster, 'url') + '/network_configuration/' +
               cluster.get('net_provider');
+
             cluster.set({
-              networkConfiguration: networkConfiguration,
+              networkConfiguration,
               release: new models.Release({id: cluster.get('release_id')})
             });
+
             return $.when(
               cluster.get('networkConfiguration').fetch(),
               cluster.get('release').fetch()
             );
           })
           .then(() => {
-            var useVcenter = cluster.get('settings').get('common.use_vcenter.value');
-            if (!useVcenter) {
-              return true;
-            }
+            if (!cluster.get('settings').get('common.use_vcenter.value')) return true;
+
             var vcenter = new VmWareModels.VCenter({id: id});
-            cluster.set({vcenter: vcenter});
+            cluster.set({vcenter});
             return vcenter.fetch();
           })
           .then(() => {
-            return tab.fetchData ? tab.fetchData({cluster: cluster, tabOptions: tabOptions}) :
-              $.Deferred().resolve();
-          });
+            var deployedSettings = new models.Settings();
+            deployedSettings.url = _.result(cluster, 'url') + '/attributes/deployed';
+
+            var deployedNetworkConfiguration = new models.NetworkConfiguration();
+            deployedNetworkConfiguration.url = _.result(cluster, 'url') +
+              '/network_configuration/deployed';
+
+            cluster.set({deployedSettings, deployedNetworkConfiguration});
+
+            if (cluster.get('status') === 'new') return true;
+            return $.when(
+              cluster.get('deployedSettings').fetch(),
+              cluster.get('deployedNetworkConfiguration').fetch()
+            );
+          })
+          .then(
+            () => tab.fetchData ? tab.fetchData({cluster, tabOptions}) : $.Deferred().resolve(),
+            () => $.Deferred().resolve()
+          );
       }
       return promise.then(
         (tabData) => ({cluster, activeTab, tabOptions, tabData})
@@ -213,13 +230,21 @@ var ClusterPage = React.createClass({
     }
   },
   refreshCluster() {
+    var {cluster} = this.props;
     return $.when(
-      this.props.cluster.fetch(),
-      this.props.cluster.fetchRelated('nodes'),
-      this.props.cluster.fetchRelated('tasks'),
-      this.props.cluster.get('networkConfiguration').fetch(),
-      this.props.cluster.get('pluginLinks').fetch()
-    );
+      cluster.fetch(),
+      cluster.fetchRelated('nodes'),
+      cluster.fetchRelated('tasks'),
+      cluster.get('networkConfiguration').fetch(),
+      cluster.get('pluginLinks').fetch()
+    )
+    .then(() => {
+      if (cluster.get('status') === 'new') return true;
+      return $.when(
+        cluster.get('deployedNetworkConfiguration').fetch(),
+        cluster.get('deployedSettings').fetch()
+      );
+    });
   },
   componentWillMount() {
     this.props.cluster.on('change:release_id', () => {
