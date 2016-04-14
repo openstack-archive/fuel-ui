@@ -38,19 +38,27 @@ var Field = React.createClass({
   render() {
     var metadata = this.props.metadata;
     var value = this.props.model.get(metadata.name);
+    var defaultValue = metadata.type === 'file' ? value : null;
+    var inputValue = metadata.type === 'select' ? value.current.id :
+        (metadata.type === 'file' ? null : value);
+    var children = null;
+    if (metadata.type === 'select') {
+      children = value.options.map((value) => {
+        return <option key={value.id} value={value.id}>{value.label}</option>;
+      });
+    }
     return (
       <Input
         {... _.pick(metadata, 'name', 'type', 'label', 'description')}
-        value={metadata.type === 'select' ? value.current.id : value}
+        defaultValue={defaultValue}
+        value={inputValue}
         checked={value}
         toggleable={metadata.type === 'password'}
         onChange={this.onChange}
         disabled={this.props.disabled}
         error={(this.props.model.validationError || {})[metadata.name]}
       >
-        {metadata.type === 'select' && value.options.map((value) => {
-          return <option key={value.id} value={value.id}>{value.label}</option>;
-        })}
+        {children}
       </Input>
     );
   }
