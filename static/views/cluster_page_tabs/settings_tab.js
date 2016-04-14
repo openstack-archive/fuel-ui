@@ -139,7 +139,7 @@ var SettingsTab = React.createClass({
       url: _.result(this.props.cluster, 'url') + '/attributes/defaults'
     })
     .done(() => {
-      this.props.cluster.get('settings').updateSettings(
+      this.props.cluster.get('settings').updateAttributes(
         defaultSettings,
         this.state.configModels,
         false
@@ -160,7 +160,7 @@ var SettingsTab = React.createClass({
     });
   },
   loadDeployedSettings() {
-    this.props.cluster.get('settings').updateSettings(
+    this.props.cluster.get('settings').updateAttributes(
       this.props.cluster.get('deployedSettings'),
       this.state.configModels,
       false
