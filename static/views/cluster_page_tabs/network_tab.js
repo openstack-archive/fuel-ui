@@ -915,19 +915,14 @@ var NetworkTab = React.createClass({
       areNetworkSettingsValid;
   },
   loadDeployedSettings() {
-    var cluster = this.props.cluster;
+    var {cluster} = this.props;
 
-    var networkConfiguration = cluster.get('networkConfiguration');
-    var deployedNetworkConfiguration = cluster.get('deployedNetworkConfiguration');
-    networkConfiguration.get('networks').reset(
-      deployedNetworkConfiguration.get('networks').toJSON()
+    cluster.get('networkConfiguration').updateEditableAttributes(
+      cluster.get('deployedNetworkConfiguration'),
+      cluster.get('nodeNetworkGroups')
     );
-    networkConfiguration.get('networking_parameters').set(
-      _.cloneDeep(deployedNetworkConfiguration.get('networking_parameters').attributes)
-    );
-    this.validateNetworkConfiguration();
 
-    cluster.get('settings').updateSettings(
+    cluster.get('settings').updateAttributes(
       cluster.get('deployedSettings'),
       this.state.configModels,
       true
