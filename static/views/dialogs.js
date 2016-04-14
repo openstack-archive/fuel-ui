@@ -333,28 +333,27 @@ export var DiscardClusterChangesDialog = React.createClass({
     if (changeName === 'changed_configuration') {
       var settings = cluster.get('settings');
       var currentSettings = _.cloneDeep(settings.attributes);
-      var networkConfiguration = cluster.get('networkConfiguration');
+      settings.updateAttributes(cluster.get('deployedSettings'), this.state.configModels);
 
-      settings.set(_.cloneDeep(cluster.get('deployedSettings').attributes), {silent: true});
+      var networkConfiguration = cluster.get('networkConfiguration');
+      var currentNetworkConfiguration = _.cloneDeep(networkConfiguration.attributes);
+      networkConfiguration.updateAttributes(
+        cluster.get('deployedNetworkConfiguration'),
+        cluster.get('nodeNetworkGroups')
+      );
+
       return $.when(
         settings.save(null, {patch: true, wait: true, validate: false}),
-        networkConfiguration.save(
-          cluster.get('deployedNetworkConfiguration').attributes,
-          {patch: true, wait: true, validate: false}
-        )
+        networkConfiguration.save(null, {patch: true, wait: true, validate: false})
       )
       .then(
-        () => {
-          settings.mergePluginSettings();
-          settings.isValid({models: this.state.configModels});
-          networkConfiguration.isValid({
-            nodeNetworkGroups: cluster.get('nodeNetworkGroups')
-          });
-          this.close();
-        },
+        () => this.close(),
         (response) => {
-          settings.set(currentSettings);
-          settings.mergePluginSettings();
+          settings.updateAttributes(new models.Settings(currentSettings), this.state.configModels);
+          networkConfiguration.updateAttributes(
+            new models.NetworkConfiguration(currentNetworkConfiguration),
+            cluster.get('nodeNetworkGroups')
+          );
           this.showError(response, i18n(ns + 'cant_discard'));
         }
       );
