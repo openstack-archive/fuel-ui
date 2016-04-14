@@ -21,7 +21,7 @@ import models from 'models';
 var VmWareModels = {};
 
 VmWareModels.isRegularField = (field) => {
-  return _.contains(['text', 'password', 'checkbox', 'select'], field.type);
+  return _.contains(['text', 'password', 'checkbox', 'select', 'file'], field.type);
 };
 
 // models for testing restrictions
