@@ -14,60 +14,57 @@
  * under the License.
  **/
 
-define([
-  'tests/functional/helpers'
-], function(Helpers) {
-  'use strict';
+import Helpers from 'tests/functional/helpers';
 
-  function LoginPage(remote) {
-    this.remote = remote;
+function LoginPage(remote) {
+  this.remote = remote;
+}
+
+LoginPage.prototype = {
+  constructor: LoginPage,
+  login: function(username, password) {
+    username = username || Helpers.username;
+    password = password || Helpers.password;
+    var self = this;
+
+    return this.remote
+      .setFindTimeout(500)
+      .setWindowSize(1280, 1024)
+      .getCurrentUrl()
+      .then(function(url) {
+        if (url !== Helpers.serverUrl + '/#login') {
+          return self.logout();
+        }
+      })
+      .setInputValue('[name=username]', username)
+      .setInputValue('[name=password]', password)
+      .clickByCssSelector('.login-btn');
+  },
+  logout: function() {
+    return this.remote
+      .getCurrentUrl()
+      .then(function(url) {
+        if (url.indexOf(Helpers.serverUrl) !== 0) {
+          return this.parent
+            .get(Helpers.serverUrl + '/#logout')
+            .findByClassName('login-btn')
+            .then(function() {
+              return true;
+            });
+        }
+      })
+      .clickByCssSelector('li.user-icon')
+      .clickByCssSelector('.user-popover button.btn-logout')
+      .findByCssSelector('.login-btn')
+      .then(
+        function() {
+          return true;
+        },
+        function() {
+          return true;
+        }
+      );
   }
+};
 
-  LoginPage.prototype = {
-    constructor: LoginPage,
-    login: function(username, password) {
-      username = username || Helpers.username;
-      password = password || Helpers.password;
-      var self = this;
-
-      return this.remote
-        .setFindTimeout(500)
-        .setWindowSize(1280, 1024)
-        .getCurrentUrl()
-        .then(function(url) {
-          if (url !== Helpers.serverUrl + '/#login') {
-            return self.logout();
-          }
-        })
-        .setInputValue('[name=username]', username)
-        .setInputValue('[name=password]', password)
-        .clickByCssSelector('.login-btn');
-    },
-    logout: function() {
-      return this.remote
-        .getCurrentUrl()
-        .then(function(url) {
-          if (url.indexOf(Helpers.serverUrl) !== 0) {
-            return this.parent
-              .get(Helpers.serverUrl + '/#logout')
-              .findByClassName('login-btn')
-              .then(function() {
-                return true;
-              });
-          }
-        })
-        .clickByCssSelector('li.user-icon')
-        .clickByCssSelector('.user-popover button.btn-logout')
-        .findByCssSelector('.login-btn')
-        .then(
-          function() {
-            return true;
-          },
-          function() {
-            return true;
-          }
-        );
-    }
-  };
-  return LoginPage;
-});
+export default LoginPage;

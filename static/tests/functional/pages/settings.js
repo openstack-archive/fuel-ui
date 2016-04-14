@@ -14,23 +14,20 @@
  * under the License.
  **/
 
-define([
-  'tests/functional/helpers'
-], function() {
-  'use strict';
+import 'tests/functional/helpers';
 
-  function SettingsPage(remote) {
-    this.remote = remote;
+function SettingsPage(remote) {
+  this.remote = remote;
+}
+
+SettingsPage.prototype = {
+  constructor: SettingsPage,
+  waitForRequestCompleted: function() {
+    return this.remote
+      // Load Defaults button is locked during any request is in progress on the tab
+      // so this is a hacky way to track request state
+      .waitForElementDeletion('.btn-load-defaults:disabled', 2000);
   }
+};
 
-  SettingsPage.prototype = {
-    constructor: SettingsPage,
-    waitForRequestCompleted: function() {
-      return this.remote
-        // Load Defaults button is locked during any request is in progress on the tab
-        // so this is a hacky way to track request state
-        .waitForElementDeletion('.btn-load-defaults:disabled', 2000);
-    }
-  };
-  return SettingsPage;
-});
+export default SettingsPage;

@@ -14,40 +14,38 @@
  * under the License.
  **/
 
-define(['intern/dojo/node!fs'], function(fs) {
-  'use strict';
+import fs from 'intern/dojo/node!fs';
 
-  var ScreenshotOnFailReporter = function() {
-    this.remotes = {};
-  };
+var ScreenshotOnFailReporter = function() {
+  this.remotes = {};
+};
 
-  ScreenshotOnFailReporter.prototype = {
-    saveScreenshot: function(testOrSuite) {
-      var remote = this.remotes[testOrSuite.sessionId];
-      if (remote) {
-        remote.takeScreenshot().then(function(buffer) {
-          var targetDir = process.env.ARTIFACTS || process.cwd();
-          var filename = testOrSuite.id + ' - ' + new Date().toTimeString();
-          filename = filename.replace(/[\s\*\?\\\/]/g, '_');
-          filename = targetDir + '/' + filename + '.png';
-          fs.writeFile(filename, buffer, function(err) {
-            if (err) throw err;
-            console.log('Saved screenshot to', filename); // eslint-disable-line no-console
-          });
+ScreenshotOnFailReporter.prototype = {
+  saveScreenshot: function(testOrSuite) {
+    var remote = this.remotes[testOrSuite.sessionId];
+    if (remote) {
+      remote.takeScreenshot().then(function(buffer) {
+        var targetDir = process.env.ARTIFACTS || process.cwd();
+        var filename = testOrSuite.id + ' - ' + new Date().toTimeString();
+        filename = filename.replace(/[\s\*\?\\\/]/g, '_');
+        filename = targetDir + '/' + filename + '.png';
+        fs.writeFile(filename, buffer, function(err) {
+          if (err) throw err;
+          console.log('Saved screenshot to', filename); // eslint-disable-line no-console
         });
-      }
-    },
-    sessionStart: function(remote) {
-      var sessionId = remote._session._sessionId;
-      this.remotes[sessionId] = remote;
-    },
-    suiteError: function(suite) {
-      this.saveScreenshot(suite);
-    },
-    testFail: function(test) {
-      this.saveScreenshot(test);
+      });
     }
-  };
+  },
+  sessionStart: function(remote) {
+    var sessionId = remote._session._sessionId;
+    this.remotes[sessionId] = remote;
+  },
+  suiteError: function(suite) {
+    this.saveScreenshot(suite);
+  },
+  testFail: function(test) {
+    this.saveScreenshot(test);
+  }
+};
 
-  return ScreenshotOnFailReporter;
-});
+export default ScreenshotOnFailReporter;

@@ -114,17 +114,32 @@ var transpiledBaseDir = 'static/build/intern/';
 function runIntern(suites, browser) {
   return function() {
     var runner = './node_modules/.bin/intern-runner';
+    var config = {
+      environments: [{browserName: browser}],
+      excludeInstrumentation: true,
+      reporters: ['Runner', 'tests/functional/screenshot_on_fail']
+    };
+    var configFile = 'tests/functional/config.js';
+    var configFileContents = 'define(function(){return' + JSON.stringify(config) + '})';
+    fs.writeFileSync( // eslint-disable-line no-sync
+      path.join(transpiledBaseDir, configFile),
+      configFileContents
+    );
+
     var suiteFiles = glob.sync(path.relative(originalBaseDir, suites), {cwd: originalBaseDir});
     if (!suiteFiles.length) throw new Error('No matching suites');
     var suiteOptions = suiteFiles.map(function(suiteFile) {
       return ['functionalSuites', suiteFile.replace(/\.js$/, '')];
     });
-    var options = [['config', 'tests/functional/config/intern-' + browser + '.js']];
+
+    var options = [['config', configFile]];
     options = options.concat(suiteOptions);
     var command = [path.relative(transpiledBaseDir, runner)].concat(options.map(function(option) {
       return option.join('=');
     })).join(' ');
+
     gutil.log('Executing', command);
+
     return shell.task(command, {cwd: transpiledBaseDir})();
   };
 }
@@ -135,7 +150,8 @@ gulp.task('intern:transpile', function() {
   rimraf.sync(target);
   return gulp.src(source)
     .pipe(require('gulp-babel')({
-      presets: ['es2015-webpack']
+      presets: ['es2015-webpack'],
+      plugins: ['transform-es2015-modules-amd']
     }))
     .pipe(gulp.dest(target));
 });

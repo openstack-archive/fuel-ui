@@ -14,38 +14,35 @@
  * under the License.
  **/
 
-define([
-  'tests/functional/helpers'
-], function() {
-  'use strict';
+import 'tests/functional/helpers';
 
-  function GenericLib(remote) {
-    this.remote = remote;
-  }
+function GenericLib(remote) {
+  this.remote = remote;
+}
 
-  GenericLib.prototype = {
-    constructor: GenericLib,
+GenericLib.prototype = {
+  constructor: GenericLib,
 
-    gotoPage: function(pageName) {
-      var pageSelector = {Environments: 'clusters-page', Equipment: 'equipment-page',
-        Releases: 'releases-page', Plugins: 'plugins-page', Support: 'support-page'};
-      var pageTitle = {Environments: /My OpenStack Environments/i, Equipment: /Equipment/i,
-        Releases: /Releases/i, Plugins: /Installed Plugins/i, Support: /Support/i};
-      var activeName = RegExp(pageName, 'i');
-      if (!(pageName in pageSelector)) {
-        throw new Error('Invalid input value. Check pageName: "' + pageName +
-          '" parameter and restart test.');
-      }
-      return this.remote
-        .assertElementsAppear('ul.navbar-nav', 5000, 'Main navigation bar exists')
-        .clickLinkByText(pageName)
-        .assertElementsAppear('div.' + pageSelector[pageName], 5000, '"' + pageName +
-          '" page is loaded')
-        .assertElementMatchesRegExp('li.active a', activeName, '"' + pageName +
-          '" page is selected')
-        .assertElementMatchesRegExp('h1.title', pageTitle[pageName], '"' + pageName +
-          '" page is opened');
+  gotoPage: function(pageName) {
+    var pageSelector = {Environments: 'clusters-page', Equipment: 'equipment-page',
+      Releases: 'releases-page', Plugins: 'plugins-page', Support: 'support-page'};
+    var pageTitle = {Environments: /My OpenStack Environments/i, Equipment: /Equipment/i,
+      Releases: /Releases/i, Plugins: /Installed Plugins/i, Support: /Support/i};
+    var activeName = RegExp(pageName, 'i');
+    if (!(pageName in pageSelector)) {
+      throw new Error('Invalid input value. Check pageName: "' + pageName +
+        '" parameter and restart test.');
     }
-  };
-  return GenericLib;
-});
+    return this.remote
+      .assertElementsAppear('ul.navbar-nav', 5000, 'Main navigation bar exists')
+      .clickLinkByText(pageName)
+      .assertElementsAppear('div.' + pageSelector[pageName], 5000, '"' + pageName +
+        '" page is loaded')
+      .assertElementMatchesRegExp('li.active a', activeName, '"' + pageName +
+        '" page is selected')
+      .assertElementMatchesRegExp('h1.title', pageTitle[pageName], '"' + pageName +
+        '" page is opened');
+  }
+};
+
+export default GenericLib;

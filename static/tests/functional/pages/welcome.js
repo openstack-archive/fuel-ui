@@ -14,36 +14,36 @@
  * under the License.
  **/
 
-define(['tests/functional/helpers'], function() {
-  'use strict';
-  function WelcomePage(remote) {
-    this.remote = remote;
-  }
+import 'tests/functional/helpers';
 
-  WelcomePage.prototype = {
-    constructor: WelcomePage,
-    skip: function(strictCheck) {
-      return this.remote
-        .waitForCssSelector('.welcome-page', 3000)
-        .then(
-          function() {
-            return this.parent
-              .clickByCssSelector('.welcome-button-box button')
-              .waitForDeletedByCssSelector('.welcome-button-box button', 3000)
-              .then(
-                function() {
-                  return true;
-                },
-                function() {
-                  return !strictCheck;
-                }
-              );
-          },
-          function() {
-            return !strictCheck;
-          }
-        );
-    }
-  };
-  return WelcomePage;
-});
+function WelcomePage(remote) {
+  this.remote = remote;
+}
+
+WelcomePage.prototype = {
+  constructor: WelcomePage,
+  skip: function(strictCheck) {
+    return this.remote
+      .waitForCssSelector('.welcome-page', 3000)
+      .then(
+        function() {
+          return this.parent
+            .clickByCssSelector('.welcome-button-box button')
+            .waitForDeletedByCssSelector('.welcome-button-box button', 3000)
+            .then(
+              function() {
+                return true;
+              },
+              function() {
+                return !strictCheck;
+              }
+            );
+        },
+        function() {
+          return !strictCheck;
+        }
+      );
+  }
+};
+
+export default WelcomePage;

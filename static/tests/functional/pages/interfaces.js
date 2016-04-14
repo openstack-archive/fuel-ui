@@ -14,141 +14,139 @@
  * under the License.
  **/
 
-define([
-  'intern/dojo/node!lodash',
-  'intern/chai!assert'
-], function(_, assert) {
-  'use strict';
-  function InterfacesPage(remote) {
-    this.remote = remote;
-  }
+import _ from 'intern/dojo/node!lodash';
+import assert from 'intern/chai!assert';
 
-  InterfacesPage.prototype = {
-    constructor: InterfacesPage,
-    findInterfaceElement: function(ifcName) {
-      return this.remote
-        .findAllByCssSelector('div.ifc-inner-container')
-          .then(function(ifcElements) {
-            return ifcElements.reduce(function(result, ifcElement) {
-              return ifcElement
-                .findByCssSelector('.common-ifc-name')
-                  .then(function(ifcDiv) {
-                    return ifcDiv
-                      .getVisibleText()
-                        .then(function(currentIfcName) {
-                          return _.trim(currentIfcName) === ifcName ? ifcElement : result;
-                        });
-                  });
-            }, null);
-          });
-    },
-    findInterfaceElementInBond: function(bondName, ifcName) {
-      return this.remote
-        .findAllByCssSelector('.' + bondName + ' .ifc-info-block')
-          .then(function(ifcsElements) {
-            return ifcsElements.reduce(function(result, ifcElement) {
-              return ifcElement
-                .findByCssSelector('.ifc-name')
-                  .then(function(ifcNameElement) {
-                    return ifcNameElement
-                      .getVisibleText()
-                        .then(function(foundIfcName) {
-                          return ifcName === foundIfcName ? ifcElement : result;
-                        });
-                  });
-            }, null);
-          });
-    },
-    removeInterfaceFromBond: function(bondName, ifcName) {
-      var self = this;
-      return this.remote
-        .then(function() {
-          return self.findInterfaceElementInBond(bondName, ifcName);
-        })
-        .then(function(ifcElement) {
-          return ifcElement
-            .findByCssSelector('.btn-link')
-              .then(function(btnRemove) {
-                return btnRemove.click();
-              });
+function InterfacesPage(remote) {
+  this.remote = remote;
+}
+
+InterfacesPage.prototype = {
+  constructor: InterfacesPage,
+  findInterfaceElement: function(ifcName) {
+    return this.remote
+      .findAllByCssSelector('div.ifc-inner-container')
+        .then(function(ifcElements) {
+          return ifcElements.reduce(function(result, ifcElement) {
+            return ifcElement
+              .findByCssSelector('.common-ifc-name')
+                .then(function(ifcDiv) {
+                  return ifcDiv
+                    .getVisibleText()
+                      .then(function(currentIfcName) {
+                        return _.trim(currentIfcName) === ifcName ? ifcElement : result;
+                      });
+                });
+          }, null);
         });
-    },
-    assignNetworkToInterface: function(networkName, ifcName) {
-      var self = this;
-      return this.remote
-        .findAllByCssSelector('div.network-block')
-          .then(function(networkElements) {
-            return networkElements.reduce(function(result, networkElement) {
-              return networkElement
-                .getVisibleText()
-                  .then(function(currentNetworkName) {
-                    return currentNetworkName === networkName ? networkElement : result;
-                  });
-            }, null);
-          })
-          .then(function(networkElement) {
-            return this.parent.dragFrom(networkElement);
-          })
-          .then(function() {
-            return self.findInterfaceElement(ifcName);
-          })
-          .then(function(ifcElement) {
-            return this.parent.dragTo(ifcElement);
-          });
-    },
-    selectInterface: function(ifcName) {
-      var self = this;
-      return this.remote
+  },
+  findInterfaceElementInBond: function(bondName, ifcName) {
+    return this.remote
+      .findAllByCssSelector('.' + bondName + ' .ifc-info-block')
+        .then(function(ifcsElements) {
+          return ifcsElements.reduce(function(result, ifcElement) {
+            return ifcElement
+              .findByCssSelector('.ifc-name')
+                .then(function(ifcNameElement) {
+                  return ifcNameElement
+                    .getVisibleText()
+                      .then(function(foundIfcName) {
+                        return ifcName === foundIfcName ? ifcElement : result;
+                      });
+                });
+          }, null);
+        });
+  },
+  removeInterfaceFromBond: function(bondName, ifcName) {
+    var self = this;
+    return this.remote
+      .then(function() {
+        return self.findInterfaceElementInBond(bondName, ifcName);
+      })
+      .then(function(ifcElement) {
+        return ifcElement
+          .findByCssSelector('.btn-link')
+            .then(function(btnRemove) {
+              return btnRemove.click();
+            });
+      });
+  },
+  assignNetworkToInterface: function(networkName, ifcName) {
+    var self = this;
+    return this.remote
+      .findAllByCssSelector('div.network-block')
+        .then(function(networkElements) {
+          return networkElements.reduce(function(result, networkElement) {
+            return networkElement
+              .getVisibleText()
+                .then(function(currentNetworkName) {
+                  return currentNetworkName === networkName ? networkElement : result;
+                });
+          }, null);
+        })
+        .then(function(networkElement) {
+          return this.parent.dragFrom(networkElement);
+        })
         .then(function() {
           return self.findInterfaceElement(ifcName);
         })
         .then(function(ifcElement) {
-          if (!ifcElement) throw new Error('Unable to select interface ' + ifcName);
-          return ifcElement
-            .findByCssSelector('input[type=checkbox]:not(:checked)')
-              .then(function(ifcCheckbox) {
-                return ifcCheckbox.click();
-              });
+          return this.parent.dragTo(ifcElement);
         });
-    },
-    bondInterfaces: function(ifc1, ifc2) {
-      var self = this;
-      return this.remote
-        .then(function() {
-          return self.selectInterface(ifc1);
-        })
-        .then(function() {
-          return self.selectInterface(ifc2);
-        })
-        .clickByCssSelector('.btn-bond');
-    },
-    checkBondInterfaces: function(bondName, ifcsNames) {
-      var self = this;
-      return this.remote
-        .then(function() {
-          return self.findInterfaceElement(bondName);
-        })
-        .then(function(bondElement) {
-          return bondElement
-            .findAllByCssSelector('.ifc-info .ifc-name')
-              .then(function(ifcNamesElements) {
-                assert.equal(ifcNamesElements.length, ifcsNames.length,
-                  'Unexpected number of interfaces in bond');
+  },
+  selectInterface: function(ifcName) {
+    var self = this;
+    return this.remote
+      .then(function() {
+        return self.findInterfaceElement(ifcName);
+      })
+      .then(function(ifcElement) {
+        if (!ifcElement) throw new Error('Unable to select interface ' + ifcName);
+        return ifcElement
+          .findByCssSelector('input[type=checkbox]:not(:checked)')
+            .then(function(ifcCheckbox) {
+              return ifcCheckbox.click();
+            });
+      });
+  },
+  bondInterfaces: function(ifc1, ifc2) {
+    var self = this;
+    return this.remote
+      .then(function() {
+        return self.selectInterface(ifc1);
+      })
+      .then(function() {
+        return self.selectInterface(ifc2);
+      })
+      .clickByCssSelector('.btn-bond');
+  },
+  checkBondInterfaces: function(bondName, ifcsNames) {
+    var self = this;
+    return this.remote
+      .then(function() {
+        return self.findInterfaceElement(bondName);
+      })
+      .then(function(bondElement) {
+        return bondElement
+          .findAllByCssSelector('.ifc-info .ifc-name')
+            .then(function(ifcNamesElements) {
+              assert.equal(ifcNamesElements.length, ifcsNames.length,
+                'Unexpected number of interfaces in bond');
 
-                return ifcNamesElements.forEach(
-                  function(ifcNameElement) {
-                    return ifcNameElement
-                      .getVisibleText()
-                        .then(function(name) {
-                          name = _.trim(name);
-                          if (!_.contains(ifcsNames, name)) {
-                            throw new Error('Unexpected name in bond: ' + name);
-                          }
-                        });
-                  });
-              });
-        });
-    }
-  };
-  return InterfacesPage;
-});
+              return ifcNamesElements.forEach(
+                function(ifcNameElement) {
+                  return ifcNameElement
+                    .getVisibleText()
+                      .then(function(name) {
+                        name = _.trim(name);
+                        if (!_.contains(ifcsNames, name)) {
+                          throw new Error('Unexpected name in bond: ' + name);
+                        }
+                      });
+                });
+            });
+      });
+  }
+};
+
+export default InterfacesPage;
