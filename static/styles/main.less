@@ -3031,15 +3031,17 @@ input[type=range] {
       width: 100%;
       height: @role-height;
       padding: 0px 16px;
-      line-height: @role-height;
+      line-height: 18px;
       .break-word;
       i {
         display: block;
         position: absolute;
         top: 15px;
         & + span {
-          display: inline-block;
-          margin-left: 24px;
+          display: table-cell;
+          padding-left: 24px;
+          vertical-align: middle;
+          height: @role-height;
         }
       }
     }
@@ -3070,7 +3072,7 @@ input[type=range] {
       i {
         display: none;
         & + span {
-          margin-left: 4px;
+          padding-left: 4px;
         }
       }
     }
