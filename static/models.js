@@ -388,19 +388,30 @@ models.Cluster = BaseModel.extend({
   },
   isConfigurationChanged({configModels}) {
     var deployedSettings = this.get('deployedSettings');
+    var networkConfiguration = this.get('networkConfiguration');
     var deployedNetworkConfiguration = this.get('deployedNetworkConfiguration');
-    return this.get('status') !== 'new' && (
-      (
-        !_.isEmpty(deployedNetworkConfiguration.attributes) &&
-        !_.isEqual(
-          this.get('networkConfiguration').toJSON(),
-          deployedNetworkConfiguration.toJSON()
-        )
-      ) || (
-        !_.isEmpty(deployedSettings.attributes) &&
-        this.get('settings').hasChanges(deployedSettings.attributes, configModels)
+
+    if (
+      this.get('status') === 'new' ||
+      _.isEmpty(deployedSettings.attributes) ||
+      _.isEmpty(deployedNetworkConfiguration.attributes)
+    ) return false;
+
+    if (
+      this.get('settings').hasChanges(deployedSettings.attributes, configModels)
+    ) return true;
+
+    if (
+      !_.isEqual(
+        networkConfiguration.get('networking_parameters').toJSON(),
+        deployedNetworkConfiguration.get('networking_parameters').toJSON()
       )
-    );
+    ) return true;
+
+    return networkConfiguration.get('networks').any((network) => {
+      var deployedNetwork = deployedNetworkConfiguration.get('networks').get(network.id);
+      return !!deployedNetwork && !_.isEqual(network.toJSON(), deployedNetwork.toJSON());
+    });
   },
   hasChanges({configModels}) {
     return this.get('nodes').hasChanges() || this.isConfigurationChanged({configModels});

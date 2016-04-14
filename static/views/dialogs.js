@@ -334,14 +334,26 @@ export var DiscardClusterChangesDialog = React.createClass({
       var settings = cluster.get('settings');
       var currentSettings = _.cloneDeep(settings.attributes);
       var networkConfiguration = cluster.get('networkConfiguration');
+      var deployedNetworkConfiguration = cluster.get('deployedNetworkConfiguration');
+      var deployedNetworks = new models.Networks(
+        deployedNetworkConfiguration.get('networks').toJSON()
+      );
 
       settings.set(_.cloneDeep(cluster.get('deployedSettings').attributes), {silent: true});
+      // networks fshould be updated for existing deployed node network groups only
+      networkConfiguration.get('networks').set(
+        deployedNetworks.models,
+        {remove: false, add: false}
+      );
+      networkConfiguration.get('networking_parameters').set(
+        _.cloneDeep(
+          deployedNetworkConfiguration.get('networking_parameters').attributes
+        )
+      );
+
       return $.when(
         settings.save(null, {patch: true, wait: true, validate: false}),
-        networkConfiguration.save(
-          cluster.get('deployedNetworkConfiguration').attributes,
-          {patch: true, wait: true, validate: false}
-        )
+        networkConfiguration.save(null, {patch: true, wait: true, validate: false})
       )
       .then(
         () => {
