@@ -374,20 +374,41 @@ models.Cluster = BaseModel.extend({
       );
   },
   isConfigurationChanged({configModels}) {
+    var settings = this.get('settings');
     var deployedSettings = this.get('deployedSettings');
+    var networkConfiguration = this.get('networkConfiguration');
     var deployedNetworkConfiguration = this.get('deployedNetworkConfiguration');
-    return this.get('status') !== 'new' && (
-      (
-        !_.isEmpty(deployedNetworkConfiguration.attributes) &&
-        !_.isEqual(
-          this.get('networkConfiguration').toJSON(),
-          deployedNetworkConfiguration.toJSON()
-        )
-      ) || (
-        !_.isEmpty(deployedSettings.attributes) &&
-        this.get('settings').hasChanges(deployedSettings.attributes, configModels)
+
+    if (
+      this.get('status') === 'new' ||
+      _.isEmpty(deployedSettings.attributes) ||
+      _.isEmpty(deployedNetworkConfiguration.attributes)
+    ) return false;
+
+    if (settings.hasChanges(deployedSettings.attributes, configModels)) return true;
+
+    if (
+      !_.isEqual(
+        networkConfiguration.get('networking_parameters').toJSON(),
+        deployedNetworkConfiguration.get('networking_parameters').toJSON()
       )
-    );
+    ) return true;
+
+    return networkConfiguration.get('networks').some((network) => {
+      var deployedNetwork = deployedNetworkConfiguration.get('networks').get(network.id);
+      if (!deployedNetwork || !network.get('meta').configurable) return false;
+      return _.some(network.getRenderableAttributes(), (attribute) => {
+        if (_.isArray(attribute)) {
+          // check network metadata changes
+          var networkMetadata = network.get('meta');
+          var deployedNetworkMetadata = deployedNetwork.get('meta');
+          return _.some(attribute,
+            (metadata) => !_.isEqual(networkMetadata[metadata], deployedNetworkMetadata[metadata])
+          );
+        }
+        return !_.isEqual(network.get(attribute), deployedNetwork.get(attribute));
+      });
+    });
   },
   hasChanges({configModels}) {
     return this.get('nodes').hasChanges() || this.isConfigurationChanged({configModels});
@@ -810,7 +831,7 @@ models.Settings = Backbone.DeepModel
       });
       return _.intersection(this.groupList, groups);
     },
-    updateSettings(settings, models, updateNetworkSettings = false) {
+    updateAttributes(settings, models, updateNetworkSettings = false) {
       _.each(this.attributes, (section, sectionName) => {
         var isNetworkGroup = section.metadata.group === 'network';
         if (updateNetworkSettings === isNetworkGroup) {
@@ -820,7 +841,7 @@ models.Settings = Backbone.DeepModel
 
             if (isNetworkGroup || setting.group !== 'network') {
               var path = utils.makePath(sectionName, settingName);
-              this.set(path, settings.get(path), {silent: true, validate: false});
+              this.set(path, settings.get(path), {silent: true});
             }
           });
         }
@@ -1091,6 +1112,12 @@ models.Network = BaseModel.extend({
           vlanStart + networkingParameters.get(externalNetworkData[1]) - 1 : vlanStart];
     }
     return networkingParameters.get('vlan_range');
+  },
+  getRenderableAttributes() {
+    // meta attributes are stored as a list
+    var renderableAttributes = ['cidr', 'ip_ranges', 'vlan_start', ['notation']];
+    if (this.get('meta').use_gateway) renderableAttributes.push('gateway');
+    return renderableAttributes;
   }
 });
 
@@ -1124,6 +1151,25 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
   },
   isNew() {
     return false;
+  },
+  updateAttributes(networkConfiguration, nodeNetworkGroups) {
+    this.get('networks').each((network) => {
+      var updatedNetwork = networkConfiguration.get('networks').get(network.id);
+      if (updatedNetwork && network.get('meta').configurable) {
+        _.each(network.getRenderableAttributes(), (attribute) => {
+          if (_.isArray(attribute)) {
+            _.extend(network.get('meta'), _.pick(updatedNetwork.get('meta'), attribute));
+            network.set({meta: network.get('meta')}, {silent: true});
+          } else {
+            network.set({[attribute]: updatedNetwork.get(attribute)}, {silent: true});
+          }
+        });
+      }
+    });
+    this.get('networking_parameters').set(
+      _.cloneDeep(networkConfiguration.get('networking_parameters').attributes)
+    );
+    this.isValid({nodeNetworkGroups});
   },
   validateNetworkIpRanges(network, cidr) {
     if (network.get('meta').notation === 'ip_ranges') {
