@@ -38,20 +38,33 @@ var Field = React.createClass({
   render() {
     var metadata = this.props.metadata;
     var value = this.props.model.get(metadata.name);
+    var children = null;
+    if (metadata.type === 'select') {
+      children = value.options.map((value) => {
+        return <option key={value.id} value={value.id}>{value.label}</option>;
+      });
+    }
+    var props = _.extend({
+      checked: value,
+      toggleable: metadata.type === 'password',
+      onChange: this.onChange,
+      disabled: this.props.disabled,
+      error: (this.props.model.validationError || {})[metadata.name]
+    }, _.pick(metadata, 'name', 'type', 'label', 'description'));
+    switch (metadata.type) {
+      case 'select':
+        props.value = value.current.id;
+        break;
+      case 'file':
+        props.key = value && value.name;
+        props.defaultValue = value;
+        break;
+      default:
+        props.value = value;
+        break;
+    }
     return (
-      <Input
-        {... _.pick(metadata, 'name', 'type', 'label', 'description')}
-        value={metadata.type === 'select' ? value.current.id : value}
-        checked={value}
-        toggleable={metadata.type === 'password'}
-        onChange={this.onChange}
-        disabled={this.props.disabled}
-        error={(this.props.model.validationError || {})[metadata.name]}
-      >
-        {metadata.type === 'select' && value.options.map((value) => {
-          return <option key={value.id} value={value.id}>{value.label}</option>;
-        })}
-      </Input>
+      <Input {...props}>{children}</Input>
     );
   }
 });
