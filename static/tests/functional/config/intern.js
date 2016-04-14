@@ -14,15 +14,11 @@
  * under the License.
  **/
 
-define(function() {
-  'use strict';
-
-  return {
-    proxyPort: 9057,
-    proxyUrl: 'http://localhost:9057/',
-    maxConcurrency: 1,
-    grep: /^/,
-    excludeInstrumentation: /^/,
-    reporters: ['Runner', 'tests/functional/screenshot_on_fail']
-  };
-});
+export default {
+  proxyPort: 9057,
+  proxyUrl: 'http://localhost:9057/',
+  maxConcurrency: 1,
+  grep: /^/,
+  excludeInstrumentation: /^/,
+  reporters: ['Runner', 'tests/functional/screenshot_on_fail']
+};

@@ -135,7 +135,8 @@ gulp.task('intern:transpile', function() {
   rimraf.sync(target);
   return gulp.src(source)
     .pipe(require('gulp-babel')({
-      presets: ['es2015-webpack']
+      presets: ['es2015-webpack'],
+      plugins: ['transform-es2015-modules-amd']
     }))
     .pipe(gulp.dest(target));
 });

@@ -14,74 +14,71 @@
  * under the License.
  **/
 
-define([
-  'tests/functional/pages/modal',
-  'tests/functional/helpers'
-], function(ModalWindow) {
-  'use strict';
+import ModalWindow from 'tests/functional/pages/modal';
+import 'tests/functional/helpers';
 
-  function NetworkPage(remote) {
-    this.remote = remote;
-    this.modal = new ModalWindow(this.remote);
+function NetworkPage(remote) {
+  this.remote = remote;
+  this.modal = new ModalWindow(this.remote);
+}
+
+NetworkPage.prototype = {
+  constructor: NetworkPage,
+  addNodeNetworkGroup: function(name) {
+    var self = this;
+    return this.remote
+      .clickByCssSelector('.add-nodegroup-btn')
+      .then(function() {
+        return self.modal.waitToOpen();
+      })
+      .setInputValue('[name=node-network-group-name]', name)
+      .then(function() {
+        return self.modal.clickFooterButton('Add Group');
+      })
+      .then(function() {
+        return self.modal.waitToClose();
+      })
+      .waitForCssSelector('.network-group-name[data-name=' + name + ']', 2000);
+  },
+  renameNodeNetworkGroup: function(oldName, newName) {
+    var self = this;
+    return this.remote
+      .then(function() {
+        return self.goToNodeNetworkGroup(oldName);
+      })
+      .clickByCssSelector('.glyphicon-pencil')
+      .waitForCssSelector('.network-group-name input[type=text]', 2000)
+      .findByCssSelector('.node-group-renaming input[type=text]')
+        .clearValue()
+        .type(newName)
+        // Enter
+        .type('\uE007')
+        .end()
+      .waitForCssSelector('.network-group-name[data-name=' + newName + ']', 2000);
+  },
+  goToNodeNetworkGroup: function(name) {
+    return this.remote
+      .findByCssSelector('ul.node_network_groups')
+        .clickLinkByText(name)
+        .end()
+      .waitForCssSelector('.network-group-name[data-name=' + name + ']', 2000);
+  },
+  removeNodeNetworkGroup: function(name) {
+    var self = this;
+    return this.remote
+      .clickByCssSelector('.network-group-name[data-name=' + name + '] .glyphicon-remove')
+      .then(function() {
+        return self.modal.waitToOpen();
+      })
+      .then(function() {
+        return self.modal.clickFooterButton('Delete');
+      })
+      .then(function() {
+        return self.modal.waitToClose();
+      })
+      .waitForElementDeletion('.network-group-name[data-name=' + name + ']', 2000)
+      .sleep(3000); // unconditionally sleep to wait until update_dnsmasq task is finished
   }
+};
 
-  NetworkPage.prototype = {
-    constructor: NetworkPage,
-    addNodeNetworkGroup: function(name) {
-      var self = this;
-      return this.remote
-        .clickByCssSelector('.add-nodegroup-btn')
-        .then(function() {
-          return self.modal.waitToOpen();
-        })
-        .setInputValue('[name=node-network-group-name]', name)
-        .then(function() {
-          return self.modal.clickFooterButton('Add Group');
-        })
-        .then(function() {
-          return self.modal.waitToClose();
-        })
-        .waitForCssSelector('.network-group-name[data-name=' + name + ']', 2000);
-    },
-    renameNodeNetworkGroup: function(oldName, newName) {
-      var self = this;
-      return this.remote
-        .then(function() {
-          return self.goToNodeNetworkGroup(oldName);
-        })
-        .clickByCssSelector('.glyphicon-pencil')
-        .waitForCssSelector('.network-group-name input[type=text]', 2000)
-        .findByCssSelector('.node-group-renaming input[type=text]')
-          .clearValue()
-          .type(newName)
-          // Enter
-          .type('\uE007')
-          .end()
-        .waitForCssSelector('.network-group-name[data-name=' + newName + ']', 2000);
-    },
-    goToNodeNetworkGroup: function(name) {
-      return this.remote
-        .findByCssSelector('ul.node_network_groups')
-          .clickLinkByText(name)
-          .end()
-        .waitForCssSelector('.network-group-name[data-name=' + name + ']', 2000);
-    },
-    removeNodeNetworkGroup: function(name) {
-      var self = this;
-      return this.remote
-        .clickByCssSelector('.network-group-name[data-name=' + name + '] .glyphicon-remove')
-        .then(function() {
-          return self.modal.waitToOpen();
-        })
-        .then(function() {
-          return self.modal.clickFooterButton('Delete');
-        })
-        .then(function() {
-          return self.modal.waitToClose();
-        })
-        .waitForElementDeletion('.network-group-name[data-name=' + name + ']', 2000)
-        .sleep(3000); // unconditionally sleep to wait until update_dnsmasq task is finished
-    }
-  };
-  return NetworkPage;
-});
+export default NetworkPage;

@@ -14,8 +14,7 @@
  * under the License.
  **/
 
-define(['./intern'], function(config) {
-  'use strict';
-  config.environments = [{browserName: 'phantomjs'}];
-  return config;
-});
+import config from './intern';
+
+config.environments = [{browserName: 'phantomjs'}];
+export default config;

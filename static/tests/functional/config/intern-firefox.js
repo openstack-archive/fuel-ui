@@ -14,8 +14,7 @@
  * under the License.
  **/
 
-define(['./intern'], function(config) {
-  'use strict';
-  config.environments = [{browserName: 'firefox'}];
-  return config;
-});
+import config from './intern';
+
+config.environments = [{browserName: 'firefox'}];
+export default config;

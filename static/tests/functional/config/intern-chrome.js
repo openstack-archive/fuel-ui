@@ -14,8 +14,7 @@
  * under the License.
  **/
 
-define(['./intern'], function(config) {
-  'use strict';
-  config.environments = [{browserName: 'chrome'}];
-  return config;
-});
+import config from './intern';
+
+config.environments = [{browserName: 'chrome'}];
+export default config;
