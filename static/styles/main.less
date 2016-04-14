@@ -3031,15 +3031,19 @@ input[type=range] {
       width: 100%;
       height: @role-height;
       padding: 0px 16px;
-      line-height: @role-height;
+      line-height: 20px;
+      overflow: hidden;
       .break-word;
       i {
         display: block;
         position: absolute;
         top: 15px;
         & + span {
-          display: inline-block;
-          margin-left: 24px;
+          display: table-cell;
+          padding: 4px 4px 4px 24px;
+          vertical-align: middle;
+          height: @role-height;
+          overflow: hidden;
         }
       }
     }
@@ -3070,7 +3074,7 @@ input[type=range] {
       i {
         display: none;
         & + span {
-          margin-left: 4px;
+          padding: 4px;
         }
       }
     }
