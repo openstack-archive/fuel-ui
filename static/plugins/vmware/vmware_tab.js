@@ -38,10 +38,14 @@ var Field = React.createClass({
   render() {
     var metadata = this.props.metadata;
     var value = this.props.model.get(metadata.name);
+    var defaultValue = metadata.type === 'file' ? value : null;
+    var inputValue = metadata.type === 'select' ? value.current.id :
+        (metadata.type === 'file' ? null : value);
     return (
       <Input
         {... _.pick(metadata, 'name', 'type', 'label', 'description')}
-        value={metadata.type === 'select' ? value.current.id : value}
+        defaultValue={defaultValue}
+        value={inputValue}
         checked={value}
         toggleable={metadata.type === 'password'}
         onChange={this.onChange}
