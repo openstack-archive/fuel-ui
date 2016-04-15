@@ -20,6 +20,7 @@ import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
 import models from 'models';
+import {Tooltip} from 'views/controls';
 
 var PluginsPage = React.createClass({
   statics: {
@@ -27,17 +28,27 @@ var PluginsPage = React.createClass({
     navbarActiveElement: 'plugins',
     breadcrumbsPath: [['home', '#'], 'plugins'],
     fetchData() {
+      var releases = app.releases;
       var plugins = new models.Plugins();
-      return plugins.fetch()
-        .then(() => {
-          return $.when(...plugins.map((plugin) => {
-            var links = new models.PluginLinks();
-            links.url = _.result(plugin, 'url') + '/links';
-            plugin.set({links: links});
-            return links.fetch();
-          }));
-        })
-        .then(() => ({plugins}));
+      var availableVersions = {};
+      return $.when(
+        plugins.fetch()
+          .then(() => {
+            return $.when(...plugins.map((plugin) => {
+              var links = new models.PluginLinks();
+              links.url = _.result(plugin, 'url') + '/links';
+              plugin.set({links: links});
+              return links.fetch();
+            }));
+          }),
+        releases.fetch({cache: true})
+          .then(() => {
+            releases.each((release) => {
+              availableVersions[release.get('version')] = true;
+            });
+          })
+      )
+      .then(() => ({plugins, availableVersions}));
     }
   },
   getDefaultProps() {
@@ -78,11 +89,24 @@ var PluginsPage = React.createClass({
     return data;
   },
   renderPlugin(plugin, index) {
+    var unsupported = !_.any(
+      plugin.get('releases'),
+      (release) => this.props.availableVersions[release.version]
+    );
+    var classes = {
+      plugin: true,
+      unsupported
+    };
     return (
-      <div key={index} className='plugin'>
+      <div key={index} className={utils.classNames(classes)}>
         <div className='row'>
           <div className='col-xs-2' />
           <h3 className='col-xs-10'>
+            {unsupported &&
+              <Tooltip text={i18n('plugins_page.unsupported_plugin')}>
+                <span className='glyphicon glyphicon-lock' aria-hidden='true' />
+              </Tooltip>
+            }
             {plugin.get('title')}
           </h3>
         </div>

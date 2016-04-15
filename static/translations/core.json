@@ -311,7 +311,8 @@
                 "more_info": "For more information, visit",
                 "plugins_catalog": "Plugins Catalog",
                 "plugins_documentation": "Plugins Documentation",
-                "no_plugins": "There are no plugins installed."
+                "no_plugins": "There are no plugins installed.",
+                "unsupported_plugin": "Plugin is incompatible with all supported releases"
             },
             "clusters_page": {
                 "title": "My OpenStack Environments",

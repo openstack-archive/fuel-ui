@@ -1577,6 +1577,16 @@ input[type=range] {
     }
     &:nth-child(odd) {
       background: @light-blue;
+      &.unsupported {
+        background: lighten(@red, 35%);
+      }
+    }
+    &.unsupported {
+      background: lighten(@red, 40%);
+      .glyphicon {
+        height: 18px;
+        margin-right: 4px;
+      }
     }
   }
   .plugin-page-links {
