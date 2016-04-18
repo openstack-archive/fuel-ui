@@ -76,7 +76,7 @@ var NetworkInputsMixin = {
       onChange: _.partialRight(this.setValue, {isInteger: isInteger}),
       name: attribute,
       label: i18n(ns + attribute),
-      value: this.getModel().get(attribute),
+      defaultValue: utils.inputValue(this.getModel().get(attribute)),
       wrapperClassName: isRange ? attribute : false,
       network,
       cluster,
@@ -267,7 +267,7 @@ var Range = React.createClass({
           <Input
             {...this.getRangeProps()}
             error={(rangeError.start || verificationError) ? '' : null}
-            value={range[0]}
+            defaultValue={utils.inputValue(range[0])}
             onChange={_.partialRight(this.onRangeChange, attributeName, index)}
             ref={'start' + index}
             inputClassName='start'
@@ -276,7 +276,7 @@ var Range = React.createClass({
           <Input
             {...this.getRangeProps(true)}
             error={rangeError.end ? '' : null}
-            value={range[1]}
+            defaultValue={utils.inputValue(range[1])}
             onChange={_.partialRight(this.onRangeChange, attributeName, index)}
             onFocus={_.partial(this.autoCompleteIPRange, rangeError && rangeError.start, range[0])}
             disabled={this.props.disabled || !!this.props.autoIncreaseWith}
@@ -301,14 +301,14 @@ var Range = React.createClass({
       <div className='range-row clearfix'>
         <Input
           {...this.getRangeProps()}
-          value={ranges[0]}
+          defaultValue={utils.inputValue(ranges[0])}
           error={startInputError ? '' : null}
           inputClassName='start'
         />
         <Input
           {...this.getRangeProps(true)}
           disabled={this.props.disabled || !!this.props.autoIncreaseWith}
-          value={ranges[1]}
+          defaultValue={utils.inputValue(ranges[1])}
           error={endInputError ? '' : null}
         />
         {error && (startInputError || endInputError) &&
@@ -382,7 +382,7 @@ var VlanTagInput = React.createClass({
     return (
       <div className={'vlan-tagging form-group ' + this.props.name}>
         <label className='vlan-tag-label'>{this.props.label}</label>
-        <Input {...this.props}
+        <Input {...utils.getInputProps(this.props)}
           onChange={this.onTaggingChange}
           type='checkbox'
           checked={!_.isNull(this.props.value)}
@@ -390,7 +390,7 @@ var VlanTagInput = React.createClass({
           label={null}
         />
         {!_.isNull(this.props.value) &&
-          <Input {...this.props}
+          <Input {...utils.getInputProps(this.props)}
             ref={this.props.name}
             onChange={this.onInputChange}
             type='text'
@@ -415,7 +415,7 @@ var CidrControl = React.createClass({
       <div className='form-group cidr'>
         <label>{i18n(networkTabNS + 'network.cidr')}</label>
         <Input
-          {...this.props}
+          {...utils.getInputProps(this.props)}
           type='text'
           label={null}
           onChange={this.onCidrChange}
@@ -423,7 +423,7 @@ var CidrControl = React.createClass({
         />
         <Input
           type='checkbox'
-          checked={this.props.network.get('meta').notation === 'cidr'}
+          defaultChecked={this.props.network.get('meta').notation === 'cidr'}
           label={i18n(networkTabNS + 'network.use_whole_cidr')}
           disabled={this.props.disabled}
           onChange={this.props.changeNetworkNotation}
@@ -518,7 +518,7 @@ var MultipleValuesInput = React.createClass({
                   disabled={this.props.disabled}
                   name={attributeName}
                   error={(inputError || this.props.verificationError) && ''}
-                  value={value}
+                  defaultValue={utils.inputValue(value)}
                   onChange={_.partialRight(this.onChange, index)}
                   ref={'row' + index}
                   placeholder={inputError ? '' : this.props.placeholder}
@@ -1456,7 +1456,7 @@ var NodeNetworkGroupTitle = React.createClass({
             type='text'
             ref='node-group-title-input'
             name='new-name'
-            defaultValue={currentNodeNetworkGroup.get('name')}
+            defaultValue={utils.inputValue(currentNodeNetworkGroup.get('name'))}
             error={this.state.nodeNetworkGroupNameChangingError}
             disabled={this.state.actionInProgress}
             onKeyDown={this.onNodeNetworkGroupNameKeyDown}
@@ -1533,7 +1533,7 @@ var Network = React.createClass({
         />
         {meta.use_gateway &&
           <Input
-            {...gatewayProps}
+            {...utils.getInputProps(gatewayProps)}
             type='text'
             disabled={gatewayProps.disabled || meta.notation === 'cidr'}
           />

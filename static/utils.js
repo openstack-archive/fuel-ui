@@ -333,6 +333,16 @@ var utils = {
       result[key] = this.deepOmit(object[key], keys);
       return result;
     }, _.isArray(object) ? [] : {});
+  },
+  inputValue(value) {
+    return _.isUndefined(value) || _.isNull(value) ? '' : value;
+  },
+  getInputProps(props) {
+    var {value, defaultValue, checked = false} = props;
+    var inputProps = _.omit(props, ['value', 'checked']);
+    inputProps.defaultValue = this.inputValue(value ? value : defaultValue);
+    inputProps.defaultChecked = checked;
+    return inputProps;
   }
 };
 

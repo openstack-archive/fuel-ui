@@ -253,7 +253,7 @@ var SettingSection = React.createClass({
         setting.type === 'password' ||
         setting.type === 'textarea'
       }
-      defaultValue={setting.value}
+      defaultValue={utils.inputValue(setting.value)}
       defaultChecked={_.isBoolean(setting.value) ? setting.value : false}
       toggleable={setting.type === 'password'}
       error={error}
@@ -289,6 +289,7 @@ var SettingSection = React.createClass({
               name='metadata'
               label={groupLabel}
               defaultChecked={metadata.enabled}
+              defaultValue=''
               disabled={isGroupDisabled || processedGroupDependencies.result}
               tooltipText={showSettingGroupWarning && groupWarning}
               onChange={isPlugin ? _.partial(this.togglePlugin, sectionName) : this.props.onChange}
@@ -317,7 +318,7 @@ var SettingSection = React.createClass({
                   return {
                     data: version.metadata.plugin_id,
                     label: version.metadata.plugin_version,
-                    defaultChecked: version.metadata.plugin_id === metadata.chosen_id,
+                    checked: version.metadata.plugin_id === metadata.chosen_id,
                     disabled: locked || processedGroupRestrictions.result ||
                       (metadata.toggleable && !metadata.enabled)
                   };

@@ -158,8 +158,8 @@ customControls.custom_repo_configuration = React.createClass({
           return (
             <div className='form-inline' key={'repo-' + index}>
               <Input
-                {...props}
-                defaultValue={repo.name}
+                {...utils.getInputProps(props)}
+                defaultValue={utils.inputValue(repo.name)}
                 error={error && error.name}
                 wrapperClassName='repo-name'
                 onChange={this.changeRepos.bind(this, 'change_name')}
@@ -167,8 +167,8 @@ customControls.custom_repo_configuration = React.createClass({
                 debounce
               />
               <Input
-                {...props}
-                defaultValue={this.constructor.repoToString(repo, os)}
+                {...utils.getInputProps(props)}
+                defaultValue={utils.inputValue(this.constructor.repoToString(repo, os))}
                 error={error && (error.uri ? error.name ? '' : error.uri : null)}
                 onChange={this.changeRepos.bind(this, null)}
                 label={index === 0 && i18n(ns + 'labels.uri')}
@@ -176,8 +176,8 @@ customControls.custom_repo_configuration = React.createClass({
                 debounce
               />
               <Input
-                {...props}
-                defaultValue={repo.priority}
+                {...utils.getInputProps(props)}
+                defaultValue={utils.inputValue(repo.priority)}
                 error={
                   error && (error.priority ? (error.name || error.uri) ? '' : error.priority : null)
                 }
@@ -301,12 +301,11 @@ customControls.text_list = customControls.textarea_list = React.createClass({
         className={utils.classNames({'has-error': !_.isNull(error)})}
       >
         <Tag
-          {... _.pick(this.props, 'name', 'disabled')}
+          {... utils.getInputProps(_.pick(this.props, 'name', 'value', 'disabled'))}
           ref={'input' + index}
           type='text'
           className='form-control'
           onChange={() => this.debouncedFieldChange(index)}
-          defaultValue={value}
         />
         {this.renderMultipleInputControls(index)}
         {error &&
@@ -409,9 +408,9 @@ customControls.custom_hugepages = React.createClass({
                 </div>
                 <div className='col-xs-9'>
                   <Input
-                    {...inputProps}
+                    {...utils.getInputProps(inputProps)}
                     error={errors[size]}
-                    defaultValue={parseInt(number, 10)}
+                    defaultValue={utils.inputValue(parseInt(number, 10))}
                     key={size}
                     onChange={_.partialRight(this.props.onChange, size)}
                   />

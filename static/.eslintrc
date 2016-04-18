@@ -14,6 +14,7 @@
     restParams: true
     spread: true
     superInFunctions: true
+    templateStrings: true
   rules:
     # es6
     arrow-parens: 2

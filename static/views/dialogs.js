@@ -1306,7 +1306,7 @@ export var ShowNodeInfoDialog = React.createClass({
               <Input
                 ref='hostname'
                 type='text'
-                defaultValue={node.get('hostname')}
+                defaultValue={utils.inputValue(node.get('hostname'))}
                 inputClassName={'input-sm'}
                 error={this.state.hostnameChangingError}
                 disabled={this.state.actionInProgress}
@@ -1342,7 +1342,7 @@ export var ShowNodeInfoDialog = React.createClass({
             label={i18n('node_details.vms_config_msg')}
             error={this.state.VMsConfValidationError}
             onChange={this.onVMsConfChange}
-            defaultValue={this.state.VMsConf}
+            defaultValue={utils.inputValue(this.state.VMsConf)}
           />
           <button
             className='btn btn-success'
@@ -1901,7 +1901,7 @@ export var ChangePasswordDialog = React.createClass({
             onKeyDown={this.handleKeyDown}
             disabled={this.state.actionInProgress}
             toggleable={name === 'currentPassword'}
-            defaultValue={this.state[name]}
+            defaultValue={utils.inputValue(this.state[name])}
             error={this.getError(name)}
           />;
         })}
