@@ -21,7 +21,7 @@ import ClusterPage from 'tests/functional/pages/cluster';
 import DashboardPage from 'tests/functional/pages/dashboard';
 import 'tests/functional/helpers';
 
-registerSuite(function() {
+registerSuite(() => {
   var common, clusterPage, dashboardPage, clusterName;
   var searchButtonSelector = '.node-management-panel .btn-search';
   var sortingButtonSelector = '.node-management-panel .btn-sorters';
@@ -35,15 +35,9 @@ registerSuite(function() {
       clusterName = common.pickRandomName('Test Cluster');
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Nodes');
-        });
+        .then(() => common.getIn())
+        .then(() => common.createCluster(clusterName))
+        .then(() => clusterPage.goToTab('Nodes'));
     },
     'Test management controls state in new environment': function() {
       return this.remote
@@ -62,21 +56,13 @@ registerSuite(function() {
       },
       beforeEach: function() {
         return this.remote
-          .then(function() {
-            return common.addNodesToCluster(3, ['Controller']);
-          })
-          .then(function() {
-            return common.addNodesToCluster(1, ['Compute'], 'error');
-          });
+          .then(() => common.addNodesToCluster(3, ['Controller']))
+          .then(() => common.addNodesToCluster(1, ['Compute'], 'error'));
       },
       afterEach: function() {
         return this.remote
-          .then(function() {
-            return clusterPage.goToTab('Dashboard');
-          })
-          .then(function() {
-            return dashboardPage.discardChanges();
-          });
+          .then(() => clusterPage.goToTab('Dashboard'))
+          .then(() => dashboardPage.discardChanges());
       },
       'Test search control': function() {
         var searchInputSelector = '.node-management-panel [name=search]';
@@ -117,22 +103,29 @@ registerSuite(function() {
           .assertElementNotExists('.sorters .btn-reset-sorting',
             'Default sorting can not be reset')
           .findByCssSelector('.node-list .node-name .name p')
-            .getVisibleText().then(function(text) {
+            .getVisibleText().then((text) => {
               firstNodeName = text;
             })
             .end()
           .clickByCssSelector('.sorters .sort-by-roles-asc button')
           .findByCssSelector('.node-list .node-name .name p')
-            .getVisibleText().then(function(text) {
-              assert.notEqual(text, firstNodeName,
-                'Order of sorting by roles was changed to desc');
-            })
+            .getVisibleText()
+              .then(
+                (text) => assert.notEqual(
+                  text,
+                  firstNodeName,
+                  'Order of sorting by roles was changed to desc'
+                )
+              )
             .end()
           .clickByCssSelector('.sorters .sort-by-roles-desc button')
-          .then(function() {
-            return self.remote.assertElementTextEquals('.node-list .node-name .name p',
-              firstNodeName, 'Order of sorting by roles was changed to asc (default)');
-          })
+          .then(
+            () => self.remote.assertElementTextEquals(
+              '.node-list .node-name .name p',
+              firstNodeName,
+              'Order of sorting by roles was changed to asc (default)'
+            )
+          )
           .clickByCssSelector(moreControlSelector + ' button')
           .assertElementsExist(moreControlSelector + ' .popover .checkbox-group', 12,
             'Standard node sorters are presented')

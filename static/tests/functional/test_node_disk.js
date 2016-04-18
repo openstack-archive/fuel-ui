@@ -18,7 +18,7 @@ import registerSuite from 'intern!object';
 import assert from 'intern/chai!assert';
 import Common from 'tests/functional/pages/common';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     clusterName,
     initialImageSize,
@@ -36,15 +36,9 @@ registerSuite(function() {
       loadDefaultsButtonSelector = '.btn-defaults';
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        })
-        .then(function() {
-          return common.addNodesToCluster(1, ['Controller']);
-        })
+        .then(() => common.getIn())
+        .then(() => common.createCluster(clusterName))
+        .then(() => common.addNodesToCluster(1, ['Controller']))
         // check node
         .clickByCssSelector('.node.pending_addition input[type=checkbox]')
         // click Configure Disks button
@@ -52,12 +46,12 @@ registerSuite(function() {
         .assertElementsAppear('.edit-node-disks-screen', 2000, 'Node disk screen loaded')
         .findByCssSelector(sdaDisk + ' input[type=number][name=image]')
           // get the initial size of the Image Storage volume
-          .then(function(input) {
-            return input.getProperty('value')
-              .then(function(value) {
+          .then(
+            (input) => input.getProperty('value')
+              .then((value) => {
                 initialImageSize = value;
-              });
-          })
+              })
+          )
           .end();
     },
     'Testing nodes disks layout': function() {
@@ -70,20 +64,16 @@ registerSuite(function() {
       return this.remote
         .clickByCssSelector(sdaDisk + ' .disk-visual [data-volume=os] .toggle')
         .findByCssSelector(sdaDisk + ' .disk-utility-box [data-volume=os] input')
-          .then(function(input) {
-            return input.getProperty('value')
-              .then(function(value) {
-                assert.ok(value, 'Base System is allocated on SDA disk');
-              });
-          })
+          .then(
+            (input) => input.getProperty('value')
+              .then((value) => assert.ok(value, 'Base System is allocated on SDA disk'))
+          )
           .end()
         .findByCssSelector(sdaDisk + ' .disk-utility-box [data-volume=image] input')
-          .then(function(input) {
-            return input.getProperty('value')
-              .then(function(value) {
-                assert.ok(value, 'Image Storage is allocated on SDA disk');
-              });
-          })
+          .then(
+            (input) => input.getProperty('value')
+              .then((value) => assert.ok(value, 'Image Storage is allocated on SDA disk'))
+          )
           .end()
         .assertElementExists(sdaDisk + ' .disk-visual [data-volume=image] .close-btn',
           'Button Close for Image Storage volume is present')
@@ -112,36 +102,40 @@ registerSuite(function() {
       return this.remote
         .findByCssSelector(sdaDisk + ' .disk-visual [data-volume=image]')
           // check that visualisation div for Image Storage present and has positive width
-          .then(function(element) {
-            return element.getSize()
-              .then(function(sizes) {
-                assert.isTrue(sizes.width > 0,
-                  'Expected positive width for Image Storage visual');
-              });
-          })
+          .then(
+            (element) => element.getSize()
+              .then(
+                (sizes) => assert.isTrue(
+                  sizes.width > 0,
+                  'Expected positive width for Image Storage visual'
+                )
+              )
+          )
           .end()
         .clickByCssSelector(sdaDisk + ' .disk-visual [data-volume=image] .close-btn')
         .assertElementEnabled(applyButtonSelector, 'Apply button is enabled')
         .findByCssSelector(sdaDisk + ' .disk-visual [data-volume=image]')
           // check Image Storage volume deleted
-          .then(function(element) {
-            return element.getSize()
-              .then(function(sizes) {
+          .then(
+            (element) => element.getSize()
+              .then((sizes) => {
                 assert.equal(sizes.width, 0, 'Expected null width for Image Storage visual');
-              });
-          })
+              })
+          )
           .end()
         .assertElementPropertyEquals(sdaDisk + ' input[type=number][name=image]', 'value', 0,
           'Image Storage volume was removed successfully')
         .findByCssSelector(sdaDisk + ' .disk-visual [data-volume=unallocated]')
           // check that there is unallocated space after Image Storage removal
-          .then(function(element) {
-            return element.getSize()
-              .then(function(sizes) {
-                assert.isTrue(sizes.width > 0,
-                  'There is unallocated space after Image Storage removal');
-              });
-          })
+          .then(
+            (element) => element.getSize()
+              .then(
+                (sizes) => assert.isTrue(
+                  sizes.width > 0,
+                  'There is unallocated space after Image Storage removal'
+                )
+              )
+          )
           .end()
         .clickByCssSelector(cancelButtonSelector)
         .assertElementPropertyEquals(sdaDisk + ' input[type=number][name=image]', 'value',

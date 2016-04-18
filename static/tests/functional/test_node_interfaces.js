@@ -20,7 +20,7 @@ import InterfacesPage from 'tests/functional/pages/interfaces';
 import Common from 'tests/functional/pages/common';
 import 'tests/functional/helpers';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     interfacesPage,
     clusterName;
@@ -33,21 +33,18 @@ registerSuite(function() {
       clusterName = common.pickRandomName('Test Cluster');
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        })
-        .then(function() {
-          return common.addNodesToCluster(1, 'Controller', null, 'Supermicro X9SCD');
-        })
+        .then(() => common.getIn())
+        .then(() => common.createCluster(clusterName))
+        .then(() => common.addNodesToCluster(1, 'Controller', null, 'Supermicro X9SCD'))
         .clickByCssSelector('.node.pending_addition input[type=checkbox]:not(:checked)')
         .clickByCssSelector('button.btn-configure-interfaces')
         .assertElementAppears('div.ifc-list', 2000, 'Node interfaces loaded')
-        .then(pollUntil(function() {
-          return window.$('div.ifc-list').is(':visible') || null;
-        }, 1000));
+        .then(
+          pollUntil(
+            () => window.$('div.ifc-list').is(':visible') || null,
+            1000
+          )
+        );
     },
     afterEach: function() {
       return this.remote
@@ -56,9 +53,7 @@ registerSuite(function() {
     },
     teardown: function() {
       return this.remote
-        .then(function() {
-          return common.removeCluster(clusterName, true);
-        });
+        .then(() => common.removeCluster(clusterName, true));
     },
     'Configure interface properties manipulations': function() {
       return this.remote
@@ -90,79 +85,44 @@ registerSuite(function() {
     },
     'Untagged networks error': function() {
       return this.remote
-        .then(function() {
-          return interfacesPage.assignNetworkToInterface('Public', 'eth0');
-        })
+        .then(() => interfacesPage.assignNetworkToInterface('Public', 'eth0'))
         .assertElementExists('div.ifc-error',
           'Untagged networks can not be assigned to the same interface message should appear');
     },
     'Bond interfaces with different speeds': function() {
       return this.remote
-        .then(function() {
-          return interfacesPage.selectInterface('eth2');
-        })
-        .then(function() {
-          return interfacesPage.selectInterface('eth3');
-        })
+        .then(() => interfacesPage.selectInterface('eth2'))
+        .then(() => interfacesPage.selectInterface('eth3'))
         .assertElementExists('div.alert.alert-warning',
           'Interfaces with different speeds bonding not recommended message should appear')
         .assertElementEnabled('.btn-bond', 'Bonding button should still be enabled');
     },
     'Interfaces bonding': function() {
       return this.remote
-        .then(function() {
-          return interfacesPage.bondInterfaces('eth1', 'eth2');
-        })
-        .then(function() {
-          // Two interfaces bonding
-          return interfacesPage.checkBondInterfaces('bond0', ['eth1', 'eth2']);
-        })
-        .then(function() {
-          return interfacesPage.bondInterfaces('bond0', 'eth5');
-        })
-        .then(function() {
-          // Adding interface to existing bond
-          return interfacesPage.checkBondInterfaces('bond0', ['eth1', 'eth2', 'eth5']);
-        })
-        .then(function() {
-          return interfacesPage.removeInterfaceFromBond('bond0', 'eth2');
-        })
-        .then(function() {
-          // Removing interface from the bond
-          return interfacesPage.checkBondInterfaces('bond0', ['eth1', 'eth5']);
-        });
+        .then(() => interfacesPage.bondInterfaces('eth1', 'eth2'))
+        .then(() => interfacesPage.checkBondInterfaces('bond0', ['eth1', 'eth2']))
+        .then(() => interfacesPage.bondInterfaces('bond0', 'eth5'))
+        // Adding interface to existing bond
+        .then(() => interfacesPage.checkBondInterfaces('bond0', ['eth1', 'eth2', 'eth5']))
+        .then(() => interfacesPage.removeInterfaceFromBond('bond0', 'eth2'))
+        // Removing interface from the bond
+        .then(() => interfacesPage.checkBondInterfaces('bond0', ['eth1', 'eth5']));
     },
     'Interfaces unbonding': function() {
       return this.remote
-        .then(function() {
-          return interfacesPage.bondInterfaces('eth1', 'eth2');
-        })
-        .then(function() {
-          // Two interfaces bonding
-          return interfacesPage.selectInterface('bond0');
-        })
+        .then(() => interfacesPage.bondInterfaces('eth1', 'eth2'))
+        // Two interfaces bondin
+        .then(() => interfacesPage.selectInterface('bond0'))
         .clickByCssSelector('.btn-unbond')
-        .then(function() {
-          return interfacesPage.selectInterface('eth1');
-        })
-        .then(function() {
-          return interfacesPage.selectInterface('eth2');
-        });
+        .then(() => interfacesPage.selectInterface('eth1'))
+        .then(() => interfacesPage.selectInterface('eth2'));
     },
     'Check that two bonds cannot be bonded': function() {
       return this.remote
-        .then(function() {
-          return interfacesPage.bondInterfaces('eth0', 'eth2');
-        })
-        .then(function() {
-          return interfacesPage.bondInterfaces('eth1', 'eth5');
-        })
-        .then(function() {
-          return interfacesPage.selectInterface('bond0');
-        })
-        .then(function() {
-          return interfacesPage.selectInterface('bond1');
-        })
+        .then(() => interfacesPage.bondInterfaces('eth0', 'eth2'))
+        .then(() => interfacesPage.bondInterfaces('eth1', 'eth5'))
+        .then(() => interfacesPage.selectInterface('bond0'))
+        .then(() => interfacesPage.selectInterface('bond1'))
         .assertElementDisabled('.btn-bond', 'Making sure bond button is disabled')
         .assertElementContainsText('.alert.alert-warning',
           ' network interface is already bonded with other network interfaces.',

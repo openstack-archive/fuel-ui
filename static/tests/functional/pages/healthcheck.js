@@ -24,7 +24,7 @@ HealthcheckPage.prototype = {
   constructor: HealthcheckPage,
   createFakeServerForNotRunnedTests: function() {
     return this.remote
-      .execute(function() {
+      .execute(() => {
         window.server = sinon.fakeServer.create();
         window.server.autoRespond = true;
 
@@ -132,7 +132,7 @@ HealthcheckPage.prototype = {
   createFakeServerForRunningTests: function() {
     return this.remote
       // running tests
-      .execute(function() {
+      .execute(() => {
         window.server = sinon.fakeServer.create();
         window.server.autoRespond = true;
 
@@ -334,7 +334,7 @@ HealthcheckPage.prototype = {
   createFakeServerForFinishedTests: function() {
     return this.remote
       // running tests
-      .execute(function() {
+      .execute(() => {
         window.server = sinon.fakeServer.create();
         window.server.autoRespond = true;
 
@@ -539,7 +539,7 @@ HealthcheckPage.prototype = {
   },
   restoreServer: function() {
     return this.remote
-      .execute(function() {
+      .execute(() => {
         window.server.restore();
       });
   }

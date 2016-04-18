@@ -41,17 +41,17 @@ _.defaults(Command.prototype, {
       var currentTimeout;
       return this.parent
         .getFindTimeout()
-        .then(function(value) {
+        .then((value) => {
           currentTimeout = value;
         })
         .setFindTimeout(timeout)
         .findByCssSelector(cssSelector)
-          .catch(function(error) {
+          .catch((error) => {
             self.parent.setFindTimeout(currentTimeout);
             throw error;
           })
           .end()
-        .then(function() {
+        .then(() => {
           self.parent.setFindTimeout(currentTimeout);
         });
     });
@@ -62,16 +62,16 @@ _.defaults(Command.prototype, {
       var currentTimeout;
       return this.parent
         .getFindTimeout()
-        .then(function(value) {
+        .then((value) => {
           currentTimeout = value;
         })
         .setFindTimeout(timeout)
         .waitForDeletedByCssSelector(cssSelector)
-        .catch(function(error) {
+        .catch((error) => {
           self.parent.setFindTimeout(currentTimeout);
           if (error.name !== 'Timeout') throw error;
         })
-        .then(function() {
+        .then(() => {
           self.parent.setFindTimeout(currentTimeout);
         });
     });
@@ -118,7 +118,7 @@ _.defaults(Command.prototype, {
       var dragSource = this._session._dragSource;
       this._session._dragSource = null;
 
-      return this.parent.executeAsync(function(dragFrom, dragTo, done) {
+      return this.parent.executeAsync((dragFrom, dragTo, done) => {
         var dragAndDrop = (function() {
           var dispatchEvent, createEvent;
 
@@ -263,7 +263,7 @@ _.defaults(Command.prototype, {
         } catch (error) {
           done(error.message);
         }
-      }, [dragSource, dragTarget]).finally(function(result) {
+      }, [dragSource, dragTarget]).finally((result) => {
         if (result) {
           var error = new Error(result);
           error.name = 'DragAndDropError';
@@ -277,7 +277,7 @@ _.defaults(Command.prototype, {
     return new this.constructor(this, function() {
       return this.parent
         .findAllByCssSelector(cssSelector)
-          .then(function(elements) {
+          .then((elements) => {
             if (!_.isNumber(amount)) {
               // no amount given - check if any amount of such elements exist
               message = amount;
@@ -328,9 +328,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .findByCssSelector(cssSelector)
           .isEnabled()
-          .then(function(isEnabled) {
-            return assert.isTrue(isEnabled, message);
-          })
+          .then((isEnabled) => assert.isTrue(isEnabled, message))
           .end();
     });
   },
@@ -339,9 +337,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .findByCssSelector(cssSelector)
           .isEnabled()
-          .then(function(isEnabled) {
-            return assert.isFalse(isEnabled, message);
-          })
+          .then((isEnabled) => assert.isFalse(isEnabled, message))
           .end();
     });
   },
@@ -350,9 +346,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .findByCssSelector(cssSelector)
           .isDisplayed()
-          .then(function(isDisplayed) {
-            return assert.isTrue(isDisplayed, message);
-          })
+          .then((isDisplayed) => assert.isTrue(isDisplayed, message))
           .end();
     });
   },
@@ -361,9 +355,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .findByCssSelector(cssSelector)
           .isDisplayed()
-          .then(function(isDisplayed) {
-            return assert.isFalse(isDisplayed, message);
-          })
+          .then((isDisplayed) => assert.isFalse(isDisplayed, message))
           .end();
     });
   },
@@ -372,9 +364,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .findByCssSelector(cssSelector)
           .getVisibleText()
-          .then(function(actualText) {
-            assert.equal(actualText, expectedText, message);
-          })
+          .then((actualText) => assert.equal(actualText, expectedText, message))
           .end();
     });
   },
@@ -383,9 +373,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .findByCssSelector(cssSelector)
           .getVisibleText()
-          .then(function(actualText) {
-            assert.include(actualText, text, message);
-          })
+          .then((actualText) => assert.include(actualText, text, message))
           .end();
     });
   },
@@ -394,9 +382,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .findByCssSelector(cssSelector)
           .getVisibleText()
-          .then(function(actualText) {
-            assert.match(actualText, regExp, message);
-          })
+          .then((actualText) => assert.match(actualText, regExp, message))
           .end();
     });
   },
@@ -405,9 +391,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .findByCssSelector(cssSelector)
           .getVisibleText()
-          .then(function(actualText) {
-            assert.notInclude(actualText, text, message);
-          })
+          .then((actualText) => assert.notInclude(actualText, text, message))
           .end();
     });
   },
@@ -416,9 +400,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .findByCssSelector(cssSelector)
           .getProperty(attribute)
-          .then(function(actualText) {
-            assert.equal(actualText, expectedText, message);
-          })
+          .then((actualText) => assert.equal(actualText, expectedText, message))
           .end();
     });
   },
@@ -427,9 +409,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .findByCssSelector(cssSelector)
           .getProperty(attribute)
-          .then(function(actualText) {
-            assert.notEqual(actualText, textToCheck, message);
-          })
+          .then((actualText) => assert.notEqual(actualText, textToCheck, message))
           .end();
     });
   },
@@ -438,9 +418,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .findByCssSelector(cssSelector)
           .getProperty(attribute)
-          .then(function(actualText) {
-            assert.include(actualText, text, message);
-          })
+          .then((actualText) => assert.include(actualText, text, message))
           .end();
     });
   },
@@ -449,9 +427,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .findByCssSelector(cssSelector)
           .isSelected()
-            .then(function(isSelected) {
-              assert.isTrue(isSelected, message);
-            })
+            .then((isSelected) => assert.isTrue(isSelected, message))
           .end();
     });
   },
@@ -460,9 +436,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .findByCssSelector(cssSelector)
           .isSelected()
-            .then(function(isSelected) {
-              assert.isFalse(isSelected, message);
-            })
+            .then((isSelected) => assert.isFalse(isSelected, message))
           .end();
     });
   },
@@ -470,9 +444,10 @@ _.defaults(Command.prototype, {
     return new this.constructor(this, function() {
       return this.parent
         .findByCssSelector(cssSelector)
-        .getVisibleText().then(function(text) {
-          return assert.isTrue(parseInt(text, 10) > 0, attributeName + ' is greater than 0');
-        })
+        .getVisibleText()
+          .then(
+            (text) => assert.isTrue(parseInt(text, 10) > 0, attributeName + ' is greater than 0')
+          )
         .end();
     });
   }
@@ -484,8 +459,4 @@ var serverUrl = 'http://' + serverHost + ':' + serverPort;
 var username = 'admin';
 var password = 'admin';
 
-export default {
-  username: username,
-  password: password,
-  serverUrl: serverUrl
-};
+export default {username, password, serverUrl};

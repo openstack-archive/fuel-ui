@@ -26,22 +26,14 @@ WelcomePage.prototype = {
     return this.remote
       .waitForCssSelector('.welcome-page', 3000)
       .then(
-        function() {
-          return this.parent
-            .clickByCssSelector('.welcome-button-box button')
-            .waitForDeletedByCssSelector('.welcome-button-box button', 3000)
-            .then(
-              function() {
-                return true;
-              },
-              function() {
-                return !strictCheck;
-              }
-            );
-        },
-        function() {
-          return !strictCheck;
-        }
+        () => this.parent
+          .clickByCssSelector('.welcome-button-box button')
+          .waitForDeletedByCssSelector('.welcome-button-box button', 3000)
+          .then(
+            () => true,
+            () => !strictCheck
+          ),
+        () => !strictCheck
       );
   }
 };

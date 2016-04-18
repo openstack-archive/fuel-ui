@@ -28,9 +28,7 @@ NodeComponent.prototype = {
     var self = this;
     return this.remote
       .findByCssSelector('div.compact-node .node-hardware p:not(.btn)')
-        .then(function(element) {
-          return self.remote.moveMouseTo(element);
-        })
+        .then((element) => self.remote.moveMouseTo(element))
         .end()
       // the following timeout as we have 0.3s transition for the button
       .sleep(500)
@@ -46,9 +44,7 @@ NodeComponent.prototype = {
       .findByCssSelector(cssSelector)
         .clickByCssSelector('.node-settings')
         .end()
-      .then(function() {
-        return self.modal.waitToOpen();
-      });
+      .then(() => self.modal.waitToOpen());
   },
   discardNode: function(fromExtendedView) {
     var self = this;
@@ -57,15 +53,10 @@ NodeComponent.prototype = {
       .findByCssSelector(cssSelector)
         .clickByCssSelector('.btn-discard')
         .end()
-      .then(function() {
-        // deletion confirmation shows up
-        return self.modal.waitToOpen();
-      })
+      .then(() => self.modal.waitToOpen())
       // confirm deletion
       .clickByCssSelector('div.modal-content button.btn-delete')
-      .then(function() {
-        return self.modal.waitToClose();
-      });
+      .then(() => self.modal.waitToClose());
   },
   renameNode: function(newName, fromExtendedView) {
     var cssSelector = fromExtendedView ? '.node-popover' : '.node';

@@ -22,7 +22,7 @@ import DashboardPage from 'tests/functional/pages/dashboard';
 import ModalWindow from 'tests/functional/pages/modal';
 import 'tests/functional/helpers';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     clusterPage,
     dashboardPage,
@@ -39,30 +39,18 @@ registerSuite(function() {
       clusterName = common.pickRandomName('Test Cluster');
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        });
+        .then(() => common.getIn())
+        .then(() => common.createCluster(clusterName));
     },
     beforeEach: function() {
       return this.remote
-        .then(function() {
-          return common.addNodesToCluster(1, ['Controller']);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Dashboard');
-        });
+        .then(() => common.addNodesToCluster(1, ['Controller']))
+        .then(() => clusterPage.goToTab('Dashboard'));
     },
     afterEach: function() {
       return this.remote
-        .then(function() {
-          return clusterPage.resetEnvironment(clusterName);
-        })
-        .then(function() {
-          return dashboardPage.discardChanges();
-        });
+        .then(() => clusterPage.resetEnvironment(clusterName))
+        .then(() => dashboardPage.discardChanges());
     },
     'Provision nodes': function() {
       this.timeout = 100000;
@@ -75,18 +63,10 @@ registerSuite(function() {
           '1 node to be provisioned'
         )
         .clickByCssSelector('.btn-provision')
-        .then(function() {
-          return modal.waitToOpen();
-        })
-        .then(function() {
-          return modal.checkTitle('Provision Nodes');
-        })
-        .then(function() {
-          return modal.clickFooterButton('Provision 1 Node');
-        })
-        .then(function() {
-          return modal.waitToClose();
-        })
+        .then(() => modal.waitToOpen())
+        .then(() => modal.checkTitle('Provision Nodes'))
+        .then(() => modal.clickFooterButton('Provision 1 Node'))
+        .then(() => modal.waitToClose())
         .assertElementAppears('div.deploy-process div.progress', 2000, 'Provisioning started')
         .assertElementDisappears('div.deploy-process div.progress', 5000, 'Provisioning finished')
         .assertElementContainsText(
@@ -94,41 +74,27 @@ registerSuite(function() {
           'Success',
           'Provisioning successfully finished'
         )
-        .then(function() {
-          return clusterPage.isTabLocked('Networks');
-        })
-        .then(function(isLocked) {
+        .then(() => clusterPage.isTabLocked('Networks'))
+        .then((isLocked) => {
           assert.isFalse(isLocked, 'Networks tab is not locked after nodes were provisioned');
         })
-        .then(function() {
-          return clusterPage.isTabLocked('Settings');
-        })
-        .then(function(isLocked) {
+        .then(() => clusterPage.isTabLocked('Settings'))
+        .then((isLocked) => {
           assert.isFalse(isLocked, 'Settings tab is not locked after nodes were provisioned');
         })
-        .then(function() {
-          return clusterPage.goToTab('Dashboard');
-        })
+        .then(() => clusterPage.goToTab('Dashboard'))
         .assertElementEnabled(
           dashboardPage.deployButtonSelector,
           'Provisioned nodes can be deployed'
         )
-        .then(function() {
-          return common.addNodesToCluster(2, ['Controller']);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Dashboard');
-        })
+        .then(() => common.addNodesToCluster(2, ['Controller']))
+        .then(() => clusterPage.goToTab('Dashboard'))
         .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
         .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.provision button')
         .clickByCssSelector('.changes-list .dropdown-toggle')
         .clickByCssSelector('.changes-list .btn-select-nodes')
-        .then(function() {
-          return modal.waitToOpen();
-        })
-        .then(function() {
-          return modal.checkTitle('Select Nodes');
-        })
+        .then(() => modal.waitToOpen())
+        .then(() => modal.checkTitle('Select Nodes'))
         .assertElementsExist(
           '.modal .node.selected',
           2,
@@ -167,36 +133,22 @@ registerSuite(function() {
           'No nodes selected for provisioning'
         )
         .clickByCssSelector('.modal .node')
-        .then(function() {
-          return modal.clickFooterButton('Select 1 Node');
-        })
-        .then(function() {
-          return modal.waitToClose();
-        })
+        .then(() => modal.clickFooterButton('Select 1 Node'))
+        .then(() => modal.waitToClose())
         .assertElementContainsText(
           '.btn-provision',
           'Provision 1 of 2 Nodes',
           '1 of 2 nodes to be provisioned'
         )
         .clickByCssSelector('.btn-provision')
-        .then(function() {
-          return modal.waitToOpen();
-        })
-        .then(function() {
-          return modal.clickFooterButton('Provision 1 Node');
-        })
-        .then(function() {
-          return modal.waitToClose();
-        })
+        .then(() => modal.waitToOpen())
+        .then(() => modal.clickFooterButton('Provision 1 Node'))
+        .then(() => modal.waitToClose())
         .assertElementAppears('div.deploy-process div.progress', 2000, 'Provisioning started')
         .assertElementDisappears('div.deploy-process div.progress', 5000, 'Provisioning finished')
-        .then(function() {
-          return clusterPage.goToTab('Nodes');
-        })
+        .then(() => clusterPage.goToTab('Nodes'))
         .assertElementsExist('.node.provisioned', 2, '2 of 3 nodes provisioned')
-        .then(function() {
-          return clusterPage.goToTab('Dashboard');
-        });
+        .then(() => clusterPage.goToTab('Dashboard'));
     },
     'Deploy nodes': function() {
       this.timeout = 100000;
@@ -207,33 +159,19 @@ registerSuite(function() {
         .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
         .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.provision button')
         .clickByCssSelector('.btn-provision')
-        .then(function() {
-          return modal.waitToOpen();
-        })
-        .then(function() {
-          return modal.clickFooterButton('Provision 1 Node');
-        })
-        .then(function() {
-          return modal.waitToClose();
-        })
+        .then(() => modal.waitToOpen())
+        .then(() => modal.clickFooterButton('Provision 1 Node'))
+        .then(() => modal.waitToClose())
         .assertElementAppears('div.deploy-process div.progress', 2000, 'Provisioning started')
         .assertElementDisappears('div.deploy-process div.progress', 5000, 'Provisioning finished')
         .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
         .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.deployment button')
         .assertElementContainsText('.btn-deploy-nodes', 'Deploy 1 Node', '1 node to be deployed')
         .clickByCssSelector('.btn-deploy-nodes')
-        .then(function() {
-          return modal.waitToOpen();
-        })
-        .then(function() {
-          return modal.checkTitle('Deploy Nodes');
-        })
-        .then(function() {
-          return modal.clickFooterButton('Deploy 1 Node');
-        })
-        .then(function() {
-          return modal.waitToClose();
-        })
+        .then(() => modal.waitToOpen())
+        .then(() => modal.checkTitle('Deploy Nodes'))
+        .then(() => modal.clickFooterButton('Deploy 1 Node'))
+        .then(() => modal.waitToClose())
         .assertElementAppears('div.deploy-process div.progress', 2000, 'Deployment started')
         .assertElementDisappears('div.deploy-process div.progress', 10000, 'Deployment finished')
         .assertElementContainsText(
@@ -249,18 +187,14 @@ registerSuite(function() {
     'Start/stop deployment': function() {
       this.timeout = 100000;
       return this.remote
-        .then(function() {
-          return dashboardPage.startDeployment();
-        })
+        .then(() => dashboardPage.startDeployment())
         .assertElementAppears('div.deploy-process div.progress', 2000, 'Deployment started')
         .assertElementAppears(
           'button.stop-deployment-btn:not(:disabled)',
           5000,
           'Stop button appears'
         )
-        .then(function() {
-          return dashboardPage.stopDeployment();
-        })
+        .then(() => dashboardPage.stopDeployment())
         .assertElementDisappears('div.deploy-process div.progress', 20000, 'Deployment stopped')
         .assertElementAppears(
           dashboardPage.deployButtonSelector,
@@ -284,9 +218,7 @@ registerSuite(function() {
       var cidrDeployedValue;
 
       return this.remote
-        .then(function() {
-          return dashboardPage.startDeployment();
-        })
+        .then(() => dashboardPage.startDeployment())
         .assertElementDisappears(
           '.dashboard-block .progress',
           60000,
@@ -296,7 +228,7 @@ registerSuite(function() {
         .assertElementExists('.go-to-healthcheck', 'Healthcheck link is visible after deploy')
         .findByLinkText('Horizon')
           .getProperty('href')
-          .then(function(href) {
+          .then((href) => {
             // check the link includes 'http(s)' and there is '.' in it's domain
             return assert.match(
               href,
@@ -305,74 +237,58 @@ registerSuite(function() {
             );
           })
           .end()
-        .then(function() {
-          return clusterPage.goToTab('Networks');
-        })
+        .then(() => clusterPage.goToTab('Networks'))
         .assertElementEnabled(
           '.add-nodegroup-btn',
           'Add Node network group button is enabled after cluster deploy'
         )
         .findByCssSelector(cidrCssSelector)
-          .then(function(element) {
-            return element.getProperty('value')
-              .then(function(value) {
+          .then(
+            (element) => element.getProperty('value')
+              .then((value) => {
                 cidrDeployedValue = value;
-              });
-          })
+              })
+          )
           .end()
         .setInputValue(cidrCssSelector, '192.168.1.0/25')
         .clickByCssSelector('.apply-btn:not(:disabled)')
         .waitForCssSelector(cidrCssSelector + ':not(:disabled)', 1000)
         .clickByCssSelector('.btn-load-deployed')
         .waitForCssSelector('.apply-btn:not(:disabled)', 1000)
-        .then(function() {
-          return self.remote.assertElementPropertyEquals(
+        .then(
+          () => self.remote.assertElementPropertyEquals(
             cidrCssSelector,
             'value',
             cidrDeployedValue,
             'Load Deployed Settings button works properly'
-          );
-        })
+          )
+        )
         .clickByCssSelector('.btn-revert-changes')
-        .then(function() {
-          return clusterPage.goToTab('Dashboard');
-        })
+        .then(() => clusterPage.goToTab('Dashboard'))
         .assertElementContainsText(
           '.actions-panel .changes-item',
           'Changed environment configuration',
           'Discard changed environment configuration button is shown on Dashboard'
         )
         .clickByCssSelector('.actions-panel .btn-discard-changes')
-        .then(function() {
-          return modal.waitToOpen();
-        })
-        .then(function() {
-          return modal.checkTitle('Discard Changes');
-        })
-        .then(function() {
-          return modal.clickFooterButton('Discard');
-        })
-        .then(function() {
-          return modal.waitToClose();
-        })
+        .then(() => modal.waitToOpen())
+        .then(() => modal.checkTitle('Discard Changes'))
+        .then(() => modal.clickFooterButton('Discard'))
+        .then(() => modal.waitToClose())
         .assertElementNotExists(
           '.actions-panel .btn-discard-changes',
           'No changes in the deployed environment'
         )
-        .then(function() {
-          return clusterPage.goToTab('Networks');
-        })
-        .then(function() {
-          return self.remote.assertElementPropertyEquals(
+        .then(() => clusterPage.goToTab('Networks'))
+        .then(
+          () => self.remote.assertElementPropertyEquals(
             cidrCssSelector,
             'value',
             cidrDeployedValue,
             'Network settings are reset to their deployed state'
-          );
-        })
-        .then(function() {
-          return clusterPage.goToTab('Settings');
-        })
+          )
+        )
+        .then(() => clusterPage.goToTab('Settings'))
         .clickLinkByText('Security')
         .clickByCssSelector('input[type=checkbox]')
         .clickByCssSelector('.btn-apply-changes:not(:disabled)')
@@ -383,9 +299,7 @@ registerSuite(function() {
           'Deployed configuration restored and can be saved'
         )
         .clickByCssSelector('.btn-revert-changes')
-        .then(function() {
-          return clusterPage.goToTab('Dashboard');
-        })
+        .then(() => clusterPage.goToTab('Dashboard'))
         .assertElementContainsText(
           '.actions-panel .changes-item',
           'Changed environment configuration',

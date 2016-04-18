@@ -18,7 +18,7 @@ import registerSuite from 'intern!object';
 import Common from 'tests/functional/pages/common';
 import ClusterPage from 'tests/functional/pages/cluster';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     clusterPage,
     clusterName;
@@ -31,18 +31,10 @@ registerSuite(function() {
       clusterName = common.pickRandomName('Test Cluster');
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        })
-        .then(function() {
-          return common.addNodesToCluster(1, ['Controller']);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Logs');
-        });
+        .then(() => common.getIn())
+        .then(() => common.createCluster(clusterName))
+        .then(() => common.addNodesToCluster(1, ['Controller']))
+        .then(() => clusterPage.goToTab('Logs'));
     },
     '"Show" button availability and logs displaying': function() {
       var showLogsButtonSelector = '.sticker button';
@@ -57,7 +49,7 @@ registerSuite(function() {
         .clickByCssSelector('.sticker select[name=level] option[value=DEBUG]')
         .assertElementEnabled(showLogsButtonSelector,
           '"Show" button is enabled after source change')
-        .execute(function() {
+        .execute(() => {
           window.fakeServer = sinon.fakeServer.create();
           window.fakeServer.autoRespond = true;
           window.fakeServer.autoRespondAfter = 1000;
@@ -73,7 +65,7 @@ registerSuite(function() {
         .assertElementDisappears('.logs-tab div.progress', 5000,
           'Wait till Progress bar disappears')
         .assertElementsAppear('.log-entries > tbody > tr', 5000, 'Log entries are shown')
-        .execute(function() {
+        .execute(() => {
           window.fakeServer.restore();
         })
         // "Other servers" option is present in "Logs" dropdown

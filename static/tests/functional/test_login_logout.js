@@ -19,7 +19,7 @@ import LoginPage from 'tests/functional/pages/login';
 import Common from 'tests/functional/pages/common';
 import 'tests/functional/helpers';
 
-registerSuite(function() {
+registerSuite(() => {
   var loginPage, common;
   return {
     name: 'Login page',
@@ -28,24 +28,17 @@ registerSuite(function() {
       common = new Common(this.remote);
     },
     beforeEach: function() {
-      this.remote
-        .then(function() {
-          return common.getOut();
-        });
+      this.remote.then(() => common.getOut());
     },
     'Login with incorrect credentials': function() {
       return this.remote
-        .then(function() {
-          return loginPage.login('login', '*****');
-        })
+        .then(() => loginPage.login('login', '*****'))
         .assertElementAppears('div.login-error', 1000,
           'Error message is expected to get displayed');
     },
     'Login with proper credentials': function() {
       return this.remote
-        .then(function() {
-          return loginPage.login();
-        })
+        .then(() => loginPage.login())
         .assertElementDisappears('.login-btn', 2000,
           'Login button disappears after successful login');
     }

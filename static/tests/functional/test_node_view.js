@@ -22,7 +22,7 @@ import ClusterPage from 'tests/functional/pages/cluster';
 import SettingsPage from 'tests/functional/pages/settings';
 import 'tests/functional/helpers';
 
-registerSuite(function() {
+registerSuite(() => {
   var common, node, modal, clusterPage, settingsPage, clusterName;
   var nodeNewName = 'Node new name';
 
@@ -37,18 +37,12 @@ registerSuite(function() {
       clusterName = common.pickRandomName('Test Cluster');
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        });
+        .then(() => common.getIn())
+        .then(() => common.createCluster(clusterName));
     },
     'Standard node panel': function() {
       return this.remote
-        .then(function() {
-          return common.addNodesToCluster(1, ['Controller']);
-        })
+        .then(() => common.addNodesToCluster(1, ['Controller']))
         .assertElementExists('label.standard.active', 'Standard mode chosen by default')
         .assertElementExists('.node .role-list', 'Role list is shown on node standard panel')
         .clickByCssSelector('.node input[type=checkbox]')
@@ -56,30 +50,20 @@ registerSuite(function() {
         .assertElementExists('button.btn-delete-nodes:not(:disabled)', 'Delete Nodes and ...')
         .assertElementExists('button.btn-edit-roles:not(:disabled)',
           '... Edit Roles buttons appear upon node selection')
-        .then(function() {
-          return node.renameNode(nodeNewName);
-        })
+        .then(() => node.renameNode(nodeNewName))
         .assertElementTextEquals('.node .name p', nodeNewName, 'Node name has been updated')
         .clickByCssSelector('.node .btn-view-logs')
         .assertElementAppears('.logs-tab', 2000, 'Check redirect to Logs tab')
-        .then(function() {
-          return clusterPage.goToTab('Nodes');
-        })
+        .then(() => clusterPage.goToTab('Nodes'))
         .assertElementAppears('.node-list', 2000, 'Cluster node list loaded')
-        .then(function() {
-          return node.discardNode();
-        })
+        .then(() => node.discardNode())
         .assertElementNotExists('.node', 'Node has been removed');
     },
     'Node pop-up': function() {
       var newHostname = 'node-123';
       return this.remote
-        .then(function() {
-          return common.addNodesToCluster(1, ['Controller']);
-        })
-        .then(function() {
-          return node.openNodePopup();
-        })
+        .then(() => common.addNodesToCluster(1, ['Controller']))
+        .then(() => node.openNodePopup())
         .assertElementTextEquals('.modal-header h4.modal-title', nodeNewName,
           'Node pop-up has updated node name')
         .assertElementExists('.modal .btn-edit-disks', 'Disks can be configured for cluster node')
@@ -97,9 +81,7 @@ registerSuite(function() {
           'Hostname input disappears after submit')
         .assertElementTextEquals('span.node-hostname', newHostname,
           'Node hostname has been updated')
-        .then(function() {
-          return modal.close();
-        });
+        .then(() => modal.close());
     },
     'Compact node panel': function() {
       return this.remote
@@ -118,62 +100,37 @@ registerSuite(function() {
     'Compact node extended view': function() {
       var newName = 'Node new new name';
       return this.remote
-        .then(function() {
-          return node.openCompactNodeExtendedView();
-        })
+        .then(() => node.openCompactNodeExtendedView())
         .clickByCssSelector('.node-popover .node-name input[type=checkbox]')
         .assertElementExists('.compact-node .node-checkbox i.glyphicon-ok',
           'Node compact panel is checked')
-        .then(function() {
-          return node.openNodePopup(true);
-        })
+        .then(() => node.openNodePopup(true))
         .assertElementNotExists('.node-popover', 'Node popover is closed when node pop-up opened')
-        .then(function() {
-          // close node pop-up
-          return modal.close();
-        })
-        .then(function() {
-          return node.openCompactNodeExtendedView();
-        })
+        .then(() => modal.close())
+        .then(() => node.openCompactNodeExtendedView())
         .findByCssSelector('.node-popover')
           .assertElementExists('.role-list', 'Role list is shown in cluster node extended view')
           .assertElementExists('.node-buttons',
           'Cluster node action buttons are presented in extended view')
           .end()
-        .then(function() {
-          return node.renameNode(newName, true);
-        })
+        .then(() => node.renameNode(newName, true))
         .assertElementTextEquals('.node-popover .name p', newName,
           'Node name has been updated from extended view')
-        .then(function() {
-          return node.discardNode(true);
-        })
+        .then(() => node.discardNode(true))
         .assertElementNotExists('.node', 'Node has been removed');
     },
     'Additional tests for Node Attributes': function() {
       return this.remote
-        .then(function() {
-          return common.addNodesToCluster(1, ['Controller']);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Settings');
-        })
+        .then(() => common.addNodesToCluster(1, ['Controller']))
+        .then(() => clusterPage.goToTab('Settings'))
         .clickLinkByText('Compute')
         .clickByCssSelector('input[type=radio][name=libvirt_type]:not(:checked)')
         .waitForCssSelector('.btn-apply-changes:not(:disabled)', 200)
         .clickByCssSelector('.btn-apply-changes')
-        .then(function() {
-          return settingsPage.waitForRequestCompleted();
-        })
-        .then(function() {
-          return clusterPage.goToTab('Nodes');
-        })
-        .then(function() {
-          return node.openCompactNodeExtendedView();
-        })
-        .then(function() {
-          return node.openNodePopup(true);
-        })
+        .then(() => settingsPage.waitForRequestCompleted())
+        .then(() => clusterPage.goToTab('Nodes'))
+        .then(() => node.openCompactNodeExtendedView())
+        .then(() => node.openNodePopup(true))
         .clickByCssSelector('#headingattributes')
         .assertElementExists('.node-attributes .btn.discard-changes:disabled',
           'Cancel changes button is disabled')
@@ -189,34 +146,26 @@ registerSuite(function() {
           'Inputs are not disabled after changes were saved successfully')
         .assertElementExists('.node-attributes .btn.discard-changes:disabled',
           'Cancel changes button is disabled after changes were saved successfully')
-        .then(function() {
-          return modal.close();
-        });
+        .then(() => modal.close());
     },
     'Additional tests for unallocated node': function() {
       return this.remote
         .clickByCssSelector('.btn-add-nodes')
         .waitForElementDeletion('.btn-add-nodes', 3000)
         .assertElementsAppear('.node', 3000, 'Unallocated nodes loaded')
-        .then(function() {
-          return node.openCompactNodeExtendedView();
-        })
+        .then(() => node.openCompactNodeExtendedView())
         .assertElementNotExists('.node-popover .role-list',
           'Unallocated node does not have roles assigned')
         .assertElementNotExists('.node-popover .node-buttons .btn',
           'There are no action buttons in unallocated node extended view')
-        .then(function() {
-          return node.openNodePopup(true);
-        })
+        .then(() => node.openNodePopup(true))
         .assertElementNotExists('.modal .btn-edit-disks',
           'Disks can not be configured for unallocated node')
         .assertElementNotExists('.modal .btn-edit-networks',
           'Interfaces can not be configured for unallocated node')
         .assertElementNotExists('.modal .management-ip',
           'Management IP is not visible for unallocated node')
-        .then(function() {
-          return modal.close();
-        });
+        .then(() => modal.close());
     }
   };
 });

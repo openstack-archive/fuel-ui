@@ -19,7 +19,7 @@ import Common from 'tests/functional/pages/common';
 import Modal from 'tests/functional/pages/modal';
 import 'tests/functional/helpers';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     modal;
 
@@ -29,24 +29,18 @@ registerSuite(function() {
       common = new Common(this.remote);
       modal = new Modal(this.remote);
       return this.remote
-        .then(function() {
-          return common.getIn();
-        });
+        .then(() => common.getIn());
     },
     beforeEach: function() {
       var clusterName = common.pickRandomName('Temp');
       return this.remote
         .clickByCssSelector('.create-cluster')
-        .then(function() {
-          return modal.waitToOpen();
-        })
+        .then(() => modal.waitToOpen())
         .setInputValue('[name=name]', clusterName);
     },
     afterEach: function() {
       return this.remote
-        .then(function() {
-          return modal.close();
-        });
+        .then(() => modal.close());
     },
     'Test steps manipulations': function() {
       return this.remote

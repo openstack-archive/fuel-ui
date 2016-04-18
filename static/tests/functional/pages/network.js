@@ -28,24 +28,16 @@ NetworkPage.prototype = {
     var self = this;
     return this.remote
       .clickByCssSelector('.add-nodegroup-btn')
-      .then(function() {
-        return self.modal.waitToOpen();
-      })
+      .then(() => self.modal.waitToOpen())
       .setInputValue('[name=node-network-group-name]', name)
-      .then(function() {
-        return self.modal.clickFooterButton('Add Group');
-      })
-      .then(function() {
-        return self.modal.waitToClose();
-      })
+      .then(() => self.modal.clickFooterButton('Add Group'))
+      .then(() => self.modal.waitToClose())
       .waitForCssSelector('.network-group-name[data-name=' + name + ']', 2000);
   },
   renameNodeNetworkGroup: function(oldName, newName) {
     var self = this;
     return this.remote
-      .then(function() {
-        return self.goToNodeNetworkGroup(oldName);
-      })
+      .then(() => self.goToNodeNetworkGroup(oldName))
       .clickByCssSelector('.glyphicon-pencil')
       .waitForCssSelector('.network-group-name input[type=text]', 2000)
       .findByCssSelector('.node-group-renaming input[type=text]')
@@ -67,15 +59,9 @@ NetworkPage.prototype = {
     var self = this;
     return this.remote
       .clickByCssSelector('.network-group-name[data-name=' + name + '] .glyphicon-remove')
-      .then(function() {
-        return self.modal.waitToOpen();
-      })
-      .then(function() {
-        return self.modal.clickFooterButton('Delete');
-      })
-      .then(function() {
-        return self.modal.waitToClose();
-      })
+      .then(() => self.modal.waitToOpen())
+      .then(() => self.modal.clickFooterButton('Delete'))
+      .then(() => self.modal.waitToClose())
       .waitForElementDeletion('.network-group-name[data-name=' + name + ']', 2000)
       .sleep(3000); // unconditionally sleep to wait until update_dnsmasq task is finished
   }

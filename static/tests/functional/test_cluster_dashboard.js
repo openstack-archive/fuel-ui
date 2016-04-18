@@ -20,7 +20,7 @@ import ClusterPage from 'tests/functional/pages/cluster';
 import ClustersPage from 'tests/functional/pages/clusters';
 import DashboardPage from 'tests/functional/pages/dashboard';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     clusterPage,
     clustersPage,
@@ -37,18 +37,12 @@ registerSuite(function() {
       clusterName = common.pickRandomName('Test Cluster');
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        });
+        .then(() => common.getIn())
+        .then(() => common.createCluster(clusterName));
     },
     beforeEach: function() {
       return this.remote
-        .then(function() {
-          return clusterPage.goToTab('Dashboard');
-        });
+        .then(() => clusterPage.goToTab('Dashboard'));
     },
     'Renaming cluster works': function() {
       var initialName = clusterName;
@@ -56,9 +50,7 @@ registerSuite(function() {
       var renameInputSelector = '.rename-block input[type=text]';
       var nameSelector = '.cluster-info-value.name .btn-link';
       return this.remote
-        .then(function() {
-          return dashboardPage.startClusterRenaming();
-        })
+        .then(() => dashboardPage.startClusterRenaming())
         .findByCssSelector(renameInputSelector)
           // Escape
           .type('\uE00C')
@@ -70,22 +62,12 @@ registerSuite(function() {
           initialName,
           'Switching rename control does not change cluster name'
         )
-        .then(function() {
-          return dashboardPage.setClusterName(newName);
-        })
+        .then(() => dashboardPage.setClusterName(newName))
         .assertElementTextEquals(nameSelector, newName, 'New name is applied')
-        .then(function() {
-          return dashboardPage.setClusterName(initialName);
-        })
-        .then(function() {
-          return common.createCluster(newName);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Dashboard');
-        })
-        .then(function() {
-          return dashboardPage.setClusterName(initialName);
-        })
+        .then(() => dashboardPage.setClusterName(initialName))
+        .then(() => common.createCluster(newName))
+        .then(() => clusterPage.goToTab('Dashboard'))
+        .then(() => dashboardPage.setClusterName(initialName))
         .assertElementAppears(
           '.rename-block.has-error',
           1000,
@@ -101,18 +83,12 @@ registerSuite(function() {
           .type('\uE00C')
           .end()
         .clickLinkByText('Environments')
-        .then(function() {
-          return clustersPage.goToEnvironment(initialName);
-        });
+        .then(() => clustersPage.goToEnvironment(initialName));
     },
     'Provision VMs button availability': function() {
       return this.remote
-        .then(function() {
-          return common.addNodesToCluster(1, ['Virtual']);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Dashboard');
-        })
+        .then(() => common.addNodesToCluster(1, ['Virtual']))
+        .then(() => clusterPage.goToTab('Dashboard'))
         .assertElementAppears(
           '.actions-panel .btn-provision-vms',
           1000,
@@ -120,44 +96,30 @@ registerSuite(function() {
         )
         .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
         .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.deploy button')
-        .then(function() {
-          return dashboardPage.discardChanges();
-        });
+        .then(() => dashboardPage.discardChanges());
     },
     'Network validation error warning': function() {
       return this.remote
-        .then(function() {
-          return common.addNodesToCluster(1, ['Controller']);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Networks');
-        })
+        .then(() => common.addNodesToCluster(1, ['Controller']))
+        .then(() => clusterPage.goToTab('Networks'))
         .clickByCssSelector('.subtab-link-network_verification')
         .assertElementContainsText(
           '.alert-warning',
           'At least two online nodes are required',
           'Network verification warning appears if only one node added'
         )
-        .then(function() {
-          return clusterPage.goToTab('Dashboard');
-        })
+        .then(() => clusterPage.goToTab('Dashboard'))
         .assertElementContainsText(
           '.actions-panel .warnings-block',
           'Please verify your network settings before deployment',
           'Network verification warning is shown'
         )
-        .then(function() {
-          return dashboardPage.discardChanges();
-        });
+        .then(() => dashboardPage.discardChanges());
     },
     'No controller warning': function() {
       return this.remote
-        .then(function() {
-          return common.addNodesToCluster(1, ['Compute']);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Dashboard');
-        })
+        .then(() => common.addNodesToCluster(1, ['Compute']))
+        .then(() => clusterPage.goToTab('Dashboard'))
         .assertElementDisabled(
           dashboardPage.deployButtonSelector,
           'No deployment should be possible without controller nodes added'
@@ -168,27 +130,17 @@ registerSuite(function() {
           'At least 1 Controller nodes are required (0 selected currently).',
           'No controllers added warning should be shown'
         )
-        .then(function() {
-          return dashboardPage.discardChanges();
-        });
+        .then(() => dashboardPage.discardChanges());
     },
     'Capacity table tests': function() {
       return this.remote
-        .then(function() {
-          return common.addNodesToCluster(1, ['Controller', 'Cinder']);
-        })
-        .then(function() {
-          return common.addNodesToCluster(2, ['Compute']);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Dashboard');
-        })
+        .then(() => common.addNodesToCluster(1, ['Controller', 'Cinder']))
+        .then(() => common.addNodesToCluster(2, ['Compute']))
+        .then(() => clusterPage.goToTab('Dashboard'))
         .assertIsIntegerContentPositive('.capacity-items .cpu .capacity-value', 'CPU')
         .assertIsIntegerContentPositive('.capacity-items .hdd .capacity-value', 'HDD')
         .assertIsIntegerContentPositive('.capacity-items .ram .capacity-value', 'RAM')
-        .then(function() {
-          return dashboardPage.discardChanges();
-        });
+        .then(() => dashboardPage.discardChanges());
     },
     'Test statistics update': function() {
       this.timeout = 120000;
@@ -201,24 +153,12 @@ registerSuite(function() {
       var total = controllerNodes + storageCinderNodes + computeNodes + operatingSystemNodes +
         virtualNodes;
       return this.remote
-        .then(function() {
-          return common.addNodesToCluster(controllerNodes, ['Controller']);
-        })
-        .then(function() {
-          return common.addNodesToCluster(storageCinderNodes, ['Cinder']);
-        })
-        .then(function() {
-          return common.addNodesToCluster(computeNodes, ['Compute']);
-        })
-        .then(function() {
-          return common.addNodesToCluster(operatingSystemNodes, ['Operating System'], 'error');
-        })
-        .then(function() {
-          return common.addNodesToCluster(virtualNodes, ['Virtual'], 'offline');
-        })
-        .then(function() {
-          return clusterPage.goToTab('Dashboard');
-        })
+        .then(() => common.addNodesToCluster(controllerNodes, ['Controller']))
+        .then(() => common.addNodesToCluster(storageCinderNodes, ['Cinder']))
+        .then(() => common.addNodesToCluster(computeNodes, ['Compute']))
+        .then(() => common.addNodesToCluster(operatingSystemNodes, ['Operating System'], 'error'))
+        .then(() => common.addNodesToCluster(virtualNodes, ['Virtual'], 'offline'))
+        .then(() => clusterPage.goToTab('Dashboard'))
         .assertElementTextEquals(
           valueSelector + '.total',
           total,
@@ -261,9 +201,7 @@ registerSuite(function() {
         )
         .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
         .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.deploy button')
-        .then(function() {
-          return dashboardPage.discardChanges();
-        });
+        .then(() => dashboardPage.discardChanges());
     }
   };
 });

@@ -20,7 +20,7 @@ import Common from 'tests/functional/pages/common';
 import ModalWindow from 'tests/functional/pages/modal';
 import 'tests/functional/helpers';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     clusterName;
 
@@ -31,40 +31,30 @@ registerSuite(function() {
       clusterName = common.pickRandomName('Test Cluster');
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        });
+        .then(() => common.getIn());
     },
     beforeEach: function() {
       return this.remote
-        .then(function() {
-          return common.createCluster(clusterName);
-        });
+        .then(() => common.createCluster(clusterName));
     },
     afterEach: function() {
       return this.remote
-        .then(function() {
-          return common.removeCluster(clusterName);
-        });
+        .then(() => common.removeCluster(clusterName));
     },
     'Create Cluster': function() {
       return this.remote
-        .then(function() {
-          return common.doesClusterExist(clusterName);
-        })
-        .then(function(result) {
-          assert.ok(result, 'Newly created cluster found in the list');
-        });
+        .then(() => common.doesClusterExist(clusterName))
+        .then((result) => assert.ok(result, 'Newly created cluster found in the list'));
     },
     'Attempt to create cluster with duplicate name': function() {
       return this.remote
         .clickLinkByText('Environments')
         .waitForCssSelector('.clusters-page', 2000)
-        .then(function() {
-          return common.createCluster(
+        .then(
+          () => common.createCluster(
             clusterName,
             {
-              'Name and Release': function() {
+              'Name and Release': () => {
                 var modal = new ModalWindow(this.remote);
                 return this.remote
                   .pressKeys('\uE007')
@@ -73,12 +63,11 @@ registerSuite(function() {
                     'Environment with this name already exists',
                     'Error message should say that environment with that name already exists'
                   )
-                  .then(function() {
-                    return modal.close();
-                  });
-              }}
-            );
-        });
+                  .then(() => modal.close());
+              }
+            }
+          )
+        );
     },
     'Testing cluster list page': function() {
       return this.remote

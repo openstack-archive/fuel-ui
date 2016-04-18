@@ -37,26 +37,16 @@ CommonMethods.prototype = {
   getOut: function() {
     var self = this;
     return this.remote
-      .then(function() {
-        return self.welcomePage.skip();
-      })
-      .then(function() {
-        return self.loginPage.logout();
-      });
+      .then(() => self.welcomePage.skip())
+      .then(() => self.loginPage.logout());
   },
   getIn: function() {
     var self = this;
     return this.remote
-      .then(function() {
-        return self.loginPage.logout();
-      })
-      .then(function() {
-        return self.loginPage.login();
-      })
+      .then(() => self.loginPage.logout())
+      .then(() => self.loginPage.login())
       .waitForElementDeletion('.login-btn', 2000)
-      .then(function() {
-        return self.welcomePage.skip();
-      })
+      .then(() => self.welcomePage.skip())
       .waitForCssSelector('.navbar-nav', 1000)
       .clickByCssSelector('.global-alert.alert-warning .close');
   },
@@ -65,22 +55,16 @@ CommonMethods.prototype = {
     return this.remote
       .clickLinkByText('Environments')
       .waitForCssSelector('.clusters-page', 2000)
-      .then(function() {
-        return self.clustersPage.createCluster(clusterName, stepsMethods);
-      });
+      .then(() => self.clustersPage.createCluster(clusterName, stepsMethods));
   },
   removeCluster: function(clusterName, suppressErrors) {
     var self = this;
     return this.remote
       .clickLinkByText('Environments')
       .waitForCssSelector('.clusters-page', 2000)
-      .then(function() {
-        return self.clustersPage.goToEnvironment(clusterName);
-      })
-      .then(function() {
-        return self.clusterPage.removeCluster(clusterName);
-      })
-      .catch(function(e) {
+      .then(() => self.clustersPage.goToEnvironment(clusterName))
+      .then(() => self.clusterPage.removeCluster(clusterName))
+      .catch((e) => {
         if (!suppressErrors) {
           throw new Error('Unable to delete cluster ' + clusterName + ': ' + e);
         }
@@ -92,35 +76,28 @@ CommonMethods.prototype = {
       .clickLinkByText('Environments')
       .waitForCssSelector('.clusters-page', 2000)
       .findAllByCssSelector(self.clustersPage.clusterSelector)
-        .then(function(divs) {
-          return divs.reduce(function(matchFound, element) {
-            return element.getVisibleText().then(
-              function(name) {
-                return (name === clusterName) || matchFound;
-              }
-            );
-          }, false);
-        });
+        .then(
+          (divs) => divs.reduce(
+            (matchFound, element) => {
+              return element.getVisibleText().then((name) => (name === clusterName) || matchFound);
+            },
+            false
+          )
+        );
   },
   addNodesToCluster: function(nodesAmount, nodesRoles, nodeStatus, nodeNameFilter) {
     var self = this;
     return this.remote
-      .then(function() {
-        return self.clusterPage.goToTab('Nodes');
-      })
+      .then(() => self.clusterPage.goToTab('Nodes'))
       .waitForCssSelector('.btn-add-nodes', 3000)
       .clickByCssSelector('.btn-add-nodes')
       .waitForElementDeletion('.btn-add-nodes', 3000)
       .waitForCssSelector('.node', 3000)
-      .then(function() {
+      .then(() => {
         if (nodeNameFilter) return self.clusterPage.searchForNode(nodeNameFilter);
       })
-      .then(function() {
-        return self.clusterPage.checkNodeRoles(nodesRoles);
-      })
-      .then(function() {
-        return self.clusterPage.checkNodes(nodesAmount, nodeStatus);
-      })
+      .then(() => self.clusterPage.checkNodeRoles(nodesRoles))
+      .then(() => self.clusterPage.checkNodes(nodesAmount, nodeStatus))
       .clickByCssSelector('.btn-apply')
       .waitForElementDeletion('.btn-apply', 3000);
   }

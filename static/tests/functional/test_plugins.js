@@ -20,7 +20,7 @@ import ClusterPage from 'tests/functional/pages/cluster';
 import SettingsPage from 'tests/functional/pages/settings';
 import 'tests/functional/pages/dashboard';
 
-registerSuite(function() {
+registerSuite(() => {
   var common, clusterPage, settingsPage;
   var clusterName = 'Plugin UI tests';
   var zabbixSectionSelector = '.setting-section-zabbix_monitoring ';
@@ -33,30 +33,20 @@ registerSuite(function() {
       settingsPage = new SettingsPage(this.remote);
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        });
+        .then(() => common.getIn())
+        .then(() => common.createCluster(clusterName));
     },
     beforeEach: function() {
       return this.remote
-        .then(function() {
-          return clusterPage.goToTab('Settings');
-        })
+        .then(() => clusterPage.goToTab('Settings'))
         .clickByCssSelector('.subtab-link-other');
     },
     afterEach: function() {
       return this.remote
         .clickByCssSelector('.btn-load-defaults')
-        .then(function() {
-          return settingsPage.waitForRequestCompleted();
-        })
+        .then(() => settingsPage.waitForRequestCompleted())
         .clickByCssSelector('.btn-apply-changes')
-        .then(function() {
-          return settingsPage.waitForRequestCompleted();
-        });
+        .then(() => settingsPage.waitForRequestCompleted());
     },
     'Check plugin restrictions': function() {
       var loggingSectionSelector = '.setting-section-logging ';
@@ -92,18 +82,16 @@ registerSuite(function() {
         .clickByCssSelector(zabbixSectionSelector + 'h3 input[type=checkbox]')
         // save changes
         .clickByCssSelector('.btn-apply-changes')
-        .then(function() {
-          return settingsPage.waitForRequestCompleted();
-        })
+        .then(() => settingsPage.waitForRequestCompleted())
         .findByCssSelector(zabbixSectionSelector + '.plugin-versions input[type=radio]:checked')
           .getProperty('value')
-            .then(function(value) {
+            .then((value) => {
               zabbixInitialVersion = value;
             })
           .end()
         .findByCssSelector(zabbixSectionSelector + '[name=zabbix_text_1]')
           .getProperty('value')
-            .then(function(value) {
+            .then((value) => {
               zabbixTextInputValue = value;
             })
           .end()
@@ -120,29 +108,26 @@ registerSuite(function() {
         .assertElementEnabled('.btn-apply-changes', 'The plugin change can be applied')
         // reset plugin version change
         .clickByCssSelector('.btn-revert-changes')
-        .then(function() {
-          return self.remote.assertElementPropertyEquals(zabbixSectionSelector +
-              '.plugin-versions input[type=radio]:checked', 'value', zabbixInitialVersion,
-              'Plugin version change can be reset');
-        });
+        .then(
+          () => self.remote.assertElementPropertyEquals(
+            zabbixSectionSelector + '.plugin-versions input[type=radio]:checked',
+            'value',
+            zabbixInitialVersion,
+            'Plugin version change can be reset'
+          )
+        );
     },
     'Check plugin in deployed environment': function() {
       this.timeout = 100000;
       var self = this;
       var zabbixInitialVersion;
       return this.remote
-        .then(function() {
-          return common.addNodesToCluster(1, ['Controller']);
-        })
-        .then(function() {
-          return clusterPage.deployEnvironment();
-        })
-        .then(function() {
-          return clusterPage.goToTab('Settings');
-        })
+        .then(() => common.addNodesToCluster(1, ['Controller']))
+        .then(() => clusterPage.deployEnvironment())
+        .then(() => clusterPage.goToTab('Settings'))
         .findByCssSelector(zabbixSectionSelector + '.plugin-versions input[type=radio]:checked')
           .getProperty('value')
-            .then(function(value) {
+            .then((value) => {
               zabbixInitialVersion = value;
             })
           .end()
@@ -165,14 +150,14 @@ registerSuite(function() {
         .assertElementEnabled('.btn-apply-changes', 'The plugin change can be applied')
         // deactivate plugin
         .clickByCssSelector(zabbixSectionSelector + 'h3 input[type=checkbox]')
-        .then(function() {
-          return self.remote.assertElementPropertyEquals(
+        .then(
+          () => self.remote.assertElementPropertyEquals(
             zabbixSectionSelector + '.plugin-versions input[type=radio]:checked',
             'value',
             zabbixInitialVersion,
             'Initial plugin version is set for deactivated plugin'
-          );
-        })
+          )
+        )
         .assertElementDisabled('.btn-apply-changes', 'The change as reset successfully');
     }
   };

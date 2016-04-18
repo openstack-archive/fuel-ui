@@ -27,9 +27,13 @@ ModalWindow.prototype = {
   waitToOpen: function() {
     return this.remote
       .waitForCssSelector(this.modalSelector, 2000)
-      .then(pollUntil(function(modalSelector) {
-        return window.$(modalSelector).css('opacity') === '1' || null;
-      }, [this.modalSelector], 3000));
+      .then(
+        pollUntil(
+          (modalSelector) => window.$(modalSelector).css('opacity') === '1' || null,
+          [this.modalSelector],
+          3000
+        )
+      );
   },
   checkTitle: function(expectedTitle) {
     return this.remote
@@ -40,20 +44,18 @@ ModalWindow.prototype = {
     var self = this;
     return this.remote
       .clickByCssSelector(this.modalSelector + ' .modal-header button.close')
-      .then(function() {
-        return self.waitToClose();
-      });
+      .then(() => self.waitToClose());
   },
   clickFooterButton: function(buttonText) {
     return this.remote
       .findAllByCssSelector(this.modalSelector + ' .modal-footer button')
-        .then(function(buttons) {
-          return buttons.reduce(function(result, button) {
-            return button.getVisibleText()
-              .then(function(buttonTitle) {
+        .then(
+          (buttons) => buttons.reduce(
+            (result, button) => button.getVisibleText()
+              .then((buttonTitle) => {
                 if (buttonTitle === buttonText) {
                   return button.isEnabled()
-                    .then(function(isEnabled) {
+                    .then((isEnabled) => {
                       if (isEnabled) {
                         return button.click();
                       } else {
@@ -62,9 +64,10 @@ ModalWindow.prototype = {
                     });
                 }
                 return result;
-              });
-          }, null);
-        });
+              }),
+            null
+          )
+        );
   },
   waitToClose: function() {
     return this.remote

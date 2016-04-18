@@ -29,35 +29,19 @@ DashboardPage.prototype = {
     var self = this;
     return this.remote
       .clickByCssSelector(this.deployButtonSelector)
-      .then(function() {
-        return self.modal.waitToOpen();
-      })
-      .then(function() {
-        return self.modal.checkTitle('Deploy Changes');
-      })
-      .then(function() {
-        return self.modal.clickFooterButton('Deploy');
-      })
-      .then(function() {
-        return self.modal.waitToClose();
-      });
+      .then(() => self.modal.waitToOpen())
+      .then(() => self.modal.checkTitle('Deploy Changes'))
+      .then(() => self.modal.clickFooterButton('Deploy'))
+      .then(() => self.modal.waitToClose());
   },
   stopDeployment: function() {
     var self = this;
     return this.remote
       .clickByCssSelector('button.stop-deployment-btn')
-      .then(function() {
-        return self.modal.waitToOpen();
-      })
-      .then(function() {
-        return self.modal.checkTitle('Stop Deployment');
-      })
-      .then(function() {
-        return self.modal.clickFooterButton('Stop');
-      })
-      .then(function() {
-        return self.modal.waitToClose();
-      });
+      .then(() => self.modal.waitToOpen())
+      .then(() => self.modal.checkTitle('Stop Deployment'))
+      .then(() => self.modal.clickFooterButton('Stop'))
+      .then(() => self.modal.waitToClose());
   },
   startClusterRenaming: function() {
     return this.remote
@@ -66,9 +50,7 @@ DashboardPage.prototype = {
   setClusterName: function(name) {
     var self = this;
     return this.remote
-      .then(function() {
-        return self.startClusterRenaming();
-      })
+      .then(() => self.startClusterRenaming())
       .findByCssSelector('.rename-block input[type=text]')
         .clearValue()
         .type(name)
@@ -81,15 +63,9 @@ DashboardPage.prototype = {
     var self = this;
     return this.remote
       .clickByCssSelector('.btn-discard-changes')
-      .then(function() {
-        return self.modal.waitToOpen();
-      })
-      .then(function() {
-        return self.modal.clickFooterButton('Discard');
-      })
-      .then(function() {
-        return self.modal.waitToClose();
-      });
+      .then(() => self.modal.waitToOpen())
+      .then(() => self.modal.clickFooterButton('Discard'))
+      .then(() => self.modal.waitToClose());
   }
 };
 
