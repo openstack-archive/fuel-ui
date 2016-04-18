@@ -24,12 +24,12 @@ ScreenshotOnFailReporter.prototype = {
   saveScreenshot: function(testOrSuite) {
     var remote = this.remotes[testOrSuite.sessionId];
     if (remote) {
-      remote.takeScreenshot().then(function(buffer) {
+      remote.takeScreenshot().then((buffer) => {
         var targetDir = process.env.ARTIFACTS || process.cwd();
         var filename = testOrSuite.id + ' - ' + new Date().toTimeString();
         filename = filename.replace(/[\s\*\?\\\/]/g, '_');
         filename = targetDir + '/' + filename + '.png';
-        fs.writeFile(filename, buffer, function(err) {
+        fs.writeFile(filename, buffer, (err) => {
           if (err) throw err;
           console.log('Saved screenshot to', filename); // eslint-disable-line no-console
         });

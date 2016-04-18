@@ -19,7 +19,7 @@ import LoginPage from 'tests/functional/pages/login';
 import WelcomePage from 'tests/functional/pages/welcome';
 import 'tests/functional/helpers';
 
-registerSuite(function() {
+registerSuite(() => {
   var loginPage,
     welcomePage;
 
@@ -31,12 +31,8 @@ registerSuite(function() {
     },
     'Skip welcome page': function() {
       return this.remote
-      .then(function() {
-        return loginPage.login();
-      })
-      .then(function() {
-        return welcomePage.skip(true);
-      })
+      .then(() => loginPage.login())
+      .then(() => welcomePage.skip(true))
       .assertElementNotExists('.welcome-button-box button', 'Welcome screen skipped');
     }
   };

@@ -18,7 +18,7 @@ import registerSuite from 'intern!object';
 import Common from 'tests/functional/pages/common';
 import ModalWindow from 'tests/functional/pages/modal';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     modal;
 
@@ -28,10 +28,7 @@ registerSuite(function() {
       common = new Common(this.remote);
       modal = new ModalWindow(this.remote);
 
-      return this.remote
-        .then(function() {
-          return common.getIn();
-        });
+      return this.remote.then(() => common.getIn());
     },
     'Notification Page': function() {
       return this.remote
@@ -51,17 +48,11 @@ registerSuite(function() {
     'Notification badge behaviour': function() {
       var clusterName = common.pickRandomName('Test Cluster');
       return this.remote
-        .then(function() {
-          return common.createCluster(clusterName);
-        })
-        .then(function() {
-          return common.addNodesToCluster(1, ['Cinder']);
-        })
+        .then(() => common.createCluster(clusterName))
+        .then(() => common.addNodesToCluster(1, ['Cinder']))
         // Just in case - reset and hide badge notification counter by clicking on it
         .clickByCssSelector('.notifications-icon')
-        .then(function() {
-          return common.removeCluster(clusterName);
-        })
+        .then(() => common.removeCluster(clusterName))
         .assertElementAppears('.notifications-icon .badge.visible', 3000,
           'New notification appear after the cluster removal')
         .clickByCssSelector('.notifications-icon')
@@ -69,13 +60,9 @@ registerSuite(function() {
           'Discovered node notification uploaded')
         // Check if Node Information dialog is shown
         .clickByCssSelector('.notifications-popover .notification.clickable p')
-        .then(function() {
-          return modal.waitToOpen();
-        })
-        .then(function() {
-          // Dialog with node information is open
-          return modal.checkTitle('Node Information');
-        });
+        .then(() => modal.waitToOpen())
+        // Dialog with node information is open
+        .then(() => modal.checkTitle('Node Information'));
     }
   };
 });

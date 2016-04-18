@@ -22,7 +22,7 @@ import SettingsPage from 'tests/functional/pages/settings';
 import ModalWindow from 'tests/functional/pages/modal';
 import 'tests/functional/helpers';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     clusterPage,
     settingsPage,
@@ -39,22 +39,16 @@ registerSuite(function() {
       clusterName = common.pickRandomName('Test Cluster');
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Settings');
-        })
+        .then(() => common.getIn())
+        .then(() => common.createCluster(clusterName))
+        .then(() => clusterPage.goToTab('Settings'))
         // go to Storage subtab to use checkboxes for tests
         .clickLinkByText('Storage');
     },
     'Settings tab is rendered correctly': function() {
       return this.remote
         .getCurrentUrl()
-          .then(function(url) {
+          .then((url) => {
             assert.include(
               url,
               'settings/storage',
@@ -63,7 +57,7 @@ registerSuite(function() {
           })
         .clickLinkByText('Security')
         .getCurrentUrl()
-          .then(function(url) {
+          .then((url) => {
             assert.include(url, 'settings/security', 'Settings tab subtabs are routable');
           })
         .clickLinkByText('Storage')
@@ -91,13 +85,9 @@ registerSuite(function() {
         .waitForCssSelector('.btn-apply-changes:not(:disabled)', 200)
         // try to move out of Settings tab
         .clickLinkByText('Dashboard')
-        .then(function() {
-          // check Discard Chasnges dialog appears
-          return modal.waitToOpen();
-        })
-        .then(function() {
-          return modal.close();
-        })
+        // check if Discard Chasnges dialog appears
+        .then(() => modal.waitToOpen())
+        .then(() => modal.close())
         // reset changes
         .clickByCssSelector('.btn-revert-changes')
         .assertElementDisabled('.btn-apply-changes',
@@ -105,40 +95,29 @@ registerSuite(function() {
     },
     'Check changes saving': function() {
       return this.remote
-        // introduce change
         .clickByCssSelector('input[type=checkbox]')
         .waitForCssSelector('.btn-apply-changes:not(:disabled)', 200)
         .clickByCssSelector('.btn-apply-changes')
-        .then(function() {
-          return settingsPage.waitForRequestCompleted();
-        })
+        .then(() => settingsPage.waitForRequestCompleted())
         .assertElementDisabled('.btn-revert-changes',
           'Cancel Changes button is disabled after changes were saved successfully');
     },
     'Check loading of defaults': function() {
       return this.remote
-        // load defaults
         .clickByCssSelector('.btn-load-defaults')
-        .then(function() {
-          return settingsPage.waitForRequestCompleted();
-        })
+        .then(() => settingsPage.waitForRequestCompleted())
         .assertElementEnabled('.btn-apply-changes',
           'Save Settings button is enabled after defaults were loaded')
         .assertElementEnabled('.btn-revert-changes',
           'Cancel Changes button is enabled after defaults were loaded')
-        // revert the change
         .clickByCssSelector('.btn-revert-changes');
     },
     'The choice of subgroup is preserved when user navigates through the cluster tabs':
     function() {
       return this.remote
         .clickLinkByText('Logging')
-        .then(function() {
-          return clusterPage.goToTab('Dashboard');
-        })
-        .then(function() {
-          return clusterPage.goToTab('Settings');
-        })
+        .then(() => clusterPage.goToTab('Dashboard'))
+        .then(() => clusterPage.goToTab('Settings'))
         .assertElementExists('.nav-pills li.active a.subtab-link-logging',
           'The choice of subgroup is preserved when user navigates through the cluster tabs');
     },
@@ -162,12 +141,11 @@ registerSuite(function() {
     },
     'Test repositories custom control': function() {
       var repoAmount;
-      var self = this;
       return this.remote
         .clickLinkByText('General')
         // get amount of default repositories
         .findAllByCssSelector('.repos .form-inline')
-          .then(function(elements) {
+          .then((elements) => {
             repoAmount = elements.length;
           })
           .end()
@@ -175,19 +153,24 @@ registerSuite(function() {
           'The first repo can not be deleted')
         // delete some repo
         .clickByCssSelector('.repos .form-inline .btn-link')
-        .then(function() {
-          return self.remote.assertElementsExist('.repos .form-inline', repoAmount - 1,
-            'Repo was deleted');
-        })
+        .then(
+          () => this.remote.assertElementsExist(
+            '.repos .form-inline',
+            repoAmount - 1,
+            'Repo was deleted'
+          )
+        )
         // add new repo
         .clickByCssSelector('.btn-add-repo')
-        .then(function() {
-          return self.remote.assertElementsExist('.repos .form-inline', repoAmount,
-            'New repo placeholder was added');
-        })
+        .then(
+          () => this.remote.assertElementsExist(
+            '.repos .form-inline',
+            repoAmount,
+            'New repo placeholder was added'
+          )
+        )
         .assertElementExists('.repos .form-inline .repo-name.has-error',
           'Empty repo marked as invalid')
-        // revert the change
         .clickByCssSelector('.btn-revert-changes');
     }
   };

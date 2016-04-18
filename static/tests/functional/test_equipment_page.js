@@ -19,7 +19,7 @@ import Common from 'tests/functional/pages/common';
 import NodeComponent from 'tests/functional/pages/node';
 import ModalWindow from 'tests/functional/pages/modal';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     node,
     modal;
@@ -32,24 +32,14 @@ registerSuite(function() {
       modal = new ModalWindow(this.remote);
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster('Env#1');
-        })
-        .then(function() {
-          return common.addNodesToCluster(2, ['Controller']);
-        })
+        .then(() => common.getIn())
+        .then(() => common.createCluster('Env#1'))
+        .then(() => common.addNodesToCluster(2, ['Controller']))
         // go back to Environments page
         .clickLinkByText('Environments')
         .waitForCssSelector('.clusters-page', 2000)
-        .then(function() {
-          return common.createCluster('Env#2');
-        })
-        .then(function() {
-          return common.addNodesToCluster(2, ['Compute', 'Virtual']);
-        })
+        .then(() => common.createCluster('Env#2'))
+        .then(() => common.addNodesToCluster(2, ['Compute', 'Virtual']))
         // go back to Environments page
         .clickLinkByText('Environments')
         .waitForCssSelector('.clusters-page', 2000)
@@ -78,20 +68,14 @@ registerSuite(function() {
         .assertElementNotExists('.node:not(.pending_addition) .btn-view-logs',
           'View logs button is not presented for unallocated nodes')
         .clickByCssSelector('.node .node-settings')
-        .then(function() {
-          return modal.waitToOpen();
-        })
+        .then(() => modal.waitToOpen())
         .assertElementNotExists('.btn-edit-disks',
           'No disks configuration buttons in node pop-up')
         .assertElementNotExists('.btn-edit-networks',
           'No interfaces configuration buttons in node pop-up')
-        .then(function() {
-          return modal.close();
-        })
+        .then(() => modal.close())
         .clickByCssSelector('label.compact')
-        .then(function() {
-          return node.openCompactNodeExtendedView();
-        })
+        .then(() => node.openCompactNodeExtendedView())
         .assertElementNotExists('.node-popover .node-buttons .btn:not(.btn-view-logs)',
           'No action buttons in node extended view in compact mode');
     }

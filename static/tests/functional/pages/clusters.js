@@ -26,15 +26,10 @@ function ClustersPage(remote) {
 ClustersPage.prototype = {
   constructor: ClustersPage,
   createCluster: function(clusterName, stepsMethods) {
-    var self = this;
-    var stepMethod = function(stepName) {
-      return _.bind(_.get(stepsMethods, stepName, _.noop), self);
-    };
+    var stepMethod = (stepName) => _.bind(_.get(stepsMethods, stepName, _.noop), this);
     return this.remote
       .clickByCssSelector('.create-cluster')
-      .then(function() {
-        return self.modal.waitToOpen();
-      })
+      .then(() => this.modal.waitToOpen())
       // Name and release
       .setInputValue('[name=name]', clusterName)
       .then(stepMethod('Name and Release'))
@@ -53,33 +48,27 @@ ClustersPage.prototype = {
       .pressKeys('\uE007')
       // Finish
       .pressKeys('\uE007')
-      .then(function() {
-        return self.modal.waitToClose();
-      });
+      .then(() => this.modal.waitToClose());
   },
   clusterSelector: '.clusterbox div.name',
   goToEnvironment: function(clusterName) {
-    var self = this;
     return this.remote
-      .waitForCssSelector(self.clusterSelector, 5000)
-      .findAllByCssSelector(self.clusterSelector)
-      .then(function(divs) {
-        return divs.reduce(
-          function(matchFound, element) {
-            return element.getVisibleText().then(
-              function(name) {
-                if (name === clusterName) {
-                  element.click();
-                  return true;
-                }
-                return matchFound;
+      .waitForCssSelector(this.clusterSelector, 5000)
+      .findAllByCssSelector(this.clusterSelector)
+      .then(
+        (divs) => divs.reduce(
+          (matchFound, element) => element.getVisibleText()
+            .then((name) => {
+              if (name === clusterName) {
+                element.click();
+                return true;
               }
-            );
-          },
+              return matchFound;
+            }),
           false
-        );
-      })
-      .then(function(result) {
+        )
+      )
+      .then((result) => {
         if (!result) {
           throw new Error('Cluster ' + clusterName + ' not found');
         }

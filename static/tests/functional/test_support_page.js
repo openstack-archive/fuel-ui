@@ -18,7 +18,7 @@ import registerSuite from 'intern!object';
 import Common from 'tests/functional/pages/common';
 import ModalWindow from 'tests/functional/pages/modal';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     modal,
     saveStatisticsSettingsButton, sendStatisticsCheckbox;
@@ -32,10 +32,7 @@ registerSuite(function() {
       sendStatisticsCheckbox = '.tracking input[name=send_anonymous_statistic]';
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        // Go to Support page
+        .then(() => common.getIn())
         .clickLinkByText('Support');
     },
     'Support page is rendered correctly': function() {
@@ -71,20 +68,12 @@ registerSuite(function() {
         .assertElementEnabled(saveStatisticsSettingsButton, '"Save changes" button is enabled')
         // Go to another page with not saved changes
         .clickLinkByText('Environments')
-        .then(function() {
-          return modal.waitToOpen();
-        })
-        .then(function() {
-          // Check if Discard Changes dialog is open
-          return modal.checkTitle('Confirm');
-        })
-        .then(function() {
-          // Save the changes
-          return modal.clickFooterButton('Save and Proceed');
-        })
-        .then(function() {
-          return modal.waitToClose();
-        })
+        // Check if Discard Changes dialog is open
+        .then(() => modal.waitToOpen())
+        .then(() => modal.checkTitle('Confirm'))
+        // Save the changes
+        .then(() => modal.clickFooterButton('Save and Proceed'))
+        .then(() => modal.waitToClose())
         .assertElementAppears('.clusters-page', 1000, 'Redirecting to Environments')
         // Go back to Support Page and ...
         .clickLinkByText('Support')
@@ -94,16 +83,10 @@ registerSuite(function() {
         .clickByCssSelector(sendStatisticsCheckbox)
         // Go to another page with not saved changes
         .clickLinkByText('Environments')
-        .then(function() {
-          return modal.waitToOpen();
-        })
-        .then(function() {
-          // Now Discard the changes
-          return modal.clickFooterButton('Discard Changes');
-        })
-        .then(function() {
-          return modal.waitToClose();
-        })
+        .then(() => modal.waitToOpen())
+        // Now Discard the changes
+        .then(() => modal.clickFooterButton('Discard Changes'))
+        .then(() => modal.waitToClose())
         .assertElementAppears('.clusters-page', 1000, 'Redirecting to Environments')
         // Go back to Support Page and ...
         .clickLinkByText('Support')
@@ -113,16 +96,9 @@ registerSuite(function() {
         .clickByCssSelector(sendStatisticsCheckbox)
         // Go to another page with not saved changes
         .clickLinkByText('Environments')
-        .then(function() {
-          return modal.waitToOpen();
-        })
-        .then(function() {
-          // Click Cancel Button
-          return modal.clickFooterButton('Cancel');
-        })
-        .then(function() {
-          return modal.waitToClose();
-        })
+        .then(() => modal.waitToOpen())
+        .then(() => modal.clickFooterButton('Cancel'))
+        .then(() => modal.waitToClose())
         .assertElementNotSelected(sendStatisticsCheckbox,
           'We are still on the Support page, and checkbox is unchecked');
     }

@@ -25,15 +25,14 @@ LoginPage.prototype = {
   login: function(username, password) {
     username = username || Helpers.username;
     password = password || Helpers.password;
-    var self = this;
 
     return this.remote
       .setFindTimeout(500)
       .setWindowSize(1280, 1024)
       .getCurrentUrl()
-      .then(function(url) {
+      .then((url) => {
         if (url !== Helpers.serverUrl + '/#login') {
-          return self.logout();
+          return this.logout();
         }
       })
       .setInputValue('[name=username]', username)
@@ -43,26 +42,20 @@ LoginPage.prototype = {
   logout: function() {
     return this.remote
       .getCurrentUrl()
-      .then(function(url) {
+      .then((url) => {
         if (url.indexOf(Helpers.serverUrl) !== 0) {
           return this.parent
             .get(Helpers.serverUrl + '/#logout')
             .findByClassName('login-btn')
-            .then(function() {
-              return true;
-            });
+            .then(() => true);
         }
       })
       .clickByCssSelector('li.user-icon')
       .clickByCssSelector('.user-popover button.btn-logout')
       .findByCssSelector('.login-btn')
       .then(
-        function() {
-          return true;
-        },
-        function() {
-          return true;
-        }
+        () => true,
+        () => true
       );
   }
 };

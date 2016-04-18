@@ -25,12 +25,9 @@ function NodeComponent(remote) {
 NodeComponent.prototype = {
   constructor: NodeComponent,
   openCompactNodeExtendedView: function() {
-    var self = this;
     return this.remote
       .findByCssSelector('div.compact-node .node-hardware p:not(.btn)')
-        .then(function(element) {
-          return self.remote.moveMouseTo(element);
-        })
+        .then((element) => this.remote.moveMouseTo(element))
         .end()
       // the following timeout as we have 0.3s transition for the button
       .sleep(500)
@@ -40,32 +37,23 @@ NodeComponent.prototype = {
       .sleep(300);
   },
   openNodePopup: function(fromExtendedView) {
-    var self = this;
     var cssSelector = fromExtendedView ? '.node-popover' : '.node';
     return this.remote
       .findByCssSelector(cssSelector)
         .clickByCssSelector('.node-settings')
         .end()
-      .then(function() {
-        return self.modal.waitToOpen();
-      });
+      .then(() => this.modal.waitToOpen());
   },
   discardNode: function(fromExtendedView) {
-    var self = this;
     var cssSelector = fromExtendedView ? '.node-popover' : '.node';
     return this.remote
       .findByCssSelector(cssSelector)
         .clickByCssSelector('.btn-discard')
         .end()
-      .then(function() {
-        // deletion confirmation shows up
-        return self.modal.waitToOpen();
-      })
+      .then(() => this.modal.waitToOpen())
       // confirm deletion
       .clickByCssSelector('div.modal-content button.btn-delete')
-      .then(function() {
-        return self.modal.waitToClose();
-      });
+      .then(() => this.modal.waitToClose());
   },
   renameNode: function(newName, fromExtendedView) {
     var cssSelector = fromExtendedView ? '.node-popover' : '.node';

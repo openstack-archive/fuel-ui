@@ -20,7 +20,7 @@ import ClusterPage from 'tests/functional/pages/cluster';
 import ClustersPage from 'tests/functional/pages/clusters';
 import HealthcheckPage from 'tests/functional/pages/healthcheck';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     clusterPage,
     clustersPage,
@@ -36,34 +36,20 @@ registerSuite(function() {
       clusterName = common.pickRandomName('Healthcheck test');
       healthCheckPage = new HealthcheckPage(this.remote);
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        })
-        .then(function() {
-          return common.addNodesToCluster(1, ['Controller']);
-        });
+        .then(() => common.getIn())
+        .then(() => common.createCluster(clusterName))
+        .then(() => common.addNodesToCluster(1, ['Controller']));
     },
     afterEach: function() {
       return this.remote
-        .then(function() {
-          return healthCheckPage.restoreServer();
-        })
+        .then(() => healthCheckPage.restoreServer())
         .clickLinkByText('Environments')
-        .then(function() {
-          return clustersPage.goToEnvironment(clusterName);
-        });
+        .then(() => clustersPage.goToEnvironment(clusterName));
     },
     'Health Check tests are rendered if response received': function() {
       return this.remote
-        .then(function() {
-          return healthCheckPage.createFakeServerForNotRunnedTests();
-        })
-        .then(function() {
-          return clusterPage.goToTab('Health Check');
-        })
+        .then(() => healthCheckPage.createFakeServerForNotRunnedTests())
+        .then(() => clusterPage.goToTab('Health Check'))
         .assertElementsAppear('.healthcheck-table', 5000, 'Healthcheck tables are rendered')
         .assertElementDisabled('.custom-tumbler input[type=checkbox]',
           'Test checkbox is disabled')
@@ -80,15 +66,9 @@ registerSuite(function() {
     'Check Healthcheck tab manipulations after deploy': function() {
       this.timeout = 100000;
       return this.remote
-        .then(function() {
-          return clusterPage.deployEnvironment();
-        })
-        .then(function() {
-          return healthCheckPage.createFakeServerForNotRunnedTests();
-        })
-        .then(function() {
-          return clusterPage.goToTab('Health Check');
-        })
+        .then(() => clusterPage.deployEnvironment())
+        .then(() => healthCheckPage.createFakeServerForNotRunnedTests())
+        .then(() => clusterPage.goToTab('Health Check'))
         .assertElementEnabled('.custom-tumbler input[type=checkbox]',
           'Test checkbox is enabled after deploy')
         // 'run tests' button interactions
@@ -109,12 +89,8 @@ registerSuite(function() {
     },
     'Check running tests': function() {
       return this.remote
-        .then(function() {
-          return healthCheckPage.createFakeServerForRunningTests();
-        })
-        .then(function() {
-          return clusterPage.goToTab('Health Check');
-        })
+        .then(() => healthCheckPage.createFakeServerForRunningTests())
+        .then(() => clusterPage.goToTab('Health Check'))
         .assertElementNotExists('.run-tests-btn',
           'Run tests button is not shown if tests are running')
         .assertElementEnabled('.stop-tests-btn', 'Stop tests button is enabled during tests run')
@@ -126,12 +102,8 @@ registerSuite(function() {
     },
     'Check finished tests': function() {
       return this.remote
-        .then(function() {
-          return healthCheckPage.createFakeServerForFinishedTests();
-        })
-        .then(function() {
-          return clusterPage.goToTab('Health Check');
-        })
+        .then(() => healthCheckPage.createFakeServerForFinishedTests())
+        .then(() => clusterPage.goToTab('Health Check'))
         .assertElementNotExists('.stop-tests-btn',
           'Stop tests button is not shown if tests are finished')
         .assertElementsAppear('.glyphicon-ok', 1000, 'Success status is reflected')

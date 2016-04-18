@@ -26,49 +26,28 @@ function DashboardPage(remote) {
 DashboardPage.prototype = {
   constructor: DashboardPage,
   startDeployment: function() {
-    var self = this;
     return this.remote
       .clickByCssSelector(this.deployButtonSelector)
-      .then(function() {
-        return self.modal.waitToOpen();
-      })
-      .then(function() {
-        return self.modal.checkTitle('Deploy Changes');
-      })
-      .then(function() {
-        return self.modal.clickFooterButton('Deploy');
-      })
-      .then(function() {
-        return self.modal.waitToClose();
-      });
+      .then(() => this.modal.waitToOpen())
+      .then(() => this.modal.checkTitle('Deploy Changes'))
+      .then(() => this.modal.clickFooterButton('Deploy'))
+      .then(() => this.modal.waitToClose());
   },
   stopDeployment: function() {
-    var self = this;
     return this.remote
       .clickByCssSelector('button.stop-deployment-btn')
-      .then(function() {
-        return self.modal.waitToOpen();
-      })
-      .then(function() {
-        return self.modal.checkTitle('Stop Deployment');
-      })
-      .then(function() {
-        return self.modal.clickFooterButton('Stop');
-      })
-      .then(function() {
-        return self.modal.waitToClose();
-      });
+      .then(() => this.modal.waitToOpen())
+      .then(() => this.modal.checkTitle('Stop Deployment'))
+      .then(() => this.modal.clickFooterButton('Stop'))
+      .then(() => this.modal.waitToClose());
   },
   startClusterRenaming: function() {
     return this.remote
       .clickByCssSelector('.cluster-info-value.name .glyphicon-pencil');
   },
   setClusterName: function(name) {
-    var self = this;
     return this.remote
-      .then(function() {
-        return self.startClusterRenaming();
-      })
+      .then(() => this.startClusterRenaming())
       .findByCssSelector('.rename-block input[type=text]')
         .clearValue()
         .type(name)
@@ -78,18 +57,11 @@ DashboardPage.prototype = {
       .waitForElementDeletion('.rename-block input[type=text]', 2000);
   },
   discardChanges: function() {
-    var self = this;
     return this.remote
       .clickByCssSelector('.btn-discard-changes')
-      .then(function() {
-        return self.modal.waitToOpen();
-      })
-      .then(function() {
-        return self.modal.clickFooterButton('Discard');
-      })
-      .then(function() {
-        return self.modal.waitToClose();
-      });
+      .then(() => this.modal.waitToOpen())
+      .then(() => this.modal.clickFooterButton('Discard'))
+      .then(() => this.modal.waitToClose());
   }
 };
 

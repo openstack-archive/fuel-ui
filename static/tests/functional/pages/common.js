@@ -35,92 +35,63 @@ CommonMethods.prototype = {
     return _.uniqueId((prefix || 'Item') + ' #');
   },
   getOut: function() {
-    var self = this;
     return this.remote
-      .then(function() {
-        return self.welcomePage.skip();
-      })
-      .then(function() {
-        return self.loginPage.logout();
-      });
+      .then(() => this.welcomePage.skip())
+      .then(() => this.loginPage.logout());
   },
   getIn: function() {
-    var self = this;
     return this.remote
-      .then(function() {
-        return self.loginPage.logout();
-      })
-      .then(function() {
-        return self.loginPage.login();
-      })
+      .then(() => this.loginPage.logout())
+      .then(() => this.loginPage.login())
       .waitForElementDeletion('.login-btn', 2000)
-      .then(function() {
-        return self.welcomePage.skip();
-      })
+      .then(() => this.welcomePage.skip())
       .waitForCssSelector('.navbar-nav', 1000)
       .clickByCssSelector('.global-alert.alert-warning .close');
   },
   createCluster: function(clusterName, stepsMethods) {
-    var self = this;
     return this.remote
       .clickLinkByText('Environments')
       .waitForCssSelector('.clusters-page', 2000)
-      .then(function() {
-        return self.clustersPage.createCluster(clusterName, stepsMethods);
-      });
+      .then(() => this.clustersPage.createCluster(clusterName, stepsMethods));
   },
   removeCluster: function(clusterName, suppressErrors) {
-    var self = this;
     return this.remote
       .clickLinkByText('Environments')
       .waitForCssSelector('.clusters-page', 2000)
-      .then(function() {
-        return self.clustersPage.goToEnvironment(clusterName);
-      })
-      .then(function() {
-        return self.clusterPage.removeCluster(clusterName);
-      })
-      .catch(function(e) {
+      .then(() => this.clustersPage.goToEnvironment(clusterName))
+      .then(() => this.clusterPage.removeCluster(clusterName))
+      .catch((e) => {
         if (!suppressErrors) {
           throw new Error('Unable to delete cluster ' + clusterName + ': ' + e);
         }
       });
   },
   doesClusterExist: function(clusterName) {
-    var self = this;
     return this.remote
       .clickLinkByText('Environments')
       .waitForCssSelector('.clusters-page', 2000)
-      .findAllByCssSelector(self.clustersPage.clusterSelector)
-        .then(function(divs) {
-          return divs.reduce(function(matchFound, element) {
-            return element.getVisibleText().then(
-              function(name) {
-                return (name === clusterName) || matchFound;
-              }
-            );
-          }, false);
-        });
+      .findAllByCssSelector(this.clustersPage.clusterSelector)
+        .then(
+          (divs) => divs.reduce(
+            (matchFound, element) => {
+              return element.getVisibleText().then((name) => (name === clusterName) || matchFound);
+            },
+            false
+          )
+        );
   },
   addNodesToCluster: function(nodesAmount, nodesRoles, nodeStatus, nodeNameFilter) {
-    var self = this;
     return this.remote
-      .then(function() {
-        return self.clusterPage.goToTab('Nodes');
-      })
+      .then(() => this.clusterPage.goToTab('Nodes'))
       .waitForCssSelector('.btn-add-nodes', 3000)
       .clickByCssSelector('.btn-add-nodes')
       .waitForElementDeletion('.btn-add-nodes', 3000)
       .waitForCssSelector('.node', 3000)
-      .then(function() {
-        if (nodeNameFilter) return self.clusterPage.searchForNode(nodeNameFilter);
+      .then(() => {
+        if (nodeNameFilter) return this.clusterPage.searchForNode(nodeNameFilter);
       })
-      .then(function() {
-        return self.clusterPage.checkNodeRoles(nodesRoles);
-      })
-      .then(function() {
-        return self.clusterPage.checkNodes(nodesAmount, nodeStatus);
-      })
+      .then(() => this.clusterPage.checkNodeRoles(nodesRoles))
+      .then(() => this.clusterPage.checkNodes(nodesAmount, nodeStatus))
       .clickByCssSelector('.btn-apply')
       .waitForElementDeletion('.btn-apply', 3000);
   }

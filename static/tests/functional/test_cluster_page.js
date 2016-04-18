@@ -20,7 +20,7 @@ import Common from 'tests/functional/pages/common';
 import ClusterPage from 'tests/functional/pages/cluster';
 import 'tests/functional/helpers';
 
-registerSuite(function() {
+registerSuite(() => {
   var common, clusterPage, clusterName;
   var nodesAmount = 3;
   var applyButtonSelector = 'button.btn-apply';
@@ -33,18 +33,11 @@ registerSuite(function() {
       clusterName = common.pickRandomName('Test Cluster');
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Nodes');
-        });
+        .then(() => common.getIn())
+        .then(() => common.createCluster(clusterName))
+        .then(() => clusterPage.goToTab('Nodes'));
     },
     'Add Cluster Nodes': function() {
-      var self = this;
       return this.remote
         .assertElementExists(
           '.node-list .alert-warning',
@@ -62,9 +55,7 @@ registerSuite(function() {
           'Unavailable role has warning icon'
         )
         .findByCssSelector('.role-block.mongo')
-          .then(function(element) {
-            return self.remote.moveMouseTo(element);
-          })
+          .then((element) => this.remote.moveMouseTo(element))
           .end()
         // the following timeout as we have 0.5s transition time for role popover
         .sleep(1000)
@@ -74,14 +65,10 @@ registerSuite(function() {
         )
         // closing role popover by moving mouse
         .findByCssSelector('.page-title')
-          .then(function(element) {
-            return self.remote.moveMouseTo(element);
-          })
+          .then((element) => this.remote.moveMouseTo(element))
           .end()
         .sleep(500)
-        .then(function() {
-          return clusterPage.checkNodeRoles(['Controller', 'Cinder']);
-        })
+        .then(() => clusterPage.checkNodeRoles(['Controller', 'Cinder']))
         .assertElementExists(
           '.role-block.controller i.glyphicon-selected-role',
           'Selected role has checkbox icon'
@@ -94,9 +81,7 @@ registerSuite(function() {
           applyButtonSelector,
           'Apply button is disabled until both roles and nodes chosen'
         )
-        .then(function() {
-          return clusterPage.checkNodes(nodesAmount);
-        })
+        .then(() => clusterPage.checkNodes(nodesAmount))
         .clickByCssSelector(applyButtonSelector)
         .waitForElementDeletion(applyButtonSelector, 2000)
         .assertElementAppears('.nodes-group', 2000, 'Cluster node list loaded')
@@ -109,9 +94,7 @@ registerSuite(function() {
     },
     'Edit cluster node roles': function() {
       return this.remote
-        .then(function() {
-          return common.addNodesToCluster(1, ['Cinder']);
-        })
+        .then(() => common.addNodesToCluster(1, ['Cinder']))
         .assertElementsExist('.nodes-group', 2, 'Two node groups are present')
         // select all nodes
         .clickByCssSelector('.select-all label')
@@ -130,9 +113,7 @@ registerSuite(function() {
           'Controller role has indeterminate state'
         )
         // uncheck Cinder role
-        .then(function() {
-          return clusterPage.checkNodeRoles(['Cinder', 'Cinder']);
-        })
+        .then(() => clusterPage.checkNodeRoles(['Cinder', 'Cinder']))
         .clickByCssSelector(applyButtonSelector)
         .assertElementDisappears('.btn-apply', 3000, 'Role editing screen unmounted')
         .assertElementsExist(
@@ -143,21 +124,11 @@ registerSuite(function() {
     },
     'Remove Cluster': function() {
       return this.remote
-        .then(function() {
-          return common.doesClusterExist(clusterName);
-        })
-        .then(function(result) {
-          assert.ok(result, 'Cluster exists');
-        })
-        .then(function() {
-          return common.removeCluster(clusterName);
-        })
-        .then(function() {
-          return common.doesClusterExist(clusterName);
-        })
-        .then(function(result) {
-          assert.notOk(result, 'Cluster removed successfully');
-        });
+        .then(() => common.doesClusterExist(clusterName))
+        .then((result) => assert.ok(result, 'Cluster exists'))
+        .then(() => common.removeCluster(clusterName))
+        .then(() => common.doesClusterExist(clusterName))
+        .then((result) => assert.notOk(result, 'Cluster removed successfully'));
     }
   };
 });
