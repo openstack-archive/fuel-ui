@@ -217,7 +217,7 @@ var SettingSection = React.createClass({
         var processedValueRestrictions = this.props.checkRestrictions('disable', value);
         if (!this.props.checkRestrictions('hide', value).result) {
           value.disabled = isSettingDisabled || processedValueRestrictions.result;
-          value.defaultChecked = value.data === setting.value;
+          value.checked = value.data === setting.value;
           value.tooltipText = showSettingWarning && processedValueRestrictions.message;
           return value;
         }
@@ -253,8 +253,8 @@ var SettingSection = React.createClass({
         setting.type === 'password' ||
         setting.type === 'textarea'
       }
-      defaultValue={setting.value}
-      defaultChecked={_.isBoolean(setting.value) ? setting.value : false}
+      value={utils.inputValue(setting.value)}
+      checked={_.isBoolean(setting.value) ? setting.value : false}
       toggleable={setting.type === 'password'}
       error={error}
       disabled={isSettingDisabled}
@@ -288,7 +288,8 @@ var SettingSection = React.createClass({
               type='checkbox'
               name='metadata'
               label={groupLabel}
-              defaultChecked={metadata.enabled}
+              checked={metadata.enabled}
+              value=''
               disabled={isGroupDisabled || processedGroupDependencies.result}
               tooltipText={showSettingGroupWarning && groupWarning}
               onChange={isPlugin ? _.partial(this.togglePlugin, sectionName) : this.props.onChange}
@@ -317,7 +318,7 @@ var SettingSection = React.createClass({
                   return {
                     data: version.metadata.plugin_id,
                     label: version.metadata.plugin_version,
-                    defaultChecked: version.metadata.plugin_id === metadata.chosen_id,
+                    checked: version.metadata.plugin_id === metadata.chosen_id,
                     disabled: locked || processedGroupRestrictions.result ||
                       (metadata.toggleable && !metadata.enabled)
                   };

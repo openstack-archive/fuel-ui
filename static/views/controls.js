@@ -44,7 +44,7 @@ export var Input = React.createClass({
       if (_.isNull(error)) {
         if (
           (setting.regex || {}).source &&
-          !setting.value.match(new RegExp(setting.regex.source))
+          !String(setting.value).match(new RegExp(setting.regex.source))
         ) {
           error = setting.regex.error;
         }
@@ -81,6 +81,7 @@ export var Input = React.createClass({
   getDefaultProps() {
     return {
       type: 'text',
+      value: '',
       tooltipIcon: 'glyphicon-warning-sign',
       tooltipPlacement: 'right'
     };
@@ -135,8 +136,9 @@ export var Input = React.createClass({
   renderInput() {
     var {visible, fileName, content} = this.state;
     var {
-      type, inputClassName, toggleable, selectOnFocus, debounce, children, disabled, extraContent
+      type, value, inputClassName, toggleable, selectOnFocus, debounce, children, disabled, extraContent
     } = this.props;
+    var isFile = type === 'file';
     var isCheckboxOrRadio = this.isCheckboxOrRadio();
     var inputWrapperClasses = {
       'input-group': toggleable,
@@ -153,15 +155,15 @@ export var Input = React.createClass({
         'form-control': type !== 'range',
         [inputClassName]: inputClassName
       }),
-      onChange: type === 'file' ?
-        this.readFile
-      :
-        debounce ? this.debouncedChange : this.onChange
+      onChange: isFile ? this.readFile : (debounce ? this.debouncedChange : this.onChange)
     };
 
+    var inputProps = _.omit(this.props, 'value');
+    if (!isFile) props.value = utils.inputValue(value);
+
     var Tag = _.contains(['select', 'textarea'], type) ? type : 'input';
-    var input = <Tag {...this.props} {...props}>{children}</Tag>;
-    if (type === 'file') input = <form ref='form'>{input}</form>;
+    var input = <Tag {...inputProps} {...props}>{children}</Tag>;
+    if (isFile) input = <form ref='form'>{input}</form>;
 
     return (
       <div key='input-group' className={utils.classNames(inputWrapperClasses)}>
@@ -172,7 +174,7 @@ export var Input = React.createClass({
               className='form-control file-name'
               type='text'
               placeholder={i18n('controls.file.placeholder')}
-              value={fileName && '[' + utils.showSize(content.length) + '] ' + fileName}
+              value={fileName ? `[${utils.showSize(content.length)}] ${fileName}` : ''}
               onClick={this.pickFile}
               disabled={disabled}
               readOnly
@@ -282,7 +284,7 @@ export var RadioGroup = React.createClass({
             {...value}
             type='radio'
             key={value.data}
-            value={value.data}
+            value={utils.inputValue(value.data)}
           />
         )}
       </div>

@@ -159,7 +159,7 @@ customControls.custom_repo_configuration = React.createClass({
             <div className='form-inline' key={'repo-' + index}>
               <Input
                 {...props}
-                defaultValue={repo.name}
+                value={utils.inputValue(repo.name)}
                 error={error && error.name}
                 wrapperClassName='repo-name'
                 onChange={this.changeRepos.bind(this, 'change_name')}
@@ -168,7 +168,7 @@ customControls.custom_repo_configuration = React.createClass({
               />
               <Input
                 {...props}
-                defaultValue={this.constructor.repoToString(repo, os)}
+                value={utils.inputValue(this.constructor.repoToString(repo, os))}
                 error={error && (error.uri ? error.name ? '' : error.uri : null)}
                 onChange={this.changeRepos.bind(this, null)}
                 label={index === 0 && i18n(ns + 'labels.uri')}
@@ -177,7 +177,7 @@ customControls.custom_repo_configuration = React.createClass({
               />
               <Input
                 {...props}
-                defaultValue={repo.priority}
+                value={utils.inputValue(repo.priority)}
                 error={
                   error && (error.priority ? (error.name || error.uri) ? '' : error.priority : null)
                 }
@@ -306,7 +306,7 @@ customControls.text_list = customControls.textarea_list = React.createClass({
           type='text'
           className='form-control'
           onChange={() => this.debouncedFieldChange(index)}
-          defaultValue={value}
+          value={utils.inputValue(value)}
         />
         {this.renderMultipleInputControls(index)}
         {error &&
@@ -411,7 +411,7 @@ customControls.custom_hugepages = React.createClass({
                   <Input
                     {...inputProps}
                     error={errors[size]}
-                    defaultValue={parseInt(number, 10)}
+                    value={utils.inputValue(parseInt(number, 10))}
                     key={size}
                     onChange={_.partialRight(this.props.onChange, size)}
                   />
