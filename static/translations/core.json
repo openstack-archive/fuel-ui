@@ -132,11 +132,11 @@
                         "Each controller node requires one IP address from the Public IP range.",
                         "Additionally, an OpenStack environment requires two IP addresses to use as virtual IP addresses and one IP address for the default gateway.",
                         "If you have enabled Neutron DVR and plan to use floating IP address, allocate one IP address for each compute node.",
-                        "For more information on the Public IP requirements, see Plugin documentation."
+                        "For more information on the Public IP requirements, see the Plugin documentation."
                     ],
                     "storage": "This is an internal network, therefore, assign a private IP address range.",
                     "management": "This is an internal network, therefore, assign a private IP address range.",
-                    "private": "This settings is used to specify IP address range to be used for GRE tunneling.",
+                    "private": "This setting is used to specify the IP address range to be used for GRE tunneling.",
                     "internal": "For security reasons, isolate this network from the Private and Public networks.",
                     "fuelweb_admin": "For security reasons, isolate this network from the Private and Public networks.",
                     "floating": [
@@ -433,11 +433,11 @@
                         "validation": {
                             "too_many_untagged_networks": "Untagged networks cannot be assigned to the same interface.",
                             "invalid_mtu": "Invalid MTU size",
-                            "dpdk_mtu_error": "For interface with DPDK enabled MTU size should not exceed 1500 bytes",
+                            "dpdk_mtu_error": "For a network interface with DPDK enabled the MTU size should not exceed 1500 bytes",
                             "networks_with_the_same_vlan": "Networks with the same VLAN ID cannot be assigned to the same interface.",
                             "vlan_range_intersection": "The network VLAN ID range should not include VLAN IDs of other networks assigned to the interface.",
                             "sriov_placement_error": "No network could be placed on SRIOV enabled interface",
-                            "non_default_physnet": "Only \"physnet2\" is going to be configured by Fuel in Neutron. Configuration of other physical networks is up to Operator or plugin. Fuel will just configure appropriate pci_passthrough_whitelist option in nova.conf for such interface and physical networks.",
+                            "non_default_physnet": "Only \"physnet2\" will be configured by Fuel in Neutron. Configuration of other physical networks is up to Operator or plugin. Fuel will just configure appropriate pci_passthrough_whitelist option in nova.conf for such interface and physical networks.",
                             "invalid_virtual_functions_number": "Virtual Functions number should be a positive number less than __max__",
                             "invalid_physnet": "Invalid name",
                             "empty_physnet": "Physical Network Name should not be empty",
@@ -458,7 +458,7 @@
                         "physical_network": "Physical Network Name",
                         "dpdk": "DPDK",
                         "dpdk_description": "The Data Plane Development Kit (DPDK) provides high-performance packet processing libraries and user space drivers.",
-                        "locked_dpdk_bond": "DPDK can not be enabled because not all slave interfaces support it",
+                        "locked_dpdk_bond": "DPDK cannot be enabled because not all slave interfaces support it",
                         "different_availability": "<Different Availability>",
                         "availability_tooltip": "Some network interfaces do not support this feature, therefore, these properties will not change after saving."
                     },
@@ -615,7 +615,7 @@
                         }
                     },
                     "plugin_versions": "Versions",
-                    "active_not_hot_pluggable_plugin": "You have just activated __plugin__. The developer of this plugin hasn't specified it as \"hot pluggable\", so cloud environment may stop functioning properly if such plugin is applied in post-deployment stage. Please consult with plugin developer on further appropriate course of actions."
+                    "active_not_hot_pluggable_plugin": "You have just activated __plugin__. The developer of this plugin hasn't specified it as \"hot pluggable\", so the cloud environment may stop functioning properly if this plugin is applied in post-deployment stage. Please consult with plugin developer on further appropriate course of actions."
                 },
                 "dashboard_tab": {
                     "delete_environment": "Delete Environment",
@@ -902,7 +902,7 @@
                 "hide_details_button": "Hide additional information",
                 "openstack_release": "OpenStack Release",
                 "environment_status": "Status",
-                "cluster_was_modified_from_cli": "Some deployment parameters for this environment have been modified using the Fuel CLI. Changes from the Fuel CLI precede the changes made using the Fuel web-interface. Proceed with caution.",
+                "cluster_was_modified_from_cli": "Some deployment parameters for this environment have been modified using the Fuel CLI. Changes from the Fuel CLI precede the changes made using the Fuel web interface. Proceed with caution.",
                 "unavailable_release": "__name__ release is unavailable. Cannot deploy the OpenStack environment."
             },
             "capacity_page": {
@@ -1007,7 +1007,7 @@
                         "release_alert": "Additional services are not available in __NameAndRelease.release_name__",
                         "network_mode_alert": "Murano requires Neutron as a network option.",
                         "install_sahara": "Install Sahara",
-                        "install_sahara_description": "Sahara enables on demand provisioning of Hadoop clusters to be deployed on OpenStack utilizing a variety of vendor distributions.",
+                        "install_sahara_description": "Sahara enables on-demand provisioning of Hadoop clusters to be deployed on OpenStack utilizing a variety of vendor distributions.",
                         "install_murano": "Install Murano",
                         "install_murano_description": "DEPRECATED: Murano is an application catalog, which allows application developers and cloud administrators to publish various cloud-ready applications in a browsable categorized catalog, which may be used by the cloud users (including the inexperienced ones) to pick-up the needed applications and services and composes the reliable environments out of them in a “push-the-button” manner.",
                         "install_ceilometer": "Install Ceilometer and Aodh",
@@ -1132,7 +1132,7 @@
                 "stop_deployment": {
                     "title": "Stop Deployment",
                     "text": "Are you sure you want to stop this deployment? You may not be able to successfully re-deploy this OpenStack environment until you reset the environment. Proceed with caution!",
-                    "provisioning_warning": "Are you sure you want to interrupt the deployment at OS provisioning stage? Fuel has not completed the node provisioning, changes applied to the nodes will be discarded and the nodes will be reset to their pre-deployment state.",
+                    "provisioning_warning": "Are you sure you want to interrupt the deployment at the OS provisioning stage? Fuel has not completed the node provisioning, changes applied to the nodes will be discarded and the nodes will be reset to their pre-deployment state.",
                     "redeployment_warning": "Please wait 20 minutes before attempting to run the deployment again to ensure the provisioning process has been stopped.",
                     "stop_deployment_error": {
                         "title": "Stop Deployment Error",
