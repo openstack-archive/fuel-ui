@@ -101,7 +101,7 @@ registerSuite(function() {
         });
     },
     'Baremetal Network "IP Ranges" adding and deleting additional fields': function() {
-      var correctIpRange = ['192.168.3.1', '192.168.3.50'];
+      var correctIpRange = ['192.168.3.2', '192.168.3.50'];
       var newIpRange = ['192.168.3.55', '192.168.3.70'];
       return this.remote
         // Change network settings

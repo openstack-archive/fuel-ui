@@ -107,7 +107,7 @@ NetworksLib.prototype = {
           'value', '192.168.3.0/24', networkName + ' "CIDR" textfield has default value')
         // IP Ranges
         .assertElementPropertyEquals(mainDiv + 'div.ip_ranges input[name*="range-start"]',
-          'value', '192.168.3.1', networkName + ' "Start IP Range" textfield  has default value')
+          'value', '192.168.3.2', networkName + ' "Start IP Range" textfield  has default value')
         .assertElementPropertyEquals(mainDiv + 'div.ip_ranges input[name*="range-end"]',
           'value', '192.168.3.50', networkName + ' "End IP Range" textfield has default value')
         // VLAN
