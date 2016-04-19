@@ -217,7 +217,7 @@ var SettingSection = React.createClass({
         var processedValueRestrictions = this.props.checkRestrictions('disable', value);
         if (!this.props.checkRestrictions('hide', value).result) {
           value.disabled = isSettingDisabled || processedValueRestrictions.result;
-          value.defaultChecked = value.data === setting.value;
+          value.checked = value.data === setting.value;
           value.tooltipText = showSettingWarning && processedValueRestrictions.message;
           return value;
         }
@@ -317,7 +317,7 @@ var SettingSection = React.createClass({
                   return {
                     data: version.metadata.plugin_id,
                     label: version.metadata.plugin_version,
-                    defaultChecked: version.metadata.plugin_id === metadata.chosen_id,
+                    checked: version.metadata.plugin_id === metadata.chosen_id,
                     disabled: locked || processedGroupRestrictions.result ||
                       (metadata.toggleable && !metadata.enabled)
                   };
