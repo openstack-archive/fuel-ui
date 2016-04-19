@@ -74,16 +74,13 @@ EquipmentLib.prototype = {
         .end();
   },
   checkSearchPageSwitching(pageName, nodeName) {
-    var self = this;
     return this.remote
-      .then(function() {
+      .then(() => {
         if (pageName !== 'Equipment') {
-          return self.generic.gotoPage(pageName);
+          return this.generic.gotoPage(pageName);
         }
       })
-      .then(function() {
-        return self.generic.gotoPage('Equipment');
-      })
+      .then(() => this.generic.gotoPage('Equipment'))
       .assertElementsExist(this.nodeSelector, 1,
         'Search result saved after switching to "' + pageName + '"" page')
       .assertElementContainsText(this.nodeSelector + ' div.name p', nodeName,
@@ -92,17 +89,14 @@ EquipmentLib.prototype = {
   checkSortingPageSwitching(pageName, nodesQuantity) {
     // Input array: Nodes quantity by groups.
     // [Total, Pending Addition, Discover]
-    var self = this;
     var groupSelector = 'div.nodes-group';
     return this.remote
-      .then(function() {
+      .then(() => {
         if (pageName !== 'Equipment') {
-          return self.generic.gotoPage(pageName);
+          return this.generic.gotoPage(pageName);
         }
       })
-      .then(function() {
-        return self.generic.gotoPage('Equipment');
-      })
+      .then(() => this.generic.gotoPage('Equipment'))
       .assertElementsExist(this.nodeSelector, nodesQuantity[0],
         'Filtered nodes quantity is observed after switching to "' + pageName + '"" page')
       .assertElementsExist(groupSelector, 2, 'Only "Pending Addition" and "Discovered"' +
@@ -165,8 +159,8 @@ EquipmentLib.prototype = {
     var selectedRolesSelector = '.role-panel .role-block .role i.glyphicon-selected-role';
     return this.remote
       .findAllByCssSelector(selectedRolesSelector)
-      .then(function(nodes) {
-        nodes.forEach(function(node) {
+      .then((nodes) => {
+        nodes.forEach((node) => {
           node.click();
         });
       })

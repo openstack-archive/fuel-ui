@@ -19,7 +19,7 @@ import Common from 'tests/functional/pages/common';
 import ClusterPage from 'tests/functional/pages/cluster';
 import NetworksLib from 'tests/functional/nightly/library/networks';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     clusterPage,
     clusterName,
@@ -34,21 +34,11 @@ registerSuite(function() {
       clusterName = common.pickRandomName('VLAN Cluster');
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        })
-        .then(function() {
-          return common.addNodesToCluster(1, ['Controller']);
-        })
-        .then(function() {
-          return common.addNodesToCluster(1, ['Compute']);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Settings');
-        });
+        .then(common.getIn)
+        .then(() => common.createCluster(clusterName))
+        .then(() => common.addNodesToCluster(1, ['Controller']))
+        .then(() => common.addNodesToCluster(1, ['Compute']))
+        .then(() => clusterPage.goToTab('Settings'));
     },
     'Check no network settings on "Settings" tab'() {
       return this.remote
@@ -61,9 +51,7 @@ registerSuite(function() {
     },
     'User returns to the selected segment on "Networks" tab'() {
       return this.remote
-        .then(function() {
-          return clusterPage.goToTab('Networks');
-        })
+        .then(() => clusterPage.goToTab('Networks'))
         .assertElementExists('a[class*="network"][class*="active"]', '"Networks" tab is opened')
         .assertElementExists('div.network-tab div.network-tab-content',
           '"Networks" tab is not empty')
@@ -76,13 +64,9 @@ registerSuite(function() {
           '"Neutron L2" subtab is selected')
         .assertElementTextEquals('h3.networks', 'Neutron L2 Configuration',
           '"Neutron L2" subtab is opened')
-        .then(function() {
-          return clusterPage.goToTab('Nodes');
-        })
+        .then(() => clusterPage.goToTab('Nodes'))
         .assertElementExists('a[class*="nodes"][class*="active"]', '"Nodes" tab is opened')
-        .then(function() {
-          return clusterPage.goToTab('Networks');
-        })
+        .then(() => clusterPage.goToTab('Networks'))
         .assertElementExists('a[class*="network"][class*="active"]', '"Networks" tab is opened')
         .assertElementExists('li.active a.subtab-link-neutron_l2',
           '"Neutron L2" subtab is selected')
@@ -91,27 +75,17 @@ registerSuite(function() {
     },
     'Check "Node Network Groups" segment on "Networks" tab'() {
       return this.remote
-        .then(function() {
-          return networksLib.checkNetworkInitialState('Public');
-        })
-        .then(function() {
-          return networksLib.checkNetworkInitialState('Storage');
-        })
-        .then(function() {
-          return networksLib.checkNetworkInitialState('Management');
-        });
+        .then(() => networksLib.checkNetworkInitialState('Public'))
+        .then(() => networksLib.checkNetworkInitialState('Storage'))
+        .then(() => networksLib.checkNetworkInitialState('Management'));
     },
     'Check "Settings" segment on "Networks" tab'() {
       return this.remote
-        .then(function() {
-          return networksLib.checkNetrworkSettingsSegment('VLAN');
-        });
+        .then(() => networksLib.checkNetrworkSettingsSegment('VLAN'));
     },
     'Check "Network Verification" segment on "Networks" tab'() {
       return this.remote
-        .then(function() {
-          return networksLib.checkNetrworkVerificationSegment();
-        });
+        .then(networksLib.checkNetrworkVerificationSegment);
     },
     'Success network verification exists only on "Network Verification" segment'() {
       return this.remote
@@ -124,9 +98,7 @@ registerSuite(function() {
           'True message is observed')
         .assertElementContainsText('div.alert-success', 'Your network is configured correctly',
           'True msg observed')
-        .then(function() {
-          return networksLib.gotoNodeNetworkSubTab('default');
-        })
+        .then(() => networksLib.gotoNodeNetworkSubTab('default'))
         .assertElementNotExists('div.alert-success',
           'No message about result of network verification on "default" subtab')
         .clickByCssSelector('.subtab-link-neutron_l2')
@@ -149,9 +121,7 @@ registerSuite(function() {
     'Failed network verification presents on each subtab on "Networks" tab'() {
       var gatewayValue = '172.16.0.2';
       return this.remote
-        .then(function() {
-          return networksLib.gotoNodeNetworkSubTab('default');
-        })
+        .then(() => networksLib.gotoNodeNetworkSubTab('default'))
         .setInputValue('div.public input[name=gateway]', gatewayValue)
         .clickByCssSelector('.subtab-link-network_verification')
         .assertElementEnabled('.verify-networks-btn', '"Verify Networks" is enabled')
@@ -161,9 +131,7 @@ registerSuite(function() {
         .assertElementContainsText('div.alert-danger',
           'Address intersection between public gateway and IP range of public network',
           'True message is observed')
-        .then(function() {
-          return networksLib.gotoNodeNetworkSubTab('default');
-        })
+        .then(() => networksLib.gotoNodeNetworkSubTab('default'))
         .assertElementExists('div.alert-danger',
           'Message about result of network verification on "default" subtab')
         .assertElementContainsText('div.alert-danger',
@@ -197,7 +165,7 @@ registerSuite(function() {
   };
 });
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     clusterPage,
     clusterName,
@@ -212,11 +180,9 @@ registerSuite(function() {
       networksLib = new NetworksLib(this.remote);
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(
+        .then(common.getIn)
+        .then(
+          () => common.createCluster(
             clusterName,
             {
               'Networking Setup'() {
@@ -225,11 +191,9 @@ registerSuite(function() {
                   .clickByCssSelector('input[value*="neutron"][value$=":tun"]');
               }
             }
-          );
-        })
-        .then(function() {
-          return clusterPage.goToTab('Networks');
-        });
+          )
+        )
+        .then(() => clusterPage.goToTab('Networks'));
     },
     'Check "Node Network Groups" segment on "Networks" tab'() {
       return this.remote
@@ -240,30 +204,18 @@ registerSuite(function() {
           'Node Network Groups', '"Node Network Groups" segment opens by default')
         .assertElementTextEquals('ul.node_network_groups li.active', 'default',
           '"default" node network group opens by default')
-        .then(function() {
-          return networksLib.checkNetworkInitialState('Public');
-        })
-        .then(function() {
-          return networksLib.checkNetworkInitialState('Storage');
-        })
-        .then(function() {
-          return networksLib.checkNetworkInitialState('Management');
-        })
-        .then(function() {
-          return networksLib.checkNetworkInitialState('Private');
-        });
+        .then(() => networksLib.checkNetworkInitialState('Public'))
+        .then(() => networksLib.checkNetworkInitialState('Storage'))
+        .then(() => networksLib.checkNetworkInitialState('Management'))
+        .then(() => networksLib.checkNetworkInitialState('Private'));
     },
     'Check "Settings" segment on "Networks" tab'() {
       return this.remote
-        .then(function() {
-          return networksLib.checkNetrworkSettingsSegment('Tunnel');
-        });
+        .then(() => networksLib.checkNetrworkSettingsSegment('Tunnel'));
     },
     'Check "Network Verification" segment on "Networks" tab'() {
       return this.remote
-        .then(function() {
-          return networksLib.checkNetrworkVerificationSegment();
-        });
+        .then(networksLib.checkNetrworkVerificationSegment);
     }
   };
 });

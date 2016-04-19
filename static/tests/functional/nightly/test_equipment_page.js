@@ -23,7 +23,7 @@ import Command from 'intern/dojo/node!leadfoot/Command';
 import GenericLib from 'tests/functional/nightly/library/generic';
 import EquipmentLib from 'tests/functional/nightly/library/equipment';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     clusterPage,
     clusterName,
@@ -62,18 +62,10 @@ registerSuite(function() {
       equipmentLib = new EquipmentLib(this.remote);
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        })
-        .then(function() {
-          return common.addNodesToCluster(nodesController, ['Controller']);
-        })
-        .then(function() {
-          return common.addNodesToCluster(nodesCompute, ['Compute']);
-        });
+        .then(common.getIn)
+        .then(() => common.createCluster(clusterName))
+        .then(() => common.addNodesToCluster(nodesController, ['Controller']))
+        .then(() => common.addNodesToCluster(nodesCompute, ['Compute']));
     },
     'Node settings pop-up contains environment and node network group names'() {
       var summarySelector = 'div.node-summary ';
@@ -84,14 +76,10 @@ registerSuite(function() {
         '[\\s\\S]*[^(Environment)].*[^(' + clusterName + ')]' +
         '[\\s\\S]*[^(Node network group)].*[^(default)][\\s\\S]*', 'i');
       return this.remote
-        .then(function() {
-          return genericLib.gotoPage('Equipment');
-        })
+        .then(() => genericLib.gotoPage('Equipment'))
         .assertElementsExist('div.nodes-group div.node', '"Equipment" page is not empty')
         // Check correct nodes addiction
-        .then(function() {
-          return equipmentLib.checkNodesSegmentation('standard', inputArray, false);
-        })
+        .then(() => equipmentLib.checkNodesSegmentation('standard', inputArray, false))
         .assertElementContainsText(clusterSelector + ':nth-child(1)', 'CONTROLLER',
             '"Controller" node #1 was successfully added to cluster')
         .assertElementContainsText(clusterSelector + ':nth-child(2)', 'CONTROLLER',
@@ -99,50 +87,36 @@ registerSuite(function() {
         .assertElementContainsText(clusterSelector + ':nth-child(3)', 'COMPUTE',
             '"Compute" node was successfully added to cluster')
         // Precondition
-        .then(function() {
-          return equipmentLib.renameNode(clusterSelector + ':first-child', controllerName);
-        })
-        .then(function() {
-          return equipmentLib.renameNode(clusterSelector + ':last-child', computeName);
-        })
+        .then(() => equipmentLib.renameNode(clusterSelector + ':first-child', controllerName))
+        .then(() => equipmentLib.renameNode(clusterSelector + ':last-child', computeName))
         // Check "Pending Addition" node
         .assertElementsExist(clusterSelector + ':last-child div.node-settings',
           'Node settings button for Compute node exists')
         .clickByCssSelector(clusterSelector + ':last-child div.node-settings')
-        .then(function() {
-          return modal.waitToOpen();
-        })
-        .then(function() {
-          return modal.checkTitle(computeName);
-        })
+        .then(modal.waitToOpen)
+        .then(() => modal.checkTitle(computeName))
         .assertElementMatchesRegExp(summarySelector, descriptionClusterNode,
           'Environment name and "default" node network group name are exist and correct')
         // Get IP and MAC for next tests
         .findByCssSelector(summarySelector + '> div:nth-child(2) > div:nth-child(2) > span')
           .getVisibleText()
-          .then(function(visibleText) {
+          .then((visibleText) => {
             computeMac = visibleText;
           })
           .end()
         .findByCssSelector(summarySelector + 'div.management-ip > span')
           .getVisibleText()
-          .then(function(visibleText) {
+          .then((visibleText) => {
             computeIp = visibleText;
           })
           .end()
-        .then(function() {
-          return modal.close();
-        })
+        .then(modal.close)
         // Check clean "Discovered" node
         .clickByCssSelector(nodeSelector + '.discover div.node-settings')
-        .then(function() {
-          return modal.waitToOpen();
-        })
+        .then(modal.waitToOpen)
         .assertElementMatchesRegExp(summarySelector, descriptionDiscoveredNode,
           'Environment name and "default" node network group name are not observed')
-        .then(function() {
-          return modal.close();
-        });
+        .then(modal.close);
     },
     'Standard and Compact Node view support'() {
       var preSelector = 'input[name="view_mode"][value="';
@@ -154,17 +128,13 @@ registerSuite(function() {
         .findByCssSelector(compactSelector)
           .type('\uE00D')
           .end()
-        .then(function() {
-          return equipmentLib.checkNodesSegmentation('compact', inputArray, false);
-        })
+        .then(() => equipmentLib.checkNodesSegmentation('compact', inputArray, false))
         // Check Standard Node view
         .assertElementsExist(standardSelector, '"Standard Node" button is available')
         .findByCssSelector(standardSelector)
           .type('\uE00D')
           .end()
-        .then(function() {
-          return equipmentLib.checkNodesSegmentation('standard', inputArray, false);
-        });
+        .then(() => equipmentLib.checkNodesSegmentation('standard', inputArray, false));
     },
     'Quick Search support for "Equipment" page'() {
       var nodeNameSelector = clusterSelector + ' div.name p';
@@ -222,27 +192,15 @@ registerSuite(function() {
     },
     'Quick Search results saved after refreshing of page'() {
       return this.remote
-        .then(function() {
-          return command.refresh();
-        })
-        .then(function() {
-          return equipmentLib.checkSearchPageSwitching('Equipment', computeName);
-        });
+        .then(command.refresh)
+        .then(() => equipmentLib.checkSearchPageSwitching('Equipment', computeName));
     },
     'Quick Search results saved after switching to other page'() {
       return this.remote
-        .then(function() {
-          return equipmentLib.checkSearchPageSwitching('Environments', computeName);
-        })
-        .then(function() {
-          return equipmentLib.checkSearchPageSwitching('Releases', computeName);
-        })
-        .then(function() {
-          return equipmentLib.checkSearchPageSwitching('Plugins', computeName);
-        })
-        .then(function() {
-          return equipmentLib.checkSearchPageSwitching('Support', computeName);
-        })
+        .then(() => equipmentLib.checkSearchPageSwitching('Environments', computeName))
+        .then(() => equipmentLib.checkSearchPageSwitching('Releases', computeName))
+        .then(() => equipmentLib.checkSearchPageSwitching('Plugins', computeName))
+        .then(() => equipmentLib.checkSearchPageSwitching('Support', computeName))
         .clickByCssSelector('button.btn-clear-search');
     },
     'Labels support for "Equipment" page'() {
@@ -289,13 +247,9 @@ registerSuite(function() {
         .assertElementsExist('button.btn-sorters', '"Sort Nodes" button is exists')
         .clickByCssSelector('button.btn-sorters')
         .assertElementsAppear('div.sorters', 1000, '"Sort" pane is appears')
-        .then(function() {
-          return equipmentLib.checkDefaultSorting('down', inputArray);
-        })
+        .then(() => equipmentLib.checkDefaultSorting('down', inputArray))
         .clickByCssSelector('div.sort-by-status-asc .btn-default')
-        .then(function() {
-          return equipmentLib.checkDefaultSorting('up', inputArray);
-        });
+        .then(() => equipmentLib.checkDefaultSorting('up', inputArray));
     },
     'Filtering support for "Equipment" page'() {
       var filterSelector = 'div.filter-by-status';
@@ -303,9 +257,7 @@ registerSuite(function() {
         .assertElementsExist('button.btn-filters', '"Filter Nodes" button is exists')
         .clickByCssSelector('button.btn-filters')
         .assertElementsAppear('div.filters', 1000, '"Filter" pane is appears')
-        .then(function() {
-          return equipmentLib.checkNodesSegmentation('standard', inputArray, false);
-        })
+        .then(() => equipmentLib.checkNodesSegmentation('standard', inputArray, false))
         .assertElementsExist(filterSelector, 'Filter sorting block is observed')
         .assertElementContainsText(filterSelector + ' .btn-default', 'Status',
           'Filter by status is default')
@@ -314,56 +266,32 @@ registerSuite(function() {
         .clickByCssSelector('input[name="discover"]')
         .clickByCssSelector('input[name="pending_addition"]')
         .assertElementsAppear(filterSelector, 1000, 'Filter by status is appears')
-        .then(function() {
-          return equipmentLib.checkSortingPageSwitching('Equipment', filterArray);
-        });
+        .then(() => equipmentLib.checkSortingPageSwitching('Equipment', filterArray));
     },
     'Sorting and Filtering results saved after refreshing of page'() {
       return this.remote
-        .then(function() {
-          return command.refresh();
-        })
-        .then(function() {
-          return equipmentLib.checkSortingPageSwitching('Equipment', filterArray);
-        });
+        .then(command.refresh)
+        .then(() => equipmentLib.checkSortingPageSwitching('Equipment', filterArray));
     },
     'Sorting and Filtering results saved after switching to other page'() {
       return this.remote
-        .then(function() {
-          return equipmentLib.checkSortingPageSwitching('Environments', filterArray);
-        })
-        .then(function() {
-          return equipmentLib.checkSortingPageSwitching('Releases', filterArray);
-        })
-        .then(function() {
-          return equipmentLib.checkSortingPageSwitching('Plugins', filterArray);
-        })
-        .then(function() {
-          return equipmentLib.checkSortingPageSwitching('Support', filterArray);
-        })
+        .then(() => equipmentLib.checkSortingPageSwitching('Environments', filterArray))
+        .then(() => equipmentLib.checkSortingPageSwitching('Releases', filterArray))
+        .then(() => equipmentLib.checkSortingPageSwitching('Plugins', filterArray))
+        .then(() => equipmentLib.checkSortingPageSwitching('Support', filterArray))
         .clickByCssSelector('button.btn-reset-filters');
     },
     'Node groups segmentation on "Equipment" page'() {
       return this.remote
-        .then(function() {
-          return genericLib.gotoPage('Environments');
-        })
+        .then(() => genericLib.gotoPage('Environments'))
         // Start deployment
-        .then(function() {
-          return clusterPage.goToEnvironment(clusterName);
-        })
-        .then(function() {
-          return dashboardPage.startDeployment();
-        })
+        .then(() => clusterPage.goToEnvironment(clusterName))
+        .then(dashboardPage.startDeployment)
         .assertElementExists('.dashboard-block .progress', 'Deployment is started')
         // Check node groups segmentation
-        .then(function() {
-          return genericLib.gotoPage('Equipment');
-        })
+        .then(() => genericLib.gotoPage('Equipment'))
         .assertElementNotExists(clusterSelector, '"Pending Addition" node group is gone')
-        .then(function() {
-          return equipmentLib.checkNodesSegmentation('standard', inputArray, true);
-        });
+        .then(() => equipmentLib.checkNodesSegmentation('standard', inputArray, true));
     },
     '"Offline" node deletion from "Equipment" page'() {
       var offlineSelector = nodeSelector + '.offline';
@@ -372,20 +300,12 @@ registerSuite(function() {
         .assertElementsExist(offlineSelector + ' button.node-remove-button',
           'Remove offline node button is exists')
         .clickByCssSelector(offlineSelector + ' button.node-remove-button')
-        .then(function() {
-          return modal.waitToOpen();
-        })
-        .then(function() {
-          return modal.checkTitle('Remove Node');
-        })
+        .then(modal.waitToOpen)
+        .then(() => modal.checkTitle('Remove Node'))
         .assertElementsExist('button.btn-danger.btn-delete', 'Remove button is exists')
         .clickByCssSelector('button.btn-danger.btn-delete')
-        .then(function() {
-          return modal.waitToClose();
-        })
-        .then(function() {
-          return command.refresh();
-        })
+        .then(modal.waitToClose)
+        .then(command.refresh)
         .assertElementsAppear('div.equipment-page', 5000, 'Page refreshed successfully')
         .assertElementNotExists(offlineSelector, '"Offline" node is gone');
     }

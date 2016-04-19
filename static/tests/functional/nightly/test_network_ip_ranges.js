@@ -19,7 +19,7 @@ import Common from 'tests/functional/pages/common';
 import ClusterPage from 'tests/functional/pages/cluster';
 import NetworksLib from 'tests/functional/nightly/library/networks';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     clusterPage,
     clusterName,
@@ -34,21 +34,11 @@ registerSuite(function() {
       clusterName = common.pickRandomName('VLAN Cluster');
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        })
-        .then(function() {
-          return common.addNodesToCluster(1, ['Controller']);
-        })
-        .then(function() {
-          return common.addNodesToCluster(1, ['Compute']);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Networks');
-        });
+        .then(common.getIn)
+        .then(() => common.createCluster(clusterName))
+        .then(() => common.addNodesToCluster(1, ['Controller']))
+        .then(() => common.addNodesToCluster(1, ['Compute']))
+        .then(() => clusterPage.goToTab('Networks'));
     },
     'Storage Network "IP Ranges" testing'() {
       this.timeout = 45000;
@@ -56,12 +46,8 @@ registerSuite(function() {
       var correctIpRange = ['192.168.1.5', '192.168.1.10'];
       var newIpRange = ['192.168.1.25', '192.168.1.30'];
       return this.remote
-        .then(function() {
-          return networksLib.checkNetworkInitialState(networkName);
-        })
-        .then(function() {
-          return networksLib.checkNetrworkIpRanges(networkName, correctIpRange, newIpRange);
-        });
+        .then(() => networksLib.checkNetworkInitialState(networkName))
+        .then(() => networksLib.checkNetrworkIpRanges(networkName, correctIpRange, newIpRange));
     },
     'Management Network "IP Ranges" testing'() {
       this.timeout = 45000;
@@ -69,46 +55,47 @@ registerSuite(function() {
       var correctIpRange = ['192.168.0.55', '192.168.0.100'];
       var newIpRange = ['192.168.0.120', '192.168.0.170'];
       return this.remote
-        .then(function() {
-          return networksLib.checkNetworkInitialState(networkName);
-        })
-        .then(function() {
-          return networksLib.checkNetrworkIpRanges(networkName, correctIpRange, newIpRange);
-        });
+        .then(() => networksLib.checkNetworkInitialState(networkName))
+        .then(() => networksLib.checkNetrworkIpRanges(networkName, correctIpRange, newIpRange));
     },
     'Check intersections between all networks'() {
       this.timeout = 45000;
       return this.remote
         // Storage and Management
-        .then(function() {
-          return networksLib.checkNerworksIntersection('Storage', 'Management',
-            ['192.168.0.0/24', '192.168.0.1', '192.168.0.254']);
-        })
+        .then(
+          () => networksLib.checkNerworksIntersection(
+            'Storage', 'Management', ['192.168.0.0/24', '192.168.0.1', '192.168.0.254']
+          )
+        )
         // Storage and Public
-        .then(function() {
-          return networksLib.checkNerworksIntersection('Storage', 'Public',
-            ['172.16.0.0/24', '172.16.0.5', '172.16.0.120']);
-        })
+        .then(
+          () => networksLib.checkNerworksIntersection(
+            'Storage', 'Public', ['172.16.0.0/24', '172.16.0.5', '172.16.0.120']
+          )
+        )
         // Storage and Floating IP
-        .then(function() {
-          return networksLib.checkNerworksIntersection('Storage', 'Public',
-            ['172.16.0.0/24', '172.16.0.135', '172.16.0.170']);
-        })
+        .then(
+          () => networksLib.checkNerworksIntersection(
+            'Storage', 'Public', ['172.16.0.0/24', '172.16.0.135', '172.16.0.170']
+          )
+        )
         // Management and Public
-        .then(function() {
-          return networksLib.checkNerworksIntersection('Management', 'Public',
-            ['172.16.0.0/24', '172.16.0.5', '172.16.0.120']);
-        })
+        .then(
+          () => networksLib.checkNerworksIntersection(
+            'Management', 'Public', ['172.16.0.0/24', '172.16.0.5', '172.16.0.120']
+          )
+        )
         // Management and Floating IP
-        .then(function() {
-          return networksLib.checkNerworksIntersection('Management', 'Public',
-            ['172.16.0.0/24', '172.16.0.135', '172.16.0.170']);
-        });
+        .then(
+          () => networksLib.checkNerworksIntersection(
+            'Management', 'Public', ['172.16.0.0/24', '172.16.0.135', '172.16.0.170']
+          )
+        );
     }
   };
 });
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     clusterPage,
     clusterName,
@@ -123,11 +110,9 @@ registerSuite(function() {
       clusterName = common.pickRandomName('Tunneling Cluster');
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(
+        .then(common.getIn)
+        .then(
+          () => common.createCluster(
             clusterName,
             {
               'Networking Setup'() {
@@ -136,17 +121,11 @@ registerSuite(function() {
                   .clickByCssSelector('input[value*="neutron"][value$=":tun"]');
               }
             }
-          );
-        })
-        .then(function() {
-          return common.addNodesToCluster(1, ['Controller']);
-        })
-        .then(function() {
-          return common.addNodesToCluster(1, ['Compute']);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Networks');
-        });
+          )
+        )
+        .then(() => common.addNodesToCluster(1, ['Controller']))
+        .then(() => common.addNodesToCluster(1, ['Compute']))
+        .then(() => clusterPage.goToTab('Networks'));
     },
     'Storage Network "IP Ranges" testing'() {
       this.timeout = 45000;
@@ -154,12 +133,8 @@ registerSuite(function() {
       var correctIpRange = ['192.168.1.5', '192.168.1.10'];
       var newIpRange = ['192.168.1.25', '192.168.1.30'];
       return this.remote
-        .then(function() {
-          return networksLib.checkNetworkInitialState(networkName);
-        })
-        .then(function() {
-          return networksLib.checkNetrworkIpRanges(networkName, correctIpRange, newIpRange);
-        });
+        .then(() => networksLib.checkNetworkInitialState(networkName))
+        .then(() => networksLib.checkNetrworkIpRanges(networkName, correctIpRange, newIpRange));
     },
     'Management Network "IP Ranges" testing'() {
       this.timeout = 45000;
@@ -167,12 +142,8 @@ registerSuite(function() {
       var correctIpRange = ['192.168.0.55', '192.168.0.100'];
       var newIpRange = ['192.168.0.120', '192.168.0.170'];
       return this.remote
-        .then(function() {
-          return networksLib.checkNetworkInitialState(networkName);
-        })
-        .then(function() {
-          return networksLib.checkNetrworkIpRanges(networkName, correctIpRange, newIpRange);
-        });
+        .then(() => networksLib.checkNetworkInitialState(networkName))
+        .then(() => networksLib.checkNetrworkIpRanges(networkName, correctIpRange, newIpRange));
     },
     'Private Network "IP Ranges" testing'() {
       this.timeout = 45000;
@@ -180,56 +151,60 @@ registerSuite(function() {
       var correctIpRange = ['192.168.2.190', '192.168.2.200'];
       var newIpRange = ['192.168.2.200', '192.168.2.230'];
       return this.remote
-        .then(function() {
-          return networksLib.checkNetworkInitialState(networkName);
-        })
-        .then(function() {
-          return networksLib.checkNetrworkIpRanges(networkName, correctIpRange, newIpRange);
-        });
+        .then(() => networksLib.checkNetworkInitialState(networkName))
+        .then(() => networksLib.checkNetrworkIpRanges(networkName, correctIpRange, newIpRange));
     },
     'Check intersections between all networks'() {
       this.timeout = 60000;
       return this.remote
         // Storage and Management
-        .then(function() {
-          return networksLib.checkNerworksIntersection('Storage', 'Management',
-            ['192.168.0.0/24', '192.168.0.1', '192.168.0.254']);
-        })
+        .then(
+          () => networksLib.checkNerworksIntersection(
+            'Storage', 'Management', ['192.168.0.0/24', '192.168.0.1', '192.168.0.254']
+          )
+        )
         // Storage and Private
-        .then(function() {
-          return networksLib.checkNerworksIntersection('Storage', 'Private',
-            ['192.168.2.0/24', '192.168.2.1', '192.168.2.254']);
-        })
+        .then(
+          () => networksLib.checkNerworksIntersection(
+            'Storage', 'Private', ['192.168.2.0/24', '192.168.2.1', '192.168.2.254']
+          )
+        )
         // Storage and Public
-        .then(function() {
-          return networksLib.checkNerworksIntersection('Storage', 'Public',
-            ['172.16.0.0/24', '172.16.0.5', '172.16.0.120']);
-        })
+        .then(
+          () => networksLib.checkNerworksIntersection(
+            'Storage', 'Public', ['172.16.0.0/24', '172.16.0.5', '172.16.0.120']
+          )
+        )
         // Storage and Floating IP
-        .then(function() {
-          return networksLib.checkNerworksIntersection('Storage', 'Public',
-            ['172.16.0.0/24', '172.16.0.135', '172.16.0.170']);
-        })
+        .then(
+          () => networksLib.checkNerworksIntersection(
+            'Storage', 'Public', ['172.16.0.0/24', '172.16.0.135', '172.16.0.170']
+          )
+        )
         // Management and Public
-        .then(function() {
-          return networksLib.checkNerworksIntersection('Management', 'Public',
-            ['172.16.0.0/24', '172.16.0.5', '172.16.0.120']);
-        })
+        .then(
+          () => networksLib.checkNerworksIntersection(
+            'Management', 'Public', ['172.16.0.0/24', '172.16.0.5', '172.16.0.120']
+          )
+        )
         // Management and Floating IP
-        .then(function() {
-          return networksLib.checkNerworksIntersection('Management', 'Public',
-            ['172.16.0.0/24', '172.16.0.135', '172.16.0.170']);
-        })
+        .then(
+          () => networksLib.checkNerworksIntersection(
+            'Management', 'Public', ['172.16.0.0/24', '172.16.0.135', '172.16.0.170']
+          )
+        )
         // Private and Public
-        .then(function() {
-          return networksLib.checkNerworksIntersection('Private', 'Public',
-            ['172.16.0.0/24', '172.16.0.5', '172.16.0.120']);
-        })
+        .then(
+          () => networksLib.checkNerworksIntersection(
+            'Private', 'Public', ['172.16.0.0/24', '172.16.0.5', '172.16.0.120']
+          )
+        )
         // Private and Floating IP
-        .then(function() {
-          return networksLib.checkNerworksIntersection('Private', 'Public',
-            ['172.16.0.0/24', '172.16.0.135', '172.16.0.170']);
-        });
+        .then(
+          () => networksLib.checkNerworksIntersection(
+            'Private', 'Public', ['172.16.0.0/24', '172.16.0.135', '172.16.0.170']
+          )
+        );
     }
   };
 });

@@ -19,7 +19,7 @@ import Common from 'tests/functional/pages/common';
 import ClusterPage from 'tests/functional/pages/cluster';
 import SettingsLib from 'tests/functional/nightly/library/settings';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     clusterPage,
     clusterName,
@@ -34,15 +34,9 @@ registerSuite(function() {
       clusterName = common.pickRandomName('VLAN Cluster');
 
       return this.remote
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(clusterName);
-        })
-        .then(function() {
-          return clusterPage.goToTab('Settings');
-        });
+        .then(common.getIn)
+        .then(() => common.createCluster(clusterName))
+        .then(() => clusterPage.goToTab('Settings'));
     },
     'Check "General" segment'() {
       var pageTitleSelector = 'div.title';
@@ -53,9 +47,7 @@ registerSuite(function() {
         .assertElementsExist(segmentSelector, 'General Settings segment link exists and active')
         .assertElementMatchesRegExp(segmentSelector, /General/i,
           'General Settings segment link name is correct')
-        .then(function() {
-          return settingsLib.checkGeneralSegment();
-        })
+        .then(settingsLib.checkGeneralSegment)
         .assertElementEnabled('button.btn-load-defaults', '"Load Defaults" button is enabled')
         .assertElementDisabled('button.btn-revert-changes', '"Cancel Changes" button is disabled')
         .assertElementDisabled('button.btn-apply-changes', '"Save Settings" button is disabled');
@@ -63,81 +55,51 @@ registerSuite(function() {
     'Check "Security" segment'() {
       var segmentName = 'Security';
       return this.remote
-        .then(function() {
-          return settingsLib.gotoOpenStackSettings(segmentName);
-        })
-        .then(function() {
-          return settingsLib.checkSecuritySegment();
-        });
+        .then(() => settingsLib.gotoOpenStackSettings(segmentName))
+        .then(settingsLib.checkSecuritySegment);
     },
     'Check "Compute" segment'() {
       var segmentName = 'Compute';
       return this.remote
-        .then(function() {
-          return settingsLib.gotoOpenStackSettings(segmentName);
-        })
-        .then(function() {
-          return settingsLib.checkComputeSegment();
-        });
+        .then(() => settingsLib.gotoOpenStackSettings(segmentName))
+        .then(settingsLib.checkComputeSegment);
     },
     'Check "Storage" segment'() {
       var segmentName = 'Storage';
       return this.remote
-        .then(function() {
-          return settingsLib.gotoOpenStackSettings(segmentName);
-        })
-        .then(function() {
-          return settingsLib.checkStorageSegment();
-        });
+        .then(() => settingsLib.gotoOpenStackSettings(segmentName))
+        .then(settingsLib.checkStorageSegment);
     },
     'Check "Logging" segment'() {
       var segmentName = 'Logging';
       return this.remote
-        .then(function() {
-          return settingsLib.gotoOpenStackSettings(segmentName);
-        })
-        .then(function() {
-          return settingsLib.checkLoggingSegment();
-        });
+        .then(() => settingsLib.gotoOpenStackSettings(segmentName))
+        .then(settingsLib.checkLoggingSegment);
     },
     'Check "OpenStack Services" segment'() {
       var segmentName = 'OpenStack Services';
       return this.remote
-        .then(function() {
-          return settingsLib.gotoOpenStackSettings(segmentName);
-        })
-        .then(function() {
-          return settingsLib.checkOpenStackServicesSegment();
-        });
+        .then(() => settingsLib.gotoOpenStackSettings(segmentName))
+        .then(settingsLib.checkOpenStackServicesSegment);
     },
     'Check "Other" segment'() {
       var segmentName = 'Other';
       return this.remote
-        .then(function() {
-          return settingsLib.gotoOpenStackSettings(segmentName);
-        })
-        .then(function() {
-          return settingsLib.checkOtherSegment();
-        });
+        .then(() => settingsLib.gotoOpenStackSettings(segmentName))
+        .then(settingsLib.checkOtherSegment);
     },
     'User returns to the selected segment on "Settings" tab'() {
       return this.remote
-        .then(function() {
-          return clusterPage.goToTab('Nodes');
-        })
+        .then(() => clusterPage.goToTab('Nodes'))
         .assertElementsAppear('a.nodes.active', 2000, '"Nodes" tab is opened')
-        .then(function() {
-          return clusterPage.goToTab('Settings');
-        })
+        .then(() => clusterPage.goToTab('Settings'))
         .assertElementsAppear('a.settings.active', 2000, '"Settings" tab is opened')
         .assertElementsExist('div.other', '"Other" settings segment page is opened')
         .assertElementsExist('li.active a.subtab-link-other',
           '"Other" settings segment link exists and active')
         .assertElementMatchesRegExp('li.active a.subtab-link-other', /Other/i,
           '"Other" settings segment link name is correct')
-        .then(function() {
-          return settingsLib.checkOtherSegment();
-        });
+        .then(settingsLib.checkOtherSegment);
     },
     'No "Node network group" item via sorting/filtering for unallocated nodes'() {
       var itemName = 'Node network group';
@@ -148,9 +110,7 @@ registerSuite(function() {
       var popoverSelector = 'div.popover ';
       var popContentSelector = popoverSelector + 'div.popover-content div';
       return this.remote
-        .then(function() {
-          return clusterPage.goToTab('Nodes');
-        })
+        .then(() => clusterPage.goToTab('Nodes'))
         .assertElementsAppear('a.nodes.active', 2000, '"Nodes" tab is opened')
         .assertElementsExist('button.btn-add-nodes', '"Add Nodes" button exists')
         .clickByCssSelector('button.btn-add-nodes')
@@ -184,9 +144,7 @@ registerSuite(function() {
       var roleBaseOsSelector = 'div.role-block.base-os';
       var rolesRegExp = RegExp('[\\s\\S]*(controller.*|base-os.*){2}[\\s\\S]*', 'i');
       return this.remote
-        .then(function() {
-          return common.addNodesToCluster(1, ['Controller']);
-        })
+        .then(() => common.addNodesToCluster(1, ['Controller']))
         .assertElementsAppear(nodeSelector + 'input', 1000, '"Controller" node appears')
         .clickByCssSelector(nodeSelector + 'input')
         .assertElementsExist(btnEditSelector, '"Edit Roles" button exists')

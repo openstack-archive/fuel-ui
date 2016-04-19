@@ -21,7 +21,7 @@ import NetworksLib from 'tests/functional/nightly/library/networks';
 import SettingsLib from 'tests/functional/nightly/library/settings';
 import EquipmentLib from 'tests/functional/nightly/library/equipment';
 
-registerSuite(function() {
+registerSuite(() => {
   var common,
     clusterPage,
     clusterName,
@@ -51,11 +51,9 @@ registerSuite(function() {
 
       return this.remote
         // Enabling Ironic when creating environment
-        .then(function() {
-          return common.getIn();
-        })
-        .then(function() {
-          return common.createCluster(
+        .then(common.getIn)
+        .then(
+          () => common.createCluster(
             clusterName,
             {
               'Storage Backends'() {
@@ -67,27 +65,19 @@ registerSuite(function() {
                   .clickByCssSelector('input[value$="ironic"]');
               }
             }
-          );
-        });
+          )
+        );
     },
     'Check Ironic item on Settings tab'() {
       var ironicSelector = 'input[name=ironic]:enabled:checked';
       return this.remote
         // Check Ironic item on Settings tab
-        .then(function() {
-          return clusterPage.goToTab('Settings');
-        })
-        .then(function() {
-          return settingsLib.gotoOpenStackSettings('OpenStack Services');
-        })
+        .then(() => clusterPage.goToTab('Settings'))
+        .then(() => settingsLib.gotoOpenStackSettings('OpenStack Services'))
         .assertElementsExist(ironicSelector, 'Ironic checkbox is enabled and selected')
         // Check "Baremetal Network" initial state
-        .then(function() {
-          return clusterPage.goToTab('Networks');
-        })
-        .then(function() {
-          return networksLib.checkNetworkInitialState(networkName);
-        });
+        .then(() => clusterPage.goToTab('Networks'))
+        .then(() => networksLib.checkNetworkInitialState(networkName));
     },
     'Baremetal Network "IP Ranges" correct changing'() {
       var correctIpRange = ['192.168.3.15', '192.168.3.100'];
@@ -96,9 +86,7 @@ registerSuite(function() {
         .setInputValue(startIpSelector, correctIpRange[0])
         .setInputValue(endIpSelector, correctIpRange[1])
         .assertElementNotExists(errorSelector, 'No Baremetal errors are observed')
-        .then(function() {
-          return networksLib.saveSettings();
-        });
+        .then(networksLib.saveSettings);
     },
     'Baremetal Network "IP Ranges" adding and deleting additional fields'() {
       var correctIpRange = ['192.168.3.1', '192.168.3.50'];
@@ -108,19 +96,11 @@ registerSuite(function() {
         .setInputValue(startIpSelector, correctIpRange[0])
         .setInputValue(endIpSelector, correctIpRange[1])
         // Add new IP range
-        .then(function() {
-          return networksLib.addNewIpRange(networkName, newIpRange);
-        })
-        .then(function() {
-          return networksLib.saveSettings();
-        })
+        .then(() => networksLib.addNewIpRange(networkName, newIpRange))
+        .then(networksLib.saveSettings)
         // Remove just added IP range
-        .then(function() {
-          return networksLib.deleteIpRange(networkName);
-        })
-        .then(function() {
-          return networksLib.saveSettings();
-        });
+        .then(() => networksLib.deleteIpRange(networkName))
+        .then(networksLib.saveSettings);
     },
     'Baremetal and other networks intersections'() {
       this.timeout = 45000;
@@ -133,15 +113,9 @@ registerSuite(function() {
       var publicValues = ['172.16.0.0/24', '172.16.0.1', '172.16.0.50', '172.16.0.51',
         '172.16.0.254', '172.16.0.52'];
       return this.remote
-        .then(function() {
-          return networksLib.checkBaremetalIntersection('storage', storageValues);
-        })
-        .then(function() {
-          return networksLib.checkBaremetalIntersection('management', managementValues);
-        })
-        .then(function() {
-          return networksLib.checkBaremetalIntersection('public', publicValues);
-        });
+        .then(() => networksLib.checkBaremetalIntersection('storage', storageValues))
+        .then(() => networksLib.checkBaremetalIntersection('management', managementValues))
+        .then(() => networksLib.checkBaremetalIntersection('public', publicValues));
     },
     'Baremetal Network "Use VLAN tagging" option works'() {
       var chboxVlanSelector = baremetalSelector + 'div.vlan_start input[type="checkbox"]';
@@ -154,9 +128,7 @@ registerSuite(function() {
         .assertElementNotExists(vlanSelector,
           'Baremetal "Use VLAN tagging" textfield does not exist')
         .assertElementNotExists(errorSelector, 'No Baremetal errors are observed')
-        .then(function() {
-          return networksLib.saveSettings();
-        })
+        .then(networksLib.saveSettings)
         // Select back "Use VLAN tagging" option
         .clickByCssSelector(chboxVlanSelector)
         .assertElementsExist(chboxVlanSelector + ':enabled:checked',
@@ -167,9 +139,7 @@ registerSuite(function() {
           'Invalid VLAN ID', 'True error message is displayed')
         .setInputValue(vlanSelector, vlanTag)
         .assertElementNotExists(errorSelector, 'No Baremetal errors are observed')
-        .then(function() {
-          return networksLib.saveSettings();
-        });
+        .then(networksLib.saveSettings);
     },
     'Baremetal Network "Use VLAN tagging" option validation'() {
       var btnSaveSelector = 'button.apply-btn';
@@ -177,22 +147,26 @@ registerSuite(function() {
       var errorMessage = 'Invalid VLAN ID';
       return this.remote
         // Check "Use VLAN tagging" text field
-        .then(function() {
-          return networksLib.checkIncorrectValueInput(vlanSelector, vlanTag[0], vlanErrorSelector,
-            errorMessage);
-        })
-        .then(function() {
-          return networksLib.checkIncorrectValueInput(vlanSelector, vlanTag[1], vlanErrorSelector,
-            errorMessage);
-        })
-        .then(function() {
-          return networksLib.checkIncorrectValueInput(vlanSelector, vlanTag[2], vlanErrorSelector,
-            errorMessage);
-        })
-        .then(function() {
-          return networksLib.checkIncorrectValueInput(vlanSelector, vlanTag[3], vlanErrorSelector,
-            errorMessage);
-        })
+        .then(
+          () => networksLib.checkIncorrectValueInput(
+            vlanSelector, vlanTag[0], vlanErrorSelector, errorMessage
+          )
+        )
+        .then(
+          () => networksLib.checkIncorrectValueInput(
+            vlanSelector, vlanTag[1], vlanErrorSelector, errorMessage
+          )
+        )
+        .then(
+          () => networksLib.checkIncorrectValueInput(
+            vlanSelector, vlanTag[2], vlanErrorSelector, errorMessage
+          )
+        )
+        .then(
+          () => networksLib.checkIncorrectValueInput(
+            vlanSelector, vlanTag[3], vlanErrorSelector, errorMessage
+          )
+        )
         .setInputValue(vlanSelector, vlanTag[4])
         .assertElementNotExists(errorSelector, 'No Baremetal errors are observed')
         .assertElementEnabled(btnSaveSelector, 'Save Settings button is enabled')
@@ -200,12 +174,8 @@ registerSuite(function() {
         .assertElementNotExists(errorSelector, 'No Baremetal errors are observed')
         .assertElementEnabled(btnSaveSelector, 'Save Settings button is enabled')
         // Cancel changes
-        .then(function() {
-          return networksLib.cancelChanges();
-        })
-        .then(function() {
-          return networksLib.checkNetworkInitialState(networkName);
-        });
+        .then(networksLib.cancelChanges)
+        .then(() => networksLib.checkNetworkInitialState(networkName));
     },
     'Baremetal Network "CIDR" field validation'() {
       var cidrErrorSelector = baremetalSelector + 'div.cidr div.has-error span[class^="help"]';
@@ -215,26 +185,31 @@ registerSuite(function() {
       var errorMessage = 'Invalid CIDR';
       return this.remote
         // Check "CIDR" text field
-        .then(function() {
-          return networksLib.checkIncorrectValueInput(cidrSelector, cidrPart1 + cidrPart2[0],
-            cidrErrorSelector, errorMessage);
-        })
-        .then(function() {
-          return networksLib.checkIncorrectValueInput(cidrSelector, cidrPart1 + cidrPart2[1],
-            cidrErrorSelector, errorMessage);
-        })
-        .then(function() {
-          return networksLib.checkIncorrectValueInput(cidrSelector, cidrPart1 + cidrPart2[2],
-            cidrErrorSelector, 'Network is too large');
-        })
-        .then(function() {
-          return networksLib.checkIncorrectValueInput(cidrSelector, cidrPart1 + cidrPart2[3],
-            cidrErrorSelector, 'Network is too small');
-        })
-        .then(function() {
-          return networksLib.checkIncorrectValueInput(cidrSelector, cidrPart1 + cidrPart2[4],
-            cidrErrorSelector, errorMessage);
-        })
+        .then(
+          () => networksLib.checkIncorrectValueInput(
+            cidrSelector, cidrPart1 + cidrPart2[0], cidrErrorSelector, errorMessage
+          )
+        )
+        .then(
+          () => networksLib.checkIncorrectValueInput(
+            cidrSelector, cidrPart1 + cidrPart2[1], cidrErrorSelector, errorMessage
+          )
+        )
+        .then(
+          () => networksLib.checkIncorrectValueInput(
+            cidrSelector, cidrPart1 + cidrPart2[2], cidrErrorSelector, 'Network is too large'
+          )
+        )
+        .then(
+          () => networksLib.checkIncorrectValueInput(
+            cidrSelector, cidrPart1 + cidrPart2[3], cidrErrorSelector, 'Network is too small'
+          )
+        )
+        .then(
+          () => networksLib.checkIncorrectValueInput(
+            cidrSelector, cidrPart1 + cidrPart2[4], cidrErrorSelector, errorMessage
+          )
+        )
         .setInputValue(cidrSelector, cidrPart1 + cidrPart2[5])
         .assertElementExists(l3Selector, '"Neutron L3" link exists')
         .assertElementExists(l3Selector + 'i.glyphicon-danger-sign',
@@ -245,25 +220,15 @@ registerSuite(function() {
         .assertElementContainsText('div.form-baremetal-network div.validation-error ' +
           'span[class^="help"]', 'IP address does not match the network CIDR',
           'True error message is displayed')
-        .then(function() {
-          return networksLib.checkMultirackVerification();
-        })
+        .then(networksLib.checkMultirackVerification)
         // Cancel changes
-        .then(function() {
-          return networksLib.cancelChanges();
-        })
-        .then(function() {
-          return networksLib.checkNetworkInitialState(networkName);
-        });
+        .then(networksLib.cancelChanges)
+        .then(() => networksLib.checkNetworkInitialState(networkName));
     },
     'Baremetal Network "Use the whole CIDR" option works'() {
       return this.remote
-        .then(function() {
-          return networksLib.checkCidrOption(networkName);
-        })
-        .then(function() {
-          return networksLib.saveSettings();
-        });
+        .then(() => networksLib.checkCidrOption(networkName))
+        .then(networksLib.saveSettings);
     },
     'Combinations ironic role with other roles validation'() {
       var nodesAmount = 1;
@@ -271,73 +236,51 @@ registerSuite(function() {
       var applyButtonSelector = 'button.btn-apply';
       var selectedIronicRoleSelector = '.role-block.ironic i.glyphicon-selected-role';
       return this.remote
-        .then(function() {
-          return clusterPage.goToTab('Nodes');
-        })
+        .then(() => clusterPage.goToTab('Nodes'))
         .clickByCssSelector(addNodeButtonSelector)
         .waitForElementDeletion(addNodeButtonSelector, 3000)
         .assertElementsAppear('.node', 3000, 'Unallocated nodes loaded')
         .assertElementExists('.role-block.ironic:not(.disabled)', 'Ironic role is unlocked')
         // Select node
-        .then(function() {
-          return clusterPage.checkNodes(nodesAmount);
-        })
-        .then(function() {
-          return clusterPage.checkNodeRoles(['Ironic']);
-        })
+        .then(() => clusterPage.checkNodes(nodesAmount))
+        .then(() => clusterPage.checkNodeRoles(['Ironic']))
         .assertElementExists(selectedIronicRoleSelector,
           'Selected role has checkbox icon')
         .assertElementExists('.role-block.compute.disabled',
           'Compute role can not be added together with selected roles')
         .assertElementEnabled(applyButtonSelector,
           'Apply button is enabled')
-        .then(function() {
-          return equipmentLib.uncheckNodeRoles();
-        })
+        .then(equipmentLib.uncheckNodeRoles)
         // Check Ironic + Compute roles are available
-        .then(function() {
-          return clusterPage.checkNodeRoles(['Ironic', 'Controller']);
-        })
+        .then(() => clusterPage.checkNodeRoles(['Ironic', 'Controller']))
         .assertElementExists(selectedIronicRoleSelector,
           'Selected role has checkbox icon')
         .assertElementExists('.role-block.controller i.glyphicon-selected-role',
           'Selected role has checkbox icon')
         .assertElementEnabled(applyButtonSelector,
           'Apply button is enabled')
-        .then(function() {
-          return equipmentLib.uncheckNodeRoles();
-        })
+        .then(equipmentLib.uncheckNodeRoles)
         // Check Ironic + Ceph roles are available
-        .then(function() {
-          return clusterPage.checkNodeRoles(['Ironic', 'Ceph OSD']);
-        })
+        .then(() => clusterPage.checkNodeRoles(['Ironic', 'Ceph OSD']))
         .assertElementExists(selectedIronicRoleSelector,
           'Selected role has checkbox icon')
         .assertElementExists('.role-block.ceph-osd i.glyphicon-selected-role',
           'Selected role has checkbox icon')
         .assertElementEnabled(applyButtonSelector,
           'Apply button is enabled')
-        .then(function() {
-          return equipmentLib.uncheckNodeRoles();
-        });
+        .then(equipmentLib.uncheckNodeRoles);
     },
     'Disabling ironic service'() {
       var addNodeButtonSelector = '.btn-add-nodes';
       return this.remote
-        .then(function() {
-          return clusterPage.goToTab('Settings');
-        })
-        .then(function() {
-          return settingsLib.gotoOpenStackSettings('OpenStack Services');
-        })
+        .then(() => clusterPage.goToTab('Settings'))
+        .then(() => settingsLib.gotoOpenStackSettings('OpenStack Services'))
         .clickByCssSelector('input[name=ironic]')
         .waitForCssSelector('.btn-apply-changes:not(:disabled)', 200)
         .clickByCssSelector('.btn-apply-changes')
         .waitForCssSelector('.btn-load-defaults:not(:disabled)', 1000)
         // Check that ironic disabled
-        .then(function() {
-          return clusterPage.goToTab('Nodes');
-        })
+        .then(() => clusterPage.goToTab('Nodes'))
         .clickByCssSelector(addNodeButtonSelector)
         .waitForElementDeletion(addNodeButtonSelector, 3000)
         .assertElementsAppear('.node', 3000, 'Unallocated nodes loaded')
