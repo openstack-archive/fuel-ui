@@ -240,7 +240,7 @@ var Node = React.createClass({
       <Input
         type='checkbox'
         name={this.props.node.id}
-        checked={this.props.checked}
+        checked={!!this.props.checked}
         disabled={
           this.props.locked ||
           !this.props.node.isSelectable()

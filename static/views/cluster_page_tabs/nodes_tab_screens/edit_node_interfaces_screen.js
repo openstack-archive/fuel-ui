@@ -997,7 +997,7 @@ var NodeInterface = React.createClass({
               <Input
                 type='checkbox'
                 label={i18n(ns + 'disable_offloading')}
-                checked={ifcProperties.disable_offloading}
+                checked={!!ifcProperties.disable_offloading}
                 name='disable_offloading'
                 onChange={this.toggleOffloading}
                 disabled={locked}
@@ -1059,7 +1059,7 @@ var NodeInterface = React.createClass({
         <Input
           type='checkbox'
           label={i18n('common.enabled')}
-          checked={currentDPDKValue}
+          checked={!!currentDPDKValue}
           name='dpdk.enabled'
           onChange={(propertyName, propertyValue) => {
             this.onInterfacePropertiesChange('dpdk.enabled', propertyValue);
@@ -1084,7 +1084,7 @@ var NodeInterface = React.createClass({
         <Input
           type='checkbox'
           label={i18n('common.enabled')}
-          checked={isSRIOVEnabled}
+          checked={!!isSRIOVEnabled}
           name='sriov.enabled'
           onChange={this.onInterfacePropertiesChange}
           disabled={this.props.locked}
@@ -1222,7 +1222,7 @@ var NodeInterface = React.createClass({
                   type='checkbox'
                   label={ifc.get('name')}
                   onChange={this.bondingChanged}
-                  checked={ifc.get('checked')}
+                  checked={!!ifc.get('checked')}
                 />
               :
                 ifc.get('name')

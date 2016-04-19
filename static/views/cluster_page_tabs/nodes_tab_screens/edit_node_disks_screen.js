@@ -280,7 +280,7 @@ var NodeDisk = React.createClass({
     var sortOrder = ['name', 'model', 'size'];
 
     return (
-      <div className='col-xs-12 disk-box' data-disk={disk.id} key={this.props.key}>
+      <div className='col-xs-12 disk-box' data-disk={disk.id} key={disk.id}>
         <div className='row'>
           <h4 className='col-xs-6'>
             {diskError && <i className='glyphicon glyphicon-danger-sign' />}
