@@ -1280,8 +1280,17 @@ input[type=range] {
   }
   .tooltip-icon {
     .text-warning;
-    margin-left: 5px;
-    font-size: @base-font-size + 2px;
+    display: inline-block;
+    position: relative;
+    margin: -8px 0 0 5px;
+    top: 4px;
+    
+    //padding: 0;
+    //margin: 0;
+    //height: 22px;
+    //margin-top: -2px;
+    //margin-left: 5px;
+    //font-size: @base-font-size + 2px;
   }
 
   // custom control styles
@@ -1862,6 +1871,7 @@ input[type=range] {
     overflow: hidden;
     padding-left: 0;
     .btn-group {
+      vertical-align: baseline;
       button {
         padding: 6px 10px;
         .glyphicon {
