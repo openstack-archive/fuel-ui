@@ -23,7 +23,7 @@ import Backbone from 'backbone';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
-import {Input, ProgressBar} from 'views/controls';
+import {Input, ProgressBar, ProgressButton} from 'views/controls';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 import {backboneMixin, renamingMixin} from 'component_mixins';
 import LinkedStateMixin from 'react-addons-linked-state-mixin';
@@ -291,17 +291,15 @@ export var NailgunUnavailabilityDialog = React.createClass({
   },
   renderFooter() {
     return (
-      <button
+      <ProgressButton
         ref='retry-button'
-        className={utils.classNames({
-          'btn btn-success': true,
-          'btn-progress': this.state.actionInProgress
-        })}
+        className='btn btn-success'
         onClick={this.retryNow}
         disabled={this.state.actionInProgress}
+        progress={this.state.actionInProgress}
       >
         {i18n('dialog.nailgun_unavailability.retry_now')}
-      </button>
+      </ProgressButton>
     );
   }
 });
@@ -340,12 +338,10 @@ export var DiscardClusterChangesDialog = React.createClass({
       return settings.save(null, {patch: true, wait: true, validate: false})
         .then(
           () => cluster.get('networkConfiguration').fetch(),
-          () => {
-            settings.updateAttributes(
+          () => settings.updateAttributes(
               new models.Settings(currentSettings),
               this.state.configModels
-            );
-          }
+            )
         )
         .then(() => {
           networkConfiguration.updateEditableAttributes(
@@ -415,17 +411,15 @@ export var DiscardClusterChangesDialog = React.createClass({
       >
         {i18n('common.cancel_button')}
       </button>,
-      <button
+      <ProgressButton
         key='discard'
-        className={utils.classNames({
-          'btn btn-danger': true,
-          'btn-progress': this.state.actionInProgress
-        })}
+        className='btn btn-danger'
         disabled={this.state.actionInProgress}
         onClick={this.discardChanges}
+        progress={this.state.actionInProgress}
       >
         {i18n('dialog.discard_changes.discard_button')}
-      </button>
+      </ProgressButton>
     ]);
   }
 });
@@ -504,15 +498,13 @@ export var DeployClusterDialog = React.createClass({
       >
         {i18n('common.cancel_button')}
       </button>,
-      <button
+      <ProgressButton
         key='deploy'
-        className={utils.classNames({
-          'btn start-deployment-btn btn-success': true,
-          'btn-progress': this.state.actionInProgress
-        })}
+        className='btn start-deployment-btn btn-success'
         disabled={this.state.actionInProgress || this.state.isInvalid}
         onClick={this.deployCluster}
-      >{i18n(this.ns + 'deploy')}</button>
+        progress={this.state.actionInProgress}
+      >{i18n(this.ns + 'deploy')}</ProgressButton>
     ]);
   }
 });
@@ -572,17 +564,15 @@ export var ProvisionNodesDialog = React.createClass({
       >
         {i18n('common.cancel_button')}
       </button>,
-      <button
+      <ProgressButton
         key='provisioning'
-        className={utils.classNames({
-          'btn start-provision-btn btn-success': true,
-          'btn-progress': this.state.actionInProgress
-        })}
+        className='btn start-provision-btn btn-success'
         disabled={this.state.actionInProgress}
         onClick={this.provisionNodes}
+        progress={this.state.actionInProgress}
       >
         {i18n(this.ns + 'start_provisioning', {count: this.props.nodeIds.length})}
-      </button>
+      </ProgressButton>
     ]);
   }
 });
@@ -640,17 +630,15 @@ export var DeployNodesDialog = React.createClass({
       >
         {i18n('common.cancel_button')}
       </button>,
-      <button
+      <ProgressButton
         key='nodes-deployment'
-        className={utils.classNames({
-          'btn start-nodes-deployment-btn btn-success': true,
-          'btn-progress': this.state.actionInProgress
-        })}
+        className='btn start-nodes-deployment-btn btn-success'
         disabled={this.state.actionInProgress}
         onClick={this.deployNodes}
+        progress={this.state.actionInProgress}
       >
         {i18n(this.ns + 'start_deployment', {count: this.props.nodeIds.length})}
-      </button>
+      </ProgressButton>
     ]);
   }
 });
@@ -714,21 +702,19 @@ export var SelectNodesDialog = React.createClass({
       >
         {i18n('common.cancel_button')}
       </button>,
-      <button
+      <ProgressButton
         key='proceed'
-        className={utils.classNames({
-          'btn btn-select-nodes btn-success': true,
-          'btn-progress': this.state.actionInProgress
-        })}
+        className='btn btn-select-nodes btn-success'
         disabled={this.state.actionInProgress || !selectedNodesAmount}
         onClick={() => this.submitAction(_.keys(this.state.selectedNodeIds))}
+        progress={this.state.actionInProgress}
       >
         {selectedNodesAmount ?
           i18n(this.ns + 'proceed', {count: selectedNodesAmount})
         :
           i18n(this.ns + 'can_not_proceed')
         }
-      </button>
+      </ProgressButton>
     ]);
   }
 });
@@ -766,17 +752,15 @@ export var ProvisionVMsDialog = React.createClass({
       >
         {i18n('common.cancel_button')}
       </button>,
-      <button
+      <ProgressButton
         key='provision'
-        className={utils.classNames({
-          'btn btn-success': true,
-          'btn-progress': this.state.actionInProgress
-        })}
+        className='btn btn-success'
         disabled={this.state.actionInProgress}
         onClick={this.startProvisioning}
+        progress={this.state.actionInProgress}
       >
         {i18n('common.start_button')}
-      </button>
+      </ProgressButton>
     ]);
   }
 });
@@ -830,17 +814,15 @@ export var StopDeploymentDialog = React.createClass({
       >
         {i18n('common.cancel_button')}
       </button>,
-      <button
+      <ProgressButton
         key='deploy'
-        className={utils.classNames({
-          'btn stop-deployment-btn btn-danger': true,
-          'btn-progress': this.state.actionInProgress
-        })}
+        className='btn stop-deployment-btn btn-danger'
         disabled={this.state.actionInProgress}
         onClick={this.stopDeployment}
+        progress={this.state.actionInProgress}
       >
         {i18n('common.stop_button')}
-      </button>
+      </ProgressButton>
     ]);
   }
 });
@@ -916,24 +898,22 @@ export var RemoveClusterDialog = React.createClass({
       >
         {i18n('common.cancel_button')}
       </button>,
-      <button
+      <ProgressButton
         key='remove'
-        className={utils.classNames({
-          'btn btn-danger remove-cluster-btn': true,
-          'btn-progress': this.state.actionInProgress
-        })}
+        className='btn btn-danger remove-cluster-btn'
         disabled={this.state.actionInProgress || this.state.confirmation &&
-         _.isUndefined(this.state.confirmationError) || this.state.confirmationError}
+          _.isUndefined(this.state.confirmationError) || this.state.confirmationError}
         onClick={this.props.cluster.get('status') === 'new' || this.state.confirmation ?
-         this.removeCluster : this.showConfirmationForm}
+          this.removeCluster : this.showConfirmationForm}
+        progress={this.state.actionInProgress}
       >
         {i18n('common.delete_button')}
-      </button>
+      </ProgressButton>
     ]);
   }
 });
 
-// FIXME: the code below neeeds deduplication
+// FIXME: the code below needs deduplication
 // extra confirmation logic should be moved out to dialog mixin
 export var ResetEnvironmentDialog = React.createClass({
   mixins: [dialogMixin],
@@ -995,18 +975,16 @@ export var ResetEnvironmentDialog = React.createClass({
       >
         {i18n('common.cancel_button')}
       </button>,
-      <button
+      <ProgressButton
         key='reset'
-        className={utils.classNames({
-          'btn btn-danger reset-environment-btn': true,
-          'btn-progress': this.state.actionInProgress
-        })}
+        className='btn btn-danger reset-environment-btn'
         disabled={this.state.actionInProgress || this.state.confirmation &&
          _.isUndefined(this.state.confirmationError) || this.state.confirmationError}
         onClick={this.state.confirmation ? this.resetEnvironment : this.showConfirmationForm}
+        progress={this.state.actionInProgress}
       >
         {i18n('common.reset_button')}
-      </button>
+      </ProgressButton>
     ]);
   }
 });
@@ -1436,20 +1414,18 @@ export var ShowNodeInfoDialog = React.createClass({
             >
               {i18n('common.cancel_changes_button')}
             </button>
-            <button
-              className={utils.classNames({
-                'btn btn-success apply-changes': true,
-                'btn-progress': this.state.actionInProgress
-              })}
+            <ProgressButton
+              className='btn btn-success apply-changes'
               onClick={this.saveNodeAttributes}
               disabled={
                 !_.isNull(nodeAttributesError) ||
                 !this.hasNodeAttributesChanges() ||
                 this.state.actionInProgress
               }
+              progress={this.state.actionInProgress}
             >
               {i18n('common.save_settings_button')}
-            </button>
+            </ProgressButton>
           </div>
         </div>
       </div>
@@ -1679,17 +1655,11 @@ export var ShowNodeInfoDialog = React.createClass({
 
 export var DiscardSettingsChangesDialog = React.createClass({
   mixins: [dialogMixin],
-  getInitialState() {
-    return {
-      applyingChanges: false,
-      revertingChanges: false
-    };
-  },
   getDefaultProps() {
     return {title: i18n('dialog.dismiss_settings.title')};
   },
-  proceedWith(method) {
-    this.setState({actionInProgress: true});
+  proceedWith(method, action = true) {
+    this.setState({actionInProgress: action});
     return $.when(method ? method() : $.Deferred().resolve())
       .then(this.state.result.resolve)
       .then(
@@ -1698,12 +1668,10 @@ export var DiscardSettingsChangesDialog = React.createClass({
         );
   },
   discard() {
-    var promise = this.proceedWith(this.props.revertChanges);
-    if (promise.state() === 'pending') this.setState({revertingChanges: true});
+    return this.proceedWith(this.props.revertChanges, 'discard_changes');
   },
   save() {
-    var promise = this.proceedWith(this.props.applyChanges);
-    if (promise.state() === 'pending') this.setState({applyingChanges: true});
+    return this.proceedWith(this.props.applyChanges, 'save_changes');
   },
   getMessage() {
     if (this.props.isDiscardingPossible === false) return 'no_discard_message';
@@ -1727,28 +1695,24 @@ export var DiscardSettingsChangesDialog = React.createClass({
       >
         {i18n('dialog.dismiss_settings.stay_button')}
       </button>,
-      <button
+      <ProgressButton
         key='leave'
-        className={utils.classNames({
-          'btn btn-danger proceed-btn': true,
-          'btn-progress': this.state.revertingChanges
-        })}
+        className='btn btn-danger proceed-btn'
         onClick={this.discard}
         disabled={this.state.actionInProgress || this.props.isDiscardingPossible === false}
+        progress={this.state.actionInProgress === 'discard_changes'}
       >
         {i18n('dialog.dismiss_settings.leave_button')}
-      </button>,
-      <button
+      </ProgressButton>,
+      <ProgressButton
         key='save'
-        className={utils.classNames({
-          'btn btn-success': true,
-          'btn-progress': this.state.applyingChanges
-        })}
+        className='btn btn-success'
         onClick={this.save}
         disabled={this.state.actionInProgress || this.props.isSavingPossible === false}
+        progress={this.state.actionInProgress === 'save_changes'}
       >
         {i18n('dialog.dismiss_settings.apply_and_proceed_button')}
-      </button>
+      </ProgressButton>
     ];
     return buttons;
   }
@@ -1775,16 +1739,14 @@ export var RemoveOfflineNodeDialog = React.createClass({
       <button key='close' className='btn btn-default' onClick={this.close}>
         {i18n('common.cancel_button')}
       </button>,
-      <button
+      <ProgressButton
         key='remove'
-        className={utils.classNames({
-          'btn btn-danger btn-delete': true,
-          'btn-progress': this.state.actionInProgress
-        })}
+        className='btn btn-danger btn-delete'
         onClick={this.submitAction}
+        progress={this.state.actionInProgress}
       >
         {i18n('cluster_page.nodes_tab.node.remove')}
-      </button>
+      </ProgressButton>
     ];
   }
 });
@@ -1820,16 +1782,15 @@ export var DeleteNodesDialog = React.createClass({
         className='btn btn-default'
         onClick={this.close}>{i18n('common.cancel_button')}
       </button>,
-      <button
+      <ProgressButton
         key='delete'
-        className={utils.classNames({
-          'btn btn-danger btn-delete': true,
-          'btn-progress': this.state.actionInProgress
-        })}
-        onClick={this.deleteNodes} disabled={this.state.actionInProgress}
+        className='btn btn-danger btn-delete'
+        onClick={this.deleteNodes}
+        disabled={this.state.actionInProgress}
+        progress={this.state.actionInProgress}
       >
         {i18n('common.delete_button')}
-      </button>
+      </ProgressButton>
     ];
   },
   deleteNodes() {
@@ -1931,17 +1892,15 @@ export var ChangePasswordDialog = React.createClass({
       >
         {i18n('common.cancel_button')}
       </button>,
-      <button
+      <ProgressButton
         key='apply'
-        className={utils.classNames({
-          'btn btn-success': true,
-          'btn-progress': this.state.actionInProgress
-        })}
+        className='btn btn-success'
         onClick={this.changePassword}
         disabled={this.state.actionInProgress || !this.isPasswordChangeAvailable()}
+        progress={this.state.actionInProgress}
       >
         {i18n('common.apply_button')}
-      </button>
+      </ProgressButton>
     ];
   },
   isPasswordChangeAvailable() {
@@ -2028,17 +1987,15 @@ export var CreateNodeNetworkGroupDialog = React.createClass({
       >
         {i18n('common.cancel_button')}
       </button>,
-      <button
+      <ProgressButton
         key='apply'
-        className={utils.classNames({
-          'btn btn-success': true,
-          'btn-progress': this.state.actionInProgress
-        })}
+        className='btn btn-success'
         onClick={this.createNodeNetworkGroup}
         disabled={this.state.actionInProgress || this.state.error}
+        progress={this.state.actionInProgress}
       >
         {i18n(this.props.ns + 'add')}
-      </button>
+      </ProgressButton>
     ];
   },
   onKeyDown(e) {
@@ -2104,16 +2061,14 @@ export var RemoveNodeNetworkGroupDialog = React.createClass({
       <button key='cancel' className='btn btn-default' onClick={this.close}>
         {i18n('common.cancel_button')}
       </button>,
-      <button
+      <ProgressButton
         key='remove'
-        className={utils.classNames({
-          'btn btn-danger remove-cluster-btn': true,
-          'btn-progress': this.state.actionInProgress
-        })}
+        className='btn btn-danger remove-cluster-btn'
         onClick={this.submitAction}
+        progress={this.state.actionInProgress}
       >
         {i18n('common.delete_button')}
-      </button>
+      </ProgressButton>
     ]);
   }
 });

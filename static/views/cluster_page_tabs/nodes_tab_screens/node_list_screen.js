@@ -22,7 +22,7 @@ import ReactDOM from 'react-dom';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
-import {Input, Popover, Tooltip} from 'views/controls';
+import {Input, Popover, Tooltip, ProgressButton} from 'views/controls';
 import {DeleteNodesDialog} from 'views/dialogs';
 import {backboneMixin, pollingMixin, dispatcherMixin, unsavedChangesMixin} from 'component_mixins';
 import Node from 'views/cluster_page_tabs/nodes_tab_screens/node';
@@ -1204,13 +1204,14 @@ ManagementPanel = React.createClass({
                   >
                     {i18n('common.cancel_button')}
                   </button>
-                  <button
+                  <ProgressButton
                     className='btn btn-success btn-apply'
                     disabled={!this.isSavingPossible()}
                     onClick={this.applyAndRedirect}
+                    progress={this.state.actionInProgress}
                   >
                     {i18n('common.apply_changes_button')}
-                  </button>
+                  </ProgressButton>
                 </div>
               :
                 [
@@ -1693,16 +1694,14 @@ NodeLabelsPanel = React.createClass({
                 >
                   {i18n('common.cancel_button')}
                 </button>
-                <button
-                  className={utils.classNames(
-                    'btn btn-success',
-                    {'btn-progress': this.state.actionInProgress}
-                  )}
+                <ProgressButton
+                  className='btn btn-success'
                   onClick={this.applyChanges}
                   disabled={!this.isSavingPossible()}
+                  progress={this.state.actionInProgress}
                 >
                   {i18n('common.apply_button')}
-                </button>
+                </ProgressButton>
               </div>
             </div>
           }
