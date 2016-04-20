@@ -321,6 +321,39 @@ export var ProgressBar = React.createClass({
   }
 });
 
+export var ProgressButton = React.createClass({
+  getInitialState() {
+    return {
+      clicked: false,
+      progressing: false
+    };
+  },
+  componentWillReceiveProps(nextProps) {
+    var {clicked, progressing} = this.state;
+    if (clicked || progressing) this.setState({progressing: nextProps.progress});
+  },
+  onClick() {
+    if (this.props.onClick) {
+      this.setState({clicked: true});
+      $.when(this.props.onClick())
+        .then(() => {
+          this.setState({clicked: false});
+        });
+    }
+  },
+  render() {
+    var {children, progress, className} = this.props;
+    var {clicked, progressing} = this.state;
+    var classNames = utils.classNames({
+      [className]: true,
+      'btn-progress': progress && (clicked || progressing)
+    });
+    return <button {...this.props} className={classNames} onClick={this.onClick}>
+      {children}
+    </button>;
+  }
+});
+
 export var Table = React.createClass({
   propTypes: {
     tableClassName: React.PropTypes.node,
