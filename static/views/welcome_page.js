@@ -34,7 +34,10 @@ var WelcomePage = React.createClass({
   },
   onStartButtonClick() {
     this.props.settings.set('statistics.user_choice_saved.value', true);
-    this.setState({locked: true});
+    this.setState({
+      locked: true,
+      actionInProgress: true
+    });
     this.saveSettings(this.getStatisticsSettingsToSave())
       .done(() => app.navigate('', {trigger: true}))
       .fail((response) => {
@@ -49,7 +52,10 @@ var WelcomePage = React.createClass({
     var buttonProps = {
       disabled,
       onClick: this.onStartButtonClick,
-      className: 'btn btn-lg btn-block btn-success'
+      className: utils.classNames({
+        'btn btn-lg btn-block btn-success': true,
+        'btn-progress': this.state.actionInProgress
+      })
     };
     return (
       <div className='welcome-page tracking'>

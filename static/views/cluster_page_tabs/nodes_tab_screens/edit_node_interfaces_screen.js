@@ -285,6 +285,7 @@ var EditNodeInterfacesScreen = React.createClass({
   },
   applyChanges() {
     if (!this.isSavingPossible()) return $.Deferred().reject();
+    this.setState({actionInProgress: true});
 
     var nodes = this.props.nodes;
     var interfaces = this.props.interfaces;
@@ -301,7 +302,6 @@ var EditNodeInterfacesScreen = React.createClass({
       (bond) => _.map(bond.get('slaves'), (slave) => interfaces.indexOf(interfaces.find(slave)))
     );
 
-    this.setState({actionInProgress: true});
     return $.when(...nodes.map((node) => {
       var oldNodeBonds, nodeBonds;
       // removing previously configured bond
@@ -765,7 +765,10 @@ var EditNodeInterfacesScreen = React.createClass({
                   {i18n('common.cancel_changes_button')}
                 </button>
                 <button
-                  className='btn btn-success btn-apply'
+                  className={utils.classNames({
+                    'btn btn-success btn-apply': true,
+                    'btn-progress': this.state.actionInProgress
+                  })}
                   onClick={this.applyChanges}
                   disabled={!this.isSavingPossible()}
                 >

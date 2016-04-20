@@ -225,7 +225,10 @@ var EditNodeDisksScreen = React.createClass({
                     {i18n('common.cancel_changes_button')}
                   </button>
                   <button
-                    className='btn btn-success btn-apply'
+                    className={utils.classNames({
+                      'btn btn-success btn-apply': true,
+                      'btn-progress': this.state.actionInProgress
+                    })}
                     onClick={this.applyChanges}
                     disabled={!this.isSavingPossible()}
                   >

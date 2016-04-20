@@ -821,9 +821,11 @@ ManagementPanel = React.createClass({
     };
   },
   changeScreen(url, passNodeIds) {
+    this.setState({actionInProgress: true});
     url = url ? '/' + url : '';
     if (passNodeIds) url += '/' + utils.serializeTabOptions({nodes: this.props.nodes.pluck('id')});
     app.navigate('#cluster/' + this.props.cluster.id + '/nodes' + url, {trigger: true});
+    this.setState({actionInProgress: false});
   },
   goToConfigurationScreen(action, conflict) {
     if (conflict) {
@@ -1199,7 +1201,10 @@ ManagementPanel = React.createClass({
                     {i18n('common.cancel_button')}
                   </button>
                   <button
-                    className='btn btn-success btn-apply'
+                    className={utils.classNames({
+                      'btn btn-success btn-apply': true,
+                      'btn-progress': this.state.actionInProgress
+                    })}
                     disabled={!this.isSavingPossible()}
                     onClick={this.applyAndRedirect}
                   >
@@ -1253,7 +1258,10 @@ ManagementPanel = React.createClass({
                   !locked &&
                     <div className='btn-group' role='group' key='add-nodes-button'>
                       <button
-                        className='btn btn-success btn-add-nodes'
+                        className={utils.classNames({
+                          'btn btn-success btn-add-nodes': true,
+                          'btn-progress': this.state.actionInProgress
+                        })}
                         onClick={_.partial(this.changeScreen, 'add', false)}
                         disabled={locked}
                       >
@@ -1688,10 +1696,10 @@ NodeLabelsPanel = React.createClass({
                   {i18n('common.cancel_button')}
                 </button>
                 <button
-                  className={utils.classNames(
-                    'btn btn-success',
-                    {'btn-progress': this.state.actionInProgress}
-                  )}
+                  className={utils.classNames({
+                    'btn btn-success': true,
+                    'btn-progress': this.state.actionInProgress
+                  })}
                   onClick={this.applyChanges}
                   disabled={!this.isSavingPossible()}
                 >
