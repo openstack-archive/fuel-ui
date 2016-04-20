@@ -215,8 +215,8 @@ var SettingsTab = React.createClass({
     var locked = this.isLocked();
     var hasChanges = this.hasChanges();
     var allocatedRoles = _.uniq(_.flatten(_.union(
-      cluster.get('nodes').pluck('roles'),
-      cluster.get('nodes').pluck('pending_roles')
+      cluster.get('nodes').map('roles'),
+      cluster.get('nodes').map('pending_roles')
     )));
     var classes = {
       row: true,
@@ -244,7 +244,7 @@ var SettingsTab = React.createClass({
           // Settings like 'Common' can be splitted to different groups
           var settingGroups = _.chain(section)
             .omit('metadata')
-            .pluck('group')
+            .map('group')
             .unique()
             .without('network')
             .value();
@@ -381,7 +381,7 @@ var SettingSubtabs = React.createClass({
           this.props.settingsGroupList.map((groupName) => {
             if (!this.props.groupedSettings[groupName]) return null;
 
-            var hasErrors = _.any(_.pluck(this.props.groupedSettings[groupName], 'invalid'));
+            var hasErrors = _.any(_.map(this.props.groupedSettings[groupName], 'invalid'));
             return (
               <li
                 key={groupName}

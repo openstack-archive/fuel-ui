@@ -151,7 +151,7 @@ var NovaComputes = BaseCollection.extend({
     this.invoke('checkDuplicates', keys);
     this.invoke('checkEmptyTargetNode');
 
-    var errors = _.compact(_.pluck(this.models, 'validationError'));
+    var errors = _.compact(this.map('validationError'));
     return _.isEmpty(errors) ? null : errors;
   }
 });
