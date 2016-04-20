@@ -24,7 +24,7 @@ import models from 'models';
 import dispatcher from 'dispatcher';
 import {CreateNodeNetworkGroupDialog, RemoveNodeNetworkGroupDialog} from 'views/dialogs';
 import {backboneMixin, dispatcherMixin, unsavedChangesMixin, renamingMixin} from 'component_mixins';
-import {Input, RadioGroup, Table, Popover} from 'views/controls';
+import {Input, RadioGroup, Table, Popover, ProgressButton} from 'views/controls';
 import customControls from 'views/custom_controls';
 import SettingSection from 'views/cluster_page_tabs/setting_section';
 import CSSTransitionGroup from 'react-addons-transition-group';
@@ -935,14 +935,15 @@ var NetworkTab = React.createClass({
           >
             {i18n('common.cancel_changes_button')}
           </button>
-          <button
+          <ProgressButton
             key='apply_changes'
             className='btn btn-success apply-btn'
             onClick={this.applyChanges}
             disabled={!this.isSavingPossible()}
+            progress={this.state.actionInProgress}
           >
             {i18n('common.save_settings_button')}
-          </button>
+          </ProgressButton>
         </div>
         <div className='btn-group pull-right'>
           {cluster.get('status') !== 'new' &&
@@ -1089,9 +1090,12 @@ var NetworkTab = React.createClass({
 
     var {validationError} = networkConfiguration;
     var notEnoughNodesForVerification = cluster.get('nodes').filter({online: true}).length < 2;
+    var isVerificationInProgress = !!cluster.task(
+      {group: ['deployment', 'network'], active: true}
+    );
     var isVerificationDisabled = validationError ||
       this.state.actionInProgress ||
-      !!cluster.task({group: ['deployment', 'network'], active: true}) ||
+      isVerificationInProgress ||
       isMultiRack ||
       notEnoughNodesForVerification;
 
@@ -1211,6 +1215,7 @@ var NetworkTab = React.createClass({
                   hideVerificationResult={this.state.hideVerificationResult}
                   isMultirack={isMultiRack}
                   isVerificationDisabled={isVerificationDisabled}
+                  isVerificationInProgress={isVerificationInProgress}
                   notEnoughNodes={notEnoughNodesForVerification}
                   verifyNetworks={this.verifyNetworks}
                 />
@@ -1865,14 +1870,15 @@ var NetworkVerificationResult = React.createClass({
               </ol>
             </div>
           </div>
-          <button
+          <ProgressButton
             key='verify_networks'
             className='btn btn-default verify-networks-btn'
             onClick={this.props.verifyNetworks}
             disabled={this.props.isVerificationDisabled}
+            showProgress={this.props.isVerificationInProgress}
           >
             {i18n(networkTabNS + 'verify_networks_button')}
-          </button>
+          </ProgressButton>
         </div>
         {(task && task.match({status: 'ready'})) &&
           <div className='col-xs-12'>

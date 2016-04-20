@@ -22,7 +22,7 @@ import Backbone from 'backbone';
 import models from 'models';
 import utils from 'utils';
 import {dialogMixin} from 'views/dialogs';
-import {Input, ProgressBar} from 'views/controls';
+import {Input, ProgressBar, ProgressButton} from 'views/controls';
 
 var AVAILABILITY_STATUS_ICONS = {
   compatible: 'glyphicon-ok-sign',
@@ -723,7 +723,7 @@ var CreateClusterWizard = React.createClass({
   },
   saveCluster() {
     if (this.stopHandlingKeys) {
-      return;
+      return false;
     }
     this.stopHandlingKeys = true;
     this.setState({actionInProgress: true});
@@ -753,6 +753,7 @@ var CreateClusterWizard = React.createClass({
           }
         });
     }
+    return deferred;
   },
   selectRelease(releaseId) {
     var release = this.releases.get(releaseId);
@@ -892,16 +893,15 @@ var CreateClusterWizard = React.createClass({
           </button>
         }
         {this.state.createVisible &&
-          <button
-            className={utils.classNames(
-              'btn btn-default btn-success finish-btn',
-              {'disabled btn-progress': actionInProgress}
-            )}
+          <ProgressButton
+            className='btn btn-default btn-success finish-btn'
             onClick={this.saveCluster}
+            disabled={actionInProgress}
             autoFocus
+            progress={actionInProgress}
           >
             {i18n('dialog.create_cluster_wizard.create')}
-          </button>
+          </ProgressButton>
         }
       </div>
     );
