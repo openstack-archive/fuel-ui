@@ -141,7 +141,7 @@ var EditNodeDisksScreen = React.createClass({
         size: size,
         width: width,
         max: volume.getMaxSize(),
-        min: volume.getMinimalSize(this.props.volumes.findWhere({name: name}).get('min_size')),
+        min: volume.getMinimalSize(this.props.volumes.find({name}).get('min_size')),
         error: volume.validationError
       };
     });
@@ -256,7 +256,7 @@ var NodeDisk = React.createClass({
     if (size > volumeInfo.max) {
       size = volumeInfo.max;
     }
-    this.props.disk.get('volumes').findWhere({name: name}).set({size: size})
+    this.props.disk.get('volumes').find({name}).set({size})
       .isValid({minimum: volumeInfo.min});
     this.props.disk.trigger('change', this.props.disk);
   },
@@ -270,7 +270,7 @@ var NodeDisk = React.createClass({
     var diskMetaData = this.props.diskMetaData;
     var requiredDiskSize = _.sum(disk.get('volumes').map((volume) => {
       return volume
-        .getMinimalSize(this.props.volumes.findWhere({name: volume.get('name')}).get('min_size'));
+        .getMinimalSize(this.props.volumes.find({name: volume.get('name')}).get('min_size'));
     }));
     var diskError = disk.get('size') < requiredDiskSize &&
       i18n(ns + 'not_enough_space', {

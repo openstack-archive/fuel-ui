@@ -99,7 +99,7 @@ var SettingSection = React.createClass({
     var pathToCheck = utils.makePath(path, valueAttribute);
     var roles = this.props.cluster.get('roles');
     return _.compact(this.props.allocatedRoles.map((roleName) => {
-      var role = roles.findWhere({name: roleName});
+      var role = roles.find({name: roleName});
       if (_.any(role.get('restrictions'), (restriction) => {
         restriction = utils.expandRestriction(restriction);
         if (_.contains(restriction.condition, 'settings:' + path) &&

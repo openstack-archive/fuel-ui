@@ -718,7 +718,7 @@ var EditNodeInterfacesScreen = React.createClass({
                   nodesInterfaces={nodesInterfaces[index]}
                   hasChanges={
                     !_.isEqual(
-                       _.findWhere(this.state.initialInterfaces, {name: ifcName}),
+                       _.find(this.state.initialInterfaces, {name: ifcName}),
                       _.omit(ifc.toJSON(), 'state')
                     )
                   }
@@ -785,9 +785,9 @@ var NodeInterface = React.createClass({
     target: {
       drop(props, monitor) {
         var targetInterface = props.interface;
-        var sourceInterface = props.interfaces.findWhere({name: monitor.getItem().interfaceName});
+        var sourceInterface = props.interfaces.find({name: monitor.getItem().interfaceName});
         var network = sourceInterface.get('assigned_networks')
-          .findWhere({name: monitor.getItem().networkName});
+          .find({name: monitor.getItem().networkName});
         sourceInterface.get('assigned_networks').remove(network);
         targetInterface.get('assigned_networks').add(network);
         // trigger 'change' event to update screen buttons state

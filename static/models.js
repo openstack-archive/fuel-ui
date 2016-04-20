@@ -289,7 +289,7 @@ models.Roles = BaseCollection.extend(restrictionMixin).extend({
       }
 
       _.each(role.conflicts, (conflictRoleName) => {
-        var conflictingRole = this.findWhere({name: conflictRoleName});
+        var conflictingRole = this.find({name: conflictRoleName});
         if (conflictingRole) {
           conflictingRole.conflicts = _.uniq(_.union(conflictingRole.conflicts || [], [roleName]));
         }
@@ -500,7 +500,7 @@ models.Node = BaseModel.extend({
   },
   getRolesSummary(releaseRoles) {
     return _.map(this.sortedRoles(releaseRoles.pluck('name')), (role) => {
-      return releaseRoles.findWhere({name: role}).get('label');
+      return releaseRoles.find({name: role}).get('label');
     }).join(', ');
   },
   getStatusSummary() {
@@ -900,7 +900,7 @@ models.Volume = BaseModel.extend({
     if (currentDisk && currentDisk.collection) {
       groupAllocatedSpace = currentDisk.collection.reduce((sum, disk) => {
         return disk.id === currentDisk.id ? sum : sum +
-          disk.get('volumes').findWhere({name: this.get('name')}).get('size');
+          disk.get('volumes').find({name: this.get('name')}).get('size');
       }, 0);
     }
     return minimum - groupAllocatedSpace;
@@ -1075,7 +1075,7 @@ var networkPreferredOrder = ['public', 'floating', 'storage', 'management',
 models.InterfaceNetwork = BaseModel.extend({
   constructorName: 'InterfaceNetwork',
   getFullNetwork(networks) {
-    return networks.findWhere({name: this.get('name')});
+    return networks.find({name: this.get('name')});
   }
 });
 

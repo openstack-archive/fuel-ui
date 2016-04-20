@@ -261,7 +261,7 @@ var Range = React.createClass({
   renderExtendableRanges(options) {
     var {error, attributeName, ranges, verificationError} = options;
     return _.map(ranges, (range, index) => {
-      var rangeError = _.findWhere(error, {index: index}) || {};
+      var rangeError = _.find(error, {index}) || {};
       return (
         <div className='range-row clearfix' key={index}>
           <Input
@@ -1697,7 +1697,7 @@ var NetworkingL3Parameters = React.createClass({
           {this.renderInput('internal_gateway')}
           {this.renderInput('internal_name', false, {maxLength: '65'})}
         </div>
-        {networks.findWhere({name: 'baremetal'}) &&
+        {networks.find({name: 'baremetal'}) &&
           <div className='forms-box form-baremetal-network' key='baremetal-net'>
             <h3>
               <span className='subtab-group-baremetal-net'>

@@ -182,7 +182,7 @@ var LogFilterBar = React.createClass({
       var filteredSources = this.sources.filter((source) => {
         return source.get('remote') === (type !== 'local');
       });
-      var chosenSource = _.findWhere(filteredSources, {id: this.state.source}) ||
+      var chosenSource = _.find(filteredSources, {id: this.state.source}) ||
         _.first(filteredSources);
       var chosenLevelId = chosenSource ? _.contains(chosenSource.get('levels'), this.state.level) ?
         this.state.level : _.first(chosenSource.get('levels')) : null;

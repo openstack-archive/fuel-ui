@@ -106,7 +106,7 @@ EquipmentPage = React.createClass({
     var roles = new models.Roles();
     this.props.clusters.each((cluster) => {
       roles.add(
-        cluster.get('roles').filter((role) => !roles.findWhere({name: role.get('name')}))
+        cluster.get('roles').filter((role) => !roles.any({name: role.get('name')}))
       );
     });
     return (

@@ -281,7 +281,7 @@ var HealthcheckTabContent = React.createClass({
               return <TestSet
                 key={testset.id}
                 testset={testset}
-                testrun={this.props.testruns.findWhere({testset: testset.id}) ||
+                testrun={this.props.testruns.find({testset: testset.id}) ||
                  new models.TestRun({testset: testset.id})}
                 tests={new Backbone.Collection(this.props.tests.where({testset: testset.id}))}
                 disabled={disabledState || hasRunningTests}

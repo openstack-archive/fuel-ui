@@ -273,7 +273,7 @@ var NameAndRelease = React.createClass({
       wizard.get('clusters')
     ];
     // test cluster name is already taken
-    if (clusters.findWhere({name: _.trim(name)})) {
+    if (clusters.find({name: _.trim(name)})) {
       wizard.set({
         name_error: i18n('dialog.create_cluster_wizard.name_release.existing_environment')
       });
@@ -637,7 +637,7 @@ var CreateClusterWizard = React.createClass({
   },
   componentDidMount() {
     this.releases.fetch().done(() => {
-      var defaultRelease = this.releases.findWhere({is_deployable: true});
+      var defaultRelease = this.releases.find({is_deployable: true});
       this.wizard.set('release', defaultRelease.id);
       this.selectRelease(defaultRelease.id);
       this.setState({loading: false});
@@ -755,7 +755,7 @@ var CreateClusterWizard = React.createClass({
     }
   },
   selectRelease(releaseId) {
-    var release = this.releases.findWhere({id: releaseId});
+    var release = this.releases.get(releaseId);
     this.wizard.set({release: release});
     this.cluster.set({release: releaseId});
 
@@ -789,7 +789,7 @@ var CreateClusterWizard = React.createClass({
         if (panesToRestore.length > 0) {
           this.components.restoreDefaultValues(panesToRestore);
         }
-        var component = this.components.findWhere({id: name});
+        var component = this.components.get(name);
         component.set({enabled: value});
         break;
     }
