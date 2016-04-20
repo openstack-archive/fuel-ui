@@ -1363,7 +1363,7 @@ export var ShowNodeInfoDialog = React.createClass({
       actionInProgress, configModels
     } = this.state;
 
-    var renderableAttributes = ['nova', 'dpdk'];
+    var renderableAttributes = ['nova', 'dpdk', 'disk_name'];
     var isLocked = !node.get('pending_addition') || actionInProgress;
 
     var attributes = _.chain(_.keys(nodeAttributes.attributes))
