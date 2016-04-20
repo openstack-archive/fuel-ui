@@ -111,7 +111,7 @@ var restrictionMixin = models.restrictionMixin = {
       );
     return {
       result: !!satisfiedRestrictions.length,
-      message: _.compact(_.pluck(satisfiedRestrictions, 'message')).join(' ')
+      message: _.compact(_.map(satisfiedRestrictions, 'message')).join(' ')
     };
   },
   expandLimits(limits) {
@@ -417,7 +417,7 @@ models.Node = BaseModel.extend({
       } else if (resourceName === 'ram') {
         resource = this.get('meta').memory.total;
       } else if (resourceName === 'disks') {
-        resource = _.pluck(this.get('meta').disks, 'size').sort((a, b) => a - b);
+        resource = _.map(this.get('meta').disks, 'size').sort((a, b) => a - b);
       } else if (resourceName === 'disks_amount') {
         resource = this.get('meta').disks.length;
       } else if (resourceName === 'interfaces') {
@@ -472,9 +472,9 @@ models.Node = BaseModel.extend({
     return status === 'discover' || status === 'error';
   },
   getRolesSummary(releaseRoles) {
-    return _.map(this.sortedRoles(releaseRoles.pluck('name')), (role) => {
-      return releaseRoles.find({name: role}).get('label');
-    }).join(', ');
+    return _.map(this.sortedRoles(releaseRoles.map('name')),
+      (role) => releaseRoles.find({name: role}).get('label')
+    ).join(', ');
   },
   getStatusSummary() {
     // 'offline' status has higher priority
@@ -633,7 +633,7 @@ models.Tasks = BaseCollection.extend({
   model: models.Task,
   url: '/api/tasks',
   toJSON() {
-    return this.pluck('id');
+    return this.map('id');
   },
   comparator: 'id',
   filterTasks(filters) {
@@ -919,7 +919,7 @@ models.Interface = Backbone.DeepModel
     },
     getSlaveInterfaces() {
       if (!this.isBond()) return [this];
-      var slaveNames = _.pluck(this.get('slaves'), 'name');
+      var slaveNames = _.map(this.get('slaves'), 'name');
       return this.collection.filter((ifc) => _.contains(slaveNames, ifc.get('name')));
     },
     validate(attrs, options) {
@@ -941,7 +941,7 @@ models.Interface = Backbone.DeepModel
       _.extend(errors, this.validateInterfaceProperties(options));
 
       // check interface networks have the same vlan id
-      var vlans = _.reject(networks.pluck('vlan_start'), _.isNull);
+      var vlans = _.reject(networks.map('vlan_start'), _.isNull);
       if (_.uniq(vlans).length < vlans.length) {
         networkErrors.push(i18n(ns + 'networks_with_the_same_vlan'));
       }
@@ -966,7 +966,7 @@ models.Interface = Backbone.DeepModel
 
       if (
         this.get('interface_properties').dpdk.enabled &&
-        !_.isEqual(networks.pluck('name'), ['private'])
+        !_.isEqual(networks.map('name'), ['private'])
       ) {
         networkErrors.push(i18n(ns + 'dpdk_placement_error'));
       }
@@ -1233,7 +1233,7 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
     var fixedNetworkVlan = parameters.get('fixed_networks_vlan_start');
     var fixedNetworkVlanError = utils.validateVlan(
       fixedNetworkVlan,
-      networks.pluck('vlan_start'),
+      networks.map('vlan_start'),
       'fixed_networks_vlan_start',
       manager === 'VlanManager'
     );
@@ -1249,7 +1249,7 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
     );
 
     if (_.isEmpty(fixedNetworkVlanError)) {
-      var vlanIntersection = _.any(_.compact(networks.pluck('vlan_start')),
+      var vlanIntersection = _.any(_.compact(networks.map('vlan_start')),
         (vlan) => utils.validateVlanRange(
           fixedNetworkVlan,
           fixedNetworkVlan + fixedNetworksAmount - 1, vlan
@@ -1276,7 +1276,7 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
     var idRangeErrors = this.validateNeutronSegmentationIdRange(
       _.map(parameters.get(idRangeAttributeName), Number),
       isVlanSegmentation,
-      _.compact(networks.pluck('vlan_start'))
+      _.compact(networks.map('vlan_start'))
     );
     if (idRangeErrors[0] || idRangeErrors[1]) errors[idRangeAttributeName] = idRangeErrors;
 

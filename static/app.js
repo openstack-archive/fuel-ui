@@ -116,7 +116,7 @@ class Router extends Backbone.Router {
   }
 
   showCluster(clusterId, tab) {
-    var tabs = _.pluck(ClusterPage.getTabs(), 'url');
+    var tabs = _.map(ClusterPage.getTabs(), 'url');
     if (!tab || !_.contains(tabs, tab)) {
       this.navigate('cluster/' + clusterId + '/' + tabs[0], {trigger: true, replace: true});
     } else {

@@ -1060,7 +1060,7 @@ export var ShowNodeInfoDialog = React.createClass({
         (
           _.isArray(meta.memory.devices) ?
             summaryToString(
-              _.countBy(_.pluck(meta.memory.devices, 'size'), (value) => utils.showSize(value))
+              _.countBy(_.map(meta.memory.devices, 'size'), (value) => utils.showSize(value))
             )
           :
             []
@@ -1069,13 +1069,13 @@ export var ShowNodeInfoDialog = React.createClass({
         .join(', '),
       disks: () => meta.disks.length + ' ' +
         i18n('dialog.show_node.drive', {count: meta.disks.length}) + ', ' +
-        utils.showSize(_.reduce(_.pluck(meta.disks, 'size'), (sum, n) => sum + n, 0)) + ' ' +
+        utils.showSize(_.reduce(_.map(meta.disks, 'size'), (sum, n) => sum + n, 0)) + ' ' +
         i18n('dialog.show_node.total'),
       cpu: () => summaryToString(
-        _.countBy(_.pluck(meta.cpu.spec, 'frequency'), utils.showFrequency)
+        _.countBy(_.map(meta.cpu.spec, 'frequency'), utils.showFrequency)
       ).join(', '),
       interfaces: () => summaryToString(
-        _.countBy(_.pluck(meta.interfaces, 'current_speed'), utils.showBandwidth)
+        _.countBy(_.map(meta.interfaces, 'current_speed'), utils.showBandwidth)
       ).join(', '),
       numa_topology: () => i18n('dialog.show_node.numa_nodes', {
         count: meta.numa_topology.numa_nodes.length

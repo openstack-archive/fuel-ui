@@ -30,7 +30,7 @@ var SettingSection = React.createClass({
 
     // FIXME: hack for #1442475 to lock images_ceph in env with controllers
     if (settingName === 'images_ceph') {
-      if (_.contains(_.flatten(this.props.cluster.get('nodes').pluck('pending_roles')),
+      if (_.contains(_.flatten(this.props.cluster.get('nodes').map('pending_roles')),
           'controller')) {
         result = true;
         messages.push(i18n('cluster_page.settings_tab.images_ceph_warning'));
@@ -73,7 +73,7 @@ var SettingSection = React.createClass({
     return setting.toggleable || _.contains(['checkbox', 'radio'], setting.type);
   },
   getValuesToCheck(setting, valueAttribute) {
-    return setting.values ? _.without(_.pluck(setting.values, 'data'), setting[valueAttribute]) :
+    return setting.values ? _.without(_.map(setting.values, 'data'), setting[valueAttribute]) :
       [!setting[valueAttribute]];
   },
   checkValues(values, path, currentValue, restriction) {

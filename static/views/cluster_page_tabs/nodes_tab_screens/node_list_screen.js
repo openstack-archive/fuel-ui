@@ -166,7 +166,7 @@ NodeListScreen = React.createClass({
 
     // additonal Nodes tab states (Cluster page)
     var settings = cluster.get('settings');
-    var roles = cluster.get('roles').pluck('name');
+    var roles = cluster.get('roles').map((role) => role.get('name'));
     var selectedRoles = nodes.length ?
       _.filter(roles, (role) => !nodes.any((node) => !node.hasRole(role)))
     :
@@ -227,8 +227,8 @@ NodeListScreen = React.createClass({
       });
       if (
         !_.isEqual(
-          _.pluck(normalizedFilters, 'values'),
-          _.pluck(this.state.activeFilters, 'values')
+          _.map(normalizedFilters, 'values'),
+          _.map(this.state.activeFilters, 'values')
         )
       ) {
         this.updateFilters(normalizedFilters);
@@ -291,8 +291,8 @@ NodeListScreen = React.createClass({
     };
   },
   updateInitialRoles() {
-    this.initialRoles = _.zipObject(this.props.nodes.pluck('id'),
-      this.props.nodes.pluck('pending_roles'));
+    this.initialRoles = _.zipObject(this.props.nodes.map('id'),
+      this.props.nodes.map('pending_roles'));
   },
   checkRoleAssignment(node, roles, options) {
     if (!options.assign) node.set({pending_roles: node.previous('pending_roles')}, {assign: true});
@@ -378,7 +378,7 @@ NodeListScreen = React.createClass({
         });
         break;
       case 'manufacturer':
-        options = _.uniq(this.props.nodes.pluck('manufacturer')).map((manufacturer) => {
+        options = _.uniq(this.props.nodes.map('manufacturer')).map((manufacturer) => {
           manufacturer = manufacturer || '';
           return {
             name: manufacturer.replace(/\s/g, '_'),
@@ -390,7 +390,7 @@ NodeListScreen = React.createClass({
         options = this.props.roles.invoke('pick', 'name', 'label');
         break;
       case 'group_id':
-        options = _.uniq(this.props.nodes.pluck('group_id')).map((groupId) => {
+        options = _.uniq(this.props.nodes.map('group_id')).map((groupId) => {
           var nodeNetworkGroup = this.props.nodeNetworkGroups.get(groupId);
           return {
             name: groupId,
@@ -407,7 +407,7 @@ NodeListScreen = React.createClass({
         });
         break;
       case 'cluster':
-        options = _.uniq(this.props.nodes.pluck('cluster')).map((clusterId) => {
+        options = _.uniq(this.props.nodes.map('cluster')).map((clusterId) => {
           return {
             name: clusterId,
             label: clusterId ? this.props.clusters.get(clusterId).get('name') :
@@ -474,7 +474,7 @@ NodeListScreen = React.createClass({
     });
   },
   getNodeLabels() {
-    return _.chain(this.props.nodes.pluck('labels')).flatten().map(_.keys).flatten().uniq().value();
+    return _.chain(this.props.nodes.map('labels')).flatten().map(_.keys).flatten().uniq().value();
   },
   getFilterResults(filter, node) {
     var result;
@@ -512,7 +512,7 @@ NodeListScreen = React.createClass({
     var selectedNodes = new models.Nodes(this.props.nodes.filter((node) => {
       return this.props.selectedNodeIds[node.id];
     }));
-    var selectedNodeLabels = _.chain(selectedNodes.pluck('labels'))
+    var selectedNodeLabels = _.chain(selectedNodes.map('labels'))
       .flatten()
       .map(_.keys)
       .flatten()
@@ -627,7 +627,7 @@ MultiSelectControl = React.createClass({
   onChange(name, checked, isLabel) {
     if (!this.props.dynamicValues) {
       var values = name === 'all' ?
-          checked ? _.pluck(this.props.options, 'name') : []
+          checked ? _.map(this.props.options, 'name') : []
         :
           checked ? _.union(this.props.values, [name]) : _.difference(this.props.values, [name]);
       this.props.onChange(values);
@@ -822,7 +822,7 @@ ManagementPanel = React.createClass({
   },
   changeScreen(url, passNodeIds) {
     url = url ? '/' + url : '';
-    if (passNodeIds) url += '/' + utils.serializeTabOptions({nodes: this.props.nodes.pluck('id')});
+    if (passNodeIds) url += '/' + utils.serializeTabOptions({nodes: this.props.nodes.map('id')});
     app.navigate('#cluster/' + this.props.cluster.id + '/nodes' + url, {trigger: true});
   },
   goToConfigurationScreen(action, conflict) {
@@ -840,10 +840,10 @@ ManagementPanel = React.createClass({
     this.changeScreen(action, true);
   },
   showDeleteNodesDialog() {
-    DeleteNodesDialog.show({nodes: this.props.nodes, cluster: this.props.cluster})
-      .done(_.partial(this.props.selectNodes,
-        _.pluck(this.props.nodes.filter({status: 'ready'}), 'id'), null, true)
-      );
+    var {cluster, nodes, selectNodes} = this.props;
+    DeleteNodesDialog
+      .show({nodes, cluster})
+      .done(_.partial(selectNodes, _.map(nodes.filter({status: 'ready'}), 'id'), null, true));
   },
   hasChanges() {
     return this.props.hasChanges;
@@ -1406,10 +1406,8 @@ ManagementPanel = React.createClass({
                                 {filter.isNumberRange ?
                                   _.uniq(filter.values).join(' - ')
                                 :
-                                  _.pluck(
-                                    _.filter(options, (option) => {
-                                      return _.contains(filter.values, option.name);
-                                    })
+                                  _.map(
+                                    _.filter(options, ({name}) => _.contains(filter.values, name))
                                   , 'label').join(', ')
                                 }
                               </span>
@@ -1548,7 +1546,7 @@ NodeLabelsPanel = React.createClass({
   },
   isSavingPossible() {
     return !this.state.actionInProgress && this.hasChanges() &&
-      _.all(_.pluck(this.state.labels, 'error'), _.isNull);
+      _.all(_.map(this.state.labels, 'error'), _.isNull);
   },
   revertChanges() {
     return this.props.toggleLabelsPanel();
@@ -1930,7 +1928,7 @@ SelectAllMixin = {
         }
         label={i18n('common.select_all')}
         wrapperClassName='select-all pull-right'
-        onChange={_.partial(selectNodes, _.pluck(nodesToSelect, 'id'))}
+        onChange={_.partial(selectNodes, _.map(nodesToSelect, 'id'))}
       />
     );
   }
@@ -2022,7 +2020,7 @@ NodeList = React.createClass({
     }
 
     // sort grouped nodes by other applied sorters
-    var preferredRolesOrder = this.props.roles.pluck('name');
+    var preferredRolesOrder = this.props.roles.map((role) => role.get('name'));
     return groups.sort((group1, group2) => {
       var result;
       _.each(this.props.activeSorters, (sorter) => {
@@ -2151,7 +2149,7 @@ NodeGroup = React.createClass({
   mixins: [SelectAllMixin],
   render() {
     var availableNodes = this.props.nodes.filter((node) => node.isSelectable());
-    var nodesWithRestrictionsIds = _.pluck(_.filter(availableNodes, (node) => {
+    var nodesWithRestrictionsIds = _.map(_.filter(availableNodes, (node) => {
       return _.any(this.props.rolesWithLimitReached, (role) => !node.hasRole(role));
     }), 'id');
     return (

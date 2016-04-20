@@ -369,8 +369,8 @@ var EditNodeInterfacesScreen = React.createClass({
   findOffloadingModesIntersection(set1, set2) {
     return _.map(
       _.intersection(
-        _.pluck(set1, 'name'),
-        _.pluck(set2, 'name')
+        _.map(set1, 'name'),
+        _.map(set2, 'name')
       ),
       (name) => {
         return {
@@ -401,7 +401,7 @@ var EditNodeInterfacesScreen = React.createClass({
     if (!bond) {
       // if no bond selected - create new one
       var bondMode = _.flatten(
-        _.pluck(this.props.bondingConfig.properties[bondType].mode, 'values')
+        _.map(this.props.bondingConfig.properties[bondType].mode, 'values')
       )[0];
       bondName = this.props.interfaces.generateBondName('bond');
 
@@ -494,7 +494,7 @@ var EditNodeInterfacesScreen = React.createClass({
     var bondHasUnmovableNetwork = bond.get('assigned_networks').any((interfaceNetwork) => {
       return interfaceNetwork.getFullNetwork(networks).get('meta').unmovable;
     });
-    var slaveInterfaceNames = _.pluck(slaves, 'name');
+    var slaveInterfaceNames = _.map(slaves, 'name');
     var targetInterface = bond;
 
     // if PXE interface is being removed - place networks there
@@ -510,7 +510,7 @@ var EditNodeInterfacesScreen = React.createClass({
     // if slaveInterfaceName is set - remove it from slaves, otherwise remove all
     if (slaveInterfaceName) {
       var slavesUpdated = _.reject(slaves, {name: slaveInterfaceName});
-      var names = _.pluck(slavesUpdated, 'name');
+      var names = _.map(slavesUpdated, 'name');
       var bondSlaveInterfaces = this.props.interfaces.filter(
         (ifc) => _.contains(names, ifc.get('name'))
       );
@@ -549,7 +549,7 @@ var EditNodeInterfacesScreen = React.createClass({
     var networkConfiguration = cluster.get('networkConfiguration');
     var networkingParameters = networkConfiguration.get('networking_parameters');
     var networks = networkConfiguration.get('networks');
-    var slaveInterfaceNames = _.pluck(_.flatten(_.filter(interfaces.pluck('slaves'))), 'name');
+    var slaveInterfaceNames = _.map(_.flatten(_.filter(interfaces.map('slaves'))), 'name');
 
     interfaces.each((ifc) => {
       if (!_.contains(slaveInterfaceNames, ifc.get('name'))) {
@@ -601,7 +601,7 @@ var EditNodeInterfacesScreen = React.createClass({
   render() {
     var {nodes, interfaces} = this.props;
     var {interfacesByIndex, indexByInterface} = this.state;
-    var nodeNames = nodes.pluck('name');
+    var nodeNames = nodes.map('name');
     var locked = this.isLocked();
     var configurationTemplateExists = this.configurationTemplateExists();
 
@@ -643,7 +643,7 @@ var EditNodeInterfacesScreen = React.createClass({
     var unbondingPossible = !checkedInterfaces.length && !!checkedBonds.length;
 
     var hasChanges = this.hasChanges();
-    var slaveInterfaceNames = _.pluck(_.flatten(_.filter(interfaces.pluck('slaves'))), 'name');
+    var slaveInterfaceNames = _.map(_.flatten(_.filter(interfaces.map('slaves'))), 'name');
     var loadDefaultsEnabled = !this.state.actionInProgress;
     var revertChangesEnabled = !this.state.actionInProgress && hasChanges;
 
@@ -862,7 +862,7 @@ var NodeInterface = React.createClass({
   },
   getBondPropertyValues(propertyName, value) {
     var bondType = this.props.interface.get('bond_properties').type__;
-    return _.flatten(_.pluck(this.props.bondingProperties[bondType][propertyName], value));
+    return _.flatten(_.map(this.props.bondingProperties[bondType][propertyName], value));
   },
   updateBondProperties(options) {
     var bondProperties = _.cloneDeep(this.props.interface.get('bond_properties')) || {};
@@ -916,7 +916,7 @@ var NodeInterface = React.createClass({
     if (!ifcModes.length) {
       return states[!this.props.interface.get('interface_properties').disable_offloading];
     }
-    if (_.uniq(_.pluck(ifcModes, 'state')).length === 1) {
+    if (_.uniq(_.map(ifcModes, 'state')).length === 1) {
       return states[ifcModes[0].state];
     }
 
@@ -1103,7 +1103,7 @@ var NodeInterface = React.createClass({
   changeBondType(newType) {
     this.props.interface.set('bond_properties.type__', newType);
     var newMode = _.flatten(
-      _.pluck(this.props.bondingProperties[newType].mode, 'values')
+      _.map(this.props.bondingProperties[newType].mode, 'values')
     )[0];
     this.bondingModeChanged(null, newMode);
   },

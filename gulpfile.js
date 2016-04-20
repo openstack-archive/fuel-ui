@@ -187,7 +187,7 @@ gulp.task('license', function(cb) {
     _.each(data, function(moduleInfo) {
       var name = moduleInfo.name;
       var version = moduleInfo.version;
-      var license = _.pluck(moduleInfo.licenseSources.package.sources, 'license').join(', ') ||
+      var license = _.map(moduleInfo.licenseSources.package.sources, 'license').join(', ') ||
         'unknown';
       var licenseOk = license.match(licenseRegexp);
       if (!licenseOk) errors.push({libraryName: name, license: license});

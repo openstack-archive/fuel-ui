@@ -824,7 +824,7 @@ var ClusterActionButton = React.createClass({
   getInitialState() {
     return {
       // offline nodes should not be selected for the task
-      selectedNodeIds: _.pluck(this.props.nodes.filter({online: true}), 'id')
+      selectedNodeIds: _.map(this.props.nodes.filter({online: true}), 'id')
     };
   },
   getDefaultProps() {
@@ -841,7 +841,7 @@ var ClusterActionButton = React.createClass({
         _.extend({data: {cluster_id: cluster.id}}, options));
     };
     nodes.parse = function() {
-      return this.getByIds(nodes.pluck('id'));
+      return this.getByIds(nodes.map('id'));
     };
     SelectNodesDialog
       .show({
@@ -1067,7 +1067,7 @@ var ClusterInfo = React.createClass({
   },
   renderStatistics() {
     var {cluster} = this.props;
-    var roles = _.union(['total'], cluster.get('roles').pluck('name'));
+    var roles = ['total'].concat(cluster.get('roles').map((role) => role.get('name')));
     var statuses = _.without(models.Node.prototype.statuses, 'discover');
     return (
       <div className='row statistics-block'>

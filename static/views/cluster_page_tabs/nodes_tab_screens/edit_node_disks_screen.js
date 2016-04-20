@@ -70,8 +70,8 @@ var EditNodeDisksScreen = React.createClass({
   },
   hasChanges() {
     return !this.isLocked() && !_.isEqual(
-      _.pluck(this.props.disks.toJSON(), 'volumes'),
-      _.pluck(this.state.initialDisks, 'volumes')
+      _.map(this.props.disks.toJSON(), 'volumes'),
+      _.map(this.state.initialDisks, 'volumes')
     );
   },
   loadDefaults() {
