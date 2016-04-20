@@ -22,6 +22,7 @@ import models from 'models';
 import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
 import SettingSection from 'views/cluster_page_tabs/setting_section';
 import CSSTransitionGroup from 'react-addons-transition-group';
+import {ProgressButton} from 'views/controls';
 
 var SettingsTab = React.createClass({
   mixins: [
@@ -106,7 +107,7 @@ var SettingsTab = React.createClass({
     var settings = this.props.cluster.get('settings');
     var deferred = settings.save(null, {patch: true, wait: true, validate: false});
     if (deferred) {
-      this.setState({actionInProgress: true});
+      this.setState({actionInProgress: 'apply_changes'});
       deferred
         .then(() => {
           this.setState({
@@ -136,7 +137,7 @@ var SettingsTab = React.createClass({
     return deferred;
   },
   loadDefaults() {
-    this.setState({actionInProgress: true});
+    this.setState({actionInProgress: 'load_defaults'});
     var settings = this.props.cluster.get('settings');
     var defaultSettings = new models.Settings();
     defaultSettings
@@ -341,22 +342,24 @@ var SettingsTab = React.createClass({
               >
                 {i18n('common.cancel_changes_button')}
               </button>
-              <button
+              <ProgressButton
                 className='btn btn-success btn-apply-changes'
                 onClick={this.applyChanges}
                 disabled={!this.isSavingPossible()}
+                progress={this.state.actionInProgress === 'apply_changes'}
               >
                 {i18n('common.save_settings_button')}
-              </button>
+              </ProgressButton>
             </div>
             <div className='btn-group pull-right'>
-              <button
+              <ProgressButton
                 className='btn btn-default btn-load-defaults'
                 onClick={this.loadDefaults}
                 disabled={locked}
+                progress={this.state.actionInProgress === 'load_defaults'}
               >
                 {i18n('common.load_defaults_button')}
-              </button>
+              </ProgressButton>
               {cluster.get('status') !== 'new' &&
                 !_.isEmpty(cluster.get('deployedSettings').attributes) &&
                 <button
