@@ -1095,14 +1095,19 @@ var NetworkTab = React.createClass({
       isMultiRack ||
       notEnoughOnlineNodesForVerification;
 
+    var configurationTemplateExists = !_.isEmpty(
+      networkingParameters.get('configuration_template')
+    );
+
     var currentNodeNetworkGroup = nodeNetworkGroups.get(activeNetworkSectionName.split('/')[1]);
     var nodeNetworkGroupProps = {
-      cluster: cluster,
+      cluster,
+      validationError,
+      nodeNetworkGroups,
+      configurationTemplateExists,
       locked: isLocked,
       actionInProgress: this.state.actionInProgress,
       verificationErrors: this.getVerificationErrors(),
-      validationError: validationError,
-      nodeNetworkGroups: nodeNetworkGroups,
       removeNodeNetworkGroup: this.removeNodeNetworkGroup
     };
     return (
@@ -1257,7 +1262,8 @@ var NetworkTab = React.createClass({
 var NodeNetworkGroup = React.createClass({
   render() {
     var {
-      cluster, networks, nodeNetworkGroup, verificationErrors, validationError, locked
+      cluster, networks, nodeNetworkGroup, verificationErrors, validationError, locked,
+      configurationTemplateExists
     } = this.props;
     return (
       <div>
@@ -1275,6 +1281,7 @@ var NodeNetworkGroup = React.createClass({
               cluster={cluster}
               validationError={(validationError || {}).networks}
               disabled={locked}
+              configurationTemplateExists={configurationTemplateExists}
               verificationErrorField={
                 _.pluck(_.where(verificationErrors, {network: network.id}), 'field')
               }
@@ -1512,13 +1519,15 @@ var Network = React.createClass({
     if (value) this.autoUpdateParameters(this.props.network.get('cidr'));
   },
   render() {
-    var meta = this.props.network.get('meta');
+    var {network, verificationErrorField, configurationTemplateExists} = this.props;
+    var meta = network.get('meta');
     if (!meta.configurable) return null;
 
-    var networkName = this.props.network.get('name');
+    var networkName = network.get('name');
 
     var ipRangeProps = this.composeProps('ip_ranges', true);
     var gatewayProps = this.composeProps('gateway');
+    var vlanProps = this.composeProps('vlan_start');
 
     return (
       <div className={'forms-box ' + networkName}>
@@ -1536,7 +1545,7 @@ var Network = React.createClass({
           {...ipRangeProps}
           disabled={ipRangeProps.disabled || meta.notation === 'cidr'}
           rowsClassName='ip-ranges-rows'
-          verificationError={_.contains(this.props.verificationErrorField, 'ip_ranges')}
+          verificationError={_.contains(verificationErrorField, 'ip_ranges')}
         />
         {meta.use_gateway &&
           <Input
@@ -1546,9 +1555,10 @@ var Network = React.createClass({
           />
         }
         <VlanTagInput
-          {...this.composeProps('vlan_start')}
+          {...vlanProps}
           label={i18n(networkTabNS + 'network.use_vlan_tagging')}
           value={this.props.network.get('vlan_start')}
+          disabled={vlanProps.disabled || configurationTemplateExists}
         />
       </div>
     );
