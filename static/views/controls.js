@@ -341,6 +341,26 @@ export var ProgressBar = React.createClass({
   }
 });
 
+export var ProgressButton = React.createClass({
+  propTypes: {
+    progress: React.PropTypes.bool
+  },
+  render() {
+    var {children, className, progress} = this.props;
+    var classNames = utils.classNames({
+      [className]: true,
+      'btn-progress': progress
+    });
+    return <button
+      {...this.props}
+      ref='button'
+      className={classNames}
+    >
+      {children}
+    </button>;
+  }
+});
+
 export var Table = React.createClass({
   propTypes: {
     tableClassName: React.PropTypes.node,
