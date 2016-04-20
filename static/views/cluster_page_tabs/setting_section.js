@@ -303,7 +303,6 @@ var SettingSection = React.createClass({
             <div className='alert alert-warning'>
               {i18n(
                 'cluster_page.settings_tab.active_not_hot_pluggable_plugin',
-                {plugin: groupLabel}
               )}
             </div>
           }

@@ -616,7 +616,7 @@
                         }
                     },
                     "plugin_versions": "Versions",
-                    "active_not_hot_pluggable_plugin": "You have just activated __plugin__. The developer of this plugin hasn't specified it as \"hot pluggable\", so the cloud environment may stop functioning properly if this plugin is applied in post-deployment stage. Please consult with plugin developer on further appropriate course of actions."
+                    "active_not_hot_pluggable_plugin": "This plugin is now enabled. However, this plugin does not have \"hot pluggable\" compatibility. Your environment may stop functioning properly if this plugin is applied after initial deployment. Please consult with the plugin developer if you experience issues."
                 },
                 "dashboard_tab": {
                     "delete_environment": "Delete Environment",
