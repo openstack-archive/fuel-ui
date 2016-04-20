@@ -20,7 +20,7 @@ import Backbone from 'backbone';
 import React from 'react';
 import utils from 'utils';
 import models from 'models';
-import {Input} from 'views/controls';
+import {Input, ProgressButton} from 'views/controls';
 import {backboneMixin, pollingMixin} from 'component_mixins';
 
 var HealthCheckTab = React.createClass({
@@ -182,7 +182,7 @@ var HealthcheckTabContent = React.createClass({
     if (oldTestruns.length) {
       requests.push(Backbone.sync('update', oldTestruns));
     }
-    $.when(...requests)
+    return $.when(...requests)
       .then(
         () => {
           this.startPolling(true);
@@ -210,7 +210,7 @@ var HealthcheckTabContent = React.createClass({
           _.pick(testrun.attributes, 'id', 'status')
         );
       };
-      Backbone.sync('update', testruns).then(() => {
+      return Backbone.sync('update', testruns).then(() => {
         this.setState({actionInProgress: false});
         this.startPolling(true);
       });
@@ -223,8 +223,10 @@ var HealthcheckTabContent = React.createClass({
     // responses return 'running' state for testruns up to the
     // moment the tests are actually stopped, - added check for 'stopped' and
     // 'running' testruns state
-    var hasRunningTests = this.props.testruns.some({status: 'running'});
-    var hasStoppingTests = this.props.testruns.some({status: 'stopped'});
+    var {tests, testruns, testsets, cluster} = this.props;
+    var ns = 'cluster_page.healthcheck_tab.';
+    var hasRunningTests = testruns.some({status: 'running'});
+    var hasStoppingTests = testruns.some({status: 'stopped'});
     return (
       <div>
         {!disabledState &&
@@ -234,26 +236,30 @@ var HealthcheckTabContent = React.createClass({
                 type='checkbox'
                 name='selectAll'
                 onChange={this.handleSelectAllClick}
-                checked={this.getNumberOfCheckedTests() === this.props.tests.length}
+                checked={this.getNumberOfCheckedTests() === tests.length}
                 disabled={hasRunningTests}
                 label={i18n('common.select_all')}
                 wrapperClassName='select-all'
               />
             </div>
             {(hasRunningTests || hasStoppingTests) ?
-              (<button className='btn btn-danger stop-tests-btn pull-right'
+              (<ProgressButton
+                className='btn btn-danger stop-tests-btn pull-right'
                 disabled={this.state.actionInProgress || this.state.stoppingTestsInProgress}
                 onClick={this.stopTests}
+                progress={this.state.stoppingTestsInProgress}
               >
-                {i18n('cluster_page.healthcheck_tab.stop_tests_button')}
-              </button>)
+                {i18n(ns + 'stop_tests_button')}
+              </ProgressButton>)
             :
-              (<button className='btn btn-success run-tests-btn pull-right'
+              (<ProgressButton
+                className='btn btn-success run-tests-btn pull-right'
                 disabled={!this.getNumberOfCheckedTests() || this.state.actionInProgress}
                 onClick={this.runTests}
+                progress={this.state.actionInProgress}
               >
-                {i18n('cluster_page.healthcheck_tab.run_tests_button')}
-              </button>)
+                {i18n(ns + 'run_tests_button')}
+              </ProgressButton>)
             }
             <button
               className='btn btn-default toggle-credentials pull-right'
@@ -261,7 +267,7 @@ var HealthcheckTabContent = React.createClass({
               data-target='.credentials'
               onClick={this.toggleCredentials}
               >
-              {i18n('cluster_page.healthcheck_tab.provide_credentials')}
+              {i18n(ns + 'provide_credentials')}
             </button>
 
             <HealthcheckCredentials
@@ -272,19 +278,19 @@ var HealthcheckTabContent = React.createClass({
           </div>
         }
         <div>
-          {(this.props.cluster.get('status') === 'new') &&
+          {(cluster.get('status') === 'new') &&
             <div className='alert alert-warning'>
-              {i18n('cluster_page.healthcheck_tab.deploy_alert')}
+              {i18n(ns + 'deploy_alert')}
             </div>
           }
           <div key='testsets'>
-            {this.props.testsets.map((testset) => {
+            {testsets.map((testset) => {
               return <TestSet
                 key={testset.id}
                 testset={testset}
-                testrun={this.props.testruns.find({testset: testset.id}) ||
-                 new models.TestRun({testset: testset.id})}
-                tests={new models.BaseCollection(this.props.tests.filter({testset: testset.id}))}
+                testrun={testruns.find({testset: testset.id}) ||
+                  new models.TestRun({testset: testset.id})}
+                tests={new models.BaseCollection(tests.filter({testset: testset.id}))}
                 disabled={disabledState || hasRunningTests}
               />;
             })}

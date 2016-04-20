@@ -23,7 +23,7 @@ import models from 'models';
 import dispatcher from 'dispatcher';
 import Expression from 'expression';
 import OffloadingModes from 'views/cluster_page_tabs/nodes_tab_screens/offloading_modes_control';
-import {Input, Tooltip} from 'views/controls';
+import {Input, Tooltip, ProgressButton} from 'views/controls';
 import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
 import {DragSource, DropTarget} from 'react-dnd';
 import ReactDOM from 'react-dom';
@@ -243,14 +243,12 @@ var EditNodeInterfacesScreen = React.createClass({
       this.props.nodes.length > 1 && this.hasChangesInRemainingNodes());
   },
   loadDefaults() {
-    this.setState({actionInProgress: true});
-    $.when(this.props.interfaces.fetch({
+    this.setState({actionInProgress: 'defaults'});
+    return $.when(this.props.interfaces.fetch({
       url: _.result(this.props.nodes.at(0), 'url') + '/interfaces/default_assignment', reset: true
     }))
     .then(
-      () => {
-        this.setState({actionInProgress: false});
-      },
+      _.noop,
       (response) => {
         var errorNS = ns + 'configuration_error.';
         utils.showErrorDialog({
@@ -259,7 +257,10 @@ var EditNodeInterfacesScreen = React.createClass({
           response: response
         });
       }
-    );
+    )
+    .then(() => {
+      this.setState({actionInProgress: false});
+    });
   },
   revertChanges() {
     this.props.interfaces.reset(_.cloneDeep(this.state.initialInterfaces), {parse: true});
@@ -297,6 +298,7 @@ var EditNodeInterfacesScreen = React.createClass({
   },
   applyChanges() {
     if (!this.isSavingPossible()) return $.Deferred().reject();
+    this.setState({actionInProgress: 'apply'});
 
     var nodes = this.props.nodes;
     var interfaces = this.props.interfaces;
@@ -313,7 +315,6 @@ var EditNodeInterfacesScreen = React.createClass({
       (bond) => _.map(bond.get('slaves'), (slave) => interfaces.indexOf(interfaces.find(slave)))
     );
 
-    this.setState({actionInProgress: true});
     return $.when(...nodes.map((node) => {
       var oldNodeBonds, nodeBonds;
       // removing previously configured bond
@@ -801,13 +802,14 @@ var EditNodeInterfacesScreen = React.createClass({
             </div>
             {!locked &&
               <div className='btn-group pull-right'>
-                <button
+                <ProgressButton
                   className='btn btn-default btn-defaults'
                   onClick={this.loadDefaults}
                   disabled={!loadDefaultsEnabled}
+                  progress={this.state.actionInProgress === 'defaults'}
                 >
                   {i18n('common.load_defaults_button')}
-                </button>
+                </ProgressButton>
                 <button
                   className='btn btn-default btn-revert-changes'
                   onClick={this.revertChanges}
@@ -815,13 +817,14 @@ var EditNodeInterfacesScreen = React.createClass({
                 >
                   {i18n('common.cancel_changes_button')}
                 </button>
-                <button
+                <ProgressButton
                   className='btn btn-success btn-apply'
                   onClick={this.applyChanges}
                   disabled={!this.isSavingPossible()}
+                  progress={this.state.actionInProgress === 'apply'}
                 >
                   {i18n('common.apply_button')}
-                </button>
+                </ProgressButton>
               </div>
             }
           </div>
