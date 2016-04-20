@@ -842,7 +842,7 @@ ManagementPanel = React.createClass({
   showDeleteNodesDialog() {
     DeleteNodesDialog.show({nodes: this.props.nodes, cluster: this.props.cluster})
       .done(_.partial(this.props.selectNodes,
-        _.pluck(this.props.nodes.where({status: 'ready'}), 'id'), null, true)
+        _.pluck(this.props.nodes.filter({status: 'ready'}), 'id'), null, true)
       );
   },
   hasChanges() {
@@ -1061,7 +1061,7 @@ ManagementPanel = React.createClass({
         });
       canResetSorters = _.any(activeSorters, {isLabel: true}) ||
         !_(activeSorters)
-          .where({isLabel: false})
+          .filter({isLabel: false})
           .map(Sorter.toObject)
           .isEqual(defaultSorting);
 

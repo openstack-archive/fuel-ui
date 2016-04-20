@@ -104,7 +104,7 @@ var restrictionMixin = models.restrictionMixin = {
     var restrictions = _.map(setting ? setting.restrictions : this.get('restrictions'),
       utils.expandRestriction);
     if (action) {
-      restrictions = _.where(restrictions, {action: action});
+      restrictions = _.filter(restrictions, {action});
     }
     var satisfiedRestrictions = _.filter(restrictions,
         (restriction) => new Expression(restriction.condition, models, restriction).evaluate()
@@ -376,7 +376,7 @@ models.Cluster = BaseModel.extend({
     var groupedRoles = {};
     _.each(['compute', 'storage'], (group) => {
       groupedRoles[group] = this.get('roles')
-        .where({group: group})
+        .filter({group})
         .map((role) => role.get('name'));
     });
     this.get('nodes').each((node) => {
@@ -1710,7 +1710,7 @@ models.ComponentsCollection = BaseCollection.extend({
     return _.isArray(response) ? response : [];
   },
   getComponentsByType(type, options = {sorted: true}) {
-    var components = this.where({type: type});
+    var components = this.filter({type});
     if (options.sorted) {
       components.sort((component1, component2) => {
         return component1.get('weight') - component2.get('weight');

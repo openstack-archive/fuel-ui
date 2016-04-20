@@ -120,7 +120,7 @@ var HealthcheckTabContent = React.createClass({
       !!cluster.task({group: 'deployment', active: true});
   },
   getNumberOfCheckedTests() {
-    return this.props.tests.where({checked: true}).length;
+    return this.props.tests.filter({checked: true}).length;
   },
   toggleCredentials() {
     this.setState({credentialsVisible: !this.state.credentialsVisible});
@@ -139,7 +139,7 @@ var HealthcheckTabContent = React.createClass({
     var testsetIds = this.props.testsets.pluck('id');
     this.setState({actionInProgress: true});
     _.each(testsetIds, (testsetId) => {
-      var testsToRun = _.pluck(this.props.tests.where({
+      var testsToRun = _.pluck(this.props.tests.filter({
         testset: testsetId,
         checked: true
       }), 'id');
@@ -154,8 +154,8 @@ var HealthcheckTabContent = React.createClass({
           return obj;
         };
 
-        if (this.props.testruns.where({testset: testsetId}).length) {
-          _.each(this.props.testruns.where({testset: testsetId}), (testrun) => {
+        if (this.props.testruns.filter({testset: testsetId}).length) {
+          _.each(this.props.testruns.filter({testset: testsetId}), (testrun) => {
             _.extend(testrunConfig, addCredentials({
               id: testrun.id,
               status: 'restarted'
@@ -194,7 +194,7 @@ var HealthcheckTabContent = React.createClass({
       });
   },
   getActiveTestRuns() {
-    return this.props.testruns.where({status: 'running'});
+    return this.props.testruns.filter({status: 'running'});
   },
   stopTests() {
     var testruns = new models.TestRuns(this.getActiveTestRuns());
@@ -283,7 +283,7 @@ var HealthcheckTabContent = React.createClass({
                 testset={testset}
                 testrun={this.props.testruns.findWhere({testset: testset.id}) ||
                  new models.TestRun({testset: testset.id})}
-                tests={new Backbone.Collection(this.props.tests.where({testset: testset.id}))}
+                tests={new Backbone.Collection(this.props.tests.filter({testset: testset.id}))}
                 disabled={disabledState || hasRunningTests}
               />;
             })}
@@ -341,7 +341,7 @@ var TestSet = React.createClass({
   updateTestsetCheckbox() {
     this.props.testset.set(
       'checked',
-      this.props.tests.where({checked: true}).length === this.props.tests.length
+      this.props.tests.filter({checked: true}).length === this.props.tests.length
     );
   },
   render() {

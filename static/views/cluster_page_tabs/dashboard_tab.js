@@ -371,7 +371,7 @@ var ClusterActionsPanel = React.createClass({
           },
           // check for offline nodes
           function(cluster) {
-            var offlineNodes = cluster.get('nodes').where({online: false});
+            var offlineNodes = cluster.get('nodes').filter({online: false});
             if (offlineNodes.length) {
               return {
                 blocker: [i18n(ns + 'offline_nodes', {count: offlineNodes.length})]
@@ -589,7 +589,7 @@ var ClusterActionsPanel = React.createClass({
       ),
       deploy: cluster.get('nodes')
     }[action];
-    var offlineNodes = nodes.where({online: false});
+    var offlineNodes = nodes.filter({online: false});
 
     var alerts = this.validate(action);
 
@@ -618,18 +618,18 @@ var ClusterActionsPanel = React.createClass({
         actionControls = [
           cluster.hasChanges(_.pick(this.state, 'configModels')) &&
             <ul key='cluster-changes'>
-              {this.renderClusterChangeItem('added_node', nodes.where({pending_addition: true}))}
+              {this.renderClusterChangeItem('added_node', nodes.filter({pending_addition: true}))}
               {this.renderClusterChangeItem(
                 'provisioned_node',
-                nodes.where({pending_deletion: false, status: 'provisioned'}),
+                nodes.filter({pending_deletion: false, status: 'provisioned'}),
                 false
               )}
               {this.renderClusterChangeItem(
                 'stopped_node',
-                nodes.where({status: 'stopped'}),
+                nodes.filter({status: 'stopped'}),
                 false
               )}
-              {this.renderClusterChangeItem('deleted_node', nodes.where({pending_deletion: true}))}
+              {this.renderClusterChangeItem('deleted_node', nodes.filter({pending_deletion: true}))}
               {this.renderClusterChangeItem('changed_configuration')}
             </ul>,
           <ClusterActionButton
@@ -824,7 +824,7 @@ var ClusterActionButton = React.createClass({
   getInitialState() {
     return {
       // offline nodes should not be selected for the task
-      selectedNodeIds: _.pluck(this.props.nodes.where({online: true}), 'id')
+      selectedNodeIds: _.pluck(this.props.nodes.filter({online: true}), 'id')
     };
   },
   getDefaultProps() {
@@ -956,7 +956,7 @@ var ClusterInfo = React.createClass({
         }
         return (i18n('common.network.neutron_' + networkingParameters.get('segmentation_type')));
       case 'storage_backends':
-        return _.map(_.where(settings.get('storage'), {value: true}), 'label') ||
+        return _.map(_.filter(settings.get('storage'), {value: true}), 'label') ||
           i18n(ns + 'no_storage_enabled');
       default:
         return cluster.get(fieldName);
@@ -1020,12 +1020,12 @@ var ClusterInfo = React.createClass({
     var nodes = this.props.cluster.get('nodes');
     switch (field) {
       case 'offline':
-        return nodes.where({online: false}).length;
+        return nodes.filter({online: false}).length;
       case 'pending_addition':
       case 'pending_deletion':
-        return nodes.where({[field]: true}).length;
+        return nodes.filter({[field]: true}).length;
       default:
-        return nodes.where({status: field}).length;
+        return nodes.filter({status: field}).length;
     }
   },
   renderLegend(fieldsData, isRole) {

@@ -93,7 +93,7 @@ export var Navbar = React.createClass({
     $('html, body').animate({scrollTop: 0}, 'fast');
   },
   render() {
-    var unreadNotificationsCount = this.props.notifications.where({status: 'unread'}).length;
+    var unreadNotificationsCount = this.props.notifications.filter({status: 'unread'}).length;
     var authenticationEnabled = this.props.version.get('auth_required') &&
       this.props.user.get('authenticated');
 
@@ -300,7 +300,7 @@ var NotificationsPopover = React.createClass({
   },
   markAsRead() {
     var notificationsToMark = new models.Notifications(
-      this.props.notifications.where({status: 'unread'})
+      this.props.notifications.filter({status: 'unread'})
     );
     if (notificationsToMark.length) {
       this.setState({unreadNotificationsIds: notificationsToMark.pluck('id')});

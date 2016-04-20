@@ -40,8 +40,8 @@ ClustersPage = React.createClass({
         .then(() => {
           var requests = [];
           clusters.each((cluster) => {
-            cluster.set('nodes', new models.Nodes(nodes.where({cluster: cluster.id})));
-            cluster.set('tasks', new models.Tasks(tasks.where({cluster: cluster.id})));
+            cluster.set('nodes', new models.Nodes(nodes.filter({cluster: cluster.id})));
+            cluster.set('tasks', new models.Tasks(tasks.filter({cluster: cluster.id})));
 
             var roles = new models.Roles();
             roles.url = _.result(cluster, 'url') + '/roles';

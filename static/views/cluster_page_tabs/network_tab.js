@@ -1088,12 +1088,12 @@ var NetworkTab = React.createClass({
     var networkCheckTask = cluster.task('check_networks');
 
     var {validationError} = networkConfiguration;
-    var notEnoughOnlineNodesForVerification = cluster.get('nodes').where({online: true}).length < 2;
+    var notEnoughNodesForVerification = cluster.get('nodes').filter({online: true}).length < 2;
     var isVerificationDisabled = validationError ||
       this.state.actionInProgress ||
       !!cluster.task({group: ['deployment', 'network'], active: true}) ||
       isMultiRack ||
-      notEnoughOnlineNodesForVerification;
+      notEnoughNodesForVerification;
 
     var currentNodeNetworkGroup = nodeNetworkGroups.get(activeNetworkSectionName.split('/')[1]);
     var nodeNetworkGroupProps = {
@@ -1184,7 +1184,7 @@ var NetworkTab = React.createClass({
                     key={nodeNetworkGroup.id}
                     {...nodeNetworkGroupProps}
                     nodeNetworkGroup={nodeNetworkGroup}
-                    networks={networks.where({group_id: nodeNetworkGroup.id})}
+                    networks={networks.filter({group_id: nodeNetworkGroup.id})}
                   />;
                 })
               }
@@ -1192,7 +1192,7 @@ var NetworkTab = React.createClass({
                 <NodeNetworkGroup
                   {...nodeNetworkGroupProps}
                   nodeNetworkGroup={currentNodeNetworkGroup}
-                  networks={networks.where({group_id: currentNodeNetworkGroup.id})}
+                  networks={networks.filter({group_id: currentNodeNetworkGroup.id})}
                 />
               }
               {activeNetworkSectionName === 'network_settings' &&
@@ -1211,7 +1211,7 @@ var NetworkTab = React.createClass({
                   hideVerificationResult={this.state.hideVerificationResult}
                   isMultirack={isMultiRack}
                   isVerificationDisabled={isVerificationDisabled}
-                  notEnoughNodes={notEnoughOnlineNodesForVerification}
+                  notEnoughNodes={notEnoughNodesForVerification}
                   verifyNetworks={this.verifyNetworks}
                 />
               }
@@ -1276,7 +1276,7 @@ var NodeNetworkGroup = React.createClass({
               validationError={(validationError || {}).networks}
               disabled={locked}
               verificationErrorField={
-                _.pluck(_.where(verificationErrors, {network: network.id}), 'field')
+                _.pluck(_.filter(verificationErrors, {network: network.id}), 'field')
               }
               currentNodeNetworkGroup={nodeNetworkGroup}
             />

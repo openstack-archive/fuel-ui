@@ -758,9 +758,9 @@ export var ProvisionVMsDialog = React.createClass({
       });
   },
   renderBody() {
-    var vmsCount = this.props.cluster.get('nodes').where((node) => {
-      return node.get('pending_addition') && node.hasRole('virt');
-    }).length;
+    var vmsCount = this.props.cluster.get('nodes').filter(
+      (node) => node.get('pending_addition') && node.hasRole('virt')
+    ).length;
     return i18n('dialog.provision_vms.text', {count: vmsCount});
   },
   renderFooter() {
@@ -1785,7 +1785,7 @@ export var DeleteNodesDialog = React.createClass({
   renderBody() {
     var ns = 'dialog.delete_nodes.';
     var {nodes} = this.props;
-    var addedNodes = nodes.where({pending_addition: true});
+    var addedNodes = nodes.filter({pending_addition: true});
     return (
       <div className='text-danger'>
         {this.renderImportantLabel()}
