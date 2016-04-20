@@ -19,7 +19,7 @@ import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
 import models from 'models';
-import {Input, ProgressBar} from 'views/controls';
+import {Input, ProgressBar, ProgressButton} from 'views/controls';
 import {pollingMixin} from 'component_mixins';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import ReactFragment from 'react-addons-create-fragment';
@@ -139,6 +139,7 @@ var LogsTab = React.createClass({
             nodes={this.props.cluster.get('nodes')}
             showLogs={this.showLogs}
             onShowButtonClick={this.onShowButtonClick}
+            actionInProgress={this.state.loading === 'loading'}
           />
           {this.state.loading === 'fail' &&
             <div className='logs-fetch-error alert alert-danger'>
@@ -299,13 +300,14 @@ var LogFilterBar = React.createClass({
       'col-md-6 col-sm-3': !isRemote
     })}>
       <label />
-      <button
+      <ProgressButton
         className='btn btn-default pull-right'
         onClick={this.handleShowButtonClick}
         disabled={!this.state.source || this.state.locked}
+        forceProgressing={this.props.actionInProgress}
       >
         {i18n('cluster_page.logs_tab.show')}
-      </button>
+      </ProgressButton>
     </div>;
   },
   renderTypeSelect() {
