@@ -22,7 +22,7 @@ import ReactDOM from 'react-dom';
 import utils from 'utils';
 import models from 'models';
 import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
-import {Input} from 'views/controls';
+import {Input, ProgressButton} from 'views/controls';
 
 var EditNodeDisksScreen = React.createClass({
   mixins: [
@@ -76,7 +76,8 @@ var EditNodeDisksScreen = React.createClass({
   },
   loadDefaults() {
     this.setState({actionInProgress: true});
-    this.props.disks.fetch({url: _.result(this.props.nodes.at(0), 'url') + '/disks/defaults/'})
+    return this.props.disks
+      .fetch({url: _.result(this.props.nodes.at(0), 'url') + '/disks/defaults/'})
       .fail((response) => {
         var ns = 'cluster_page.nodes_tab.configure_disks.configuration_error.';
         utils.showErrorDialog({
@@ -210,13 +211,14 @@ var EditNodeDisksScreen = React.createClass({
               </div>
               {!locked && !!this.props.disks.length &&
                 <div className='btn-group pull-right'>
-                  <button
+                  <ProgressButton
                     className='btn btn-default btn-defaults'
                     onClick={this.loadDefaults}
                     disabled={loadDefaultsDisabled}
+                    progress={this.state.actionInProgress}
                   >
                     {i18n('common.load_defaults_button')}
-                  </button>
+                  </ProgressButton>
                   <button
                     className='btn btn-default btn-revert-changes'
                     onClick={this.revertChanges}
@@ -224,13 +226,14 @@ var EditNodeDisksScreen = React.createClass({
                   >
                     {i18n('common.cancel_changes_button')}
                   </button>
-                  <button
+                  <ProgressButton
                     className='btn btn-success btn-apply'
                     onClick={this.applyChanges}
                     disabled={!this.isSavingPossible()}
+                    progress={this.state.actionInProgress}
                   >
                     {i18n('common.apply_button')}
-                  </button>
+                  </ProgressButton>
                 </div>
               }
             </div>
