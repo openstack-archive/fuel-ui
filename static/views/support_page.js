@@ -21,6 +21,7 @@ import utils from 'utils';
 import models from 'models';
 import {backboneMixin, pollingMixin, unsavedChangesMixin} from 'component_mixins';
 import statisticsMixin from 'views/statistics_mixin';
+import {ProgressButton} from 'views/controls';
 
 var SupportPage = React.createClass({
   mixins: [
@@ -122,7 +123,7 @@ var StatisticsSettings = React.createClass({
   },
   saveChanges() {
     var data = this.getStatisticsSettingsToSave();
-    this.saveSettings(data)
+    return this.saveSettings(data)
       .done(() => this.setState({initialSettings: data}))
       .fail((response) => utils.showErrorDialog({response}))
       .always(() => this.setState({actionInProgress: false}));
@@ -155,13 +156,14 @@ var StatisticsSettings = React.createClass({
             {_.map(sortedSettings, (name) => this.renderInput(name))}
           </div>
           <p>
-            <button
+            <ProgressButton
               className='btn btn-default'
               disabled={!this.isSavingPossible()}
               onClick={this.saveChanges}
+              progress={this.state.actionInProgress}
             >
               {i18n('support_page.save_changes')}
-            </button>
+            </ProgressButton>
           </p>
         </div>
       </SupportPageElement>
