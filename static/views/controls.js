@@ -341,6 +341,59 @@ export var ProgressBar = React.createClass({
   }
 });
 
+export var ProgressButton = React.createClass({
+  propTypes: {
+    // Flagging the action in progress. Usually equals view's
+    // actionInProgress state field for cases of multiple
+    // progressButtons per view
+    progress: React.PropTypes.bool,
+    // Forces button to render spinner (used in cases with
+    // just the single button per view)
+    forceProgressing: React.PropTypes.bool,
+    onChange: React.PropTypes.func
+  },
+  getInitialState() {
+    return {
+      clicked: false,
+      progressing: false
+    };
+  },
+  componentWillMount() {
+    this.isOperable = true;
+  },
+  componentWillReceiveProps({progress}) {
+    var {clicked, progressing} = this.state;
+    if ((clicked || progressing) && this.isOperable) {
+      this.setState({progressing: progress});
+    }
+  },
+  componentWillUnmount() {
+    this.isOperable = false;
+  },
+  onClick() {
+    if (this.props.onClick && this.isOperable) {
+      this.setState({clicked: true});
+      $.when(this.props.onClick())
+        .then(() => {
+          if (this.isOperable) {
+            this.setState({clicked: false});
+          }
+        });
+    }
+  },
+  render() {
+    var {children, className, forceProgressing} = this.props;
+    var {clicked, progressing} = this.state;
+    var classNames = utils.classNames({
+      [className]: true,
+      'btn-progress': clicked || progressing || forceProgressing
+    });
+    return <button {...this.props} className={classNames} onClick={this.onClick}>
+      {children}
+    </button>;
+  }
+});
+
 export var Table = React.createClass({
   propTypes: {
     tableClassName: React.PropTypes.node,
