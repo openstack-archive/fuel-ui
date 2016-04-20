@@ -112,7 +112,7 @@ var OffloadingModesControl = React.createClass({
     if (ifcModes) {
       modes.push({
         name: i18n(ns + 'all_modes'),
-        state: _.uniq(_.pluck(ifcModes, 'state')).length === 1 ? ifcModes[0].state : undefined,
+        state: _.uniq(_.map(ifcModes, 'state')).length === 1 ? ifcModes[0].state : undefined,
         sub: ifcModes
       });
     }

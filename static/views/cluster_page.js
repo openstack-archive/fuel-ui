@@ -289,7 +289,7 @@ var ClusterPage = React.createClass({
   render() {
     var cluster = this.props.cluster;
     var availableTabs = this.getAvailableTabs(cluster);
-    var tabUrls = _.pluck(availableTabs, 'url');
+    var tabUrls = _.map(availableTabs, 'url');
     var subroutes = {
       settings: this.state.activeSettingsSectionName,
       network: this.state.activeNetworkSectionName,

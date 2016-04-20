@@ -72,7 +72,7 @@ var PluginsPage = React.createClass({
       return _.map(_.groupBy(data, 'os'), (osReleases, osName) =>
         <div key={osName}>
           {i18n('plugins_page.' + osName) + ': '}
-          {_.pluck(osReleases, 'version').join(', ')}
+          {_.map(osReleases, 'version').join(', ')}
         </div>
       );
     }

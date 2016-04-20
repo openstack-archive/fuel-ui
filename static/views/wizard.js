@@ -125,8 +125,8 @@ var ClusterWizardPanesMixin = {
       return false;
     }
     var allComponentsExclusive = _.all(components, (component) => {
-      var peerIds = _.pluck(_.reject(components, {id: component.id}), 'id');
-      var incompatibleIds = _.pluck(_.pluck(component.get('incompatible'), 'component'), 'id');
+      var peerIds = _.map(_.reject(components, {id: component.id}), 'id');
+      var incompatibleIds = _.map(_.map(component.get('incompatible'), 'component'), 'id');
       // peerIds should be subset of incompatibleIds to have exclusiveness property
       return peerIds.length === _.intersection(peerIds, incompatibleIds).length;
     });
