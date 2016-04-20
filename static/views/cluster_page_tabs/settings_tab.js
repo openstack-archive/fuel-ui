@@ -22,6 +22,7 @@ import models from 'models';
 import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
 import SettingSection from 'views/cluster_page_tabs/setting_section';
 import CSSTransitionGroup from 'react-addons-transition-group';
+import {ProgressButton} from 'views/controls';
 
 var SettingsTab = React.createClass({
   mixins: [
@@ -138,7 +139,7 @@ var SettingsTab = React.createClass({
   loadDefaults() {
     this.setState({actionInProgress: true});
     var defaultSettings = new models.Settings();
-    defaultSettings
+    return defaultSettings
     .fetch({
       url: _.result(this.props.cluster, 'url') + '/attributes/defaults'
     })
@@ -340,22 +341,24 @@ var SettingsTab = React.createClass({
               >
                 {i18n('common.cancel_changes_button')}
               </button>
-              <button
+              <ProgressButton
                 className='btn btn-success btn-apply-changes'
                 onClick={this.applyChanges}
                 disabled={!this.isSavingPossible()}
+                progress={this.state.actionInProgress}
               >
                 {i18n('common.save_settings_button')}
-              </button>
+              </ProgressButton>
             </div>
             <div className='btn-group pull-right'>
-              <button
+              <ProgressButton
                 className='btn btn-default btn-load-defaults'
                 onClick={this.loadDefaults}
                 disabled={locked}
+                progress={this.state.actionInProgress}
               >
                 {i18n('common.load_defaults_button')}
-              </button>
+              </ProgressButton>
               {cluster.get('status') !== 'new' &&
                 !_.isEmpty(cluster.get('deployedSettings').attributes) &&
                 <button
