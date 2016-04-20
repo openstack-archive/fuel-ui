@@ -22,7 +22,7 @@ import ReactDOM from 'react-dom';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
-import {Input, Popover, Tooltip} from 'views/controls';
+import {Input, Popover, Tooltip, ProgressButton} from 'views/controls';
 import {DeleteNodesDialog} from 'views/dialogs';
 import {backboneMixin, pollingMixin, dispatcherMixin, unsavedChangesMixin} from 'component_mixins';
 import Node from 'views/cluster_page_tabs/nodes_tab_screens/node';
@@ -821,9 +821,11 @@ ManagementPanel = React.createClass({
     };
   },
   changeScreen(url, passNodeIds) {
+    this.setState({actionInProgress: true});
     url = url ? '/' + url : '';
     if (passNodeIds) url += '/' + utils.serializeTabOptions({nodes: this.props.nodes.map('id')});
     app.navigate('#cluster/' + this.props.cluster.id + '/nodes' + url, {trigger: true});
+    this.setState({actionInProgress: false});
   },
   goToConfigurationScreen(action, conflict) {
     if (conflict) {
@@ -895,7 +897,7 @@ ManagementPanel = React.createClass({
       });
   },
   applyAndRedirect() {
-    this.applyChanges().then(_.partial(this.changeScreen, '', false));
+    return this.applyChanges().then(_.partial(this.changeScreen, '', false));
   },
   searchNodes(name, value) {
     this.setState({isSearchButtonVisible: !!value});
@@ -1204,13 +1206,14 @@ ManagementPanel = React.createClass({
                   >
                     {i18n('common.cancel_button')}
                   </button>
-                  <button
+                  <ProgressButton
                     className='btn btn-success btn-apply'
                     disabled={!this.isSavingPossible()}
                     onClick={this.applyAndRedirect}
+                    progress={this.state.actionInProgress}
                   >
                     {i18n('common.apply_changes_button')}
-                  </button>
+                  </ProgressButton>
                 </div>
               :
                 [
@@ -1258,14 +1261,15 @@ ManagementPanel = React.createClass({
                   </div>,
                   !locked &&
                     <div className='btn-group' role='group' key='add-nodes-button'>
-                      <button
+                      <ProgressButton
                         className='btn btn-success btn-add-nodes'
                         onClick={_.partial(this.changeScreen, 'add', false)}
                         disabled={locked}
+                        progress={this.state.actionInProgress}
                       >
                         <i className='glyphicon glyphicon-plus-white' />
                         {i18n(ns + 'add_nodes_button')}
-                      </button>
+                      </ProgressButton>
                     </div>
                 ]
             )}
@@ -1693,16 +1697,14 @@ NodeLabelsPanel = React.createClass({
                 >
                   {i18n('common.cancel_button')}
                 </button>
-                <button
-                  className={utils.classNames(
-                    'btn btn-success',
-                    {'btn-progress': this.state.actionInProgress}
-                  )}
+                <ProgressButton
+                  className='btn btn-success'
                   onClick={this.applyChanges}
                   disabled={!this.isSavingPossible()}
+                  progress={this.state.actionInProgress}
                 >
                   {i18n('common.apply_button')}
-                </button>
+                </ProgressButton>
               </div>
             </div>
           }
