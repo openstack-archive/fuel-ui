@@ -132,11 +132,45 @@ export var Input = React.createClass({
   handleFocus(e) {
     e.target.select();
   },
+  adjustFileProps(props) {
+    props.onChange = this.readFile;
+    props.defaultValue = '';
+    return props;
+  },
+  renderFile(input) {
+    var {fileName, content} = this.state;
+    var {disabled} = this.props;
+    return <form ref='form'>
+      {input}
+      <div className='input-group'>
+        <input
+          className='form-control file-name'
+          type='text'
+          placeholder={i18n('controls.file.placeholder')}
+          value={fileName ? `[${utils.showSize(content.length)}] ${fileName}` : ''}
+          onClick={this.pickFile}
+          disabled={disabled}
+          readOnly
+        />
+        <div
+          className='input-group-addon'
+          onClick={fileName ? this.removeFile : this.pickFile}
+        >
+          <i
+            className={utils.classNames(
+              'glyphicon',
+              fileName && !disabled ? 'glyphicon-remove' : 'glyphicon-file'
+            )}
+          />
+        </div>
+      </div>
+    </form>;
+  },
   renderInput() {
-    var {visible, fileName, content} = this.state;
+    var {visible} = this.state;
     var {
       type, value, inputClassName, toggleable, selectOnFocus,
-      debounce, children, disabled, extraContent
+      debounce, children, extraContent
     } = this.props;
     var isFile = type === 'file';
     var isCheckboxOrRadio = this.isCheckboxOrRadio();
@@ -155,44 +189,21 @@ export var Input = React.createClass({
         'form-control': type !== 'range',
         [inputClassName]: inputClassName
       }),
-      onChange: isFile ? this.readFile : (debounce ? this.debouncedChange : this.onChange)
+      onChange: debounce ? this.debouncedChange : this.onChange
     };
 
     if (_.has(this.props, 'value')) {
       props.value = _.isNull(value) || _.isUndefined(value) ? '' : value;
     }
 
+    if (isFile) props = this.adjustFileProps(props);
+
     var Tag = _.contains(['select', 'textarea'], type) ? type : 'input';
     var input = <Tag {...this.props} {...props}>{children}</Tag>;
-    if (isFile) input = <form ref='form'>{input}</form>;
 
     return (
       <div key='input-group' className={utils.classNames(inputWrapperClasses)}>
-        {input}
-        {isFile &&
-          <div className='input-group'>
-            <input
-              className='form-control file-name'
-              type='text'
-              placeholder={i18n('controls.file.placeholder')}
-              value={fileName ? `[${utils.showSize(content.length)}] ${fileName}` : ''}
-              onClick={this.pickFile}
-              disabled={disabled}
-              readOnly
-            />
-            <div
-              className='input-group-addon'
-              onClick={fileName ? this.removeFile : this.pickFile}
-            >
-              <i
-                className={utils.classNames(
-                  'glyphicon',
-                  fileName && !disabled ? 'glyphicon-remove' : 'glyphicon-file'
-                )}
-              />
-            </div>
-          </div>
-        }
+        {isFile ? this.renderFile(input) : input}
         {toggleable &&
           <div className='input-group-addon' onClick={this.togglePassword}>
             <i
