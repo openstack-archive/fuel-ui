@@ -100,12 +100,23 @@ var cacheMixin = {
 models.cacheMixin = cacheMixin;
 
 var restrictionMixin = models.restrictionMixin = {
-  checkRestrictions(models, action, setting) {
-    var restrictions = _.map(setting ? setting.restrictions : this.get('restrictions'),
-      utils.expandRestriction);
-    if (action) {
-      restrictions = _.filter(restrictions, {action});
+  checkRestrictions(models, actions, setting) {
+    var restrictions = _.map(
+      setting ? setting.restrictions : this.get('restrictions'),
+      utils.expandRestriction
+    );
+
+    if (!actions) {
+      actions = [];
+    } else if (_.isString(actions)) {
+      actions = [actions];
     }
+    if (actions.length) {
+      restrictions = _.filter(restrictions,
+        (restriction) => _.contains(actions, restriction.action)
+      );
+    }
+
     var satisfiedRestrictions = _.filter(restrictions,
         (restriction) => new Expression(restriction.condition, models, restriction).evaluate()
       );
@@ -778,23 +789,38 @@ models.Settings = Backbone.DeepModel
     },
     hasChanges(initialAttributes, models) {
       return _.any(this.attributes, (section, sectionName) => {
+        // plugins installed to already deployed environment
+        // are not presented in the environment deployed configuration
+        if (!initialAttributes[sectionName]) return true;
+
         var metadata = section.metadata;
-        var result = false;
         if (metadata) {
-          if (this.checkRestrictions(models, null, metadata).result) return result;
-          if (!_.isUndefined(metadata.enabled)) {
-            result = metadata.enabled !== initialAttributes[sectionName].metadata.enabled;
-          }
-          if (!result && this.isPlugin(section)) {
-            result = metadata.chosen_id !== initialAttributes[sectionName].metadata.chosen_id;
-          }
+          if (!initialAttributes[sectionName].metadata) return false;
+          // restrictions with action = 'none' should not block checking of the setting section
+          if (this.checkRestrictions(models, ['disable', 'hide'], metadata).result) return false;
+          // check the section enableness
+          if (
+            !_.isUndefined(metadata.enabled) &&
+            metadata.enabled !== initialAttributes[sectionName].metadata.enabled
+          ) return true;
+          // check a chosen plugin version
+          if (
+            this.isPlugin(section) &&
+            metadata.chosen_id !== initialAttributes[sectionName].metadata.chosen_id
+          ) return true;
         }
-        return result || (metadata || {}).enabled !== false &&
-          _.any(section, (setting, settingName) => {
-            if (this.checkRestrictions(models, null, setting).result) return false;
-            return !_.isEqual(setting.value,
-              (initialAttributes[sectionName][settingName] || {}).value);
-          });
+
+        // do not check inactive setting sections
+        if ((metadata || {}).enabled === false) return false;
+
+        return _.any(_.omit(section, 'metadata'), (setting, settingName) => {
+          // restrictions with action = 'none' should not block checking of the setting
+          if (this.checkRestrictions(models, ['disable', 'hide'], setting).result) return false;
+          return !_.isEqual(
+            setting.value,
+            (initialAttributes[sectionName][settingName] || {}).value
+          );
+        });
       });
     },
     sanitizeGroup(group) {

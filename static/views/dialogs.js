@@ -450,12 +450,12 @@ export var DeployClusterDialog = React.createClass({
       .fail(this.showError);
   },
   renderBody() {
-    var cluster = this.props.cluster;
+    var {cluster, isClusterConfigurationChanged} = this.props;
     var warningNs = 'cluster_page.dashboard_tab.';
     return (
       <div className='display-changes-dialog'>
         {!cluster.needsRedeployment() && [
-          this.props.isClusterConfigurationChanged &&
+          isClusterConfigurationChanged &&
             <div className='text-warning' key='redeployment-alert'>
               <i className='glyphicon glyphicon-warning-sign' />
               <div className='instruction'>
