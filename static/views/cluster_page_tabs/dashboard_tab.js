@@ -50,6 +50,12 @@ var DashboardTab = React.createClass({
     backboneMixin({
       modelOrCollection: (props) => props.cluster.get('networkConfiguration')
     }),
+    backboneMixin({
+      modelOrCollection: (props) => props.cluster.get('deployedSettings')
+    }),
+    backboneMixin({
+      modelOrCollection: (props) => props.cluster.get('deployedNetworkConfiguration')
+    }),
     backboneMixin('cluster', 'change'),
     pollingMixin(20, true)
   ],
@@ -60,11 +66,25 @@ var DashboardTab = React.createClass({
       ];
     }
   },
+  getInitialState() {
+    var {cluster} = this.props;
+    return {
+      configModels: {
+        cluster,
+        settings: cluster.get('settings'),
+        version: app.version,
+        release: cluster.get('release'),
+        default: cluster.get('settings'),
+        networking_parameters: cluster.get('networkConfiguration').get('networking_parameters')
+      }
+    };
+  },
   fetchData() {
     return this.props.cluster.get('nodes').fetch();
   },
   render() {
-    var cluster = this.props.cluster;
+    var {cluster} = this.props;
+    var {configModels} = this.state;
     var release = cluster.get('release');
     var runningDeploymentTask = cluster.task({group: 'deployment', active: true});
     var finishedDeploymentTask = cluster.task({group: 'deployment', active: false});
@@ -104,6 +124,8 @@ var DashboardTab = React.createClass({
             <ClusterActionsPanel
               key='actions-panel'
               cluster={cluster}
+              isClusterConfigurationChanged={cluster.isConfigurationChanged({configModels})}
+              configModels={configModels}
             />,
             cluster.get('status') === 'operational' &&
               <DashboardLinks
@@ -325,17 +347,8 @@ var ClusterActionsPanel = React.createClass({
     };
   },
   getInitialState() {
-    var {cluster} = this.props;
     return {
-      currentAction: this.isActionAvailable('spawn_vms') ? 'spawn_vms' : 'deploy',
-      configModels: {
-        cluster,
-        settings: cluster.get('settings'),
-        version: app.version,
-        release: cluster.get('release'),
-        default: cluster.get('settings'),
-        networking_parameters: cluster.get('networkConfiguration').get('networking_parameters')
-      }
+      currentAction: this.isActionAvailable('spawn_vms') ? 'spawn_vms' : 'deploy'
     };
   },
   validate(action) {
@@ -350,6 +363,7 @@ var ClusterActionsPanel = React.createClass({
     );
   },
   validations(action) {
+    var {configModels} = this.props;
     switch (action) {
       case 'deploy':
         return [
@@ -410,7 +424,7 @@ var ClusterActionsPanel = React.createClass({
           function(cluster) {
             if (cluster.get('settings').get('common.use_vcenter.value')) {
               var vcenter = cluster.get('vcenter');
-              vcenter.setModels(this.state.configModels);
+              vcenter.setModels(configModels);
               return !vcenter.isValid() && {
                 blocker: [
                   <span key='vcenter'>{i18n('vmware.has_errors') + ' '}
@@ -425,7 +439,7 @@ var ClusterActionsPanel = React.createClass({
           // check cluster settings
           function(cluster) {
             var settings = cluster.get('settings');
-            settings.isValid({models: this.state.configModels});
+            settings.isValid({models: configModels});
             if (_.isNull(settings.validationError)) return {};
 
             var areOpenStackSettingsValid = true;
@@ -463,7 +477,6 @@ var ClusterActionsPanel = React.createClass({
           },
           // check node amount restrictions according to their roles
           function(cluster) {
-            var {configModels} = this.state;
             var roleModels = cluster.get('roles');
             var validRoleModels = roleModels.filter(
               (role) => !role.checkRestrictions(configModels).result
@@ -524,10 +537,7 @@ var ClusterActionsPanel = React.createClass({
   },
   renderClusterChangeItem(changeName, nodes, showDeleteButton = true) {
     if (_.isArray(nodes) && !nodes.length) return null;
-    var {cluster} = this.props;
-    var isClusterConfigurationChanged = cluster.isConfigurationChanged(
-      _.pick(this.state, 'configModels')
-    );
+    var {cluster, isClusterConfigurationChanged} = this.props;
 
     if (changeName === 'changed_configuration' && !isClusterConfigurationChanged) return null;
 
@@ -546,11 +556,11 @@ var ClusterActionsPanel = React.createClass({
     );
   },
   isActionAvailable(action) {
-    var {cluster} = this.props;
+    var {cluster, configModels} = this.props;
     if (this.validate(action).blocker.length) return false;
     switch (action) {
       case 'deploy':
-        return cluster.isDeploymentPossible(_.pick(this.state, 'configModels'));
+        return cluster.isDeploymentPossible({configModels});
       case 'provision':
         return cluster.get('nodes').any((node) => node.isProvisioningPossible());
       case 'deployment':
@@ -574,7 +584,7 @@ var ClusterActionsPanel = React.createClass({
     var action = this.state.currentAction;
     var actionNs = ns + 'actions.' + action + '.';
 
-    var {cluster} = this.props;
+    var {cluster, isClusterConfigurationChanged, configModels} = this.props;
     var nodes = {
       provision: new models.Nodes(
         cluster.get('nodes').filter((node) => node.isProvisioningPossible())
@@ -616,7 +626,7 @@ var ClusterActionsPanel = React.createClass({
     switch (action) {
       case 'deploy':
         actionControls = [
-          cluster.hasChanges(_.pick(this.state, 'configModels')) &&
+          cluster.hasChanges({configModels}) &&
             <ul key='cluster-changes'>
               {this.renderClusterChangeItem('added_node', nodes.filter({pending_addition: true}))}
               {this.renderClusterChangeItem(
@@ -643,6 +653,7 @@ var ClusterActionsPanel = React.createClass({
               (!_.isEmpty(alerts.error) || !_.isEmpty(alerts.warning))
             }
             dialog={DeployClusterDialog}
+            dialogProps={{isClusterConfigurationChanged}}
           />
         ];
         break;
@@ -788,11 +799,11 @@ var ClusterActionsPanel = React.createClass({
     );
   },
   render() {
-    var {cluster} = this.props;
+    var {cluster, configModels} = this.props;
     var nodes = cluster.get('nodes');
     if (
       nodes.length &&
-      !cluster.hasChanges(_.pick(this.state, 'configModels')) &&
+      !cluster.hasChanges({configModels}) &&
       !cluster.needsRedeployment()
     ) return null;
 
@@ -856,7 +867,9 @@ var ClusterActionButton = React.createClass({
   },
   render() {
     var {selectedNodeIds} = this.state;
-    var {cluster, nodes, className, iconClassName, warning, dialog, canSelectNodes} = this.props;
+    var {
+      cluster, nodes, className, iconClassName, warning, dialog, canSelectNodes, dialogProps
+    } = this.props;
     var disabled = this.props.disabled || !selectedNodeIds.length;
     var buttonClassName = utils.classNames({'btn btn-primary': true, 'btn-warning': warning});
 
@@ -866,7 +879,9 @@ var ClusterActionButton = React.createClass({
           <button
             className={utils.classNames(buttonClassName, className)}
             disabled={disabled}
-            onClick={() => dialog.show({cluster, nodeIds: selectedNodeIds})}
+            onClick={() => dialog.show(
+              _.extend({cluster, nodeIds: selectedNodeIds}, dialogProps)
+            )}
           >
             {!!iconClassName && <i className={iconClassName} />}
             {i18n(
@@ -904,7 +919,9 @@ var ClusterActionButton = React.createClass({
       <button
         className={utils.classNames(buttonClassName, className)}
         disabled={disabled}
-        onClick={() => dialog.show({cluster, nodeIds: selectedNodeIds})}
+        onClick={() => dialog.show(
+          _.extend({cluster, nodeIds: selectedNodeIds}, dialogProps)
+        )}
       >
         {!!iconClassName && <i className={iconClassName} />}
         {i18n(
