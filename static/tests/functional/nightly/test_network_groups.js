@@ -139,6 +139,129 @@ registerSuite(() => {
           'This node network group name is already taken', 'True error message presents')
         .then(() => modal.close());
     },
+    'Check Networks extended help popups'() {
+      var tooltipSelector = ' .popover-container i.tooltip-icon';
+      var textAdmin = RegExp('For security reasons, isolate this network from the ' +
+        'Private and Public networks.', 'i');
+      var textPublic = RegExp('public and Floating IP ranges must share the same CIDR\\n' +
+        'Each controller node requires one IP address from the Public IP range.\\n' +
+        'Additionally, an OpenStack environment requires two IP addresses to use ' +
+        'as virtual IP addresses and one IP address for the default gateway.\\n' +
+        'If you have enabled Neutron DVR and plan to use floating IP address, ' +
+        'allocate one IP address for each compute node.\\n' +
+        'For more information on the Public IP requirements, see the Plugin documentation.', 'mi');
+      var textStorage = RegExp('This is an internal network, therefore, assign a private ' +
+        'IP address range.', 'i');
+      var textManagement = RegExp('This is an internal network, therefore, assign a private ' +
+        'IP address range.', 'i');
+      var textNeutron = RegExp('One unique VLAN ID is required for each tenant network.', 'i');
+      var textFloating = RegExp('Each defined tenant, including the Admin tenant, requires one IP' +
+        ' address from the Floating range. This IP address goes to the virtual interface of ' +
+        "the tenant's virtual router.", 'i');
+      var textInternal = RegExp('For security reasons, isolate this network from the Private ' +
+        'and Public networks.', 'i');
+      var textDns = RegExp('This settings is used to specify Name Servers of user\’s ' +
+        'preference if the default servers are not prefered.', 'i');
+      return this.remote
+        // Check "Admin (PXE)" network help popover
+        .then(() => networksLib.checkHelpPopover('.fuelweb_admin' + tooltipSelector, textAdmin))
+        // Check "Public" network help popover
+        .then(() => networksLib.checkHelpPopover('.public' + tooltipSelector, textPublic))
+        // Check "Storage" network help popover
+        .then(() => networksLib.checkHelpPopover('.storage' + tooltipSelector, textStorage))
+        // Check "Management" network help popover
+        .then(() => networksLib.checkHelpPopover('.management' + tooltipSelector, textManagement))
+        .clickByCssSelector('.subtab-link-neutron_l2')
+        // Check "neutron L2" network help popover
+        .then(() => networksLib.checkHelpPopover('.form-neutron-l2' + tooltipSelector, textNeutron))
+        .clickByCssSelector('.subtab-link-neutron_l3')
+        // Check "Floating" network settings help popover
+        .then(() => networksLib.checkHelpPopover('.form-floating-network' + tooltipSelector,
+         textFloating))
+        // Check "Internal" network settings help popover
+        .then(() => networksLib.checkHelpPopover('.form-internal-network' + tooltipSelector,
+         textInternal))
+        // Check "Guest OS DNS Servers" settings help popover
+        .then(() => networksLib.checkHelpPopover('.form-dns-nameservers' + tooltipSelector,
+         textDns));
+    },
+    'Check "Guest OS DNS Servers" extendable list'() {
+      var addFieldBtn = '.dns_nameservers .field-list .btn-add-field';
+      var rmFieldBtn = '.dns_nameservers .field-list .btn-remove-field';
+      var fieldWithError = '.dns_nameservers .field-list .has-error';
+      var invalidInputMessage = '.dns_nameservers .field-list .help-block.field-error';
+      return this.remote
+        .clickByCssSelector('.subtab-link-neutron_l3')
+        // Sleep is needed to transition for "Neutron L3" subtab
+        .waitForCssSelector(addFieldBtn, 500)
+        .assertElementsExist(addFieldBtn, 2, '"add field" btn should be exist')
+        .clickByCssSelector(rmFieldBtn)
+        .assertElementDisappears(rmFieldBtn, 200, '"remove field" btn had not dissappeared')
+        .assertElementsExist(addFieldBtn, 1, '"add field" btn should be exist')
+        .clickByCssSelector(addFieldBtn)
+        .clickByCssSelector(addFieldBtn)
+        .clickByCssSelector(addFieldBtn)
+        .clickByCssSelector(addFieldBtn)
+        .assertElementDisappears(addFieldBtn, 200, '"add field" btn had not dissappeared')
+        .assertElementsExist(rmFieldBtn, 5, '"remove field" btns are less than input fields')
+        .clickByCssSelector(rmFieldBtn)
+        .clickByCssSelector(rmFieldBtn)
+        .clickByCssSelector(rmFieldBtn)
+        .clickByCssSelector(rmFieldBtn)
+        .assertElementDisappears(rmFieldBtn, 200, '"remove field" btn had not dissappeared')
+        .assertElementsExist(addFieldBtn, 1, '"add field" btn should be exist')
+        .assertElementExists(fieldWithError, 'valid nameservers exist')
+        .assertElementExists(invalidInputMessage, 'error message does not appear')
+        .assertElementDisabled(btnSaveSelector)
+        .findByCssSelector(fieldWithError + ' input.form-control')
+          .type(['8', '.', '8', '.', '8', '.'])
+          // Sleep is needed to wait when regex check will done.
+          .sleep(300)
+          .type('8')
+          // Sleep is needed to wait when regex check will done.
+          .sleep(300)
+          .end()
+        .assertElementDisappears(fieldWithError, 500, 'Something wrong with validating of field')
+        .assertElementEnabled(btnSaveSelector);
+    },
+    'Check "Host OS DNS servers" extendable list'() {
+      var fieldListSelector = '.setting-section-external_dns .field-list';
+      var addFieldBtn = fieldListSelector + ' .btn-add-field';
+      var rmFieldBtn = fieldListSelector + ' .btn-remove-field';
+      var fieldWithError = fieldListSelector + ' .has-error';
+      var invalidInputMessage = fieldWithError + ' .help-block.field-error';
+      return this.remote
+        .clickByCssSelector('.subtab-link-network_settings')
+        // Sleep is needed to transition for "Other" subtab
+        .waitForCssSelector(addFieldBtn, 500)
+        .assertElementsExist(addFieldBtn, 2, '"add field" btns should be exist')
+        .clickByCssSelector(rmFieldBtn)
+        .assertElementDisappears(rmFieldBtn, 200, '"remove field" btn had not dissappeared')
+        .assertElementsExist(addFieldBtn, 1, '"add field" btn should be exist')
+        .clickByCssSelector(addFieldBtn)
+        .clickByCssSelector(addFieldBtn)
+        .assertElementDisappears(addFieldBtn, 200, '"add field" btn had not dissappeared')
+        .assertElementsExist(rmFieldBtn, 3, '"remove field" btns are less than input fields')
+        .clickByCssSelector(rmFieldBtn)
+        .clickByCssSelector(rmFieldBtn)
+        .assertElementDisappears(rmFieldBtn, 200, '"remove field" btn had not dissappeared')
+        .assertElementsExist(addFieldBtn, 1, '"add field" btn should be exist')
+        .assertElementExists(fieldWithError, 'valid nameservers exist')
+        .assertElementExists(invalidInputMessage, 'error message does not appear')
+        .assertElementDisabled(btnSaveSelector, '"Save changes" btn should be disabled')
+        .findByCssSelector(fieldWithError + ' input.form-control')
+          .type(['8', '.', '8', '.', '8', '.'])
+          // Sleep is needed to wait when regexp check will done.
+          .sleep(300)
+          .type('8')
+          // Sleep is needed to wait when regexp check will done.
+          .sleep(300)
+          .end()
+        .assertElementDisappears(fieldWithError, 500, 'Regexp validation not passed')
+        .assertElementEnabled(btnSaveSelector)
+        .clickByCssSelector('button.btn-revert-changes')
+        .clickLinkByText('Network_Group_1');
+    },
     'Node network group deletion'() {
       return this.remote
         .then(() => networksLib.gotoNodeNetworkSubTab('default'))
