@@ -462,7 +462,7 @@ var Node = React.createClass({
             {!_.isEmpty(node.get('labels')) &&
               <button className='btn btn-link' onClick={this.toggleLabelsPopover}>
                 <i className='glyphicon glyphicon-tag-alt' />
-                {_.keys(node.get('labels')).length}
+                <div className="stiker">{_.keys(node.get('labels')).length}</div>
               </button>
             }
             {this.state.labelsPopoverVisible &&
