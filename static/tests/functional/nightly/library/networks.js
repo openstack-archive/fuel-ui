@@ -15,6 +15,7 @@
  **/
 
 import ModalWindow from 'tests/functional/pages/modal';
+import 'intern/dojo/node!leadfoot/Session';
 import 'tests/functional/helpers';
 
 function NetworksLib(remote) {
@@ -104,7 +105,7 @@ NetworksLib.prototype = {
           'value', '192.168.3.0/24', networkName + ' "CIDR" textfield has default value')
         // IP Ranges
         .assertElementPropertyEquals(mainDiv + 'div.ip_ranges input[name*="range-start"]',
-          'value', '192.168.3.2', networkName + ' "Start IP Range" textfield  has default value')
+          'value', '192.168.3.1', networkName + ' "Start IP Range" textfield  has default value')
         .assertElementPropertyEquals(mainDiv + 'div.ip_ranges input[name*="range-end"]',
           'value', '192.168.3.50', networkName + ' "End IP Range" textfield has default value')
         // VLAN
@@ -707,6 +708,18 @@ NetworksLib.prototype = {
         'True error message is displayed for intersection between' +
         networkNameToEdit + ' and ' + networkName + ' networks')
       .then(() => this.cancelChanges());
+  },
+  checkHelpPopover(toolTipSelector, popoverText) {
+    var self = this;
+    var popoverSelector = '.popover.in.right.requirements-popover';
+    return this.remote
+      .setFindTimeout(2000)
+      .findByCssSelector(toolTipSelector)
+        .then((element) => self.remote.moveMouseTo(element))
+        .end()
+      // The following timeout as we have 0.3s transition for the popover
+      .sleep(300)
+      .assertElementMatchesRegExp(popoverSelector, popoverText, 'popover got wrong text');
   }
 };
 
