@@ -15,6 +15,7 @@
  **/
 
 import ModalWindow from 'tests/functional/pages/modal';
+import 'intern/dojo/node!leadfoot/Session';
 import 'tests/functional/helpers';
 
 function NetworksLib(remote) {
@@ -707,6 +708,17 @@ NetworksLib.prototype = {
         'True error message is displayed for intersection between' +
         networkNameToEdit + ' and ' + networkName + ' networks')
       .then(() => this.cancelChanges());
+  },
+  checkHelpPopover(toolTipSelector, popoverText) {
+    var popoverSelector = '.popover.in.right.requirements-popover';
+    return this.remote
+      .setFindTimeout(2000)
+      .findByCssSelector(toolTipSelector)
+        .then((element) => this.remote.moveMouseTo(element))
+        .end()
+      // The following timeout as we have 0.3s transition for the popover
+      .sleep(300)
+      .assertElementMatchesRegExp(popoverSelector, popoverText, 'popover got wrong text');
   }
 };
 
