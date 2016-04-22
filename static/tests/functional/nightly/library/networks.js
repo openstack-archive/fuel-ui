@@ -840,6 +840,17 @@ NetworksLib.prototype = {
           }
         })
         .end();
+  },
+  checkHelpPopover(toolTipSelector, popoverText) {
+    var popoverSelector = '.popover.in.right.requirements-popover';
+    return this.remote
+      .waitForCssSelector(toolTipSelector, 2000)
+      .findByCssSelector(toolTipSelector)
+        .then((element) => this.remote.moveMouseTo(element))
+        .end()
+      // The following timeout as we have 0.3s transition for the popover
+      .sleep(300)
+      .assertElementMatchesRegExp(popoverSelector, popoverText, 'popover text is OK');
   }
 };
 
