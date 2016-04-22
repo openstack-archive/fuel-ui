@@ -218,29 +218,37 @@ var DashboardLink = React.createClass({
 
 var DeploymentInProgressControl = React.createClass({
   render() {
-    var task = this.props.task;
-    var showStopButton = task.match({name: 'deploy'});
+    var {task, cluster} = this.props;
+    var taskName = task.get('name');
+
+    var showStopButton = task.match({name: ['deploy', 'provision', 'deployment']});
+    var stopButtonTooltipTexts = {
+      deploy: i18n('cluster_page.stop_deployment_button'),
+      provision: i18n('cluster_page.stop_provisioning_button'),
+      deployment: i18n('cluster_page.stop_deployment_button')
+    };
+
     return (
       <div className='row'>
         <div className='dashboard-block clearfix'>
           <div className='col-xs-12'>
             <div className={utils.classNames({
               'deploy-process': true,
-              [task.get('name')]: true,
+              [taskName]: true,
               'has-stop-control': showStopButton
             })}>
               <h4>
                 <strong>
                   {i18n(ns + 'current_task') + ' '}
                 </strong>
-                {i18n('cluster_page.' + task.get('name')) + '...'}
+                {i18n('cluster_page.' + taskName) + '...'}
               </h4>
               <ProgressBar progress={task.isInfinite() ? null : task.get('progress')} />
               {showStopButton &&
-                <Tooltip text={i18n('cluster_page.stop_deployment_button')}>
+                <Tooltip text={stopButtonTooltipTexts[taskName]}>
                   <button
                     className='btn btn-danger btn-xs pull-right stop-deployment-btn'
-                    onClick={() => StopDeploymentDialog.show({cluster: this.props.cluster})}
+                    onClick={() => StopDeploymentDialog.show({cluster, taskName})}
                     disabled={!task.isStoppable()}
                   >
                     {i18n(ns + 'stop')}

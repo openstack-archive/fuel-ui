@@ -790,8 +790,12 @@ export var ProvisionVMsDialog = React.createClass({
 
 export var StopDeploymentDialog = React.createClass({
   mixins: [dialogMixin],
-  getDefaultProps() {
-    return {title: i18n('dialog.stop_deployment.title')};
+  getInitialState() {
+    var ns = 'dialog.stop_' + this.props.taskName + '.';
+    return {
+      ns,
+      title: i18n(ns + 'title')
+    };
   },
   stopDeployment() {
     this.setState({actionInProgress: true});
@@ -802,18 +806,16 @@ export var StopDeploymentDialog = React.createClass({
         dispatcher.trigger('deploymentTaskStarted');
       })
       .fail((response) => {
-        this.showError(
-          response,
-          i18n('dialog.stop_deployment.stop_deployment_error.stop_deployment_warning')
-        );
+        this.showError(response, i18n(this.state.ns + 'error.text'));
       });
   },
   renderBody() {
-    var ns = 'dialog.stop_deployment.';
+    var {cluster, taskName} = this.props;
+    var {ns} = this.state;
     return (
       <div className='text-danger'>
         {this.renderImportantLabel()}
-        {this.props.cluster.get('nodes').any({status: 'provisioning'}) ?
+        {taskName === 'deploy' && cluster.get('nodes').any({status: 'provisioning'}) ?
           <span>
             {i18n(ns + 'provisioning_warning')}
             <br/><br/>
