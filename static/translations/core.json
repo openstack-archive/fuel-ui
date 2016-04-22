@@ -902,6 +902,7 @@
                 "reset_environment": "Resetting",
                 "stop_deployment": "Stopping",
                 "stop_deployment_button": "Stop deployment",
+                "stop_provisioning_button": "Stop provisioning",
                 "show_details_button": "Show additional information",
                 "hide_details_button": "Hide additional information",
                 "openstack_release": "OpenStack Release",
@@ -1133,14 +1134,30 @@
                     "enter_environment_name": "Please type the name of the environment \"__name__\" to confirm.",
                     "stop_deployment_is_running": "Stopping of the environment deployment is in progress. Some environment nodes can be rebooted at the moment. Deleting of the environment can lead to issues with offline nodes. This would be safer to delete the environment after the deployment is stopped."
                 },
-                "stop_deployment": {
+                "stop_deploy": {
                     "title": "Stop Deployment",
                     "text": "Are you sure you want to stop this deployment? You may not be able to successfully re-deploy this OpenStack environment until you reset the environment. Proceed with caution!",
                     "provisioning_warning": "Are you sure you want to interrupt the deployment at the OS provisioning stage? Fuel has not completed the node provisioning, changes applied to the nodes will be discarded and the nodes will be reset to their pre-deployment state.",
                     "redeployment_warning": "Please wait 20 minutes before attempting to run the deployment again to ensure the provisioning process has been stopped.",
-                    "stop_deployment_error": {
+                    "error": {
                         "title": "Stop Deployment Error",
-                        "stop_deployment_warning": "Unable to stop deployment"
+                        "text": "Unable to stop deployment"
+                    }
+                },
+                "stop_provision": {
+                    "title": "Stop Provisioning",
+                    "text": "Are you sure you want to stop this provisioning? Changes applied to the nodes will be discarded and the nodes will be reset to their pre-deployment state.",
+                    "error": {
+                        "title": "Stop Provisioning Error",
+                        "text": "Unable to stop provisioning"
+                    }
+                },
+                "stop_deployment": {
+                    "title": "Stop Deployment",
+                    "text": "Are you sure you want to stop this deployment? You may not be able to successfully re-deploy the nodes until you reset the environment. Proceed with caution!",
+                    "error": {
+                        "title": "Stop Deployment Error",
+                        "text": "Unable to stop deployment"
                     }
                 },
                 "reset_environment": {
@@ -2197,14 +2214,14 @@
                     "enter_environment_name": "请输入这个环境的名字（__name__）以确认。",
                     "stop_deployment_is_running": "正在停止这个环境的部署。现在这个环境里的节点可能会重启，删除这个环境会给离线的节点造成问题。部署操作停止后再删除这个环境会更安全。"
                 },
-                "stop_deployment": {
+                "stop_deploy": {
                     "title": "停止部署",
                     "text": "你确定要停止这次的部署吗？你可能无法再重新部署这个 OpenStack 环境，除非重置它。请谨慎操作！",
                     "provisioning_warning": "你确定要在系统部署阶段中断这次部署吗？Fuel 还未完成节点部署，所有对节点的改动会被丢弃，节点会被重置成部署前的状态。",
                     "redeployment_warning": "请等待 20 分钟再重新部署，以确保前面的部署已彻底停止。",
-                    "stop_deployment_error": {
+                    "error": {
                         "title": "停止部署出错",
-                        "stop_deployment_warning": "无法停止部署"
+                        "text": "无法停止部署"
                     }
                 },
                 "reset_environment": {
@@ -2894,13 +2911,13 @@
                     "default_text": "本当に環境を削除してもよろしいですか？",
                     "enter_environment_name": "確認のために環境  \"__name__\" の名前を入力してください。"
                 },
-                "stop_deployment": {
+                "stop_deploy": {
                     "title": "デプロイの中止",
                     "text": "デプロイを停止しても本当によろしいですか？完全に環境をリセットしない限り、デプロイが成功しない場合があります。注意して使用してください！",
                     "provisioning_warning": "デプロイを停止しても本当によろしいですか？まだプロビジョニングされていないノード上の現時点までの処理が失われノードはデプロイ前の状態にリセットされます。",
-                    "stop_deployment_error": {
+                    "error": {
                         "title": "デプロイの中止がエラーとなりました",
-                        "stop_deployment_warning": "デプロイの中止ができませんでした"
+                        "text": "デプロイの中止ができませんでした"
                     }
                 },
                 "reset_environment": {

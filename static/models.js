@@ -635,7 +635,7 @@ models.Task = BaseModel.extend({
     return this.match({name: ['stop_deployment', 'reset_environment']});
   },
   isStoppable() {
-    return this.match({name: 'deploy', status: 'running'});
+    return this.match({name: ['deploy', 'provision', 'deployment']});
   }
 });
 
