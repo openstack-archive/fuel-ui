@@ -154,8 +154,9 @@
 }
 
 .glyphicon-tag-alt {
-  .icon-default-styles(-52px, -332px);
-  .node-management-button-sizes;
+  .icon-default-styles(-10px, -1130px);
+  width: 20px;
+  height: 20px;
 }
 
 .glyphicon-pencil-alt {
@@ -2290,6 +2291,25 @@ input[type=range] {
           padding-top: 15px;
           position: relative;
           overflow: visible;
+          button {
+            .glyphicon {
+              opacity: 0.6;
+            }
+            &:hover {
+              .glyphicon {
+                opacity: 1;
+              }
+            }
+          }
+          .sticker {
+            display: block;
+            position: relative;
+            top: 8px;
+            left: -2px;
+            font-weight: 700;
+            font-size: @base-font-size - 4;
+            color: @navbar-icon-color;
+          }
           .node-labels-popover {
             display: block;
             overflow: visible;
@@ -2639,7 +2659,7 @@ input[type=range] {
 
     .node-labels {
       text-align: left;
-      margin-left: 15px;
+      margin-left: 24px;
       margin-bottom: 5px;
       font-size: @base-font-size - 4;
       ul {
