@@ -330,22 +330,23 @@ var EditNodeInterfacesScreen = React.createClass({
         this.updateWithLimitations(updatedIfc, ifc);
       });
 
-      return Backbone.sync('update', node.interfaces, {url: _.result(node, 'url') + '/interfaces'});
+      return Backbone.sync('update', node.interfaces, {url: _.result(node, 'url') + '/interfaces'})
+          .fail((response) => {
+            var errorNS = ns + 'configuration_error.';
+            utils.showErrorDialog({
+              title: i18n(errorNS + 'title'),
+              message: i18n(errorNS + 'saving_warning'),
+              response: response
+            });
+          });
     }))
       .done(() => {
         this.setState({initialInterfaces:
           _.cloneDeep(this.interfacesToJSON(this.props.interfaces))});
         dispatcher.trigger('networkConfigurationUpdated');
-      })
-      .fail((response) => {
-        var errorNS = ns + 'configuration_error.';
-
-        utils.showErrorDialog({
-          title: i18n(errorNS + 'title'),
-          message: i18n(errorNS + 'saving_warning'),
-          response: response
-        });
-      }).always(() => this.setState({actionInProgress: false}));
+      }).always(() => {
+        this.setState({actionInProgress: false});
+      });
   },
   configurationTemplateExists() {
     return !_.isEmpty(this.props.cluster.get('networkConfiguration')
