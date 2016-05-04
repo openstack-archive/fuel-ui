@@ -349,7 +349,7 @@ var SettingSection = React.createClass({
               return this.renderCustomControl(
                 _.extend(renderOptions, {CustomControl, path, settingName})
               );
-            } else if (setting.values) {
+            } else if (setting.values && setting.type === 'radio') {
               return this.renderRadioGroup(_.extend(renderOptions, {settingName}));
             } else {
               return this.renderInput(_.extend(renderOptions, {settingName}));
