@@ -126,7 +126,7 @@ var HealthcheckTabContent = React.createClass({
     this.setState({credentialsVisible: !this.state.credentialsVisible});
   },
   handleSelectAllClick(name, value) {
-    this.props.tests.invoke('set', {checked: value});
+    this.props.tests.invokeMap('set', {checked: value});
   },
   handleInputChange(name, value) {
     var credentials = this.state.credentials;
@@ -136,7 +136,7 @@ var HealthcheckTabContent = React.createClass({
   runTests() {
     var testruns = new models.TestRuns();
     var oldTestruns = new models.TestRuns();
-    var testsetIds = this.props.testsets.pluck('id');
+    var testsetIds = this.props.testsets.map('id');
     this.setState({actionInProgress: true});
     _.each(testsetIds, (testsetId) => {
       var testsToRun = _.map(this.props.tests.filter({
@@ -203,7 +203,7 @@ var HealthcheckTabContent = React.createClass({
         actionInProgress: true,
         stoppingTestsInProgress: true
       });
-      testruns.invoke('set', {status: 'stopped'});
+      testruns.invokeMap('set', {status: 'stopped'});
       testruns.toJSON = function() {
         return this.map((testrun) =>
           _.pick(testrun.attributes, 'id', 'status')
@@ -283,7 +283,7 @@ var HealthcheckTabContent = React.createClass({
                 testset={testset}
                 testrun={this.props.testruns.find({testset: testset.id}) ||
                  new models.TestRun({testset: testset.id})}
-                tests={new Backbone.Collection(this.props.tests.filter({testset: testset.id}))}
+                tests={new models.BaseCollection(this.props.tests.filter({testset: testset.id}))}
                 disabled={disabledState || hasRunningTests}
               />;
             })}
@@ -309,7 +309,7 @@ var HealthcheckCredentials = React.createClass({
               type={(name === 'password') ? 'password' : 'text'}
               name={name}
               label={i18n('cluster_page.healthcheck_tab.' + name + '_label')}
-              value={this.props.credentials[name]}
+              value={this.props.credentials[name] || ''}
               onChange={this.props.onInputChange}
               toggleable={name === 'password'}
               description={i18n('cluster_page.healthcheck_tab.' + name + '_description')}
@@ -330,13 +330,13 @@ var TestSet = React.createClass({
   ],
   handleTestSetCheck(name, value) {
     this.props.testset.set('checked', value);
-    this.props.tests.invoke('set', {checked: value});
+    this.props.tests.invokeMap('set', {checked: value});
   },
   componentWillUnmount() {
-    this.props.tests.invoke('off', 'change:checked', this.updateTestsetCheckbox, this);
+    this.props.tests.invokeMap('off', 'change:checked', this.updateTestsetCheckbox, this);
   },
   componentWillMount() {
-    this.props.tests.invoke('on', 'change:checked', this.updateTestsetCheckbox, this);
+    this.props.tests.invokeMap('on', 'change:checked', this.updateTestsetCheckbox, this);
   },
   updateTestsetCheckbox() {
     this.props.testset.set(
@@ -360,7 +360,7 @@ var TestSet = React.createClass({
                 name={this.props.testset.get('name')}
                 disabled={this.props.disabled}
                 onChange={this.handleTestSetCheck}
-                checked={this.props.testset.get('checked')}
+                checked={!!this.props.testset.get('checked')}
               />
             </th>
             <th className='col-xs-7 healthcheck-name'>
@@ -428,7 +428,7 @@ var Test = React.createClass({
             name={test.get('name')}
             disabled={this.props.disabled}
             onChange={this.handleTestCheck}
-            checked={test.get('checked')}
+            checked={!!test.get('checked')}
           />
         </td>
         <td className='healthcheck-name'>
