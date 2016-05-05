@@ -21,7 +21,7 @@ class HealthcheckPage {
     this.remote = remote;
   }
 
-  createFakeServerForNotRunnedTests() {
+  createFakeServerForNotRunningTests() {
     return this.remote
       .execute(() => {
         window.server = sinon.fakeServer.create();
@@ -122,7 +122,7 @@ class HealthcheckPage {
             }]
           )
         ]);
-        window.server.respondWith('GET', /\ostf\/testruns\/last.*/, [
+        window.server.respondWith('GET', /\/ostf\/testruns\/last.*/, [
           200, {'Content-Type': 'application/json'},
           '[]'
         ]);
@@ -231,7 +231,7 @@ class HealthcheckPage {
             }]
           )
         ]);
-        window.server.respondWith('GET', /\ostf\/testruns\/last.*/, [
+        window.server.respondWith('GET', /\/ostf\/testruns\/last.*/, [
           200, {'Content-Type': 'application/json'}, JSON.stringify([
             {
               status: 'running',
@@ -436,7 +436,7 @@ class HealthcheckPage {
             }
           ])
         ]);
-        window.server.respondWith('GET', /\ostf\/testruns\/last.*/, [
+        window.server.respondWith('GET', /\/ostf\/testruns\/last.*/, [
           200, {'Content-Type': 'application/json'}, JSON.stringify([
             {
               status: 'finished',
@@ -548,4 +548,3 @@ class HealthcheckPage {
 }
 
 export default HealthcheckPage;
-

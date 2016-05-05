@@ -53,7 +53,7 @@ var collectionMethods = [
   'findKey', 'findLastKey',
   'find', 'findLast',
   'filter', 'reject',
-  'every', 'some',
+  'every', 'some', 'invokeMap',
   'partition'
 ];
 
@@ -63,11 +63,9 @@ _.each(collectionMethods, (method) => {
     var source = args[0];
 
     if (_.isPlainObject(source)) {
-      args[0] = (model) => _.isMatch(model.attributes, source);
+      args[0] = (model) => _.isMatchWith(model.attributes, source);
     }
-
     args.unshift(this.models);
-
     return _[method](...args);
   };
 });
@@ -483,7 +481,7 @@ models.Node = BaseModel.extend({
     return status === 'discover' || status === 'error';
   },
   getRolesSummary(releaseRoles) {
-    return _.map(this.sortedRoles(releaseRoles.pluck('name')),
+    return _.map(this.sortedRoles(releaseRoles.map('name')),
       (role) => releaseRoles.find({name: role}).get('label')
     ).join(', ');
   },
@@ -539,7 +537,7 @@ models.Nodes = BaseCollection.extend({
   ],
   viewModes: ['standard', 'compact'],
   hasChanges() {
-    return _.some(this.invoke('hasChanges'));
+    return _.some(this.invokeMap('hasChanges'));
   },
   nodesAfterDeployment() {
     return this.filter((node) => !node.get('pending_deletion'));
@@ -548,10 +546,10 @@ models.Nodes = BaseCollection.extend({
     return _.filter(this.nodesAfterDeployment(), (node) => node.hasRole(role));
   },
   resources(resourceName) {
-    return _.reduce(this.invoke('resource', resourceName), (sum, n) => sum + n, 0);
+    return _.reduce(this.invokeMap('resource', resourceName), (sum, n) => sum + n, 0);
   },
   getLabelValues(label) {
-    return this.invoke('getLabel', label);
+    return this.invokeMap('getLabel', label);
   },
   areDisksConfigurable() {
     if (!this.length) return false;
@@ -565,7 +563,7 @@ models.Nodes = BaseCollection.extend({
   },
   areInterfacesConfigurable() {
     if (!this.length) return false;
-    return _.uniq(this.invoke('resource', 'interfaces')).length === 1;
+    return _.uniq(this.invokeMap('resource', 'interfaces')).length === 1;
   }
 });
 
@@ -644,7 +642,7 @@ models.Tasks = BaseCollection.extend({
   model: models.Task,
   url: '/api/tasks',
   toJSON() {
-    return this.pluck('id');
+    return this.map('id');
   },
   comparator: 'id',
   filterTasks(filters) {
@@ -948,7 +946,7 @@ models.Interface = Backbone.DeepModel
       var errors = {};
       var networkErrors = [];
       var networks = new models.Networks(this.get('assigned_networks')
-        .invoke('getFullNetwork', attrs.networks));
+        .invokeMap('getFullNetwork', attrs.networks));
       var untaggedNetworks = networks.filter((network) => {
         return _.isNull(network.getVlanRange(attrs.networkingParameters));
       });
@@ -963,7 +961,7 @@ models.Interface = Backbone.DeepModel
       _.extend(errors, this.validateInterfaceProperties(options));
 
       // check interface networks have the same vlan id
-      var vlans = _.reject(networks.pluck('vlan_start'), _.isNull);
+      var vlans = _.reject(networks.map('vlan_start'), _.isNull);
       if (_.uniq(vlans).length < vlans.length) {
         networkErrors.push(i18n(ns + 'networks_with_the_same_vlan'));
       }
@@ -988,7 +986,7 @@ models.Interface = Backbone.DeepModel
 
       if (
         this.get('interface_properties').dpdk.enabled &&
-        !_.isEqual(networks.pluck('name'), ['private'])
+        !_.isEqual(networks.map('name'), ['private'])
       ) {
         networkErrors.push(i18n(ns + 'dpdk_placement_error'));
       }
@@ -1255,7 +1253,7 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
     var fixedNetworkVlan = parameters.get('fixed_networks_vlan_start');
     var fixedNetworkVlanError = utils.validateVlan(
       fixedNetworkVlan,
-      networks.pluck('vlan_start'),
+      networks.map('vlan_start'),
       'fixed_networks_vlan_start',
       manager === 'VlanManager'
     );
@@ -1271,7 +1269,7 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
     );
 
     if (_.isEmpty(fixedNetworkVlanError)) {
-      var vlanIntersection = _.some(_.compact(networks.pluck('vlan_start')),
+      var vlanIntersection = _.some(_.compact(networks.map('vlan_start')),
         (vlan) => utils.validateVlanRange(
           fixedNetworkVlan,
           fixedNetworkVlan + fixedNetworksAmount - 1, vlan
@@ -1298,7 +1296,7 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
     var idRangeErrors = this.validateNeutronSegmentationIdRange(
       _.map(parameters.get(idRangeAttributeName), Number),
       isVlanSegmentation,
-      _.compact(networks.pluck('vlan_start'))
+      _.compact(networks.map('vlan_start'))
     );
     if (idRangeErrors[0] || idRangeErrors[1]) errors[idRangeAttributeName] = idRangeErrors;
 
@@ -1527,7 +1525,7 @@ models.WizardModel = Backbone.DeepModel.extend({
               attributeConfigValue = false;
               break;
             case 'radio':
-              attributeConfigValue = _.first(attributeConfig.values).data;
+              attributeConfigValue = _.head(attributeConfig.values).data;
               break;
             case 'password':
             case 'text':
@@ -1715,7 +1713,7 @@ models.ComponentsCollection = BaseCollection.extend({
   restoreDefaultValues(types) {
     types = types || this.allTypes;
     var components = _.filter(this.models, (model) => _.includes(types, model.get('type')));
-    _.invoke(components, 'restoreDefaultValue');
+    _.invokeMap(components, 'restoreDefaultValue');
   },
   toJSON() {
     return _.compact(_.map(this.models, (model) => model.toJSON()));

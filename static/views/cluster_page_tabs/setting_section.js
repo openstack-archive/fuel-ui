@@ -30,7 +30,7 @@ var SettingSection = React.createClass({
 
     // FIXME: hack for #1442475 to lock images_ceph in env with controllers
     if (settingName === 'images_ceph') {
-      if (_.includes(_.flatten(this.props.cluster.get('nodes').pluck('pending_roles')),
+      if (_.includes(_.flatten(this.props.cluster.get('nodes').map('pending_roles')),
           'controller')) {
         result = true;
         messages.push(i18n('cluster_page.settings_tab.images_ceph_warning'));
