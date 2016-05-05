@@ -7,7 +7,7 @@
     "url": "https://github.com/openstack/fuel-ui.git"
   },
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">=0.10.40"
   },
   "scripts": {
     "start": "gulp dev-server",
@@ -26,7 +26,7 @@
     "babel-preset-es2015-webpack": "6.4.0",
     "babel-preset-react": "6.5.0",
     "babel-runtime": "6.6.1",
-    "backbone": "1.2.1",
+    "backbone": "1.3.3",
     "backbone.routefilter": "1.0.0",
     "bootstrap": "3.3.4",
     "classnames": "1.1.4",
@@ -48,7 +48,7 @@
     "json-loader": "0.5.3",
     "less": "2.4.0",
     "less-loader": "2.2.1",
-    "lodash": "3.10.1",
+    "lodash": "4.11.2",
     "minimist": "1.1.1",
     "open-sans-fontface": "1.4.0",
     "postcss-loader": "0.5.1",
@@ -79,7 +79,7 @@
     "gulp-eslint": "1.0.0",
     "gulp-lintspaces": "0.3.2",
     "gulp-shell": "0.4.1",
-    "intern": "3.0.6",
+    "intern": "3.1.1",
     "karma": "~0.13.9",
     "karma-chai": "~0.1.0",
     "karma-mocha": "~0.2.0",

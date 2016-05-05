@@ -93,7 +93,7 @@ var DashboardTab = React.createClass({
       title: i18n(ns + 'horizon'),
       description: i18n(ns + 'horizon_description')
     }].concat(
-      cluster.get('pluginLinks').invoke('pick', 'url', 'title', 'description')
+      cluster.get('pluginLinks').invokeMap('pick', 'url', 'title', 'description')
     );
 
     return (
@@ -562,11 +562,11 @@ var ClusterActionsPanel = React.createClass({
       case 'deploy':
         return cluster.isDeploymentPossible({configModels});
       case 'provision':
-        return cluster.get('nodes').any((node) => node.isProvisioningPossible());
+        return cluster.get('nodes').some((node) => node.isProvisioningPossible());
       case 'deployment':
-        return cluster.get('nodes').any((node) => node.isDeploymentPossible());
+        return cluster.get('nodes').some((node) => node.isDeploymentPossible());
       case 'spawn_vms':
-        return cluster.get('nodes').any((node) => {
+        return cluster.get('nodes').some((node) => {
           var status = node.get('status');
           return node.hasRole('virt') && (
             status === 'discover' ||
@@ -852,7 +852,7 @@ var ClusterActionButton = React.createClass({
         _.extend({data: {cluster_id: cluster.id}}, options));
     };
     nodes.parse = function() {
-      return this.getByIds(nodes.pluck('id'));
+      return this.getByIds(nodes.map('id'));
     };
     SelectNodesDialog
       .show({
@@ -1037,7 +1037,7 @@ var ClusterInfo = React.createClass({
   getNumberOfNodesWithRole(field) {
     var nodes = this.props.cluster.get('nodes');
     if (field === 'total') return nodes.length;
-    return _.filter(nodes.invoke('hasRole', field)).length;
+    return _.filter(nodes.invokeMap('hasRole', field)).length;
   },
   getNumberOfNodesWithStatus(field) {
     var nodes = this.props.cluster.get('nodes');
@@ -1084,7 +1084,7 @@ var ClusterInfo = React.createClass({
   },
   renderStatistics() {
     var {cluster} = this.props;
-    var roles = _.union(['total'], cluster.get('roles').pluck('name'));
+    var roles = _.union(['total'], cluster.get('roles').map('name'));
     var statuses = _.without(models.Node.prototype.statuses, 'discover');
     return (
       <div className='row statistics-block'>
@@ -1275,13 +1275,13 @@ var ResetEnvironmentAction = React.createClass({
       if (task.match({name: 'reset_environment'})) return 'repeated_reset_disabled';
       return 'reset_disabled_for_deploying_cluster';
     }
-    if (cluster.get('nodes').all({status: 'discover'})) return 'no_changes_to_reset';
+    if (cluster.get('nodes').every({status: 'discover'})) return 'no_changes_to_reset';
     return 'reset_environment_description';
   },
   render() {
     var {cluster, task} = this.props;
     var isLocked = cluster.get('status') === 'new' &&
-      cluster.get('nodes').all({status: 'discover'}) ||
+      cluster.get('nodes').every({status: 'discover'}) ||
       !!task;
     return (
       <div className='pull-right reset-environment'>

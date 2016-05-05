@@ -60,7 +60,7 @@ var SettingsTab = React.createClass({
       var subtabs = this.getSubtabs(tabProps);
       if (activeTab === 'settings') {
         var subroute = tabOptions[0];
-        if (!subroute || !_.contains(subtabs, subroute)) {
+        if (!subroute || !_.includes(subtabs, subroute)) {
           app.navigate(
             'cluster/' + cluster.id + '/settings/' + subtabs[0],
             {trigger: true, replace: true}
@@ -198,7 +198,7 @@ var SettingsTab = React.createClass({
     var settings = this.props.cluster.get('settings');
     // network settings are shown on Networks tab, so they should not block
     // saving of changes on Settings tab
-    var areSettingsValid = !_.any(_.keys(settings.validationError), (settingPath) => {
+    var areSettingsValid = !_.some(_.keys(settings.validationError), (settingPath) => {
       var settingSection = settingPath.split('.')[0];
       return settings.get(settingSection).metadata.group !== 'network' &&
         settings.get(settingPath).group !== 'network';
@@ -215,8 +215,8 @@ var SettingsTab = React.createClass({
     var locked = this.isLocked();
     var hasChanges = this.hasChanges();
     var allocatedRoles = _.uniq(_.flatten(_.union(
-      cluster.get('nodes').pluck('roles'),
-      cluster.get('nodes').pluck('pending_roles')
+      cluster.get('nodes').map('roles'),
+      cluster.get('nodes').map('pending_roles')
     )));
     var classes = {
       row: true,
@@ -225,7 +225,7 @@ var SettingsTab = React.createClass({
 
     var invalidSections = {};
     _.each(settings.validationError, (error, key) => {
-      invalidSections[_.first(key.split('.'))] = true;
+      invalidSections[_.head(key.split('.'))] = true;
     });
 
     // Prepare list of settings organized by groups
@@ -245,7 +245,7 @@ var SettingsTab = React.createClass({
           var settingGroups = _.chain(section)
             .omit('metadata')
             .map('group')
-            .unique()
+            .uniq()
             .without('network')
             .value();
 
@@ -263,7 +263,7 @@ var SettingsTab = React.createClass({
                 !this.checkRestrictions('hide', setting).result
               ) return settingName;
             }));
-            var hasErrors = _.any(pickedSettings, (settingName) => {
+            var hasErrors = _.some(pickedSettings, (settingName) => {
               return (settings.validationError || {})[utils.makePath(sectionName, settingName)];
             });
             if (!_.isEmpty(pickedSettings)) {
@@ -381,7 +381,7 @@ var SettingSubtabs = React.createClass({
           this.props.settingsGroupList.map((groupName) => {
             if (!this.props.groupedSettings[groupName]) return null;
 
-            var hasErrors = _.any(_.map(this.props.groupedSettings[groupName], 'invalid'));
+            var hasErrors = _.some(_.map(this.props.groupedSettings[groupName], 'invalid'));
             return (
               <li
                 key={groupName}

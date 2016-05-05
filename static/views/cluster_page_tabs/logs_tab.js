@@ -172,7 +172,7 @@ var LogFilterBar = React.createClass({
   },
   fetchSources(type, nodeId) {
     var nodes = this.props.nodes;
-    var chosenNodeId = nodeId || (nodes.length ? nodes.first().id : null);
+    var chosenNodeId = nodeId || (nodes.length ? nodes.head().id : null);
     this.sources = new models.LogSources();
     this.sources.deferred = (type === 'remote' && chosenNodeId) ?
       this.sources.fetch({url: '/api/logs/sources/nodes/' + chosenNodeId})
@@ -183,9 +183,9 @@ var LogFilterBar = React.createClass({
         return source.get('remote') === (type !== 'local');
       });
       var chosenSource = _.find(filteredSources, {id: this.state.source}) ||
-        _.first(filteredSources);
-      var chosenLevelId = chosenSource ? _.contains(chosenSource.get('levels'), this.state.level) ?
-        this.state.level : _.first(chosenSource.get('levels')) : null;
+        _.head(filteredSources);
+      var chosenLevelId = chosenSource ? _.includes(chosenSource.get('levels'), this.state.level) ?
+        this.state.level : _.head(chosenSource.get('levels')) : null;
       this.setState({
         type: type,
         sources: this.sources,
@@ -230,7 +230,7 @@ var LogFilterBar = React.createClass({
   onSourceChange(name, value) {
     var levels = this.state.sources.get(value).get('levels');
     var data = {locked: false, source: value};
-    if (!_.contains(levels, this.state.level)) data.level = _.first(levels);
+    if (!_.includes(levels, this.state.level)) data.level = _.head(levels);
     this.setState(data);
   },
   getLocalSources() {
