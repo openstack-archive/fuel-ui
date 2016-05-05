@@ -68,7 +68,7 @@ class NodeComponent {
           .type(newName)
           .pressKeys('\uE007')
           .end()
-        .waitForCssSelector('.name p', 1000)
+        .waitForCssSelector('.name p', 2000)
         .end();
   }
 }
