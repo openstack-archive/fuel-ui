@@ -63,7 +63,7 @@ var EditNodeDisksScreen = React.createClass({
   },
   isLocked() {
     return !!this.props.cluster.task({group: 'deployment', active: true}) ||
-      !_.every(this.props.nodes.invoke('areDisksConfigurable'));
+      !_.every(this.props.nodes.invokeMap('areDisksConfigurable'));
   },
   updateInitialData() {
     this.setState({initialDisks: _.cloneDeep(this.props.nodes.at(0).disks.toJSON())});
