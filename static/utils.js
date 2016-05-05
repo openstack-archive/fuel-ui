@@ -37,7 +37,7 @@ var utils = {
     return _.map(options, (value, key) => key + ':' + value).join(';');
   },
   deserializeTabOptions(serializedOptions) {
-    return _.object(_.map((serializedOptions || '').split(';'), (option) => option.split(':')));
+    return _.fromPairs(_.map((serializedOptions || '').split(';'), (option) => option.split(':')));
   },
   getNodeListFromTabOptions(options) {
     var nodeIds = utils.deserializeTabOptions(options.screenOptions[0]).nodes;
