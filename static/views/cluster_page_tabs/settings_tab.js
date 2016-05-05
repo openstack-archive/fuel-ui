@@ -249,7 +249,7 @@ var SettingsTab = React.createClass({
           var settingGroups = _.chain(section)
             .omit('metadata')
             .map('group')
-            .unique()
+            .uniq()
             .without('network')
             .value();
 
@@ -279,7 +279,7 @@ var SettingsTab = React.createClass({
         }
       }
     });
-    groupedSettings = _.omit(groupedSettings, _.isEmpty);
+    groupedSettings = _.omitBy(groupedSettings, _.isEmpty);
 
     return (
       <div key={this.state.key} className={utils.classNames(classes)}>

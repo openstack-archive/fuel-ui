@@ -524,7 +524,7 @@ var Node = React.createClass({
     var ns = 'cluster_page.nodes_tab.node.';
     var isSelectable = node.isSelectable() && !locked && mode !== 'edit';
     var status = node.getStatusSummary();
-    var roles = cluster ? node.sortedRoles(cluster.get('roles').pluck('name')) : [];
+    var roles = cluster ? node.sortedRoles(cluster.get('roles').map('name')) : [];
 
     var nodePanelClasses = {
       node: true,
