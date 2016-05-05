@@ -38,8 +38,8 @@ NotificationsPage = React.createClass({
   },
   checkDateIsToday(date) {
     var today = new Date();
-    var day = _.padLeft(today.getDate(), 2, '0');
-    var month = _.padLeft(today.getMonth() + 1, 2, '0');
+    var day = _.padStart(today.getDate(), 2, '0');
+    var month = _.padStart(today.getMonth() + 1, 2, '0');
     return [day, month, today.getFullYear()].join('-') === date;
   },
   render() {
