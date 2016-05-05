@@ -204,7 +204,7 @@ export var Input = React.createClass({
       props.onChange = this.readFile;
     }
 
-    var Tag = _.contains(['select', 'textarea'], type) ? type : 'input';
+    var Tag = _.includes(['select', 'textarea'], type) ? type : 'input';
     var input = <Tag {...props}>{children}</Tag>;
 
     return (
