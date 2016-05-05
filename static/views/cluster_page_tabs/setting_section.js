@@ -30,7 +30,7 @@ var SettingSection = React.createClass({
 
     // FIXME: hack for #1442475 to lock images_ceph in env with controllers
     if (settingName === 'images_ceph') {
-      if (_.contains(_.flatten(this.props.cluster.get('nodes').pluck('pending_roles')),
+      if (_.includes(_.flatten(this.props.cluster.get('nodes').map('pending_roles')),
           'controller')) {
         result = true;
         messages.push(i18n('cluster_page.settings_tab.images_ceph_warning'));
@@ -70,7 +70,7 @@ var SettingSection = React.createClass({
     };
   },
   areCalculationsPossible(setting) {
-    return setting.toggleable || _.contains(['checkbox', 'radio'], setting.type);
+    return setting.toggleable || _.includes(['checkbox', 'radio'], setting.type);
   },
   getValuesToCheck(setting, valueAttribute) {
     return setting.values ? _.without(_.map(setting.values, 'data'), setting[valueAttribute]) :
@@ -78,7 +78,7 @@ var SettingSection = React.createClass({
   },
   checkValues(values, path, currentValue, restriction) {
     var extraModels = {settings: this.props.settingsForChecks};
-    var result = _.all(values, (value) => {
+    var result = _.every(values, (value) => {
       this.props.settingsForChecks.set(path, value);
       return new Expression(
         restriction.condition,
@@ -100,9 +100,9 @@ var SettingSection = React.createClass({
     var roles = this.props.cluster.get('roles');
     return _.compact(this.props.allocatedRoles.map((roleName) => {
       var role = roles.find({name: roleName});
-      if (_.any(role.get('restrictions'), (restriction) => {
+      if (_.some(role.get('restrictions'), (restriction) => {
         restriction = utils.expandRestriction(restriction);
-        if (_.contains(restriction.condition, 'settings:' + path) &&
+        if (_.includes(restriction.condition, 'settings:' + path) &&
           !(new Expression(
             restriction.condition,
             this.props.configModels,
@@ -122,7 +122,7 @@ var SettingSection = React.createClass({
       var result = _.filter(_.map(setting.restrictions, utils.expandRestriction),
           (restriction) => {
             return restriction.action === 'disable' &&
-              _.contains(restriction.condition, 'settings:' + path);
+              _.includes(restriction.condition, 'settings:' + path);
           }
         );
       if (result.length) {
@@ -158,7 +158,7 @@ var SettingSection = React.createClass({
         valuesToCheck, pathToCheck, currentSetting[valueAttribute]
       );
       return _.compact(_.map(dependentRestrictions, (restrictions, label) => {
-        if (_.any(restrictions, checkValues)) return label;
+        if (_.some(restrictions, checkValues)) return label;
       }));
     }
     return [];

@@ -332,7 +332,7 @@ var Node = React.createClass({
             }
             <div className={utils.classNames(statusClasses)}>
               <i className='glyphicon glyphicon-time' />
-              {_.contains(['provisioning', 'deploying'], status) ?
+              {_.includes(['provisioning', 'deploying'], status) ?
                 <div>
                   {this.renderStatusLabel(status)}
                   <div className='node-buttons'>
@@ -407,7 +407,7 @@ var Node = React.createClass({
                 <p>{node.get('name') || node.get('mac')}</p>
               </div>
               <div className={utils.classNames(statusClasses)}>
-                {_.contains(['provisioning', 'deploying'], status) ?
+                {_.includes(['provisioning', 'deploying'], status) ?
                   this.renderNodeProgress()
                 :
                   this.renderStatusLabel(status)
@@ -495,7 +495,7 @@ var Node = React.createClass({
             ]}
           </div>
           <div className={utils.classNames(statusClasses)}>
-            {_.contains(['provisioning', 'deploying'], status) ?
+            {_.includes(['provisioning', 'deploying'], status) ?
               this.renderNodeProgress(status)
             :
               <div>
@@ -522,7 +522,7 @@ var Node = React.createClass({
     var ns = 'cluster_page.nodes_tab.node.';
     var isSelectable = node.isSelectable() && !locked && mode !== 'edit';
     var status = node.getStatusSummary();
-    var roles = cluster ? node.sortedRoles(cluster.get('roles').pluck('name')) : [];
+    var roles = cluster ? node.sortedRoles(cluster.get('roles').map('name')) : [];
 
     var nodePanelClasses = {
       node: true,

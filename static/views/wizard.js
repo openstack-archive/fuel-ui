@@ -32,7 +32,7 @@ var AVAILABILITY_STATUS_ICONS = {
 
 var ComponentCheckboxGroup = React.createClass({
   hasEnabledComponents() {
-    return _.any(this.props.components, (component) => component.get('enabled'));
+    return _.some(this.props.components, (component) => component.get('enabled'));
   },
   render() {
     return (
@@ -71,7 +71,7 @@ var ComponentRadioGroup = React.createClass({
     };
   },
   hasEnabledComponents() {
-    return _.any(this.props.components, (component) => component.get('enabled'));
+    return _.some(this.props.components, (component) => component.get('enabled'));
   },
   onChange(name, value) {
     _.each(this.props.components, (component) => {
@@ -124,7 +124,7 @@ var ClusterWizardPanesMixin = {
     if (components.length <= 1) {
       return false;
     }
-    var allComponentsExclusive = _.all(components, (component) => {
+    var allComponentsExclusive = _.every(components, (component) => {
       var peerIds = _.map(_.reject(components, {id: component.id}), 'id');
       var incompatibleIds = _.map(_.map(component.get('incompatible'), 'component'), 'id');
       // peerIds should be subset of incompatibleIds to have exclusiveness property
@@ -158,7 +158,7 @@ var ClusterWizardPanesMixin = {
       allComponents.each((testedComponent) => {
         var type = testedComponent.get('type');
         var isInStopList = _.find(stopList, (component) => component.id === testedComponent.id);
-        if (component.id === testedComponent.id || !_.contains(types, type) || isInStopList) {
+        if (component.id === testedComponent.id || !_.includes(types, type) || isInStopList) {
           // ignore self or forward compatibilities
           return;
         }
@@ -188,7 +188,7 @@ var ClusterWizardPanesMixin = {
           stopList,
           (component) => component.id === incompatible.component.id
         );
-        if (!_.contains(types, type) || isInStopList) {
+        if (!_.includes(types, type) || isInStopList) {
           // ignore forward incompatibilities
           return;
         }
@@ -223,7 +223,7 @@ var ClusterWizardPanesMixin = {
       var warnings = [];
       _.each(requires, (require) => {
         var type = require.component.get('type');
-        if (!_.contains(types, type)) {
+        if (!_.includes(types, type)) {
           // ignore forward requires
           return;
         }
@@ -349,7 +349,7 @@ var Compute = React.createClass({
     hasErrors(wizard) {
       var allComponents = wizard.get('components');
       var components = allComponents.getComponentsByType(this.componentType, {sorted: true});
-      return !_.any(components, (component) => component.get('enabled'));
+      return !_.some(components, (component) => component.get('enabled'));
     }
   },
   componentWillMount() {
@@ -361,8 +361,8 @@ var Compute = React.createClass({
   },
   checkVCenterDisabled(allComponents) {
     // TODO remove this hack in 9.0
-    var hasCompatibleBackends = _.any(allComponents.models, (component) => {
-      return _.contains(this.constructor.vCenterNetworkBackends, component.id);
+    var hasCompatibleBackends = _.some(allComponents.models, (component) => {
+      return _.includes(this.constructor.vCenterNetworkBackends, component.id);
     });
     if (!hasCompatibleBackends) {
       var vCenter = _.find(allComponents.models, (component) => {
@@ -421,7 +421,7 @@ var Network = React.createClass({
       var ml2core = _.find(components, (component) => component.id === this.ml2CorePath);
       if (ml2core && ml2core.get('enabled')) {
         var ml2 = _.filter(components, (component) => component.isML2Driver());
-        return !_.any(ml2, (ml2driver) => ml2driver.get('enabled'));
+        return !_.some(ml2, (ml2driver) => ml2driver.get('enabled'));
       }
       return false;
     }
@@ -763,9 +763,9 @@ var CreateClusterWizard = React.createClass({
     this.setState({loading: true});
     this.components = new models.ComponentsCollection([], {releaseId: releaseId});
     this.wizard.set({components: this.components});
-    this.components.fetch().done(() => {
-      this.components.invoke('expandWildcards', this.components);
-      this.components.invoke('restoreDefaultValue', this.components);
+    this.components.fetch().then(() => {
+      this.components.invokeMap('expandWildcards', this.components);
+      this.components.invokeMap('restoreDefaultValue', this.components);
       this.setState({loading: false});
     });
   },
