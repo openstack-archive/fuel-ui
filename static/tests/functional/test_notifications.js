@@ -53,7 +53,7 @@ registerSuite(() => {
         // Just in case - reset and hide badge notification counter by clicking on it
         .clickByCssSelector('.notifications-icon')
         .then(() => common.removeCluster(clusterName))
-        .assertElementAppears('.notifications-icon .badge.visible', 3000,
+        .assertElementAppears('.notifications-icon .badge.visible', 5000,
           'New notification appear after the cluster removal')
         .clickByCssSelector('.notifications-icon')
         .assertElementAppears('.notifications-popover .notification.clickable', 20000,
