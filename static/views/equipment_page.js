@@ -63,7 +63,7 @@ EquipmentPage = React.createClass({
         }));
         requests = requests.concat(
           plugins
-            .filter((plugin) => _.contains(plugin.get('groups'), 'equipment'))
+            .filter((plugin) => _.includes(plugin.get('groups'), 'equipment'))
             .map((plugin) => {
               var pluginLinks = new models.PluginLinks();
               pluginLinks.url = _.result(plugin, 'url') + '/links';
@@ -106,7 +106,7 @@ EquipmentPage = React.createClass({
     var roles = new models.Roles();
     this.props.clusters.each((cluster) => {
       roles.add(
-        cluster.get('roles').filter((role) => !roles.any({name: role.get('name')}))
+        cluster.get('roles').filter((role) => !roles.some({name: role.get('name')}))
       );
     });
     return (

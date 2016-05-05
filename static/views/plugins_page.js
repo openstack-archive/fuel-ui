@@ -91,7 +91,7 @@ var PluginsPage = React.createClass({
     return data;
   },
   renderPlugin(plugin, index) {
-    var unsupported = !_.any(
+    var unsupported = !_.some(
       plugin.get('releases'),
       (release) => this.props.availableVersions[release.os + '-' + release.version]
     );
