@@ -101,7 +101,7 @@ var BaseCollection = Backbone.Collection
       return _.isEmpty(errors) ? null : errors;
     },
     testRestrictions() {
-      _.invoke(this.models, 'testRestrictions', restrictionModels);
+      _.invokeMap(this.models, 'testRestrictions', restrictionModels);
     }
   });
 
@@ -148,8 +148,8 @@ var NovaComputes = BaseCollection.extend({
     this._super('validate', arguments);
 
     var keys = {vsphere_clusters: {}, service_names: {}};
-    this.invoke('checkDuplicates', keys);
-    this.invoke('checkEmptyTargetNode');
+    this.invokeMap('checkDuplicates', keys);
+    this.invokeMap('checkEmptyTargetNode');
 
     var errors = _.compact(this.map('validationError'));
     return _.isEmpty(errors) ? null : errors;

@@ -279,7 +279,7 @@ var SettingsTab = React.createClass({
         }
       }
     });
-    groupedSettings = _.omit(groupedSettings, _.isEmpty);
+    groupedSettings = _.omitBy(groupedSettings, _.isEmpty);
 
     return (
       <div key={this.state.key} className={utils.classNames(classes)}>

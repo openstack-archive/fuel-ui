@@ -93,7 +93,7 @@ var DashboardTab = React.createClass({
       title: i18n(ns + 'horizon'),
       description: i18n(ns + 'horizon_description')
     }].concat(
-      cluster.get('pluginLinks').invoke('pick', 'url', 'title', 'description')
+      cluster.get('pluginLinks').invokeMap('pick', 'url', 'title', 'description')
     );
 
     return (
@@ -368,7 +368,7 @@ var ClusterActionsPanel = React.createClass({
   validate(action) {
     return _.reduce(
       this.validations(action),
-      (accumulator, validator) => _.merge(
+      (accumulator, validator) => _.mergeWith(
         accumulator,
         validator.call(this, this.props.cluster),
         (a, b) => a.concat(_.compact(b))
@@ -492,10 +492,10 @@ var ClusterActionsPanel = React.createClass({
             var validRoleModels = roleModels.filter(
               (role) => !role.checkRestrictions(configModels).result
             );
-            var limitValidations = _.zipObject(validRoleModels.map(
+            var limitValidations = _.fromPairs(validRoleModels.map(
               (role) => [role.get('name'), role.checkLimits(configModels, cluster.get('nodes'))]
             ));
-            var limitRecommendations = _.zipObject(validRoleModels.map(
+            var limitRecommendations = _.fromPairs(validRoleModels.map(
               (role) => [
                 role.get('name'),
                 role.checkLimits(configModels, cluster.get('nodes'), true, ['recommended'])
@@ -1033,7 +1033,7 @@ var ClusterInfo = React.createClass({
   getNumberOfNodesWithRole(field) {
     var nodes = this.props.cluster.get('nodes');
     if (field === 'total') return nodes.length;
-    return _.filter(nodes.invoke('hasRole', field)).length;
+    return _.filter(nodes.invokeMap('hasRole', field)).length;
   },
   getNumberOfNodesWithStatus(field) {
     var nodes = this.props.cluster.get('nodes');
@@ -1080,7 +1080,7 @@ var ClusterInfo = React.createClass({
   },
   renderStatistics() {
     var {cluster} = this.props;
-    var roles = _.union(['total'], cluster.get('roles').pluck('name'));
+    var roles = _.union(['total'], cluster.get('roles').map('name'));
     var statuses = _.without(models.Node.prototype.statuses, 'discover');
     return (
       <div className='row statistics-block'>
