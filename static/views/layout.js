@@ -303,7 +303,7 @@ var NotificationsPopover = React.createClass({
       this.props.notifications.filter({status: 'unread'})
     );
     if (notificationsToMark.length) {
-      this.setState({unreadNotificationsIds: notificationsToMark.pluck('id')});
+      this.setState({unreadNotificationsIds: notificationsToMark.map('id')});
       notificationsToMark.toJSON = function() {
         return notificationsToMark.map((notification) => {
           notification.set({status: 'read'});

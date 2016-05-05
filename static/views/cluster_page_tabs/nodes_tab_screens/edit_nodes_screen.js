@@ -34,7 +34,7 @@ var EditNodesScreen = React.createClass({
           _.extend({data: {cluster_id: cluster.id}}, options));
       };
       nodes.parse = function() {
-        return this.getByIds(nodes.pluck('id'));
+        return this.getByIds(nodes.map('id'));
       };
       return $.when(options.cluster.get('roles').fetch(),
         cluster.get('settings').fetch({cache: true})).then(() => ({nodes}));
