@@ -122,7 +122,7 @@ class InterfacesPage {
                     .getVisibleText()
                       .then((name) => {
                         name = name.trim();
-                        if (!_.contains(ifcsNames, name)) {
+                        if (!_.includes(ifcsNames, name)) {
                           throw new Error('Unexpected name in bond: ' + name);
                         }
                       })
