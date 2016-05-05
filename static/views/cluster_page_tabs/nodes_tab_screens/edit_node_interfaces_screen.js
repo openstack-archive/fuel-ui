@@ -169,7 +169,7 @@ var EditNodeInterfacesScreen = React.createClass({
   },
   isLocked() {
     return !!this.props.cluster.task({group: 'deployment', active: true}) ||
-      !_.every(this.props.nodes.invoke('areInterfacesConfigurable'));
+      !_.every(this.props.nodes.invokeMap('areInterfacesConfigurable'));
   },
   interfacesPickFromJSON(json) {
     // Pick certain interface fields that have influence on hasChanges.
@@ -205,14 +205,14 @@ var EditNodeInterfacesScreen = React.createClass({
               // Do not compare offloading modes if they differ
               if (!_.get(limitations, 'offloading_modes.equal', false)) return false;
               // otherwise remove set states before it
-              return !_.isEqual(..._.invoke(
+              return !_.isEqual(..._.invokeMap(
                   [data, interfacesData[index][attribute]],
                   (value) => utils.deepOmit(value, ['state']))
               );
             }
             case 'interface_properties': {
               // Omit restricted parameters from the comparison
-              return !_.isEqual(..._.invoke(
+              return !_.isEqual(..._.invokeMap(
                 [data, interfacesData[index][attribute]],
                 _.omit, omittedProperties)
               );
@@ -319,8 +319,8 @@ var EditNodeInterfacesScreen = React.createClass({
       // determining slaves using bonding map
       _.each(nodeBonds, (bond, bondIndex) => {
         var slaveIndexes = bondingMap[bondIndex];
-        var slaveInterfaces = _.map(slaveIndexes, node.interfaces.at, node.interfaces);
-        bond.set({slaves: _.invoke(slaveInterfaces, 'pick', 'name')});
+        var slaveInterfaces = _.map(slaveIndexes, (index) => node.interfaces.at(index));
+        bond.set({slaves: _.invokeMap(slaveInterfaces, 'pick', 'name')});
       });
 
       // Assigning networks according to user choice and interface properties
@@ -418,7 +418,7 @@ var EditNodeInterfacesScreen = React.createClass({
         name: bondName,
         mode: bondMode,
         assigned_networks: new models.InterfaceNetworks(),
-        slaves: _.invoke(interfaces, 'pick', 'name'),
+        slaves: _.invokeMap(interfaces, 'pick', 'name'),
         bond_properties: {
           mode: bondMode,
           type__: bondType
@@ -449,7 +449,7 @@ var EditNodeInterfacesScreen = React.createClass({
         );
       }
       bond.set({
-        slaves: bond.get('slaves').concat(_.invoke(interfaces, 'pick', 'name')),
+        slaves: bond.get('slaves').concat(_.invokeMap(interfaces, 'pick', 'name')),
         offloading_modes: this.getIntersectedOffloadingModes(interfaces.concat(bond)),
         interface_properties: bondProperties
       });
@@ -470,7 +470,7 @@ var EditNodeInterfacesScreen = React.createClass({
     });
   },
   mergeLimitations(limitation1, limitation2) {
-    return _.merge(limitation1, limitation2, (value1, value2, interfaceProperty) => {
+    return _.mergeWith(limitation1, limitation2, (value1, value2, interfaceProperty) => {
       switch (interfaceProperty) {
         case 'mtu':
         case 'offloading_modes':
@@ -557,7 +557,7 @@ var EditNodeInterfacesScreen = React.createClass({
     var networkConfiguration = cluster.get('networkConfiguration');
     var networkingParameters = networkConfiguration.get('networking_parameters');
     var networks = networkConfiguration.get('networks');
-    var slaveInterfaceNames = _.map(_.flatten(_.filter(interfaces.pluck('slaves'))), 'name');
+    var slaveInterfaceNames = _.map(_.flatten(_.filter(interfaces.map('slaves'))), 'name');
 
     interfaces.each((ifc) => {
       if (!_.includes(slaveInterfaceNames, ifc.get('name'))) {
@@ -574,8 +574,8 @@ var EditNodeInterfacesScreen = React.createClass({
     }
   },
   validateSpeedsForBonding(interfaces) {
-    var slaveInterfaces = _.flatten(_.invoke(interfaces, 'getSlaveInterfaces'), true);
-    var speeds = _.invoke(slaveInterfaces, 'get', 'current_speed');
+    var slaveInterfaces = _.flatten(_.invokeMap(interfaces, 'getSlaveInterfaces'), true);
+    var speeds = _.invokeMap(slaveInterfaces, 'get', 'current_speed');
     // warn if not all speeds are the same or there are interfaces with unknown speed
     return _.uniq(speeds).length > 1 || !_.compact(speeds).length;
   },
@@ -609,7 +609,7 @@ var EditNodeInterfacesScreen = React.createClass({
   render() {
     var {nodes, interfaces} = this.props;
     var {interfacesByIndex, indexByInterface} = this.state;
-    var nodeNames = nodes.pluck('name');
+    var nodeNames = nodes.map('name');
     var locked = this.isLocked();
     var configurationTemplateExists = this.configurationTemplateExists();
 
@@ -651,7 +651,7 @@ var EditNodeInterfacesScreen = React.createClass({
     var unbondingPossible = !checkedInterfaces.length && !!checkedBonds.length;
 
     var hasChanges = this.hasChanges();
-    var slaveInterfaceNames = _.map(_.flatten(_.filter(interfaces.pluck('slaves'))), 'name');
+    var slaveInterfaceNames = _.map(_.flatten(_.filter(interfaces.map('slaves'))), 'name');
     var loadDefaultsEnabled = !this.state.actionInProgress;
     var revertChangesEnabled = !this.state.actionInProgress && hasChanges;
 
