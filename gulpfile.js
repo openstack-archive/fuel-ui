@@ -265,6 +265,7 @@ gulp.task('dev-server', function() {
   var nailgunHost = argv['nailgun-host'] || '127.0.0.1';
   var nailgunPort = argv['nailgun-port'] || 8000;
   var nailgunUrl = 'http://' + nailgunHost + ':' + nailgunPort;
+  var ostfBaseUrl = devServerUrl + '/static/ostf/';
   var hotReload = !argv['no-hot'];
 
   var config = require('./webpack.config');
@@ -276,6 +277,9 @@ gulp.task('dev-server', function() {
   }
 
   var WebpackDevServer = require('webpack-dev-server');
+  var emptyPath = function(req) {
+    req.url = '';
+  };
   var options = {
     hot: hotReload,
     stats: WEBPACK_STATS_OPTIONS,
@@ -283,6 +287,9 @@ gulp.task('dev-server', function() {
       {path: '/', target: devServerUrl, rewrite: function(req) {
         req.url = '/static/index.html';
       }},
+      {path: /^\/ostf\/test\/.*/, target: ostfBaseUrl + 'testsets.json', rewrite: emptyPath},
+      {path: /^\/ostf\/tests\/.*/, target: ostfBaseUrl + 'tests.json', rewrite: emptyPath},
+      {path: /^\/ostf\/testruns\/.*/, target: ostfBaseUrl + 'testruns.json', rewrite: emptyPath},
       {path: /^\/(?!static\/).+/, target: nailgunUrl}
     ]
   };

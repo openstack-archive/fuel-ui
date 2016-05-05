@@ -162,7 +162,7 @@ export var Input = React.createClass({
       props.value = _.isNull(value) || _.isUndefined(value) ? '' : value;
     }
 
-    var Tag = _.contains(['select', 'textarea'], type) ? type : 'input';
+    var Tag = _.includes(['select', 'textarea'], type) ? type : 'input';
     var input = <Tag {...this.props} {...props}>{children}</Tag>;
     if (isFile) input = <form ref='form'>{input}</form>;
 
