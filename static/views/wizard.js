@@ -763,9 +763,9 @@ var CreateClusterWizard = React.createClass({
     this.setState({loading: true});
     this.components = new models.ComponentsCollection([], {releaseId: releaseId});
     this.wizard.set({components: this.components});
-    this.components.fetch().done(() => {
-      this.components.invoke('expandWildcards', this.components);
-      this.components.invoke('restoreDefaultValue', this.components);
+    this.components.fetch().then(() => {
+      this.components.invokeMap('expandWildcards', this.components);
+      this.components.invokeMap('restoreDefaultValue', this.components);
       this.setState({loading: false});
     });
   },
