@@ -112,7 +112,7 @@ var StatisticsSettings = React.createClass({
     unsavedChangesMixin
   ],
   hasChanges() {
-    return _.any(this.props.renderableStatisticsFields, (settingName) => {
+    return _.some(this.props.renderableStatisticsFields, (settingName) => {
       return this.state.initialSettings.statistics[settingName].value !==
         this.props.settings.get(utils.makePath('statistics', settingName, 'value'));
     });

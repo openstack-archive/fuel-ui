@@ -91,15 +91,15 @@ var HealthcheckTabContent = React.createClass({
     pollingMixin(3)
   ],
   shouldDataBeFetched() {
-    return this.props.testruns.any({status: 'running'});
+    return this.props.testruns.some({status: 'running'});
   },
   fetchData() {
     return this.props.testruns.fetch();
   },
   componentWillReceiveProps(newProps) {
     if (this.state.stoppingTestsInProgress &&
-      !newProps.testruns.any((testrun) => {
-        return _.contains(['running', 'stopped'], testrun.get('status'));
+      !newProps.testruns.some((testrun) => {
+        return _.includes(['running', 'stopped'], testrun.get('status'));
       })
     ) {
       this.setState({stoppingTestsInProgress: false});
@@ -116,7 +116,7 @@ var HealthcheckTabContent = React.createClass({
   },
   isLocked() {
     var cluster = this.props.cluster;
-    return !_.contains(['operational', 'error'], cluster.get('status')) ||
+    return !_.includes(['operational', 'error'], cluster.get('status')) ||
       !!cluster.task({group: 'deployment', active: true});
   },
   getNumberOfCheckedTests() {
@@ -126,7 +126,7 @@ var HealthcheckTabContent = React.createClass({
     this.setState({credentialsVisible: !this.state.credentialsVisible});
   },
   handleSelectAllClick(name, value) {
-    this.props.tests.invoke('set', {checked: value});
+    this.props.tests.invokeMap('set', {checked: value});
   },
   handleInputChange(name, value) {
     var credentials = this.state.credentials;
@@ -136,7 +136,7 @@ var HealthcheckTabContent = React.createClass({
   runTests() {
     var testruns = new models.TestRuns();
     var oldTestruns = new models.TestRuns();
-    var testsetIds = this.props.testsets.pluck('id');
+    var testsetIds = this.props.testsets.map('id');
     this.setState({actionInProgress: true});
     _.each(testsetIds, (testsetId) => {
       var testsToRun = _.map(this.props.tests.filter({
@@ -203,7 +203,7 @@ var HealthcheckTabContent = React.createClass({
         actionInProgress: true,
         stoppingTestsInProgress: true
       });
-      testruns.invoke('set', {status: 'stopped'});
+      testruns.invokeMap('set', {status: 'stopped'});
       testruns.toJSON = function() {
         return this.map((testrun) =>
           _.pick(testrun.attributes, 'id', 'status')
@@ -222,8 +222,8 @@ var HealthcheckTabContent = React.createClass({
     // responses return 'running' state for testruns up to the
     // moment the tests are actually stopped, - added check for 'stopped' and
     // 'running' testruns state
-    var hasRunningTests = this.props.testruns.any({status: 'running'});
-    var hasStoppingTests = this.props.testruns.any({status: 'stopped'});
+    var hasRunningTests = this.props.testruns.some({status: 'running'});
+    var hasStoppingTests = this.props.testruns.some({status: 'stopped'});
     return (
       <div>
         {!disabledState &&
@@ -336,6 +336,7 @@ var TestSet = React.createClass({
     this.props.tests.invoke('off', 'change:checked', this.updateTestsetCheckbox, this);
   },
   componentWillMount() {
+    console.log(this.props.tests);
     this.props.tests.invoke('on', 'change:checked', this.updateTestsetCheckbox, this);
   },
   updateTestsetCheckbox() {
@@ -433,7 +434,7 @@ var Test = React.createClass({
         </td>
         <td className='healthcheck-name'>
           <label htmlFor={'test-checkbox-' + test.id}>{test.get('name')}</label>
-          {_.contains(['failure', 'error', 'skipped'], status) &&
+          {_.includes(['failure', 'error', 'skipped'], status) &&
             <div className='text-danger'>
               {(result && result.message) &&
                 <div>

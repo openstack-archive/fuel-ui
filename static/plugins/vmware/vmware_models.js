@@ -21,7 +21,7 @@ import models from 'models';
 var VmWareModels = {};
 
 VmWareModels.isRegularField = (field) => {
-  return _.contains(['text', 'password', 'checkbox', 'select'], field.type);
+  return _.includes(['text', 'password', 'checkbox', 'select'], field.type);
 };
 
 // models for testing restrictions
@@ -101,7 +101,7 @@ var BaseCollection = Backbone.Collection
       return _.isEmpty(errors) ? null : errors;
     },
     testRestrictions() {
-      _.invoke(this.models, 'testRestrictions', restrictionModels);
+      _.invokeMap(this.models, 'testRestrictions', restrictionModels);
     }
   });
 
@@ -148,8 +148,8 @@ var NovaComputes = BaseCollection.extend({
     this._super('validate', arguments);
 
     var keys = {vsphere_clusters: {}, service_names: {}};
-    this.invoke('checkDuplicates', keys);
-    this.invoke('checkEmptyTargetNode');
+    this.invokeMap('checkDuplicates', keys);
+    this.invokeMap('checkEmptyTargetNode');
 
     var errors = _.compact(this.map('validationError'));
     return _.isEmpty(errors) ? null : errors;
@@ -297,7 +297,7 @@ VmWareModels.VCenter = BaseModel.extend({
       });
     });
     var unassignedNodes = restrictionModels.cluster.get('nodes').filter((node) => {
-      return _.contains(node.get('pending_roles'), 'compute-vmware') &&
+      return _.includes(node.get('pending_roles'), 'compute-vmware') &&
         !assignedNodes[node.get('hostname')];
     });
     if (unassignedNodes.length > 0) {
