@@ -295,6 +295,23 @@ gulp.task('dev-server', 'Launch development server.', function() {
       {path: /^\/(?!static\/).+/, target: nailgunUrl}
     ]
   };
+  if (argv['fake-ostf']) {
+    options.proxy.splice(1, 0, {
+      path: /^\/ostf\/test.*/, target: devServerUrl, rewrite: function(req) {
+        req.url = req.url.replace(
+          /^.+(test[^\/]+)\/.*$/,
+          function(match, requestedData) {
+            if (requestedData === 'testruns') {
+              requestedData += argv.running ? '_running' : '_finished';
+            }
+            return '/fixtures/ostf/' + requestedData + '.json';
+          }
+        );
+      }}
+    );
+    options.proxy[2].path = /^\/(?!(static|fixtures)\/).+/;
+    gutil.log('Fake OSTF server emulation is on');
+  }
   _.extend(options, config.output);
   new WebpackDevServer(webpack(config), options).listen(devServerPort, devServerHost,
     function(err) {
@@ -307,7 +324,9 @@ gulp.task('dev-server', 'Launch development server.', function() {
     'dev-server-port=[8080]': 'server port',
     'nailgun-host=[127.0.0.1]': 'nailgun host',
     'nailgun-port=[8000]': 'nailgun port',
-    'no-hot': 'disable hot reloading'
+    'no-hot': 'disable hot reloading',
+    'fake-ostf': 'emulate responses from ostf server',
+    'running': 'makes fake ostf server respond with testset in in progress state'
   }
 });
 
