@@ -262,6 +262,7 @@ gulp.task('dev-server', function() {
   var devServerHost = argv['dev-server-host'] || '127.0.0.1';
   var devServerPort = argv['dev-server-port'] || 8080;
   var devServerUrl = 'http://' + devServerHost + ':' + devServerPort;
+  var ostfBaseUrl = devServerUrl + '/static/ostf/';
   var nailgunHost = argv['nailgun-host'] || '127.0.0.1';
   var nailgunPort = argv['nailgun-port'] || 8000;
   var nailgunUrl = 'http://' + nailgunHost + ':' + nailgunPort;
@@ -282,6 +283,9 @@ gulp.task('dev-server', function() {
     proxy: [
       {path: '/', target: devServerUrl, rewrite: function(req) {
         req.url = '/static/index.html';
+      }},
+      {path: /^\/ostf\/test.*/, target: ostfBaseUrl, rewrite: function(req) {
+        req.url = req.url.replace(/^.+(test[^\/]+)\/.*$/, '$1') + '.json';
       }},
       {path: /^\/(?!static\/).+/, target: nailgunUrl}
     ]
