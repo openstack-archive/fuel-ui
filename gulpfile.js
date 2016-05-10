@@ -286,6 +286,14 @@ gulp.task('dev-server', function() {
       {path: /^\/(?!static\/).+/, target: nailgunUrl}
     ]
   };
+  if (argv['fake-ostf']) {
+    options.proxy.splice(1, 0, {
+      path: /^\/ostf\/test.*/, target: devServerUrl, rewrite: function(req) {
+        req.url = req.url.replace(/^.+(test[^\/]+)\/.*$/, '/static/ostf/$1.json');
+      }}
+    );
+    gutil.log('Fake OSTF server will be emulated', JSON.stringify(options.proxy));
+  };
   _.extend(options, config.output);
   new WebpackDevServer(webpack(config), options).listen(devServerPort, devServerHost,
     function(err) {
