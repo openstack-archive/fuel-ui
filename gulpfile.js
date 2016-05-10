@@ -283,6 +283,9 @@ gulp.task('dev-server', function() {
       {path: '/', target: devServerUrl, rewrite: function(req) {
         req.url = '/static/index.html';
       }},
+      {path: /^\/ostf\/test.*/, target: devServerUrl, rewrite: function(req) {
+        req.url = req.url.replace(/^.+(test[^\/]+)\/.*$/, '/static/ostf/$1.json');
+      }},
       {path: /^\/(?!static\/).+/, target: nailgunUrl}
     ]
   };
