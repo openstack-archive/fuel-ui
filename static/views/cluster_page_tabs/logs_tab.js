@@ -184,7 +184,7 @@ var LogFilterBar = React.createClass({
       });
       var chosenSource = _.find(filteredSources, {id: this.state.source}) ||
         _.first(filteredSources);
-      var chosenLevelId = chosenSource ? _.contains(chosenSource.get('levels'), this.state.level) ?
+      var chosenLevelId = chosenSource ? _.includes(chosenSource.get('levels'), this.state.level) ?
         this.state.level : _.first(chosenSource.get('levels')) : null;
       this.setState({
         type: type,
@@ -230,7 +230,7 @@ var LogFilterBar = React.createClass({
   onSourceChange(name, value) {
     var levels = this.state.sources.get(value).get('levels');
     var data = {locked: false, source: value};
-    if (!_.contains(levels, this.state.level)) data.level = _.first(levels);
+    if (!_.includes(levels, this.state.level)) data.level = _.first(levels);
     this.setState(data);
   },
   getLocalSources() {

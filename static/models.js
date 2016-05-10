@@ -43,7 +43,7 @@ var superMixin = models.superMixin = {
 
 var collectionMixin = {
   getByIds(ids) {
-    return this.filter((model) => _.contains(ids, model.id));
+    return this.filter((model) => _.includes(ids, model.id));
   }
 };
 
@@ -53,7 +53,7 @@ var collectionMethods = [
   'findKey', 'findLastKey',
   'find', 'detect', 'findLast',
   'filter', 'select', 'reject',
-  'every', 'all', 'some', 'any',
+  'every', 'some',
   'partition'
 ];
 
@@ -113,7 +113,7 @@ var restrictionMixin = models.restrictionMixin = {
     }
     if (actions.length) {
       restrictions = _.filter(restrictions,
-        (restriction) => _.contains(actions, restriction.action)
+        (restriction) => _.includes(actions, restriction.action)
       );
     }
 
@@ -356,7 +356,7 @@ models.Cluster = BaseModel.extend({
     return this.get('tasks') && this.get('tasks').filterTasks(filters);
   },
   needsRedeployment() {
-    return this.get('nodes').any({pending_addition: false, status: 'error'}) &&
+    return this.get('nodes').some({pending_addition: false, status: 'error'}) &&
       this.get('status') !== 'update_error';
   },
   fetchRelated(related, options) {
@@ -492,7 +492,7 @@ models.Node = BaseModel.extend({
     if (!this.get('online')) return 'offline';
     var status = this.get('status');
     // 'removing' end 'error' statuses have higher priority
-    if (_.contains(['removing', 'error'], status)) return status;
+    if (_.includes(['removing', 'error'], status)) return status;
     if (this.get('pending_addition')) return 'pending_addition';
     if (this.get('pending_deletion')) return 'pending_deletion';
     return status;
@@ -539,7 +539,7 @@ models.Nodes = BaseCollection.extend({
   ],
   viewModes: ['standard', 'compact'],
   hasChanges() {
-    return _.any(this.invoke('hasChanges'));
+    return _.some(this.invoke('hasChanges'));
   },
   nodesAfterDeployment() {
     return this.filter((node) => !node.get('pending_deletion'));
@@ -557,7 +557,7 @@ models.Nodes = BaseCollection.extend({
     if (!this.length) return false;
     var roles = _.union(this.at(0).get('roles'), this.at(0).get('pending_roles'));
     var disks = this.at(0).resource('disks');
-    return !this.any((node) => {
+    return !this.some((node) => {
       var roleConflict = _.difference(roles, _.union(node.get('roles'),
         node.get('pending_roles'))).length;
       return roleConflict || !_.isEqual(disks, node.resource('disks'));
@@ -621,11 +621,11 @@ models.Task = BaseModel.extend({
     filters = filters || {};
     if (!_.isEmpty(filters)) {
       if ((filters.group || filters.name) &&
-        !_.contains(this.extendGroups(filters), this.get('name'))) {
+        !_.includes(this.extendGroups(filters), this.get('name'))) {
         return false;
       }
       if ((filters.status || _.isBoolean(filters.active)) &&
-        !_.contains(this.extendStatuses(filters), this.get('status'))) {
+        !_.includes(this.extendStatuses(filters), this.get('status'))) {
         return false;
       }
     }
@@ -760,7 +760,7 @@ models.Settings = Backbone.DeepModel
       return settingName === 'metadata' ? 'enabled' : 'value';
     },
     hasChanges(datatoCheck, models) {
-      return _.any(this.attributes, (section, sectionName) => {
+      return _.some(this.attributes, (section, sectionName) => {
         // plugins installed to already deployed environment
         // are not presented in the environment deployed configuration
         var sectionToCheck = datatoCheck[sectionName];
@@ -784,7 +784,7 @@ models.Settings = Backbone.DeepModel
         // do not check inactive setting sections
         if ((metadata || {}).enabled === false) return false;
 
-        return _.any(_.omit(section, 'metadata'), (setting, settingName) => {
+        return _.some(_.omit(section, 'metadata'), (setting, settingName) => {
           // restrictions with action = 'none' should not block checking of the setting
           if (this.checkRestrictions(models, ['disable', 'hide'], setting).result) return false;
           return !_.isEqual(setting.value, (sectionToCheck[settingName] || {}).value);
@@ -792,7 +792,7 @@ models.Settings = Backbone.DeepModel
       });
     },
     sanitizeGroup(group) {
-      return _.contains(this.groupList, group) ? group : 'other';
+      return _.includes(this.groupList, group) ? group : 'other';
     },
     getGroupList() {
       var groups = [];
@@ -942,7 +942,7 @@ models.Interface = Backbone.DeepModel
     getSlaveInterfaces() {
       if (!this.isBond()) return [this];
       var slaveNames = _.map(this.get('slaves'), 'name');
-      return this.collection.filter((ifc) => _.contains(slaveNames, ifc.get('name')));
+      return this.collection.filter((ifc) => _.includes(slaveNames, ifc.get('name')));
     },
     validate(attrs, options) {
       var errors = {};
@@ -954,8 +954,8 @@ models.Interface = Backbone.DeepModel
       });
       var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
       // public and floating networks are allowed to be assigned to the same interface
-      var maxUntaggedNetworksCount = networks.any({name: 'public'}) &&
-        networks.any({name: 'floating'}) ? 2 : 1;
+      var maxUntaggedNetworksCount = networks.some({name: 'public'}) &&
+        networks.some({name: 'floating'}) ? 2 : 1;
       if (untaggedNetworks.length > maxUntaggedNetworksCount) {
         networkErrors.push(i18n(ns + 'too_many_untagged_networks'));
       }
@@ -973,8 +973,8 @@ models.Interface = Backbone.DeepModel
           (network) => network.getVlanRange(attrs.networkingParameters)
         ), _.isNull);
       if (
-        _.any(vlanRanges,
-          (currentRange) => _.any(vlanRanges,
+        _.some(vlanRanges,
+          (currentRange) => _.some(vlanRanges,
             (range) => !_.isEqual(currentRange, range) &&
               range[1] >= currentRange[0] && range[0] <= currentRange[1]
           )
@@ -1055,7 +1055,7 @@ models.Interfaces = BaseCollection.extend({
     var index, proposedName;
     for (index = 0; ; index += 1) {
       proposedName = base + index;
-      if (!this.any({name: proposedName})) return proposedName;
+      if (!this.some({name: proposedName})) return proposedName;
     }
   },
   comparator(ifc1, ifc2) {
@@ -1159,7 +1159,7 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
     if (errors[0] || errors[1]) return errors;
 
     if (isVlanSegmentation) {
-      if (_.any(vlans, (vlan) => utils.validateVlanRange(idStart, idEnd, vlan))) {
+      if (_.some(vlans, (vlan) => utils.validateVlanRange(idStart, idEnd, vlan))) {
         errors[0] = errors[1] = i18n(ns + 'vlan_intersection');
       }
     }
@@ -1189,7 +1189,7 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
           _.filter(network.get('ip_ranges'), (range, index) => {
             var ipRangeError = false;
             try {
-              ipRangeError = !_.all(range) || _.any(
+              ipRangeError = !_.every(range) || _.some(
                   networkErrors[network.get('group_id')][network.id].ip_ranges,
                   {index: index}
                 );
@@ -1271,7 +1271,7 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
     );
 
     if (_.isEmpty(fixedNetworkVlanError)) {
-      var vlanIntersection = _.any(_.compact(networks.pluck('vlan_start')),
+      var vlanIntersection = _.some(_.compact(networks.pluck('vlan_start')),
         (vlan) => utils.validateVlanRange(
           fixedNetworkVlan,
           fixedNetworkVlan + fixedNetworksAmount - 1, vlan
@@ -1546,7 +1546,7 @@ models.WizardModel = Backbone.DeepModel.extend({
   restoreDefaultValues(panesToRestore) {
     var result = {};
     _.each(this.defaults, (paneConfig, paneName) => {
-      if (_.contains(panesToRestore, paneName)) {
+      if (_.includes(panesToRestore, paneName)) {
         result[paneName] = this.defaults[paneName];
       }
     });
@@ -1586,7 +1586,7 @@ models.NodeNetworkGroup = BaseModel.extend({
     if (!newName) {
       return i18n('cluster_page.network_tab.node_network_group_empty_name');
     }
-    if ((this.collection || options.nodeNetworkGroups).any({name: newName})) {
+    if ((this.collection || options.nodeNetworkGroups).some({name: newName})) {
       return i18n('cluster_page.network_tab.node_network_group_duplicate_error');
     }
     return null;
@@ -1615,7 +1615,7 @@ class ComponentPattern {
   constructor(pattern) {
     this.pattern = pattern;
     this.parts = pattern.split(':');
-    this.hasWildcard = _.contains(this.parts, '*');
+    this.hasWildcard = _.includes(this.parts, '*');
   }
   match(componentName) {
     if (!this.hasWildcard) {
@@ -1714,7 +1714,7 @@ models.ComponentsCollection = BaseCollection.extend({
   },
   restoreDefaultValues(types) {
     types = types || this.allTypes;
-    var components = _.filter(this.models, (model) => _.contains(types, model.get('type')));
+    var components = _.filter(this.models, (model) => _.includes(types, model.get('type')));
     _.invoke(components, 'restoreDefaultValue');
   },
   toJSON() {

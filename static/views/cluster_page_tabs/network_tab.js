@@ -67,7 +67,7 @@ var NetworkInputsMixin = {
     var error = this.getError(attribute) || null;
     // in case of verification error we need to pass an empty string to highlight the field only
     // but not overwriting validation error
-    if (!error && _.contains(verificationErrorField, attribute)) {
+    if (!error && _.includes(verificationErrorField, attribute)) {
       error = '';
     }
 
@@ -198,10 +198,10 @@ var Range = React.createClass({
 
     if (this.props.autoIncreaseWith) {
       valuesToSet = newValue;
-    } else if (_.contains(name, 'range-start')) {
+    } else if (_.includes(name, 'range-start')) {
       // if first range field
       valuesToModify[0] = newValue;
-    } else if (_.contains(name, 'range-end')) {
+    } else if (_.includes(name, 'range-end')) {
       // if end field
       valuesToModify[1] = newValue;
     }
@@ -638,7 +638,7 @@ var NetworkTab = React.createClass({
         var subroute = _.compact(tabOptions).join('/');
 
         // check if current subroute is valid
-        if (!subroute || !_.contains(subtabs, subroute)) {
+        if (!subroute || !_.includes(subtabs, subroute)) {
           app.navigate(
             'cluster/' + cluster.id + '/network/' + subtabs[0],
             {trigger: true, replace: true}
@@ -899,7 +899,7 @@ var NetworkTab = React.createClass({
   isSavingPossible() {
     // not network related settings should not block saving of changes on Networks tab
     var settings = this.props.cluster.get('settings');
-    var areNetworkSettingsValid = !_.any(settings.validationError, (error, path) => {
+    var areNetworkSettingsValid = !_.some(settings.validationError, (error, path) => {
       return settings.get(utils.makePath(path.split('.')[0], 'metadata')).group === 'network' ||
         settings.get(path).group === 'network';
     });
@@ -1346,7 +1346,7 @@ var NetworkSubtabs = React.createClass({
     }
     if (subtab === 'network_settings') {
       var settings = this.props.cluster.get('settings');
-      return _.any(_.keys(settings.validationError), (settingPath) => {
+      return _.some(_.keys(settings.validationError), (settingPath) => {
         var settingSection = settingPath.split('.')[0];
         return settings.get(settingSection).metadata.group === 'network' ||
           settings.get(settingPath).group === 'network';
@@ -1557,7 +1557,7 @@ var Network = React.createClass({
           {...ipRangeProps}
           disabled={ipRangeProps.disabled || meta.notation === 'cidr'}
           rowsClassName='ip-ranges-rows'
-          verificationError={_.contains(verificationErrorField, 'ip_ranges')}
+          verificationError={_.includes(verificationErrorField, 'ip_ranges')}
         />
         {meta.use_gateway &&
           <Input
@@ -1785,7 +1785,7 @@ var NetworkSettings = React.createClass({
               (sectionName) => {
                 var section = settings.get(sectionName);
                 return (section.metadata.group === 'network' ||
-                  _.any(section, {group: 'network'})) &&
+                  _.some(section, {group: 'network'})) &&
                   !this.checkRestrictions('hide', section.metadata).result;
               }
             )

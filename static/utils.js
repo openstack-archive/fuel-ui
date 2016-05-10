@@ -139,7 +139,7 @@ var utils = {
       error[field] = i18n('cluster_page.network_tab.validation.invalid_vlan');
       return error;
     }
-    if (_.contains(_.compact(forbiddenVlans), vlan)) {
+    if (_.includes(_.compact(forbiddenVlans), vlan)) {
       error[field] = i18n('cluster_page.network_tab.validation.forbidden_vlan');
     }
     return error[field] ? error : {};
@@ -191,9 +191,9 @@ var utils = {
       IP_RANGES_INTERSECTION: i18n(ns + 'ip_ranges_intersection')
     });
 
-    if (_.any(ranges, (range) => _.compact(range).length)) {
+    if (_.some(ranges, (range) => _.compact(range).length)) {
       _.each(ranges, (range, index) => {
-        if (_.any(range)) {
+        if (_.some(range)) {
           var error = {};
 
           _.each(range, (ip, ipIndex) => {

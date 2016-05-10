@@ -179,7 +179,7 @@ Cluster = React.createClass({
                 <div
                   className={utils.classNames({
                     'progress-bar': true,
-                    'progress-bar-warning': _.contains(
+                    'progress-bar-warning': _.includes(
                       ['stop_deployment', 'reset_environment'],
                       deploymentTask.get('name')
                     )
