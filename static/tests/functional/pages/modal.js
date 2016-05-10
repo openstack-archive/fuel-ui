@@ -73,7 +73,7 @@ class ModalWindow {
 
   waitToClose() {
     return this.remote
-      .waitForElementDeletion(this.modalSelector, 5000);
+      .waitForElementDeletion(this.modalSelector, 10000);
   }
 }
 
