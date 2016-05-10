@@ -14,10 +14,12 @@
  * under the License.
  **/
 
+import ClusterPage from 'tests/functional/pages/cluster';
 import 'tests/functional/helpers';
 
 function GenericLib(remote) {
   this.remote = remote;
+  this.clusterPage = new ClusterPage(this.remote);
 }
 
 GenericLib.prototype = {
@@ -42,6 +44,22 @@ GenericLib.prototype = {
         '" page is selected')
       .assertElementMatchesRegExp('h1.title', pageTitle[pageName], '"' + pageName +
         '" page is opened');
+  },
+
+  checkMirantisRefsOnPage(page) {
+    return this.remote
+      .then(() => this.gotoPage(page))
+      .assertElementNotExists('*[href*="mirantis"]', 'No Mirantis links on "' + page + '" page')
+      .assertElementNotMatchRegExp('.footer div', RegExp('Mirantis', 'i'),
+        'No Mirantis names in footer text on page "' + page + '" page');
+  },
+
+  checkMirantisRefsOnTab(tab) {
+    return this.remote
+      .then(() => this.clusterPage.goToTab(tab))
+      .assertElementNotExists('*[href*="mirantis"]', 'No Mirantis links on "' + tab + '" tab')
+      .assertElementNotMatchRegExp('.footer div', RegExp('Mirantis', 'i'),
+        'No Mirantis names in footer text on page "' + tab + '" tab');
   }
 };
 

@@ -384,6 +384,15 @@ _.defaults(Command.prototype, {
           .end();
     });
   },
+  assertElementNotMatchesRegExp(cssSelector, regExp, message) {
+    return new this.constructor(this, function() {
+      return this.parent
+        .findByCssSelector(cssSelector)
+          .getVisibleText()
+          .then((actualText) => assert.notMmatch(actualText, regExp, message))
+          .end();
+    });
+  },
   assertElementNotContainsText(cssSelector, text, message) {
     return new this.constructor(this, function() {
       return this.parent
