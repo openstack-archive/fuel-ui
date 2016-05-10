@@ -462,7 +462,7 @@ export var DeployClusterDialog = React.createClass({
                 {i18n(warningNs + 'redeployment_alert')}
               </div>
             </div>,
-          cluster.get('nodes').any({pending_addition: true}) &&
+          cluster.get('nodes').some({pending_addition: true}) &&
             <div key='new-nodes-alerts'>
               <div className='text-warning'>
                 <i className='glyphicon glyphicon-warning-sign' />
@@ -813,7 +813,7 @@ export var StopDeploymentDialog = React.createClass({
     return (
       <div className='text-danger'>
         {this.renderImportantLabel()}
-        {this.props.cluster.get('nodes').any({status: 'provisioning'}) ?
+        {this.props.cluster.get('nodes').some({status: 'provisioning'}) ?
           <span>
             {i18n(ns + 'provisioning_warning')}
             <br/><br/>
@@ -1473,7 +1473,7 @@ export var ShowNodeInfoDialog = React.createClass({
 
     var {nodeAttributes, configModels} = this.state;
     if (nodeAttributes && configModels) {
-      if (_.any(_.keys(nodeAttributes.attributes), (sectionName) => {
+      if (_.some(_.keys(nodeAttributes.attributes), (sectionName) => {
         return !nodeAttributes.checkRestrictions(
           configModels,
           'hide',

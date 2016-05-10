@@ -43,7 +43,7 @@ var i18n = _.extend(_.bind(i18next.t, i18next), {
 i18next.init({resStore: translations, fallbackLng: defaultLocale});
 
 // reset locale to default if current locale is not available
-if (!_.contains(i18n.getAvailableLocales(), i18n.getCurrentLocale())) {
+if (!_.includes(i18n.getAvailableLocales(), i18n.getCurrentLocale())) {
   i18n.setLocale(defaultLocale);
 }
 

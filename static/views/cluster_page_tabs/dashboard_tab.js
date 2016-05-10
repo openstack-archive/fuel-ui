@@ -562,11 +562,11 @@ var ClusterActionsPanel = React.createClass({
       case 'deploy':
         return cluster.isDeploymentPossible({configModels});
       case 'provision':
-        return cluster.get('nodes').any((node) => node.isProvisioningPossible());
+        return cluster.get('nodes').some((node) => node.isProvisioningPossible());
       case 'deployment':
-        return cluster.get('nodes').any((node) => node.isDeploymentPossible());
+        return cluster.get('nodes').some((node) => node.isDeploymentPossible());
       case 'spawn_vms':
-        return cluster.get('nodes').any((node) => {
+        return cluster.get('nodes').some((node) => {
           var status = node.get('status');
           return node.hasRole('virt') && (
             status === 'discover' ||
@@ -1275,13 +1275,13 @@ var ResetEnvironmentAction = React.createClass({
       if (task.match({name: 'reset_environment'})) return 'repeated_reset_disabled';
       return 'reset_disabled_for_deploying_cluster';
     }
-    if (cluster.get('nodes').all({status: 'discover'})) return 'no_changes_to_reset';
+    if (cluster.get('nodes').every({status: 'discover'})) return 'no_changes_to_reset';
     return 'reset_environment_description';
   },
   render() {
     var {cluster, task} = this.props;
     var isLocked = cluster.get('status') === 'new' &&
-      cluster.get('nodes').all({status: 'discover'}) ||
+      cluster.get('nodes').every({status: 'discover'}) ||
       !!task;
     return (
       <div className='pull-right reset-environment'>
