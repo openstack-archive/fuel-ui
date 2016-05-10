@@ -1,0 +1,90 @@
+[
+  {
+    "status": "running",
+    "cluster_id": 4,
+    "ended_at": null,
+    "id": 1,
+    "meta": null,
+    "started_at": "2015-09-24 12:15:21.590927",
+    "testset": "general_test",
+    "tests": [
+      {
+        "status": "running",
+        "taken": 1.71715784072876,
+        "step": null,
+        "testset": "general_test",
+        "name": "Check disk space outage on controller and compute nodes",
+        "duration": "20s",
+        "message": null,
+        "id": "fuel_health.tests.check_disk",
+        "description": "Target 'component': Nova\n'Scenario':\n1. Check outage on controller and compute nodes"
+      },
+      {
+        "status": "stopped",
+        "step": null,
+        "taken": 2.123123123,
+        "testset": "general_test",
+        "name": "Stopped test",
+        "duration": "20s",
+        "message": "Successfully stopped",
+        "id": "fuel_health.tests.stopped",
+        "description": "Testing test stop"
+      },
+      {
+        "status": "skipped",
+        "taken": 2.7339019775390598,
+        "step": null,
+        "testset": "general_test",
+        "name": "Check log rotation configuration on all nodes",
+        "duration": "30s.",
+        "message": "Fast fail with message",
+        "id": "fuel_health.tests.general",
+        "description": "Target 'component': Logging\n'Scenario':\n1. Check logrotate cron job on all controller and compute nodes"
+      },
+      {
+        "status": "wait_running",
+        "taken": null,
+        "step": null,
+        "testset": "general_test",
+        "name": "Check usage of default credentials on master node",
+        "duration": "1sec",
+        "message": "failure text message",
+        "id": "fuel_health.tests.credentials",
+        "description": "Target 'component': Configuration\n'Scenario':\n1. Check user can not ssh on master node with default credentials."
+      },
+      {
+        "status": "running",
+        "taken": "3s",
+        "step": null,
+        "testset": "general_test",
+        "name": "Check if default credentials for OpenStack cluster have changed",
+        "duration": "",
+        "message": "Error message",
+        "id": "fuel_health.tests.credentials_change",
+        "description": "  Target 'component': Configuration\n'Scenario':\n1. Check if default credentials for OpenStack cluster have changed."
+      },
+      {
+        "status": "wait_running",
+        "taken": 3.89809381,
+        "step": null,
+        "testset": "general_test",
+        "name": "Checking common credentials",
+        "duration": "",
+        "message": "Failure message",
+        "id": "fuel_health.tests.credentials_common",
+        "description": "Checking common"
+      },
+      {
+        "status": "running",
+        "taken": "3s",
+        "step": null,
+        "testset": "general_test",
+        "name": "Checking error credentials",
+        "duration": "",
+        "message": null,
+        "id": "fuel_health.tests.credentials_erros",
+        "description": "Target 'component': Configuration\n'Scenario':\n1. Check if error credentials for OpenStack cluster not suit."
+      }
+    ]
+  }
+]

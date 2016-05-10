@@ -48,7 +48,7 @@ registerSuite(() => {
     },
     'Health Check tests are rendered if response received'() {
       return this.remote
-        .then(() => healthCheckPage.createFakeServerForNotRunnedTests())
+        .then(() => healthCheckPage.createFakeServerForNoExecutedTests())
         .then(() => clusterPage.goToTab('Health Check'))
         .assertElementsAppear('.healthcheck-table', 5000, 'Healthcheck tables are rendered')
         .assertElementDisabled('.custom-tumbler input[type=checkbox]',
@@ -67,7 +67,7 @@ registerSuite(() => {
       this.timeout = 100000;
       return this.remote
         .then(() => clusterPage.deployEnvironment())
-        .then(() => healthCheckPage.createFakeServerForNotRunnedTests())
+        .then(() => healthCheckPage.createFakeServerForNoExecutedTests())
         .then(() => clusterPage.goToTab('Health Check'))
         .assertElementEnabled('.custom-tumbler input[type=checkbox]',
           'Test checkbox is enabled after deploy')
