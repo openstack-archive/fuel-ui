@@ -24,6 +24,9 @@ class DashboardLib {
     this.remote = remote;
     this.modal = new ModalWindow(remote);
     this.equipmentLib = new EquipmentLib(remote);
+    this.deployButtonSelector = '.actions-panel .deploy-btn';
+    this.stopDeployBtn = 'button.stop-deployment-btn';
+    this.textWarningSelector = '.display-changes-dialog > div ';
 
     this.dashboardTabSelector = 'div.dashboard-tab ';
     this.progressSelector = this.dashboardTabSelector + 'div.progress';
@@ -513,6 +516,33 @@ class DashboardLib {
     .assertElementMatchesRegExp(btnGenericDeploySel, RegExp(btnGenericDeployName, 'i'),
       paneName + ' button description is correct');
     return chain;
+  }
+
+  checkWarningNotContainsNote(warningText) {
+    var firstWarning = '> :nth-child(1) .instruction';
+    var secondWarning = '> :nth-child(2) .instruction';
+    return this.remote
+      .clickByCssSelector(this.deployButtonSelector)
+      .then(() => this.modal.waitToOpen())
+      .then(() => this.modal.checkTitle('Deploy Changes'))
+      .assertElementNotContainsText(this.textWarningSelector + firstWarning, warningText,
+              'Warning does not contain a note about configuration changes')
+      .assertElementNotContainsText(this.textWarningSelector + secondWarning, warningText,
+              'Warning does not contain a note about configuration changes')
+      .then(() => this.modal.clickFooterButton('Cancel'))
+      .then(() => this.modal.waitToClose());
+  }
+
+  checkWarningContainsNote(warningText) {
+    var warningSelector = '.instruction';
+    return this.remote
+      .clickByCssSelector(this.deployButtonSelector)
+      .then(() => this.modal.waitToOpen())
+      .then(() => this.modal.checkTitle('Deploy Changes'))
+      .assertElementContainsText(warningSelector, warningText,
+              'Warning contains a note about configuration changes')
+      .then(() => this.modal.clickFooterButton('Cancel'))
+      .then(() => this.modal.waitToClose());
   }
 }
 
