@@ -117,7 +117,7 @@ var EditNodeInterfacesScreen = React.createClass({
       iteratee
     );
     var shown = _.first(ifcProperties);
-    var equal = _.all(ifcProperties, (ifcProperty) => _.isEqual(ifcProperty, shown));
+    var equal = _.every(ifcProperties, (ifcProperty) => _.isEqual(ifcProperty, shown));
 
     return {equal, shown};
   },
@@ -169,7 +169,7 @@ var EditNodeInterfacesScreen = React.createClass({
   },
   isLocked() {
     return !!this.props.cluster.task({group: 'deployment', active: true}) ||
-      !_.all(this.props.nodes.invoke('areInterfacesConfigurable'));
+      !_.every(this.props.nodes.invoke('areInterfacesConfigurable'));
   },
   interfacesPickFromJSON(json) {
     // Pick certain interface fields that have influence on hasChanges.
@@ -190,15 +190,15 @@ var EditNodeInterfacesScreen = React.createClass({
       (ifc) => ifc.get(ifc.isBond ? 'name' : 'id')
     );
 
-    return _.any(this.props.nodes.slice(1), (node) => {
+    return _.some(this.props.nodes.slice(1), (node) => {
       var interfacesData = this.interfacesToJSON(node.interfaces, true);
-      return _.any(initialInterfacesData, (ifcData, index) => {
+      return _.some(initialInterfacesData, (ifcData, index) => {
         var limitations = this.state.limitations[limitationsKeys[index]];
         var omittedProperties = _.filter(
           _.keys(limitations),
           (key) => !_.get(limitations[key], 'equal', true)
         );
-        return _.any(ifcData, (data, attribute) => {
+        return _.some(ifcData, (data, attribute) => {
           // Restricted parameters should not participate in changes detection
           switch (attribute) {
             case 'offloading_modes': {
@@ -419,10 +419,10 @@ var EditNodeInterfacesScreen = React.createClass({
           mtu: null,
           disable_offloading: true,
           dpdk: {
-            enabled: _.all(interfaces,
+            enabled: _.every(interfaces,
               (ifc) => ifc.get('interface_properties').dpdk.enabled
             ),
-            available: _.all(interfaces,
+            available: _.every(interfaces,
               (ifc) => ifc.get('interface_properties').dpdk.available
             )
           }
@@ -436,7 +436,7 @@ var EditNodeInterfacesScreen = React.createClass({
       bondName = bond.get('name');
 
       if (bondProperties.dpdk.enabled) {
-        bondProperties.dpdk.enabled = _.all(interfaces,
+        bondProperties.dpdk.enabled = _.every(interfaces,
           (ifc) => ifc.get('interface_properties').dpdk.enabled
         );
       }
@@ -491,7 +491,7 @@ var EditNodeInterfacesScreen = React.createClass({
     var networks = this.props.cluster.get('networkConfiguration').get('networks');
     var bond = this.props.interfaces.find({name: bondName});
     var slaves = bond.get('slaves');
-    var bondHasUnmovableNetwork = bond.get('assigned_networks').any((interfaceNetwork) => {
+    var bondHasUnmovableNetwork = bond.get('assigned_networks').some((interfaceNetwork) => {
       return interfaceNetwork.getFullNetwork(networks).get('meta').unmovable;
     });
     var slaveInterfaceNames = _.map(slaves, 'name');
@@ -500,7 +500,7 @@ var EditNodeInterfacesScreen = React.createClass({
     // if PXE interface is being removed - place networks there
     if (bondHasUnmovableNetwork) {
       var pxeInterface = this.props.interfaces.find((ifc) => {
-        return ifc.get('pxe') && _.contains(slaveInterfaceNames, ifc.get('name'));
+        return ifc.get('pxe') && _.includes(slaveInterfaceNames, ifc.get('name'));
       });
       if (!slaveInterfaceName || pxeInterface && pxeInterface.get('name') === slaveInterfaceName) {
         targetInterface = pxeInterface;
@@ -512,7 +512,7 @@ var EditNodeInterfacesScreen = React.createClass({
       var slavesUpdated = _.reject(slaves, {name: slaveInterfaceName});
       var names = _.map(slavesUpdated, 'name');
       var bondSlaveInterfaces = this.props.interfaces.filter(
-        (ifc) => _.contains(names, ifc.get('name'))
+        (ifc) => _.includes(names, ifc.get('name'))
       );
 
       bond.set({
@@ -552,7 +552,7 @@ var EditNodeInterfacesScreen = React.createClass({
     var slaveInterfaceNames = _.map(_.flatten(_.filter(interfaces.pluck('slaves'))), 'name');
 
     interfaces.each((ifc) => {
-      if (!_.contains(slaveInterfaceNames, ifc.get('name'))) {
+      if (!_.includes(slaveInterfaceNames, ifc.get('name'))) {
         var errors = ifc.validate({
           networkingParameters: networkingParameters,
           networks: networks
@@ -649,7 +649,7 @@ var EditNodeInterfacesScreen = React.createClass({
 
     var invalidSpeedsForBonding = bondingPossible &&
       this.validateSpeedsForBonding(checkedBonds.concat(checkedInterfaces)) ||
-      interfaces.any((ifc) => ifc.isBond() && this.validateSpeedsForBonding([ifc]));
+      interfaces.some((ifc) => ifc.isBond() && this.validateSpeedsForBonding([ifc]));
 
     var interfaceSpeeds = this.getInterfaceProperty('current_speed');
     var interfaceNames = this.getInterfaceProperty('name');
@@ -667,7 +667,7 @@ var EditNodeInterfacesScreen = React.createClass({
             </div>
           </div>
         }
-        {_.any(availableBondingTypes, (bondingTypes) => bondingTypes.length) &&
+        {_.some(availableBondingTypes, (bondingTypes) => bondingTypes.length) &&
           !configurationTemplateExists &&
           !locked &&
           <div className='col-xs-12'>
@@ -708,7 +708,7 @@ var EditNodeInterfacesScreen = React.createClass({
             var ifcName = ifc.get('name');
             var limitations = this.state.limitations[ifc.isBond() ? ifcName : ifc.id];
 
-            if (!_.contains(slaveInterfaceNames, ifcName)) {
+            if (!_.includes(slaveInterfaceNames, ifcName)) {
               return (
                 <NodeInterfaceDropTarget
                   {...this.props}
@@ -815,7 +815,7 @@ var NodeInterface = React.createClass({
   ],
   getRenderableIfcProperties() {
     var properties = ['offloading_modes', 'mtu', 'sriov'];
-    if (_.contains(app.version.get('feature_groups'), 'experimental')) {
+    if (_.includes(app.version.get('feature_groups'), 'experimental')) {
       properties.push('dpdk');
     }
     return properties;
@@ -828,10 +828,10 @@ var NodeInterface = React.createClass({
     };
   },
   isLacpRateAvailable() {
-    return _.contains(this.getBondPropertyValues('lacp_rate', 'for_modes'), this.getBondMode());
+    return _.includes(this.getBondPropertyValues('lacp_rate', 'for_modes'), this.getBondMode());
   },
   isHashPolicyNeeded() {
-    return _.contains(this.getBondPropertyValues('xmit_hash_policy', 'for_modes'),
+    return _.includes(this.getBondPropertyValues('xmit_hash_policy', 'for_modes'),
       this.getBondMode());
   },
   getBondMode() {
@@ -942,7 +942,7 @@ var NodeInterface = React.createClass({
       var convertedValue = parseInt(value, 10);
       return _.isNaN(convertedValue) ? null : convertedValue;
     }
-    if (_.contains(['mtu', 'sriov.sriov_numvfs'], name)) {
+    if (_.includes(['mtu', 'sriov.sriov_numvfs'], name)) {
       value = convertToNullIfNaN(value);
     }
     var interfaceProperties = _.cloneDeep(this.props.interface.get('interface_properties') || {});
@@ -1000,7 +1000,7 @@ var NodeInterface = React.createClass({
 
           if (_.isPlainObject(propertyValue) && !propertyShown) return null;
 
-          if (_.contains(renderableIfcProperties, propertyName)) {
+          if (_.includes(renderableIfcProperties, propertyName)) {
             var classes = {
               'text-danger': _.has(errors, propertyName),
               'property-item-container': true,

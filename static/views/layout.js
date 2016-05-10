@@ -328,7 +328,7 @@ var NotificationsPopover = React.createClass({
       'text-warning': topic === 'warning',
       clickable: nodeId,
       unread: notification.get('status') === 'unread' ||
-        _.contains(this.state.unreadNotificationsIds, notification.id)
+        _.includes(this.state.unreadNotificationsIds, notification.id)
     };
     var iconClass = {
       error: 'glyphicon-exclamation-sign',

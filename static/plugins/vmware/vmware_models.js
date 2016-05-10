@@ -21,7 +21,7 @@ import models from 'models';
 var VmWareModels = {};
 
 VmWareModels.isRegularField = (field) => {
-  return _.contains(['text', 'password', 'checkbox', 'select'], field.type);
+  return _.includes(['text', 'password', 'checkbox', 'select'], field.type);
 };
 
 // models for testing restrictions
@@ -297,7 +297,7 @@ VmWareModels.VCenter = BaseModel.extend({
       });
     });
     var unassignedNodes = restrictionModels.cluster.get('nodes').filter((node) => {
-      return _.contains(node.get('pending_roles'), 'compute-vmware') &&
+      return _.includes(node.get('pending_roles'), 'compute-vmware') &&
         !assignedNodes[node.get('hostname')];
     });
     if (unassignedNodes.length > 0) {

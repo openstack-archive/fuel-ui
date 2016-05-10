@@ -332,7 +332,7 @@ var Node = React.createClass({
             }
             <div className={utils.classNames(statusClasses)}>
               <i className='glyphicon glyphicon-time' />
-              {_.contains(['provisioning', 'deploying'], status) ?
+              {_.includes(['provisioning', 'deploying'], status) ?
                 <div>
                   {this.renderStatusLabel(status)}
                   <div className='node-buttons'>
@@ -407,7 +407,7 @@ var Node = React.createClass({
                 <p>{node.get('name') || node.get('mac')}</p>
               </div>
               <div className={utils.classNames(statusClasses)}>
-                {_.contains(['provisioning', 'deploying'], status) ?
+                {_.includes(['provisioning', 'deploying'], status) ?
                   this.renderNodeProgress()
                 :
                   this.renderStatusLabel(status)
@@ -495,7 +495,7 @@ var Node = React.createClass({
             ]}
           </div>
           <div className={utils.classNames(statusClasses)}>
-            {_.contains(['provisioning', 'deploying'], status) ?
+            {_.includes(['provisioning', 'deploying'], status) ?
               this.renderNodeProgress(status)
             :
               <div>

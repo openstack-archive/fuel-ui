@@ -63,7 +63,7 @@ var EditNodeDisksScreen = React.createClass({
   },
   isLocked() {
     return !!this.props.cluster.task({group: 'deployment', active: true}) ||
-      !_.all(this.props.nodes.invoke('areDisksConfigurable'));
+      !_.every(this.props.nodes.invoke('areDisksConfigurable'));
   },
   updateInitialData() {
     this.setState({initialDisks: _.cloneDeep(this.props.nodes.at(0).disks.toJSON())});
@@ -155,8 +155,8 @@ var EditNodeDisksScreen = React.createClass({
     return disk.get('size') ? utils.floor(size / disk.get('size') * 100, 2) : 0;
   },
   hasErrors() {
-    return this.props.disks.any((disk) =>
-      disk.get('volumes').any('validationError')
+    return this.props.disks.some((disk) =>
+      disk.get('volumes').some('validationError')
     );
   },
   isSavingPossible() {
