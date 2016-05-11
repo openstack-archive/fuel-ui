@@ -176,7 +176,7 @@ gulp.task('jison', function() {
 });
 
 gulp.task('license', function(cb) {
-  require('nlf').find({depth: 0}, function(err, data) {
+  require('nlf').find({production: true, depth: 0}, function(err, data) {
     if (err) return cb(err);
     // http://governance.openstack.org/reference/licensing.html
     // The list of acceptable licenses includes ASLv2, BSD (both forms),
