@@ -480,7 +480,8 @@
                             "title": "Disks Configuration Error",
                             "saving_warning": "Unable to apply changes.",
                             "load_defaults_warning": "Unable to load the default configuration."
-                        }
+                        },
+                        "boot_from": "Boot from this disk"
                     },
                     "node_management_panel": {
                         "group_by": "Group By",

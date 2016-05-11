@@ -3543,6 +3543,27 @@ input[type=range] {
     margin: 0;
     padding: 0 0 5px;
     .font-semibold;
+    span.total-space {
+      .font-normal;
+      color: @gray;
+      margin-left: 8px;
+    }
+    &.boot {
+      padding-bottom: 2px;
+      label {
+        .font-normal;
+        color: @gray;
+        margin-bottom: 0;
+      }
+      .help-block {
+        display: none;
+      }
+      .custom-tumbler {
+        bottom: 2px;
+        float: right;
+        margin: 0px 0px 0px 6px;
+      }
+    }
   }
 
   label {.font-semibold;}

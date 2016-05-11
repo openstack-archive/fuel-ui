@@ -860,6 +860,7 @@ models.FuelSettings = models.Settings.extend({
 models.Disk = BaseModel.extend({
   constructorName: 'Disk',
   urlRoot: '/api/nodes/',
+  editableAttributes: ['volumes', 'bootable'],
   parse(response) {
     response.volumes = new models.Volumes(response.volumes);
     response.volumes.disk = this;
