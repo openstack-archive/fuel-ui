@@ -69,9 +69,13 @@ var EditNodeDisksScreen = React.createClass({
     this.setState({initialDisks: _.cloneDeep(this.props.nodes.at(0).disks.toJSON())});
   },
   hasChanges() {
-    return !this.isLocked() && !_.isEqual(
-      _.map(this.props.disks.toJSON(), 'volumes'),
-      _.map(this.state.initialDisks, 'volumes')
+    var disks = this.props.disks.toJSON();
+    var {initialDisks} = this.state;
+    return !this.isLocked() && _.any(
+      models.Disk.prototype.editableAttributes,
+      (diskProperty) => {
+        return !_.isEqual(_.map(disks, diskProperty), _.map(initialDisks, diskProperty));
+      }
     );
   },
   loadDefaults() {
@@ -100,7 +104,11 @@ var EditNodeDisksScreen = React.createClass({
     this.setState({actionInProgress: true});
     return $.when(...this.props.nodes.map((node) => {
       node.disks.each((disk, index) => {
-        disk.set({volumes: new models.Volumes(this.props.disks.at(index).get('volumes').toJSON())});
+        var nodeDisk = this.props.disks.at(index);
+        disk.set({
+          volumes: new models.Volumes(nodeDisk.get('volumes').toJSON()),
+          bootable: nodeDisk.get('bootable')
+        });
       });
       return Backbone.sync('update', node.disks, {url: _.result(node, 'url') + '/disks'});
     }))
@@ -118,6 +126,11 @@ var EditNodeDisksScreen = React.createClass({
           });
         }
       );
+  },
+  makeDiskBootable(disk) {
+    this.props.disks.each((nodeDisk) => {
+      nodeDisk.set({bootable: disk === nodeDisk && !nodeDisk.get('bootable')});
+    });
   },
   getDiskMetaData(disk) {
     var result;
@@ -195,6 +208,7 @@ var EditNodeDisksScreen = React.createClass({
                   volumes={this.props.volumes}
                   volumesInfo={this.getVolumesInfo(disk)}
                   diskMetaData={this.getDiskMetaData(disk)}
+                  makeDiskBootable={this.makeDiskBootable}
                 />);
               })
             :
@@ -271,9 +285,7 @@ var NodeDisk = React.createClass({
   },
   render() {
     var ns = 'cluster_page.nodes_tab.configure_disks.';
-    var disk = this.props.disk;
-    var volumesInfo = this.props.volumesInfo;
-    var diskMetaData = this.props.diskMetaData;
+    var {disk, diskMetaData, volumesInfo, makeDiskBootable, disabled} = this.props;
     var requiredDiskSize = _.sum(disk.get('volumes').map((volume) => {
       return volume
         .getMinimalSize(this.props.volumes.find({name: volume.get('name')}).get('min_size'));
@@ -291,9 +303,20 @@ var NodeDisk = React.createClass({
           <h4 className='col-xs-6'>
             {diskError && <i className='glyphicon glyphicon-danger-sign' />}
             {disk.get('name')} ({disk.id})
+            <span className='total-space'>
+              {i18n(ns + 'total_space')} : {utils.showSize(disk.get('size'), 2)}
+            </span>
           </h4>
-          <h4 className='col-xs-6 text-right'>
-            {i18n(ns + 'total_space')} : {utils.showSize(disk.get('size'), 2)}
+          <h4 className='col-xs-6 text-right boot'>
+            <Input
+              type='checkbox'
+              checked={!!disk.get('bootable')}
+              label={i18n(ns + 'boot_from')}
+              disabled={disabled}
+              onClick={() => {
+                makeDiskBootable(disk);
+              }}
+            />
           </h4>
         </div>
         <div className='row disk-visual clearfix'>
@@ -316,7 +339,7 @@ var NodeDisk = React.createClass({
                     {utils.showSize(volumesInfo[volumeName].size, 2)}
                   </div>
                 </div>
-                {!this.props.disabled && volumesInfo[volumeName].min <= 0 && this.state.collapsed &&
+                {!disabled && volumesInfo[volumeName].min <= 0 && this.state.collapsed &&
                   <div
                     className='close-btn'
                     onClick={_.partial(this.updateDisk, volumeName, 0)}
@@ -388,7 +411,7 @@ var NodeDisk = React.createClass({
                   name: volumeName,
                   min: currentMinSize,
                   max: currentMaxSize,
-                  disabled: this.props.disabled || currentMaxSize <= currentMinSize
+                  disabled: disabled || currentMaxSize <= currentMinSize
                 };
 
                 return (
