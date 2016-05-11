@@ -483,7 +483,8 @@
                             "title": "Disks Configuration Error",
                             "saving_warning": "Unable to apply changes.",
                             "load_defaults_warning": "Unable to load the default configuration."
-                        }
+                        },
+                        "make_bootable": "Make bootable"
                     },
                     "node_management_panel": {
                         "group_by": "Group By",
