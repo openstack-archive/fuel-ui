@@ -882,7 +882,8 @@ models.Disks = BaseCollection.extend({
   constructorName: 'Disks',
   model: models.Disk,
   url: '/api/nodes/',
-  comparator: 'name'
+  comparator: 'name',
+  editableAttributes: ['volumes', 'bootable']
 });
 
 models.Volume = BaseModel.extend({
