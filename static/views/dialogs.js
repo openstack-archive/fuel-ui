@@ -473,14 +473,7 @@ export var DeployClusterDialog = React.createClass({
               <div className='text-warning'>
                 <i className='glyphicon glyphicon-warning-sign' />
                 <div className='instruction'>
-                  {i18n(warningNs + 'package_information') + ' '}
-                  <a
-                    target='_blank'
-                    href={utils.composeDocumentationLink('operations.html#troubleshooting')}
-                  >
-                    {i18n(warningNs + 'operations_guide')}
-                  </a>
-                  {i18n(warningNs + 'for_more_information_configuration')}
+                  {i18n(warningNs + 'package_information')}
                 </div>
               </div>
             </div>
@@ -548,14 +541,7 @@ export var ProvisionNodesDialog = React.createClass({
         <div className='text-warning'>
           <i className='glyphicon glyphicon-warning-sign' />
           <div className='instruction'>
-            {i18n('cluster_page.dashboard_tab.package_information') + ' '}
-            <a
-              target='_blank'
-              href={utils.composeDocumentationLink('operations.html#troubleshooting')}
-            >
-              {i18n('cluster_page.dashboard_tab.operations_guide')}
-            </a>
-            {i18n('cluster_page.dashboard_tab.for_more_information_configuration')}
+            {i18n('cluster_page.dashboard_tab.package_information')}
           </div>
         </div>
         <div className='confirmation-question'>
@@ -621,14 +607,7 @@ export var DeployNodesDialog = React.createClass({
         <div className='text-warning'>
           <i className='glyphicon glyphicon-warning-sign' />
           <div className='instruction'>
-            {i18n('cluster_page.dashboard_tab.package_information') + ' '}
-            <a
-              target='_blank'
-              href={utils.composeDocumentationLink('operations.html#troubleshooting')}
-            >
-              {i18n('cluster_page.dashboard_tab.operations_guide')}
-            </a>
-            {i18n('cluster_page.dashboard_tab.for_more_information_configuration')}
+            {i18n('cluster_page.dashboard_tab.package_information')}
           </div>
         </div>
         <div className='confirmation-question'>

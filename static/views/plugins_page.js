@@ -130,8 +130,7 @@ var PluginsPage = React.createClass({
   },
   render() {
     var links = {
-      catalog: 'http://stackalytics.com/report/driverlog?project_id=openstack%2Ffuel',
-      documentation: utils.composeDocumentationLink('plugin-dev.html')
+      catalog: 'http://stackalytics.com/report/driverlog?project_id=openstack%2Ffuel'
     };
     return (
       <div className='plugins-page'>
@@ -151,10 +150,6 @@ var PluginsPage = React.createClass({
                   {i18n('plugins_page.more_info')}{' '}
                   <a href={links.catalog} target='_blank'>
                     {i18n('plugins_page.plugins_catalog')}
-                  </a>{' '}
-                  {i18n('common.and')}{' '}
-                  <a href={links.documentation} target='_blank'>
-                    {i18n('plugins_page.plugins_documentation')}
                   </a>
                 </span>
               </div>
