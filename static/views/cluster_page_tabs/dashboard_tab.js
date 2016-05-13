@@ -607,10 +607,6 @@ var ClusterActionsPanel = React.createClass({
       deploy: <InstructionElement
         description='deployment_of_environment_cannot_be_started'
         isAlert
-        link={{
-          url: 'user-guide.html#add-nodes-ug',
-          title: 'user_guide'
-        }}
         explanation='for_more_information_roles'
       />
     };
@@ -815,10 +811,6 @@ var ClusterActionsPanel = React.createClass({
               <h4>{i18n(ns + 'new_environment_welcome')}</h4>
               <InstructionElement
                 description='no_nodes_instruction'
-                link={{
-                  url: 'user-guide.html#add-nodes-ug',
-                  title: 'user_guide'
-                }}
                 explanation='for_more_information_roles'
               />
               <AddNodesButton cluster={cluster} />
@@ -1343,15 +1335,10 @@ var InstructionElement = React.createClass({
     };
   },
   render() {
-    var {description, isAlert, link, explanation} = this.props;
+    var {description, isAlert, explanation} = this.props;
     return (
       <div className={utils.classNames({instruction: true, invalid: isAlert})}>
-        {i18n(ns + description) + (link ? ' ' : '')}
-        {link &&
-          <a href={utils.composeDocumentationLink(link.url)} target='_blank'>
-            {i18n(ns + link.title)}
-          </a>
-        }
+        {i18n(ns + description)}
         {explanation ? ' ' + i18n(ns + explanation) : '.'}
       </div>
     );
