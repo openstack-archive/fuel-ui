@@ -76,6 +76,7 @@ var EditNodeInterfacesScreen = React.createClass({
         });
     }
   },
+  viewModes: ['standard', 'compact'],
   getInitialState() {
     var interfacesByIndex = {};
     var indexByInterface = {};
@@ -94,7 +95,8 @@ var EditNodeInterfacesScreen = React.createClass({
       actionInProgress: false,
       interfacesErrors: {},
       interfacesByIndex,
-      indexByInterface
+      indexByInterface,
+      viewMode: _.first(this.viewModes)
     };
   },
   componentWillMount() {
@@ -598,9 +600,12 @@ var EditNodeInterfacesScreen = React.createClass({
   getAvailableBondingTypesForInterfaces(interfaces) {
     return _.intersection(... _.map(interfaces, this.getAvailableBondingTypes));
   },
+  changeViewMode() {
+    this.setState({viewMode: _.first(_.without(this.viewModes, this.state.viewMode))});
+  },
   render() {
     var {nodes, interfaces} = this.props;
-    var {interfacesByIndex, indexByInterface} = this.state;
+    var {interfacesByIndex, indexByInterface, viewMode} = this.state;
     var nodeNames = nodes.pluck('name');
     var locked = this.isLocked();
     var configurationTemplateExists = this.configurationTemplateExists();
@@ -655,7 +660,7 @@ var EditNodeInterfacesScreen = React.createClass({
     var interfaceNames = this.getInterfaceProperty('name');
 
     return (
-      <div className='row'>
+      <div className='ifc-management-panel row'>
         <div className='title'>
           {i18n(ns + (locked ? 'read_only_' : '') + 'title',
             {count: nodes.length, name: nodeNames.join(', ')})}
@@ -667,42 +672,73 @@ var EditNodeInterfacesScreen = React.createClass({
             </div>
           </div>
         }
+        <div className='view-mode-switcher col-xs-4'>
+          <div className='btn-group' data-toggle='buttons'>
+            {_.map(this.viewModes, (mode) => {
+              return (
+                <Tooltip key={mode + '-view'} text={i18n(ns + mode + '_mode_tooltip')}>
+                  <label
+                    className={utils.classNames({
+                      'btn btn-default pull-left': true,
+                      active: mode === viewMode,
+                      [mode]: true
+                    })}
+                    onClick={
+                      mode !== viewMode && _.partial(this.changeViewMode)
+                    }
+                  >
+                    <input type='radio' name='view_mode' value={mode} />
+                    <i
+                      className={utils.classNames({
+                        glyphicon: true,
+                        'glyphicon-th-list': mode === 'standard',
+                        'glyphicon-th': mode === 'compact'
+                      })}
+                    />
+                  </label>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </div>
+
         {_.some(availableBondingTypes, (bondingTypes) => bondingTypes.length) &&
           !configurationTemplateExists &&
-          !locked &&
-          <div className='col-xs-12'>
-            <div className='page-buttons'>
-              <div className='well clearfix'>
-                <div className='btn-group pull-right'>
-                  <button
-                    className='btn btn-default btn-bond'
-                    onClick={() => this.bondInterfaces(bondType)}
-                    disabled={!bondingPossible}
-                  >
-                    {i18n(ns + 'bond_button')}
-                  </button>
-                  <button
-                    className='btn btn-default btn-unbond'
-                    onClick={this.unbondInterfaces}
-                    disabled={!unbondingPossible}
-                  >
-                    {i18n(ns + 'unbond_button')}
-                  </button>
-                </div>
+          !locked && [
+            <div className='bonding-buttons-box text-right col-xs-8' key='bond-actions'>
+              <div className='btn-group'>
+                <button
+                  className='btn btn-default btn-bond'
+                  onClick={() => this.bondInterfaces(bondType)}
+                  disabled={!bondingPossible}
+                >
+                  {i18n(ns + 'bond_button')}
+                </button>
+                <button
+                  className='btn btn-default btn-unbond'
+                  onClick={this.unbondInterfaces}
+                  disabled={!unbondingPossible}
+                >
+                  {i18n(ns + 'unbond_button')}
+                </button>
               </div>
+            </div>,
+            <div className='col-xs-12' key='bonds-warnings'>
+              {!bondingPossible && checkedInterfaces.concat(checkedBonds).length > 1 &&
+                <div className='alert alert-warning'>
+                  {i18n(ns + (
+                    checkedBonds.length > 1 ?
+                    'several_bonds_warning' :
+                    'interfaces_cannot_be_bonded'
+                  ))}
+                </div>}
+
+              {invalidSpeedsForBonding &&
+                <div className='alert alert-warning'>
+                  {i18n(ns + 'bond_speed_warning')}
+                </div>}
             </div>
-            {!bondingPossible && checkedInterfaces.concat(checkedBonds).length > 1 &&
-              <div className='alert alert-warning'>
-                {i18n(ns + (
-                  checkedBonds.length > 1 ? 'several_bonds_warning' : 'interfaces_cannot_be_bonded'
-                ))}
-              </div>
-            }
-            {invalidSpeedsForBonding &&
-              <div className='alert alert-warning'>{i18n(ns + 'bond_speed_warning')}</div>
-            }
-          </div>
-        }
+          ]}
         <div className='ifc-list col-xs-12'>
           {interfaces.map((ifc, index) => {
             var ifcName = ifc.get('name');
@@ -732,6 +768,7 @@ var EditNodeInterfacesScreen = React.createClass({
                   getAvailableBondingTypes={this.getAvailableBondingTypes}
                   interfaceSpeeds={interfaceSpeeds[index]}
                   interfaceNames={interfaceNames[index]}
+                  viewMode={viewMode}
                 />
               );
             }
@@ -1258,7 +1295,9 @@ var NodeInterface = React.createClass({
   },
   render() {
     var ifc = this.props.interface;
-    var {cluster, locked, availableBondingTypes, configurationTemplateExists} = this.props;
+    var {cluster, locked, availableBondingTypes,
+      configurationTemplateExists, viewMode,
+      interfaceSpeeds, interfaceNames} = this.props;
     var isBond = ifc.isBond();
     var availableBondingModes = isBond ? this.getAvailableBondingModes() : [];
     var networkConfiguration = cluster.get('networkConfiguration');
@@ -1274,9 +1313,24 @@ var NodeInterface = React.createClass({
         'ifc-offline': slaveDown
       };
     };
+    var compactBondStatusClasses = (slaves) => {
+      var brokenInterface = _.find(slaves, {status: 'down'}) || _.first(slaves);
+      return connectionStatusClasses(brokenInterface);
+    };
     var bondProperties = ifc.get('bond_properties');
     var bondingPossible = !!availableBondingTypes.length && !configurationTemplateExists && !locked;
     var networkErrors = (this.props.errors || {}).network_errors;
+    var isCompact = viewMode === 'compact';
+    var checkbox = bondingPossible ?
+      <Input
+        type='checkbox'
+        label={!isCompact && ifc.get('name')}
+        onChange={this.bondingChanged}
+        checked={!!ifc.get('checked')}
+      />
+    :
+      !isCompact && ifc.get('name');
+
     return this.props.connectDropTarget(
       <div className='ifc-container'>
         <div
@@ -1285,105 +1339,131 @@ var NodeInterface = React.createClass({
             nodrag: networkErrors,
             over: this.props.isOver && this.props.canDrop,
             'has-changes': this.props.hasChanges,
-            [ifc.get('name')]: true
+            [ifc.get('name')]: true,
+            [viewMode]: true
           })}
         >
-          <div className='ifc-header clearfix forms-box'>
-            <div className={utils.classNames({
-              'common-ifc-name pull-left': true,
-              'no-checkbox': !bondingPossible
-            })}>
-              {bondingPossible ?
+          {!isCompact &&
+            <div className='ifc-header forms-box clearfix'>
+              <div className={utils.classNames({
+                'common-ifc-name pull-left': true,
+                'no-checkbox': !bondingPossible
+              })}>
+                {checkbox}
+              </div>
+              {isBond && [
                 <Input
-                  type='checkbox'
-                  label={ifc.get('name')}
-                  onChange={this.bondingChanged}
-                  checked={!!ifc.get('checked')}
-                />
-              :
-                ifc.get('name')
-              }
-            </div>
-            {isBond && [
-              <Input
-                key='bonding_mode'
-                type='select'
-                disabled={!bondingPossible}
-                onChange={this.bondingModeChanged}
-                value={this.getBondMode()}
-                label={i18n(ns + 'bonding_mode')}
-                children={this.getBondingOptions(availableBondingModes, 'bonding_modes')}
-                wrapperClassName='pull-right'
-              />,
-              this.isHashPolicyNeeded() &&
-                <Input
-                  key='bonding_policy'
+                  key='bonding_mode'
                   type='select'
-                  value={bondProperties.xmit_hash_policy}
                   disabled={!bondingPossible}
-                  onChange={this.onPolicyChange}
-                  label={i18n(ns + 'bonding_policy')}
-                  children={this.getBondingOptions(
-                    this.getBondPropertyValues('xmit_hash_policy', 'values'),
-                    'hash_policy'
-                  )}
+                  onChange={this.bondingModeChanged}
+                  value={this.getBondMode()}
+                  label={i18n(ns + 'bonding_mode')}
+                  children={this.getBondingOptions(availableBondingModes, 'bonding_modes')}
                   wrapperClassName='pull-right'
                 />,
-              this.isLacpRateAvailable() &&
-                <Input
-                  key='lacp_rate'
-                  type='select'
-                  value={bondProperties.lacp_rate}
-                  disabled={!bondingPossible}
-                  onChange={this.onLacpChange}
-                  label={i18n(ns + 'lacp_rate')}
-                  children={this.getBondingOptions(
-                    this.getBondPropertyValues('lacp_rate', 'values'),
-                    'lacp_rates'
-                  )}
-                  wrapperClassName='pull-right'
-                />
-            ]}
-          </div>
-          <div className='networks-block'>
+                this.isHashPolicyNeeded() &&
+                  <Input
+                    key='bonding_policy'
+                    type='select'
+                    value={bondProperties.xmit_hash_policy}
+                    disabled={!bondingPossible}
+                    onChange={this.onPolicyChange}
+                    label={i18n(ns + 'bonding_policy')}
+                    children={this.getBondingOptions(
+                      this.getBondPropertyValues('xmit_hash_policy', 'values'),
+                      'hash_policy'
+                    )}
+                    wrapperClassName='pull-right'
+                  />,
+                this.isLacpRateAvailable() &&
+                  <Input
+                    key='lacp_rate'
+                    type='select'
+                    value={bondProperties.lacp_rate}
+                    disabled={!bondingPossible}
+                    onChange={this.onLacpChange}
+                    label={i18n(ns + 'lacp_rate')}
+                    children={this.getBondingOptions(
+                      this.getBondPropertyValues('lacp_rate', 'values'),
+                      'lacp_rates'
+                    )}
+                    wrapperClassName='pull-right'
+                  />
+              ]}
+            </div>
+          }
+          <div className={utils.classNames({
+            'networks-block': true,
+            'col-xs-12': isCompact
+          })}>
             <div className='row'>
               <div className='col-xs-3'>
-                <div className='pull-left'>
-                  {_.map(slaveInterfaces, (slaveInterface, index) => {
+                <div className='ifc-select pull-left'>
+                  {isCompact && checkbox}
+                  {_.map(isCompact ? [ifc] : slaveInterfaces, (slaveInterface, index) => {
+                    var interfaceStatusClasses = isCompact ?
+                      compactBondStatusClasses(slaveInterfaces) :
+                      connectionStatusClasses(slaveInterface);
+                    var showWarningIcon = isCompact && isBond &&
+                      interfaceStatusClasses['ifc-offline'];
                     return (
                       <div
                         key={'info-' + slaveInterface.get('name')}
                         className='ifc-info-block clearfix'
                         >
                         <div className='ifc-connection pull-left'>
-                          <div
-                            className={utils.classNames(connectionStatusClasses(slaveInterface))}
-                          />
+                          <div className={utils.classNames(interfaceStatusClasses)}>
+                            {showWarningIcon &&
+                              <Tooltip text={i18n(ns + 'bond_interfaces_down')}>
+                                <i className='glyphicon glyphicon-danger-sign pull-right' />
+                              </Tooltip>
+                            }
+                          </div>
                         </div>
-                        <div className='ifc-info pull-left'>
-                          {isBond &&
+                        <div className={utils.classNames({
+                          'ifc-info pull-left': true,
+                          'ifc-compact': isCompact && !isBond
+                        })}>
+                          {(isBond || isCompact) &&
                             <div>
                               {i18n(ns + 'name')}:
                               {' '}
-                              <span className='ifc-name'>{this.props.interfaceNames[index]}</span>
+                              <span className='ifc-name'>
+                                {isCompact ? ifc.get('name') : interfaceNames[index]}
+                              </span>
                             </div>
                           }
-                          {this.props.nodes.length === 1 &&
-                            <div>{i18n(ns + 'mac')}: {slaveInterface.get('mac')}</div>
-                          }
-                          <div>
-                            {i18n(ns + 'speed')}: {this.props.interfaceSpeeds[index].join(', ')}
-                          </div>
-                          {(bondingPossible && slaveInterfaces.length >= 3) &&
-                            <button
-                              className='btn btn-link'
-                              onClick={_.partial(
-                                    this.props.removeInterfaceFromBond,
-                                    ifc.get('name'), slaveInterface.get('name')
-                                  )}
-                              >
-                              {i18n('common.remove_button')}
-                            </button>
+                          {isCompact ?
+                            isBond &&
+                              <div>
+                                Includes:
+                                {' '}
+                                <span className='slaves-names'>
+                                  {this.props.interfaceNames.join(', ')}
+                                </span>
+                              </div>
+                            :
+                            [
+                              this.props.nodes.length === 1 &&
+                                <div key='mac'>
+                                  {i18n(ns + 'mac')}: {slaveInterface.get('mac')}
+                                </div>,
+                              <div key='speed'>
+                                {i18n(ns + 'speed')}: {interfaceSpeeds[index].join(', ')}
+                              </div>,
+                              (bondingPossible && slaveInterfaces.length >= 3) &&
+                                <button
+                                  key='remove_from_bond'
+                                  className='btn btn-link'
+                                  onClick={_.partial(
+                                        this.props.removeInterfaceFromBond,
+                                        ifc.get('name'), slaveInterface.get('name')
+                                      )}
+                                  >
+                                  {i18n('common.remove_button')}
+                                </button>
+                            ]
                           }
                         </div>
                       </div>
@@ -1421,7 +1501,7 @@ var NodeInterface = React.createClass({
               </div>
             }
           </div>
-          {this.renderInterfaceProperties()}
+          {!isCompact ? this.renderInterfaceProperties() : <div className='clearfix'></div>}
         </div>
       </div>
     );
