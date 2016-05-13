@@ -209,15 +209,14 @@ var SettingsTab = React.createClass({
     return this.state.actionInProgress || !this.props.cluster.isAvailableForSettingsChanges();
   },
   render() {
-    var cluster = this.props.cluster;
+    var {
+      cluster, allocatedRoles, activeSettingsSectionName, setActiveSettingsGroupName
+    } = this.props;
     var settings = cluster.get('settings');
     var settingsGroupList = this.constructor.getSubtabs({cluster});
     var locked = this.isLocked();
     var hasChanges = this.hasChanges();
-    var allocatedRoles = _.uniq(_.flatten(_.union(
-      cluster.get('nodes').pluck('roles'),
-      cluster.get('nodes').pluck('pending_roles')
-    )));
+
     var classes = {
       row: true,
       'changes-locked': locked
@@ -287,12 +286,12 @@ var SettingsTab = React.createClass({
           settingsGroupList={settingsGroupList}
           groupedSettings={groupedSettings}
           configModels={this.state.configModels}
-          setActiveSettingsGroupName={this.props.setActiveSettingsGroupName}
-          activeSettingsSectionName={this.props.activeSettingsSectionName}
+          setActiveSettingsGroupName={setActiveSettingsGroupName}
+          activeSettingsSectionName={activeSettingsSectionName}
           checkRestrictions={this.checkRestrictions}
         />
         {_.map(groupedSettings, (selectedGroup, groupName) => {
-          if (groupName !== this.props.activeSettingsSectionName) return null;
+          if (groupName !== activeSettingsSectionName) return null;
 
           var sortedSections = _.sortBy(
             _.keys(selectedGroup), (name) => settings.get(name + '.metadata.weight')
@@ -310,7 +309,7 @@ var SettingsTab = React.createClass({
                 return <SettingSection
                   {... _.pick(this.state, 'initialAttributes', 'settingsForChecks', 'configModels')}
                   key={sectionName}
-                  cluster={this.props.cluster}
+                  cluster={cluster}
                   sectionName={sectionName}
                   settingsToDisplay={settingsToDisplay}
                   onChange={_.partial(this.onChange, sectionName)}

@@ -289,15 +289,23 @@ var ClusterPage = React.createClass({
   render() {
     var cluster = this.props.cluster;
     var availableTabs = this.getAvailableTabs(cluster);
+    var tab = _.find(availableTabs, {url: this.props.activeTab});
+    if (!tab) return null;
+
+    var Tab = tab.tab;
     var tabUrls = _.map(availableTabs, 'url');
     var subroutes = {
       settings: this.state.activeSettingsSectionName,
       network: this.state.activeNetworkSectionName,
       logs: utils.serializeTabOptions(this.state.selectedLogs)
     };
-    var tab = _.find(availableTabs, {url: this.props.activeTab});
-    if (!tab) return null;
-    var Tab = tab.tab;
+
+    var nodes = cluster.get('nodes');
+    var allocatedRoles = _.chain(nodes.filter({pending_deletion: false}))
+      .map((node) => node.get('roles').concat(node.get('pending_roles')))
+      .flatten()
+      .uniq()
+      .value();
 
     return (
       <div className='cluster-page' key={cluster.id}>
@@ -307,7 +315,7 @@ var ClusterPage = React.createClass({
             <div
               className='title-node-count'
             >
-              ({i18n('common.node', {count: cluster.get('nodes').length})})
+              ({i18n('common.node', {count: nodes.length})})
             </div>
           </h1>
         </div>
@@ -341,6 +349,7 @@ var ClusterPage = React.createClass({
             {... _.pick(this.props, 'cluster', 'tabOptions')}
             {...this.state}
             {...this.props.tabData}
+            allocatedRoles={allocatedRoles}
           />
         </div>
       </div>

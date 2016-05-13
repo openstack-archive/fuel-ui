@@ -1774,8 +1774,7 @@ var NetworkSettings = React.createClass({
   render() {
     var {cluster, locked} = this.props;
     var settings = cluster.get('settings');
-    var allocatedRoles = _.uniq(_.flatten(_.union(cluster.get('nodes').pluck('roles'),
-      cluster.get('nodes').pluck('pending_roles'))));
+
     return (
       <div className='forms-box network'>
         {
@@ -1806,13 +1805,13 @@ var NetworkSettings = React.createClass({
                 return <SettingSection
                   {... _.pick(
                     this.props,
-                    'cluster', 'initialAttributes', 'settingsForChecks', 'configModels'
+                    'cluster', 'initialAttributes', 'settingsForChecks', 'configModels',
+                    'allocatedRoles'
                   )}
                   key={sectionName}
                   sectionName={sectionName}
                   settingsToDisplay={settingsToDisplay}
                   onChange={_.partial(this.onChange, sectionName)}
-                  allocatedRoles={allocatedRoles}
                   settings={settings}
                   getValueAttribute={settings.getValueAttribute}
                   locked={locked}
