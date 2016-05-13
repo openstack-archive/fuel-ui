@@ -3678,6 +3678,23 @@ input[type=range] {
 
 // Interfaces styles
 
+.ifc-management-panel {
+  @ifc-panel-indent: 5px;
+
+  .view-mode-switcher {
+    margin-bottom: @ifc-panel-indent * 3;
+
+    .btn-group label {
+      width: auto;
+      font-size: @base-font-size;
+    }
+  }
+
+  .bonding-buttons-box {
+    margin-bottom: @ifc-panel-indent * 3;
+  }
+}
+
 .ifc-list {
   .ifc-container {
     @base-ifc-indent: 5px;
@@ -3691,6 +3708,10 @@ input[type=range] {
       border-radius: 4px;
       padding: 0;
       margin: 0 0 @base-ifc-indent * 3;
+
+      &.compact .clearfix {
+        padding-bottom: 0px;
+      }
 
       &.has-changes {
         border: 1px solid @green;
@@ -3759,7 +3780,7 @@ input[type=range] {
           > div:not(:last-child) {
             margin-bottom: 4px;
           }
-          .ifc-name {
+          .ifc-name, .slaves-names {
             .font-semibold;
           }
         }
@@ -3984,6 +4005,41 @@ input[type=range] {
           font-size: @base-font-size - 2px;
           .text-danger;
           padding: 10px;
+        }
+      }
+
+      &.compact .networks-block {
+        .checkbox-group {
+          display: block;
+          width: 24px;
+          float: left;
+          padding-top: 8px;
+          label {
+            margin-bottom: 0px;
+            .custom-tumbler {
+              margin: 0;
+            }
+          }
+          .help-block {
+            display: none;
+          }
+        }
+        .ifc-info-block {
+          display: inline-block;
+          margin-bottom: 0px;
+          .ifc-info {
+            padding-top: 12px;
+            &.ifc-compact {
+              padding-top: 20px;
+            }
+          }
+        }
+        .ifc-networks {
+          min-height: 54px;
+          .network-block {
+            margin-bottom: 0px;
+            height: 54px;
+          }
         }
       }
     }
