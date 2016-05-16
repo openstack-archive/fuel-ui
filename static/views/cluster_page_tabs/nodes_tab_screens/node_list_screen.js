@@ -166,7 +166,7 @@ NodeListScreen = React.createClass({
 
     // additonal Nodes tab states (Cluster page)
     var settings = cluster.get('settings');
-    var roles = cluster.get('roles').pluck('name');
+    var roles = cluster.get('roles').map('name');
     var selectedRoles = nodes.length ?
       _.filter(roles, (role) => !nodes.some((node) => !node.hasRole(role)))
     :
@@ -291,8 +291,8 @@ NodeListScreen = React.createClass({
     };
   },
   updateInitialRoles() {
-    this.initialRoles = _.zipObject(this.props.nodes.pluck('id'),
-      this.props.nodes.pluck('pending_roles'));
+    this.initialRoles = _.zipObject(this.props.nodes.map('id'),
+      this.props.nodes.map('pending_roles'));
   },
   checkRoleAssignment(node, roles, options) {
     if (!options.assign) node.set({pending_roles: node.previous('pending_roles')}, {assign: true});
@@ -390,7 +390,7 @@ NodeListScreen = React.createClass({
         options = this.props.roles.invoke('pick', 'name', 'label');
         break;
       case 'group_id':
-        options = _.uniq(this.props.nodes.pluck('group_id')).map((groupId) => {
+        options = _.uniq(this.props.nodes.map('group_id')).map((groupId) => {
           var nodeNetworkGroup = this.props.nodeNetworkGroups.get(groupId);
           return {
             name: groupId,
@@ -407,7 +407,7 @@ NodeListScreen = React.createClass({
         });
         break;
       case 'cluster':
-        options = _.uniq(this.props.nodes.pluck('cluster')).map((clusterId) => {
+        options = _.uniq(this.props.nodes.map('cluster')).map((clusterId) => {
           return {
             name: clusterId,
             label: clusterId ? this.props.clusters.get(clusterId).get('name') :
@@ -474,7 +474,7 @@ NodeListScreen = React.createClass({
     });
   },
   getNodeLabels() {
-    return _.chain(this.props.nodes.pluck('labels')).flatten().map(_.keys).flatten().uniq().value();
+    return _.chain(this.props.nodes.map('labels')).flatten().map(_.keys).flatten().uniq().value();
   },
   getFilterResults(filter, node) {
     var result;
@@ -512,7 +512,7 @@ NodeListScreen = React.createClass({
     var selectedNodes = new models.Nodes(this.props.nodes.filter((node) => {
       return this.props.selectedNodeIds[node.id];
     }));
-    var selectedNodeLabels = _.chain(selectedNodes.pluck('labels'))
+    var selectedNodeLabels = _.chain(selectedNodes.map('labels'))
       .flatten()
       .map(_.keys)
       .flatten()
@@ -822,7 +822,7 @@ ManagementPanel = React.createClass({
   },
   changeScreen(url, passNodeIds) {
     url = url ? '/' + url : '';
-    if (passNodeIds) url += '/' + utils.serializeTabOptions({nodes: this.props.nodes.pluck('id')});
+    if (passNodeIds) url += '/' + utils.serializeTabOptions({nodes: this.props.nodes.map('id')});
     app.navigate('#cluster/' + this.props.cluster.id + '/nodes' + url, {trigger: true});
   },
   goToConfigurationScreen(action, conflict) {
@@ -2020,7 +2020,7 @@ NodeList = React.createClass({
     }
 
     // sort grouped nodes by other applied sorters
-    var preferredRolesOrder = this.props.roles.pluck('name');
+    var preferredRolesOrder = this.props.roles.map('name');
     return groups.sort((group1, group2) => {
       var result;
       _.each(this.props.activeSorters, (sorter) => {

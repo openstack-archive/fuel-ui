@@ -549,7 +549,7 @@ var EditNodeInterfacesScreen = React.createClass({
     var networkConfiguration = cluster.get('networkConfiguration');
     var networkingParameters = networkConfiguration.get('networking_parameters');
     var networks = networkConfiguration.get('networks');
-    var slaveInterfaceNames = _.map(_.flatten(_.filter(interfaces.pluck('slaves'))), 'name');
+    var slaveInterfaceNames = _.map(_.flatten(_.filter(interfaces.map('slaves'))), 'name');
 
     interfaces.each((ifc) => {
       if (!_.includes(slaveInterfaceNames, ifc.get('name'))) {
@@ -601,7 +601,7 @@ var EditNodeInterfacesScreen = React.createClass({
   render() {
     var {nodes, interfaces} = this.props;
     var {interfacesByIndex, indexByInterface} = this.state;
-    var nodeNames = nodes.pluck('name');
+    var nodeNames = nodes.map('name');
     var locked = this.isLocked();
     var configurationTemplateExists = this.configurationTemplateExists();
 
@@ -643,7 +643,7 @@ var EditNodeInterfacesScreen = React.createClass({
     var unbondingPossible = !checkedInterfaces.length && !!checkedBonds.length;
 
     var hasChanges = this.hasChanges();
-    var slaveInterfaceNames = _.map(_.flatten(_.filter(interfaces.pluck('slaves'))), 'name');
+    var slaveInterfaceNames = _.map(_.flatten(_.filter(interfaces.map('slaves'))), 'name');
     var loadDefaultsEnabled = !this.state.actionInProgress;
     var revertChangesEnabled = !this.state.actionInProgress && hasChanges;
 
