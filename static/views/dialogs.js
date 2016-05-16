@@ -466,7 +466,7 @@ export var DeployClusterDialog = React.createClass({
                 {i18n(warningNs + 'redeployment_alert')}
               </div>
             </div>,
-          cluster.get('nodes').some({pending_addition: true}) &&
+          cluster.get('nodes').some('pending_addition') &&
             <div key='new-nodes-alerts'>
               <div className='text-warning'>
                 <i className='glyphicon glyphicon-warning-sign' />
@@ -1791,7 +1791,7 @@ export var DeleteNodesDialog = React.createClass({
   renderBody() {
     var ns = 'dialog.delete_nodes.';
     var {nodes} = this.props;
-    var addedNodes = nodes.filter({pending_addition: true});
+    var addedNodes = nodes.filter('pending_addition');
     return (
       <div className='text-danger'>
         {this.renderImportantLabel()}

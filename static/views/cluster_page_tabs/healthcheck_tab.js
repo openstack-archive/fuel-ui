@@ -120,7 +120,7 @@ var HealthcheckTabContent = React.createClass({
       !!cluster.task({group: 'deployment', active: true});
   },
   getNumberOfCheckedTests() {
-    return this.props.tests.filter({checked: true}).length;
+    return this.props.tests.filter('checked').length;
   },
   toggleCredentials() {
     this.setState({credentialsVisible: !this.state.credentialsVisible});
@@ -340,10 +340,7 @@ var TestSet = React.createClass({
     this.props.tests.invokeMap('on', 'change:checked', this.updateTestsetCheckbox, this);
   },
   updateTestsetCheckbox() {
-    this.props.testset.set(
-      'checked',
-      this.props.tests.filter({checked: true}).length === this.props.tests.length
-    );
+    this.props.testset.set({checked: this.props.tests.every('checked')});
   },
   render() {
     var classes = {

@@ -1065,7 +1065,7 @@ var NetworkTab = React.createClass({
       value ?
         'all'
       :
-        this.props.cluster.get('nodeNetworkGroups').find({is_default: true}).id
+        this.props.cluster.get('nodeNetworkGroups').find('is_default').id
     );
     app.navigate(
       navigationUrl,
@@ -1105,7 +1105,7 @@ var NetworkTab = React.createClass({
     var networkCheckTask = cluster.task('check_networks');
 
     var {validationError} = networkConfiguration;
-    var notEnoughNodesForVerification = cluster.get('nodes').filter({online: true}).length < 2;
+    var notEnoughNodesForVerification = cluster.get('nodes').filter('online').length < 2;
     var isVerificationDisabled = validationError ||
       this.state.actionInProgress ||
       !!cluster.task({group: ['deployment', 'network'], active: true}) ||
