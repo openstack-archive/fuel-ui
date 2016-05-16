@@ -642,7 +642,7 @@ var ClusterActionsPanel = React.createClass({
         actionControls = [
           cluster.hasChanges({configModels}) &&
             <ul key='cluster-changes'>
-              {this.renderClusterChangeItem('added_node', nodes.filter({pending_addition: true}))}
+              {this.renderClusterChangeItem('added_node', nodes.filter('pending_addition'))}
               {this.renderClusterChangeItem(
                 'provisioned_node',
                 nodes.filter({pending_deletion: false, status: 'provisioned'}),
@@ -653,7 +653,7 @@ var ClusterActionsPanel = React.createClass({
                 nodes.filter({status: 'stopped'}),
                 false
               )}
-              {this.renderClusterChangeItem('deleted_node', nodes.filter({pending_deletion: true}))}
+              {this.renderClusterChangeItem('deleted_node', nodes.filter('pending_deletion'))}
               {this.renderClusterChangeItem('changed_configuration')}
             </ul>,
           <ClusterActionButton
@@ -845,7 +845,7 @@ var ClusterActionButton = React.createClass({
   getInitialState() {
     return {
       // offline nodes should not be selected for the task
-      selectedNodeIds: _.map(this.props.nodes.filter({online: true}), 'id')
+      selectedNodeIds: _.map(this.props.nodes.filter('online'), 'id')
     };
   },
   getDefaultProps() {
@@ -1056,7 +1056,7 @@ var ClusterInfo = React.createClass({
         return nodes.filter({online: false}).length;
       case 'pending_addition':
       case 'pending_deletion':
-        return nodes.filter({[field]: true}).length;
+        return nodes.filter(field).length;
       default:
         return nodes.filter({status: field}).length;
     }

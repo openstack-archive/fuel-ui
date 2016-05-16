@@ -482,9 +482,9 @@ var EditNodeInterfacesScreen = React.createClass({
   },
   unbondInterfaces() {
     this.setState({actionInProgress: true});
-    _.each(this.props.interfaces.filter({checked: true}), (bond) => {
-      this.removeInterfaceFromBond(bond.get('name'));
-    });
+    _.each(this.props.interfaces.filter('checked'),
+      (bond) => this.removeInterfaceFromBond(bond.get('name'))
+    );
     this.setState({actionInProgress: false});
   },
   removeInterfaceFromBond(bondName, slaveInterfaceName) {

@@ -156,7 +156,7 @@ var EditNodeDisksScreen = React.createClass({
   },
   hasErrors() {
     return this.props.disks.some((disk) =>
-      disk.get('volumes').some('validationError')
+      disk.get('volumes').some((volume) => !_.isNull(volume.validationError))
     );
   },
   isSavingPossible() {

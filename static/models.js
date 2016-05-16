@@ -36,9 +36,9 @@ var superMixin = models.superMixin = {
 };
 
 // Mixin for adjusting some collection functions to work properly with model.get.
-// Lodash supports some methods with predicate objects, not functions.
+// Lodash supports some methods with predicate objects or strings, not functions.
 // Underscore has only pure predicate functions.
-// We need to convert predicate objects to functions that use model's
+// We need to convert predicate objects or strings to functions that use model's
 // get functionality -- otherwise model.property always returns undefined.
 
 var collectionMixin = {
@@ -62,7 +62,9 @@ _.each(collectionMethods, (method) => {
     var args = _.toArray(arguments);
     var source = args[0];
 
-    if (_.isPlainObject(source)) {
+    if (_.isString(source)) {
+      args[0] = (model) => _.isMatch(model.attributes, {[source]: true});
+    } else if (_.isPlainObject(source)) {
       args[0] = (model) => _.isMatch(model.attributes, source);
     }
 
