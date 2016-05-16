@@ -1146,7 +1146,7 @@
                 },
                 "stop_provision": {
                     "title": "Stop Provisioning",
-                    "text": "Are you sure you want to stop this provisioning? Changes applied to the nodes will be discarded, and the nodes will be reset to their pre-deployment state.",
+                    "text": "Are you sure you want to stop provisioning the nodes? Changes applied to the nodes will be discarded and the nodes will be reset to their pre-deployment state.",
                     "error": {
                         "title": "Stop Provisioning Error",
                         "text": "Unable to stop provisioning"
@@ -1154,7 +1154,7 @@
                 },
                 "stop_deployment": {
                     "title": "Stop Deployment",
-                    "text": "Are you sure you want to stop this deployment? You may not be able to successfully re-deploy the nodes until you reset the environment. Proceed with caution!",
+                    "text": "Are you sure you want to stop deploying the nodes? You may not be able to successfully re-deploy the nodes until you reset the environment. Proceed with caution!",
                     "error": {
                         "title": "Stop Deployment Error",
                         "text": "Unable to stop deployment"
