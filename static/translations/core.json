@@ -1172,7 +1172,7 @@
                     "confirm_new_password": "Confirm the new password",
                     "wrong_current_password": "Wrong password",
                     "new_password_mismatch": "Passwords do not match",
-                    "changing_password_warning": "Please note that Fuel client configuration is not automatically updated. You may want to update /root/.config/fuel_client.yaml."
+                    "changing_password_warning": "Please note that Fuel client configuration is not automatically updated. You may want to update /~/.config/fuel/fuel_client.yaml."
                 },
                 "remove_node_network_group": {
                     "title": "Remove Node Network Group",
