@@ -848,7 +848,7 @@ var ClusterActionButton = React.createClass({
         _.extend({data: {cluster_id: cluster.id}}, options));
     };
     nodes.parse = function() {
-      return this.getByIds(nodes.pluck('id'));
+      return this.getByIds(nodes.map('id'));
     };
     SelectNodesDialog
       .show({

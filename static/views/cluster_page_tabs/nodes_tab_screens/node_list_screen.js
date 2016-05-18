@@ -291,7 +291,7 @@ NodeListScreen = React.createClass({
     };
   },
   updateInitialRoles() {
-    this.initialRoles = _.zipObject(this.props.nodes.pluck('id'),
+    this.initialRoles = _.zipObject(this.props.nodes.map('id'),
       this.props.nodes.pluck('pending_roles'));
   },
   checkRoleAssignment(node, roles, options) {
@@ -822,7 +822,7 @@ ManagementPanel = React.createClass({
   },
   changeScreen(url, passNodeIds) {
     url = url ? '/' + url : '';
-    if (passNodeIds) url += '/' + utils.serializeTabOptions({nodes: this.props.nodes.pluck('id')});
+    if (passNodeIds) url += '/' + utils.serializeTabOptions({nodes: this.props.nodes.map('id')});
     app.navigate('#cluster/' + this.props.cluster.id + '/nodes' + url, {trigger: true});
   },
   goToConfigurationScreen(action, conflict) {
