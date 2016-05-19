@@ -25,6 +25,10 @@ import models from 'models';
 import dispatcher from 'dispatcher';
 import {Input, ProgressBar, ProgressButton} from 'views/controls';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {nodeListMixin} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_mixin';
+import {
+  NODE_LIST_SORTERS, NODE_LIST_FILTERS
+} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen_objects';
 import {backboneMixin, renamingMixin} from 'component_mixins';
 import LinkedStateMixin from 'react-addons-linked-state-mixin';
 import SettingSection from 'views/cluster_page_tabs/setting_section';
@@ -669,7 +673,10 @@ export var DeployNodesDialog = React.createClass({
 });
 
 export var SelectNodesDialog = React.createClass({
-  mixins: [dialogMixin],
+  mixins: [
+    dialogMixin,
+    nodeListMixin
+  ],
   getInitialState() {
     var selectedNodeIds = {};
     _.each(this.props.selectedNodeIds, (id) => {
@@ -680,7 +687,11 @@ export var SelectNodesDialog = React.createClass({
   getDefaultProps() {
     return {
       title: i18n('dialog.select_nodes.title'),
-      modalClass: 'select-nodes-dialog'
+      modalClass: 'select-nodes-dialog',
+      defaultFilters: {roles: [], status: []},
+      availableFilters: _.without(NODE_LIST_FILTERS, 'cluster'),
+      defaultSorting: [{roles: 'asc'}],
+      availableSorters: _.without(NODE_LIST_SORTERS, 'cluster')
     };
   },
   ns: 'dialog.select_nodes.',
@@ -701,20 +712,16 @@ export var SelectNodesDialog = React.createClass({
   },
   renderBody() {
     return <NodeListScreen
-      statusesToFilter={models.Node.prototype.statuses}
       {...this.props}
+      {... this.getNodeListProps()}
       ref='screen'
       mode='list'
       selectedNodeIds={this.state.selectedNodeIds}
       selectNodes={this.selectNodes}
-      sorters={_.without(models.Nodes.prototype.sorters, 'cluster')}
-      defaultSorting={[{roles: 'asc'}]}
-      filters={_.without(models.Nodes.prototype.filters, 'cluster')}
-      defaultFilters={{roles: [], status: []}}
       showBatchActionButtons={false}
-      showLabeManagementButton={false}
-      showViewModeButtons={false}
+      showLabelManagementButton={false}
       nodeActionsAvailable={false}
+      showViewModeButtons={false}
       viewMode='compact'
     />;
   },

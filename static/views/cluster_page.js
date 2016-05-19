@@ -345,7 +345,7 @@ var ClusterPage = React.createClass({
         <div key={tab.url + cluster.id} className={'content-box tab-content ' + tab.url + '-tab'}>
           <Tab
             ref='tab'
-            {... _.pick(this, 'selectNodes', 'changeLogSelection')}
+            {... _.pick(this, 'selectNodes', 'changeLogSelection', 'updateUISettings')}
             {... _.pick(this.props, 'cluster', 'tabOptions')}
             {...this.state}
             {...this.props.tabData}

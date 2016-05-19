@@ -28,6 +28,7 @@ import {
   SelectNodesDialog
 } from 'views/dialogs';
 import {backboneMixin, pollingMixin, renamingMixin} from 'component_mixins';
+import {NODE_STATUSES} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen_objects';
 
 var ns = 'cluster_page.dashboard_tab.';
 
@@ -1088,7 +1089,7 @@ var ClusterInfo = React.createClass({
   renderStatistics() {
     var {cluster} = this.props;
     var roles = _.union(['total'], cluster.get('roles').map('name'));
-    var statuses = _.without(models.Node.prototype.statuses, 'discover');
+    var statuses = _.without(NODE_STATUSES, 'discover');
     return (
       <div className='row statistics-block'>
         <div className='title'>{i18n(ns + 'cluster_info_fields.statistics')}</div>

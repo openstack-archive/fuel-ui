@@ -13,25 +13,48 @@
  * License for the specific language governing permissions and limitations
  * under the License.
 **/
+import $ from 'jquery';
 import _ from 'underscore';
 import React from 'react';
-import models from 'models';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {nodeListMixin} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_mixin';
+import {
+  NODE_STATUSES, NODE_LIST_SORTERS, NODE_LIST_FILTERS
+} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen_objects';
 
 var ClusterNodesScreen = React.createClass({
+  mixins: [nodeListMixin],
+  statics: {
+    fetchData({cluster}) {
+      return $.Deferred().resolve().then(() => ({
+        nodes: cluster.get('nodes'),
+        uiSettings: cluster.get('ui_settings')
+      }));
+    }
+  },
+  getDefaultProps() {
+    return {
+      defaultFilters: {roles: [], status: []},
+      statusesToFilter: _.without(NODE_STATUSES, 'discover'),
+      availableFilters: _.without(NODE_LIST_FILTERS, 'cluster'),
+      defaultSorting: [{roles: 'asc'}],
+      availableSorters: _.without(NODE_LIST_SORTERS, 'cluster')
+    };
+  },
+  updateUISettings(name, value) {
+    var uiSettings = this.props.cluster.get('ui_settings');
+    uiSettings[name] = value;
+    this.props.cluster.save({ui_settings: uiSettings}, {patch: true, wait: true, validate: false});
+  },
   render() {
-    return <NodeListScreen {... _.omit(this.props, 'screenOptions')}
+    var {cluster} = this.props;
+    return <NodeListScreen
       ref='screen'
+      {... _.omit(this.props, 'screenOptions', 'updateUISettings')}
+      {... this.getNodeListProps()}
       mode='list'
-      nodes={this.props.cluster.get('nodes')}
-      roles={this.props.cluster.get('roles')}
-      nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
-      sorters={_.without(models.Nodes.prototype.sorters, 'cluster')}
-      defaultSorting={[{roles: 'asc'}]}
-      filters={_.without(models.Nodes.prototype.filters, 'cluster')}
-      statusesToFilter={_.without(models.Node.prototype.statuses, 'discover')}
-      defaultFilters={{roles: [], status: []}}
-      saveUISettings
+      roles={cluster.get('roles')}
+      nodeNetworkGroups={cluster.get('nodeNetworkGroups')}
     />;
   }
 });
