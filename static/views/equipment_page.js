@@ -21,6 +21,7 @@ import React from 'react';
 import models from 'models';
 import {backboneMixin} from 'component_mixins';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {Sorter, Filter} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen_objects';
 
 var EquipmentPage, PluginLinks;
 
@@ -84,7 +85,31 @@ EquipmentPage = React.createClass({
     }
   },
   getInitialState() {
+    var {fuelSettings, nodes} = this.props;
+    var {
+      filter, filter_by_labels, sort, sort_by_labels, search, view_mode
+    } = fuelSettings.get('ui_settings');
+
+    var defaultFilters = {status: []};
+    var activeFilters = _.union(
+      Filter.fromObject(_.extend({}, defaultFilters, filter), false),
+      Filter.fromObject(filter_by_labels, true)
+    );
+    _.invoke(activeFilters, 'updateLimits', nodes, false);
+
+    var defaultSorting = [{status: 'asc'}];
+    var activeSorters = _.union(
+      _.map(sort, _.partial(Sorter.fromObject, _, false)),
+      _.map(sort_by_labels, _.partial(Sorter.fromObject, _, true))
+    );
+
     return {
+      defaultFilters,
+      activeFilters,
+      defaultSorting,
+      activeSorters,
+      search,
+      viewMode: view_mode,
       selectedNodeIds: []
     };
   },
@@ -102,32 +127,76 @@ EquipmentPage = React.createClass({
     }
     this.setState({selectedNodeIds: nodeSelection});
   },
+  updateUISettings(name, value) {
+    var uiSettings = this.props.fuelSettings.get('ui_settings');
+    uiSettings[name] = value;
+    this.props.fuelSettings.save(null, {patch: true, wait: true, validate: false});
+  },
+  updateSearch(search) {
+    this.setState({search});
+    this.updateUISettings('search', _.trim(search));
+  },
+  changeViewMode(viewMode) {
+    this.setState({viewMode});
+    this.updateUISettings('view_mode', viewMode);
+  },
+  updateSorting(activeSorters, updateLabelsOnly = false) {
+    this.setState({activeSorters});
+    var groupedSorters = _.groupBy(activeSorters, 'isLabel');
+    if (!updateLabelsOnly) {
+      this.updateUISettings('sort', _.map(groupedSorters.false, Sorter.toObject));
+    }
+    this.updateUISettings('sort_by_labels', _.map(groupedSorters.true, Sorter.toObject));
+  },
+  updateFilters(filters, updateLabelsOnly = false) {
+    this.setState({activeFilters: filters});
+    var groupedFilters = _.groupBy(filters, 'isLabel');
+    if (!updateLabelsOnly) {
+      this.updateUISettings('filter', Filter.toObject(groupedFilters.false));
+    }
+    this.updateUISettings('filter_by_labels', Filter.toObject(groupedFilters.true));
+  },
   render() {
+    var {nodes, clusters, links} = this.props;
+
     var roles = new models.Roles();
-    this.props.clusters.each((cluster) => {
+    clusters.each((cluster) => {
       roles.add(
         cluster.get('roles').filter((role) => !roles.some({name: role.get('name')}))
       );
     });
+
     return (
       <div className='equipment-page'>
         <div className='page-title'>
           <h1 className='title'>{i18n('equipment_page.title')}</h1>
         </div>
         <div className='content-box'>
-          <PluginLinks links={this.props.links} />
-          <NodeListScreen {...this.props}
+          <PluginLinks links={links} />
+          <NodeListScreen
             ref='screen'
-            selectedNodeIds={this.state.selectedNodeIds}
-            selectNodes={this.selectNodes}
+            {...this.props}
+            {...this.state}
+            {... _.pick(this,
+              'selectNodes',
+              'updateSearch',
+              'changeViewMode',
+              'updateSorting',
+              'updateFilters'
+            )}
             roles={roles}
-            sorters={models.Nodes.prototype.sorters}
-            defaultSorting={[{status: 'asc'}]}
-            filters={models.Nodes.prototype.filters}
+            availableSorters={
+               models.Nodes.prototype.sorters.map((name) => new Sorter(name, 'asc', false))
+            }
+            availableFilters={
+              models.Nodes.prototype.filters.map((name) => {
+                var filter = new Filter(name, [], false);
+                filter.updateLimits(nodes, true);
+                return filter;
+              })
+            }
             statusesToFilter={models.Node.prototype.statuses}
-            defaultFilters={{status: []}}
             showBatchActionButtons={false}
-            saveUISettings
           />
         </div>
       </div>
