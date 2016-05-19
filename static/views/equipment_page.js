@@ -21,11 +21,15 @@ import React from 'react';
 import models from 'models';
 import {backboneMixin} from 'component_mixins';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import nodeListMixin from 'views/cluster_page_tabs/nodes_tab_screens/node_list_mixin';
 
 var EquipmentPage, PluginLinks;
 
 EquipmentPage = React.createClass({
-  mixins: [backboneMixin('nodes')],
+  mixins: [
+    backboneMixin('nodes'),
+    nodeListMixin
+  ],
   statics: {
     title: i18n('equipment_page.title'),
     navbarActiveElement: 'equipment',
@@ -84,8 +88,21 @@ EquipmentPage = React.createClass({
     }
   },
   getInitialState() {
+    return _.extend(
+      this.getNodeListStates(
+        this.props.nodes,
+        this.props.fuelSettings.get('ui_settings')
+      ),
+      {selectedNodeIds: []}
+    );
+  },
+  getDefaultProps() {
     return {
-      selectedNodeIds: []
+      defaultFilters: {status: []},
+      statusesToFilter: models.Node.prototype.statuses,
+      availableFilters: models.Nodes.prototype.filters,
+      defaultSorting: [{status: 'asc'}],
+      availableSorters: models.Nodes.prototype.sorters
     };
   },
   selectNodes(ids = [], checked = false) {
@@ -102,6 +119,11 @@ EquipmentPage = React.createClass({
     }
     this.setState({selectedNodeIds: nodeSelection});
   },
+  updateUISettings(name, value) {
+    var uiSettings = this.props.fuelSettings.get('ui_settings');
+    uiSettings[name] = value;
+    this.props.fuelSettings.save(null, {patch: true, wait: true, validate: false});
+  },
   render() {
     var roles = new models.Roles();
     this.props.clusters.each((cluster) => {
@@ -109,6 +131,7 @@ EquipmentPage = React.createClass({
         cluster.get('roles').filter((role) => !roles.some({name: role.get('name')}))
       );
     });
+
     return (
       <div className='equipment-page'>
         <div className='page-title'>
@@ -116,18 +139,14 @@ EquipmentPage = React.createClass({
         </div>
         <div className='content-box'>
           <PluginLinks links={this.props.links} />
-          <NodeListScreen {...this.props}
+          <NodeListScreen
             ref='screen'
+            {...this.props}
+            {... this.getNodeListProps()}
             selectedNodeIds={this.state.selectedNodeIds}
             selectNodes={this.selectNodes}
             roles={roles}
-            sorters={models.Nodes.prototype.sorters}
-            defaultSorting={[{status: 'asc'}]}
-            filters={models.Nodes.prototype.filters}
-            statusesToFilter={models.Node.prototype.statuses}
-            defaultFilters={{status: []}}
             showBatchActionButtons={false}
-            saveUISettings
           />
         </div>
       </div>

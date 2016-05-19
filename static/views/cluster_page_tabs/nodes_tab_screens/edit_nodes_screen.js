@@ -18,11 +18,13 @@ import _ from 'underscore';
 import React from 'react';
 import utils from 'utils';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import nodeListMixin from 'views/cluster_page_tabs/nodes_tab_screens/node_list_mixin';
 
 var EditNodesScreen = React.createClass({
+  mixins: [nodeListMixin],
   statics: {
     fetchData(options) {
-      var cluster = options.cluster;
+      var {cluster} = options;
       var nodes = utils.getNodeListFromTabOptions(options);
 
       if (!nodes) {
@@ -36,19 +38,61 @@ var EditNodesScreen = React.createClass({
       nodes.parse = function() {
         return this.getByIds(nodes.map('id'));
       };
-      return $.when(options.cluster.get('roles').fetch(),
-        cluster.get('settings').fetch({cache: true})).then(() => ({nodes}));
+      return $.when(
+        cluster.get('roles').fetch(),
+        cluster.get('settings').fetch({cache: true})
+      ).then(() => ({nodes}));
     }
+  },
+  getInitialState() {
+    var {cluster, nodes} = this.props;
+    var roles = cluster.get('roles').pluck('name');
+    var selectedRoles = _.filter(roles,
+      (role) => nodes.every((node) => node.hasRole(role))
+    );
+    var indeterminateRoles = _.filter(roles,
+      (role) => !_.includes(selectedRoles, role) && nodes.some((node) => node.hasRole(role))
+    );
+    var configModels = {
+      cluster,
+      settings: cluster.get('settings'),
+      version: app.version,
+      default: cluster.get('settings')
+    };
+
+    return _.extend(
+      this.getNodeListStates(),
+      {selectedRoles, indeterminateRoles, configModels}
+    );
+  },
+  getDefaultProps() {
+    return {
+      defaultFilters: {},
+      defaultSorting: [{roles: 'asc'}]
+    };
+  },
+  selectRoles(role, checked) {
+    var {selectedRoles, indeterminateRoles} = this.state;
+    if (checked) {
+      selectedRoles.push(role);
+    } else {
+      selectedRoles = _.without(selectedRoles, role);
+    }
+    indeterminateRoles = _.without(indeterminateRoles, role);
+    this.setState({selectedRoles, indeterminateRoles});
   },
   render() {
     return (
       <NodeListScreen
         {... _.omit(this.props, 'screenOptions')}
+        {... _.pick(this.state, 'selectedRoles', 'indeterminateRoles', 'configModels')}
+        {... this.getNodeListProps()}
         ref='screen'
         mode='edit'
-        roles={this.props.cluster.get('roles')}
         nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
-        defaultSorting={[{roles: 'asc'}]}
+        roles={this.props.cluster.get('roles')}
+        selectRoles={this.selectRoles}
+        showRolePanel
       />
     );
   }
