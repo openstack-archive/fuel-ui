@@ -188,8 +188,15 @@ var ClusterPage = React.createClass({
   },
   getInitialState() {
     var tabs = this.constructor.getTabs();
+    var selectedNodes = utils.deserializeTabOptions(this.props.tabOptions[1]).nodes;
     var states = {
-      selectedNodeIds: {},
+      selectedNodeIds: selectedNodes ?
+        _.reduce(selectedNodes.split(','), (result, id) => {
+          result[Number(id)] = true;
+          return result;
+        }, {})
+      :
+        {},
       showAllNetworks: false
     };
     _.each(tabs, (tabData) => {
@@ -287,6 +294,11 @@ var ClusterPage = React.createClass({
       this.setState({selectedNodeIds: {}});
     }
   },
+  updateUISettings(name, value) {
+    var uiSettings = this.props.cluster.get('ui_settings');
+    uiSettings[name] = value;
+    this.props.cluster.save({ui_settings: uiSettings}, {patch: true, wait: true, validate: false});
+  },
   render() {
     var cluster = this.props.cluster;
     var availableTabs = this.getAvailableTabs(cluster);
@@ -338,7 +350,7 @@ var ClusterPage = React.createClass({
         <div key={tab.url + cluster.id} className={'content-box tab-content ' + tab.url + '-tab'}>
           <Tab
             ref='tab'
-            {... _.pick(this, 'selectNodes', 'changeLogSelection')}
+            {... _.pick(this, 'selectNodes', 'changeLogSelection', 'updateUISettings')}
             {... _.pick(this.props, 'cluster', 'tabOptions')}
             {...this.state}
             {...this.props.tabData}
