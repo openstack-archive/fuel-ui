@@ -263,8 +263,6 @@
             },
             "support_page": {
                 "title": "Support",
-                "contact_text": "If you need to report a problem or suggest an improvement, click the button below. A Mirantis Support representative will contact you as soon as possible.",
-                "irc_text": "If you have any questions, you can reach out to the OpenStack developers directly through the IRC channel",
                 "log_text": "If you have encountered bugs or errors, you may need to provide the support team with deployment and operational logs. You can download them all at once by clicking the button below.",
                 "contact_support": "Contact Support",
                 "master_node_uuid": "Master Node UUID",
@@ -279,8 +277,8 @@
                 "send_statistics_title": "Send Statistics About Usage",
                 "save_changes": "Save Changes",
                 "documentation_link": "Go to Documentation",
-                "documentation_title": "Fuel Documentation",
-                "documentation_text": "The page contains the most recent Fuel documentation. You can read it online or download in PDF."
+                "documentation_title": "OpenStack Documentation",
+                "documentation_text": "The page contains the most recent OpenStack documentation."
             },
             "release_page": {
                 "title": "Releases",
@@ -1433,8 +1431,6 @@
             },
             "support_page": {
                 "title": "技术支持",
-                "contact_text": "欢迎提出反馈和改进意见，请点击下面的按钮，我们将尽快回复您。",
-                "irc_text": "如果您有任何问题，可通过IRC（freenode.net网络的 #fuel 频道）联系开发者。",
                 "log_text": "如果您在使用Fuel Web的过程中遇到任何错误或异常，可能需要将日志提交给支持团队，请点击按钮下载：",
                 "contact_support": "联系支持",
                 "master_node_uuid": "主节点UUID",
@@ -2412,8 +2408,6 @@
             },
             "support_page": {
                 "title": "サポート",
-                "contact_text": "問題を報告または、改善の提案を行う場合は下のボタンをクリックしてください。できるだけ早く連絡させていただきます。",
-                "irc_text": "ご質問がある場合は、IRCチャネルで開発者に直接聞くことができます",
                 "log_text": "バグやエラーが発生した場合、デプロイメントと操作のログをサポートチームへ提供する必要があります。下のボタンをクリックすると、一度にすべてのログをダウンロードすることができます。",
                 "contact_support": "サポートへのお問い合わせ",
                 "master_node_uuid": "マスターノード UUID",
@@ -3022,8 +3016,6 @@
             },
             "support_page": {
                 "title": "지원",
-                "contact_text": "문제를 보고하거나 개선을 제안할 필요가 있는 경우, 아래 버튼을 클릭하십시오. 가능한 빨리 응답할것입니다.",
-                "irc_text": "질문이있는 경우,IRC채널에서 개발자들과 이야기할수있습니다",
                 "log_text": "버그나 오류가 발생한 경우, 배치와운영로그를 지원팀에 제공할수있습니다. 아래버튼을 클릭함으로서 한번에 모두를 다운로드할수있습니다.",
                 "contact_support": "지원 문의",
                 "download_diagnostic_snapshot_text": "진단 스냅샷을 다운로드",
