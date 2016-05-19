@@ -510,8 +510,6 @@ registerSuite(() => {
       var reName = 'Network_Group_2';
       var netNames = ['new_default', 'fgbhsjdkgbhsdjkbhsdjkbhfjkbhfbjhgjbhsfjgbhsfjgbhsg', reName];
       var progressSelector = '.dashboard-block .progress';
-      var groupSelector = 'div[data-name="' + newName + '"] ';
-      var newGroupSelector = 'div[data-name="' + reName + '"] ';
       return this.remote
         // Precondition
         .then(() => clusterPage.goToTab('Dashboard'))
@@ -523,16 +521,7 @@ registerSuite(() => {
         // Can add new node network group after deployment
         .then(() => networksLib.createNetworkGroup(newName))
         // Can rename new node network group after deployment
-        .assertElementsAppear(groupSelector + pencilSelector, 1000, '"Pencil" icon appears')
-        .clickByCssSelector(groupSelector + pencilSelector)
-        .assertElementAppears(groupSelector + renameSelector, 1000,
-          'Node network group renaming control appears')
-        .findByCssSelector(groupSelector + renameSelector)
-          .clearValue()
-          .type(reName)
-          .type('\uE007')
-          .end()
-        .assertElementsAppear(newGroupSelector, 1000, 'New network group name is shown')
+        .then(() => networksLib.renameNetworkGroup(newName, reName))
         // Postcondition check
         .then(() => networksLib.checkMergedNetworksGrouping(netNames))
         .then(() => networksLib.selectAllNetworksCheckbox(false))

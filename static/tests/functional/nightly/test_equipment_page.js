@@ -166,21 +166,10 @@ registerSuite(() => {
       var btnClearSelector = 'button.btn-clear-search';
       var txtSearchSelector = 'input[name="search"]';
       return this.remote
-        .assertElementsExist('button.btn-search', '"Quick Search" button exists')
-        .clickByCssSelector('button.btn-search')
-        .assertElementsAppear(txtSearchSelector, 1000, 'Textfield for search value appears')
+        .then(() => equipmentLib.activateQuickSearch())
         // Controller search
-        .setInputValue(txtSearchSelector, controllerName)
-        .sleep(500)
-        .assertElementsExist(nodeSelector, 1, 'Only one node with correct Controller name "' +
-          controllerName + '" is observed')
-        .assertElementTextEquals(nodeNameSelector, controllerName,
-          'Controller node is searched correctly')
-        .assertElementsExist(btnClearSelector, '"Clear Search" button exists')
-        .clickByCssSelector(btnClearSelector)
-        .assertElementsExist(nodeSelector, totalNodes, 'Default nodes quantity is observed')
-        .assertElementPropertyEquals(txtSearchSelector, 'value', '',
-          'Textfield for search value is cleared')
+        .then(() => equipmentLib.checkQuickSearch(nodeSelector, totalNodes, nodeNameSelector,
+          controllerName, controllerName))
         // "Empty" search
         .setInputValue(txtSearchSelector, '><+_')
         .sleep(500)
@@ -190,13 +179,8 @@ registerSuite(() => {
           'Default warning message is observed')
         .clickByCssSelector(btnClearSelector)
         // Compute MAC address search
-        .setInputValue(txtSearchSelector, computeMac)
-        .sleep(500)
-        .assertElementsExist(nodeSelector, 1, 'Only one node with correct Compute MAC address "' +
-          computeMac + '" is observed')
-        .assertElementTextEquals(nodeNameSelector, computeName,
-          'Compute node is searched correctly')
-        .clickByCssSelector(btnClearSelector)
+        .then(() => equipmentLib.checkQuickSearch(nodeSelector, totalNodes, nodeNameSelector,
+          computeName, computeMac))
         // Correlation of controller and compute search
         .setInputValue(txtSearchSelector, correlationName)
         .sleep(500)
@@ -208,12 +192,8 @@ registerSuite(() => {
           'Compute node is searched correctly')
         .clickByCssSelector(btnClearSelector)
         // Compute IP address search
-        .setInputValue(txtSearchSelector, computeIp)
-        .sleep(500)
-        .assertElementsExist(nodeSelector, 1, 'Only one node with correct Compute IP address "' +
-          computeIp + '" is observed')
-        .assertElementTextEquals(nodeNameSelector, computeName,
-          'Compute node is searched correctly');
+        .then(() => equipmentLib.checkQuickSearch(nodeSelector, totalNodes, nodeNameSelector,
+          computeName, computeIp, true));
     },
     'Quick Search results saved after refreshing of page'() {
       return this.remote
@@ -269,28 +249,17 @@ registerSuite(() => {
     },
     'Sorting support for "Equipment" page'() {
       return this.remote
-        .assertElementsExist('button.btn-sorters', '"Sort Nodes" button exists')
-        .clickByCssSelector('button.btn-sorters')
-        .assertElementsAppear('div.sorters', 1000, '"Sort" pane is appears')
+        .then(() => equipmentLib.activateSorting())
         .then(() => equipmentLib.checkDefaultSorting('down', inputArray))
         .clickByCssSelector('div.sort-by-status-asc .btn-default')
         .then(() => equipmentLib.checkDefaultSorting('up', inputArray));
     },
     'Filtering support for "Equipment" page'() {
-      var filterSelector = 'div.filter-by-status';
+      var statusArray = ['input[name="discover"]', 'input[name="pending_addition"]'];
       return this.remote
-        .assertElementsExist('button.btn-filters', '"Filter Nodes" button exists')
-        .clickByCssSelector('button.btn-filters')
-        .assertElementsAppear('div.filters', 1000, '"Filter" pane is appears')
+        .then(() => equipmentLib.activateFiltering())
         .then(() => equipmentLib.checkNodesSegmentation('standard', inputArray, false))
-        .assertElementsExist(filterSelector, 'Filter sorting block is observed')
-        .assertElementContainsText(filterSelector + ' .btn-default', 'Status',
-          'Filter by status is default')
-        .clickByCssSelector(filterSelector + ' .btn-default')
-        .assertElementsAppear('div.popover', 1000, '"Status" filter popover is appears')
-        .clickByCssSelector('input[name="discover"]')
-        .clickByCssSelector('input[name="pending_addition"]')
-        .assertElementsAppear(filterSelector, 1000, 'Filter by status is appears')
+        .then(() => equipmentLib.setFilterByStatus(statusArray))
         .then(() => equipmentLib.checkSortingPageSwitching('Equipment', filterArray));
     },
     'Sorting and Filtering results saved after refreshing of page'() {
@@ -304,7 +273,7 @@ registerSuite(() => {
         .then(() => equipmentLib.checkSortingPageSwitching('Releases', filterArray))
         .then(() => equipmentLib.checkSortingPageSwitching('Plugins', filterArray))
         .then(() => equipmentLib.checkSortingPageSwitching('Support', filterArray))
-        .clickByCssSelector('button.btn-reset-filters');
+        .then(() => equipmentLib.deactivateFiltering());
     },
     'Node groups segmentation on "Equipment" page'() {
       return this.remote

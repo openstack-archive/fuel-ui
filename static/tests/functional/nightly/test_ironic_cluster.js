@@ -22,12 +22,7 @@ import SettingsLib from 'tests/functional/nightly/library/settings';
 import EquipmentLib from 'tests/functional/nightly/library/equipment';
 
 registerSuite(() => {
-  var common,
-    clusterPage,
-    clusterName,
-    networksLib,
-    settingsLib,
-    equipmentLib;
+  var common, clusterPage, clusterName, networksLib, settingsLib, equipmentLib;
   var networkName = 'Baremetal';
   var baremetalSelector = 'div.' + networkName.toLowerCase() + ' ';
   var ipRangesSelector = baremetalSelector + 'div.ip_ranges ';
@@ -80,17 +75,18 @@ registerSuite(() => {
         .then(() => networksLib.checkNetworkInitialState(networkName));
     },
     'Baremetal Network "IP Ranges" correct changing'() {
-      var correctIpRange = ['192.168.3.15', '192.168.3.100'];
+      var correctIpRange = ['192.168.3.15', '192.168.3.40'];
       return this.remote
         // Change network settings
         .setInputValue(startIpSelector, correctIpRange[0])
         .setInputValue(endIpSelector, correctIpRange[1])
         .assertElementNotExists(errorSelector, 'No Baremetal errors are observed')
-        .then(() => networksLib.saveSettings());
+        .then(() => networksLib.saveSettings())
+        .assertElementNotExists(errorSelector, 'No Baremetal errors are observed after save');
     },
     'Baremetal Network "IP Ranges" adding and deleting additional fields'() {
       var correctIpRange = ['192.168.3.2', '192.168.3.50'];
-      var newIpRange = ['192.168.3.55', '192.168.3.70'];
+      var newIpRange = ['192.168.3.51', '192.168.3.51'];
       return this.remote
         // Change network settings
         .setInputValue(startIpSelector, correctIpRange[0])
@@ -201,7 +197,7 @@ registerSuite(() => {
     'Baremetal Network "Use the whole CIDR" option works'() {
       return this.remote
         .then(() => networksLib.checkCidrOption(networkName))
-        .then(() => networksLib.saveSettings());
+        .then(() => networksLib.cancelChanges());
     },
     'Combinations ironic role with other roles validation'() {
       var nodesAmount = 1;
@@ -211,8 +207,7 @@ registerSuite(() => {
       return this.remote
         .then(() => clusterPage.goToTab('Nodes'))
         .clickByCssSelector(addNodeButtonSelector)
-        .waitForElementDeletion(addNodeButtonSelector, 3000)
-        .assertElementsAppear('.node', 3000, 'Unallocated nodes loaded')
+        .assertElementsAppear('.node', 5000, 'Unallocated nodes loaded')
         .assertElementExists('.role-block.ironic:not(.disabled)', 'Ironic role is unlocked')
         // Select node
         .then(() => clusterPage.checkNodes(nodesAmount))
