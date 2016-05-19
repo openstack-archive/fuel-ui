@@ -15,9 +15,15 @@
  **/
 
 import 'tests/functional/helpers';
+import ClusterPage from 'tests/functional/pages/cluster';
+import ClustersPage from 'tests/functional/pages/clusters';
+import GenericLib from 'tests/functional/nightly/library/generic';
 
 function NodesLib(remote) {
   this.remote = remote;
+  this.clusterPage = new ClusterPage(remote);
+  this.clustersPage = new ClustersPage(remote);
+  this.genericLib = new GenericLib(remote);
 }
 
 NodesLib.prototype = {
@@ -94,6 +100,39 @@ NodesLib.prototype = {
           }
         })
         .end();
+  },
+  checkDeployResults(controller1Name, controller1Status, controller2Name, controller2Status,
+    computeName, computeStatus, clusterName, clusterStatus) {
+    var nodeGroupSelector = 'div.nodes-group';
+    var nodeSelector = 'div.node.';
+    var controller1Selector = nodeGroupSelector + ':first-child ' + nodeSelector +
+      controller1Status + ':first-child';
+    var controller2Selector = nodeGroupSelector + ':first-child ' + nodeSelector +
+      controller2Status + ':last-child';
+    var computeSelector = nodeGroupSelector + ':last-child ' + nodeSelector +
+      computeStatus + ':first-child';
+    var nameSelector = ' div.name';
+    var statusSelector = ' div.status';
+    var clusterSelector = 'a.clusterbox';
+    return this.remote
+      .then(() => this.clusterPage.goToTab('Nodes'))
+      .assertElementsAppear(nodeGroupSelector, 1000, '"Nodes" subpage is not empty')
+      .assertElementsExist(controller1Selector, controller1Status + ' conroller node #1 exists')
+      .assertElementsExist(controller2Selector, controller2Status + ' conroller node #2 exists')
+      .assertElementsExist(computeSelector, computeStatus + ' compute node exists')
+      .assertElementContainsText(controller1Selector + nameSelector, controller1Name,
+        controller1Status + ' conroller node #1 has correct name')
+      .assertElementContainsText(controller2Selector + nameSelector, controller2Name,
+        controller2Status + ' conroller node #2 has correct name')
+      .assertElementContainsText(computeSelector + nameSelector, computeName,
+        computeStatus + ' compute node has correct name')
+      .then(() => this.genericLib.gotoPage('Environments'))
+      .assertElementsAppear(clusterSelector, 1000, '"Environments" page is not empty')
+      .assertElementContainsText(clusterSelector + nameSelector, clusterName,
+        'Cluster has correct name')
+      .assertElementContainsText(clusterSelector + statusSelector, clusterStatus,
+        'Cluster has correct status')
+      .then(() => this.clustersPage.goToEnvironment(clusterName));
   }
 };
 
