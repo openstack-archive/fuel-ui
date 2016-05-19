@@ -18,6 +18,7 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {NODE_STATUSES} from 'consts';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
@@ -1088,7 +1089,7 @@ var ClusterInfo = React.createClass({
   renderStatistics() {
     var {cluster} = this.props;
     var roles = _.union(['total'], cluster.get('roles').map('name'));
-    var statuses = _.without(models.Node.prototype.statuses, 'discover');
+    var statuses = _.without(NODE_STATUSES, 'discover');
     return (
       <div className='row statistics-block'>
         <div className='title'>{i18n(ns + 'cluster_info_fields.statistics')}</div>

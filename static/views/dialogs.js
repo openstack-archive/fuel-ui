@@ -20,11 +20,12 @@ import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Backbone from 'backbone';
+import {NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
 import {Input, ProgressBar, ProgressButton} from 'views/controls';
-import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import NodeListScreenWrapper from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 import {backboneMixin, renamingMixin} from 'component_mixins';
 import LinkedStateMixin from 'react-addons-linked-state-mixin';
 import SettingSection from 'views/cluster_page_tabs/setting_section';
@@ -669,7 +670,6 @@ export var DeployNodesDialog = React.createClass({
 });
 
 export var SelectNodesDialog = React.createClass({
-  mixins: [dialogMixin],
   getInitialState() {
     var selectedNodeIds = {};
     _.each(this.props.selectedNodeIds, (id) => {
@@ -684,38 +684,25 @@ export var SelectNodesDialog = React.createClass({
     };
   },
   ns: 'dialog.select_nodes.',
-  selectNodes(ids = [], checked) {
-    if (ids.length) {
-      var nodeSelection = this.state.selectedNodeIds;
-      _.each(ids, (id) => {
-        if (checked) {
-          nodeSelection[id] = true;
-        } else {
-          delete nodeSelection[id];
-        }
-      });
-      this.setState({selectedNodeIds: nodeSelection});
-    } else {
-      this.setState({selectedNodeIds: {}});
-    }
+  selectNodes(selectedNodeIds) {
+    this.setState({selectedNodeIds});
   },
   renderBody() {
-    return <NodeListScreen
-      statusesToFilter={models.Node.prototype.statuses}
+    return <NodeListScreenWrapper
       {...this.props}
       ref='screen'
       mode='list'
       selectedNodeIds={this.state.selectedNodeIds}
       selectNodes={this.selectNodes}
-      sorters={_.without(models.Nodes.prototype.sorters, 'cluster')}
-      defaultSorting={[{roles: 'asc'}]}
-      filters={_.without(models.Nodes.prototype.filters, 'cluster')}
-      defaultFilters={{roles: [], status: []}}
       showBatchActionButtons={false}
-      showLabeManagementButton={false}
-      showViewModeButtons={false}
+      showLabelManagementButton={false}
       nodeActionsAvailable={false}
+      showViewModeButtons={false}
       viewMode='compact'
+      defaultFilters={{roles: [], status: []}}
+      availableFilters={_.without(NODE_LIST_FILTERS, 'cluster')}
+      defaultSorting={[{roles: 'asc'}]}
+      availableSorters={_.without(NODE_LIST_SORTERS, 'cluster')}
     />;
   },
   renderFooter() {

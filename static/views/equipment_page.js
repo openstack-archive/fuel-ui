@@ -20,7 +20,7 @@ import i18n from 'i18n';
 import React from 'react';
 import models from 'models';
 import {backboneMixin} from 'component_mixins';
-import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import NodeListScreenWrapper from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 
 var EquipmentPage, PluginLinks;
 
@@ -79,36 +79,32 @@ EquipmentPage = React.createClass({
           (plugin) => links.add(plugin.get('links') && plugin.get('links').models)
         );
 
-        return {nodes, clusters, nodeNetworkGroups, fuelSettings, links};
+        var roles = new models.Roles();
+        clusters.each((cluster) => {
+          roles.add(
+            cluster.get('roles').filter((role) => !roles.some({name: role.get('name')}))
+          );
+        });
+
+        return {
+          nodes, clusters, nodeNetworkGroups, links, roles,
+          fuelSettings, uiSettings: fuelSettings.get('ui_settings')
+        };
       });
     }
   },
   getInitialState() {
-    return {
-      selectedNodeIds: []
-    };
+    return {selectedNodeIds: {}};
   },
-  selectNodes(ids = [], checked = false) {
-    var nodeSelection = {};
-    if (ids.length) {
-      nodeSelection = this.state.selectedNodeIds;
-      _.each(ids, (id) => {
-        if (checked) {
-          nodeSelection[id] = true;
-        } else {
-          delete nodeSelection[id];
-        }
-      });
-    }
-    this.setState({selectedNodeIds: nodeSelection});
+  selectNodes(selectedNodeIds) {
+    this.setState({selectedNodeIds});
+  },
+  updateUISettings(name, value) {
+    var uiSettings = this.props.fuelSettings.get('ui_settings');
+    uiSettings[name] = value;
+    this.props.fuelSettings.save(null, {patch: true, wait: true, validate: false});
   },
   render() {
-    var roles = new models.Roles();
-    this.props.clusters.each((cluster) => {
-      roles.add(
-        cluster.get('roles').filter((role) => !roles.some({name: role.get('name')}))
-      );
-    });
     return (
       <div className='equipment-page'>
         <div className='page-title'>
@@ -116,18 +112,13 @@ EquipmentPage = React.createClass({
         </div>
         <div className='content-box'>
           <PluginLinks links={this.props.links} />
-          <NodeListScreen {...this.props}
+          <NodeListScreenWrapper
             ref='screen'
+            {...this.props}
             selectedNodeIds={this.state.selectedNodeIds}
             selectNodes={this.selectNodes}
-            roles={roles}
-            sorters={models.Nodes.prototype.sorters}
-            defaultSorting={[{status: 'asc'}]}
-            filters={models.Nodes.prototype.filters}
-            statusesToFilter={models.Node.prototype.statuses}
-            defaultFilters={{status: []}}
+            updateUISettings={this.updateUISettings}
             showBatchActionButtons={false}
-            saveUISettings
           />
         </div>
       </div>
