@@ -18,11 +18,18 @@ import _ from 'underscore';
 import React from 'react';
 import utils from 'utils';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {
+  nodeListMixin, roleManagementMixin
+} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_mixin';
 
 var EditNodesScreen = React.createClass({
+  mixins: [
+    nodeListMixin,
+    roleManagementMixin
+  ],
   statics: {
     fetchData(options) {
-      var cluster = options.cluster;
+      var {cluster} = options;
       var nodes = utils.getNodeListFromTabOptions(options);
 
       if (!nodes) {
@@ -36,19 +43,30 @@ var EditNodesScreen = React.createClass({
       nodes.parse = function() {
         return this.getByIds(nodes.map('id'));
       };
-      return $.when(options.cluster.get('roles').fetch(),
-        cluster.get('settings').fetch({cache: true})).then(() => ({nodes}));
+      return $.when(
+        cluster.get('roles').fetch(),
+        cluster.get('settings').fetch({cache: true})
+      ).then(() => ({nodes}));
     }
+  },
+  getInitialState() {
+    return _.extend({}, this.getNodeListStates(), this.getRoleStates());
+  },
+  getDefaultProps() {
+    return {
+      defaultFilters: {},
+      defaultSorting: [{roles: 'asc'}]
+    };
   },
   render() {
     return (
       <NodeListScreen
         {... _.omit(this.props, 'screenOptions')}
+        {... this.getNodeListProps()}
+        {... this.getRoleProps()}
         ref='screen'
         mode='edit'
-        roles={this.props.cluster.get('roles')}
         nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
-        defaultSorting={[{roles: 'asc'}]}
       />
     );
   }

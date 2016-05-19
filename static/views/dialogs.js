@@ -25,6 +25,7 @@ import models from 'models';
 import dispatcher from 'dispatcher';
 import {Input, ProgressBar, ProgressButton} from 'views/controls';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {nodeListMixin} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_mixin';
 import {backboneMixin, renamingMixin} from 'component_mixins';
 import LinkedStateMixin from 'react-addons-linked-state-mixin';
 import SettingSection from 'views/cluster_page_tabs/setting_section';
@@ -669,18 +670,31 @@ export var DeployNodesDialog = React.createClass({
 });
 
 export var SelectNodesDialog = React.createClass({
-  mixins: [dialogMixin],
+  mixins: [
+    dialogMixin,
+    nodeListMixin
+  ],
   getInitialState() {
     var selectedNodeIds = {};
     _.each(this.props.selectedNodeIds, (id) => {
       selectedNodeIds[id] = true;
     });
-    return {selectedNodeIds};
+    return _.extend({selectedNodeIds}, this.getNodeListStates());
   },
   getDefaultProps() {
+    // FIXME(jaranovich): restore commented code
+    // why models is undefined here ??
     return {
       title: i18n('dialog.select_nodes.title'),
-      modalClass: 'select-nodes-dialog'
+      modalClass: 'select-nodes-dialog',
+      defaultFilters: {roles: [], status: []},
+      //statusesToFilter: models.Node.prototype.statuses,
+      statusesToFilter: ['discover', 'offline', 'error'],
+      //availableFilters: _.without(models.Nodes.prototype.filters, 'cluster'),
+      availableFilters: ['status', 'roles', 'hdd'],
+      defaultSorting: [{roles: 'asc'}],
+      //availableSorters: _.without(models.Nodes.prototype.sorters, 'cluster')
+      availableSorters: ['status', 'roles', 'manufacturer']
     };
   },
   ns: 'dialog.select_nodes.',
@@ -701,20 +715,16 @@ export var SelectNodesDialog = React.createClass({
   },
   renderBody() {
     return <NodeListScreen
-      statusesToFilter={models.Node.prototype.statuses}
       {...this.props}
+      {... this.getNodeListProps()}
       ref='screen'
       mode='list'
       selectedNodeIds={this.state.selectedNodeIds}
       selectNodes={this.selectNodes}
-      sorters={_.without(models.Nodes.prototype.sorters, 'cluster')}
-      defaultSorting={[{roles: 'asc'}]}
-      filters={_.without(models.Nodes.prototype.filters, 'cluster')}
-      defaultFilters={{roles: [], status: []}}
       showBatchActionButtons={false}
-      showLabeManagementButton={false}
-      showViewModeButtons={false}
+      showLabelManagementButton={false}
       nodeActionsAvailable={false}
+      showViewModeButtons={false}
       viewMode='compact'
     />;
   },
