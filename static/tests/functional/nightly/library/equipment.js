@@ -193,6 +193,75 @@ EquipmentLib.prototype = {
       .assertElementNotExists(this.publicIpSelector,
         '"Public IP" field for "' + nodeName + '" node not exists')
       .then(() => this.modal.close());
+  },
+  activateFiltering() {
+    var btnFilteringSelector = '.btn-filters';
+    var filterPaneSelector = 'div.filters';
+    return this.remote
+      .assertElementsExist(btnFilteringSelector, '"Filter Nodes" button exists')
+      .clickByCssSelector(btnFilteringSelector)
+      .assertElementsAppear(filterPaneSelector, 500, '"Filter" pane is appears');
+  },
+  setFilterByStatus(statusArray) {
+    var filterSelector = 'div.filter-by-status ';
+    var btnDefaultSelector = '.btn-default';
+    var filterPopover = 'div.popover';
+    var chain = this.remote;
+
+    chain = chain.assertElementsExist(filterSelector, 'Filter sorting block is observed')
+    .assertElementContainsText(filterSelector + btnDefaultSelector, 'Status',
+      'Filter by status is default')
+    .clickByCssSelector(filterSelector + btnDefaultSelector)
+    .assertElementsAppear(filterPopover, 500, '"Status" filter popover is appears');
+    for (let i = 0; i < statusArray.length; i++) {
+      chain = chain.clickByCssSelector(statusArray[i]);
+    }
+    chain = chain.assertElementsAppear(filterSelector, 1000, 'Filter by status is appears');
+    return chain;
+  },
+  deactivateFiltering() {
+    var btnResetFiltersSelector = '.btn-reset-filters';
+    return this.remote
+      .assertElementsExist(btnResetFiltersSelector, '"Reset Filters" button exists')
+      .clickByCssSelector(btnResetFiltersSelector)
+      .assertElementDisappears(btnResetFiltersSelector, 1000, '"Reset Filters" button disappears');
+  },
+  activateSorting() {
+    var btnSortingSelector = '.btn-sorters';
+    var sortPaneSelector = 'div.sorters';
+    return this.remote
+      .assertElementsExist(btnSortingSelector, '"Sort Nodes" button exists')
+      .clickByCssSelector(btnSortingSelector)
+      .assertElementsAppear(sortPaneSelector, 500, '"Sort" pane appears');
+  },
+  activateQuickSearch() {
+    var btnQuickSearchSelector = '.btn-search';
+    var txtSearchSelector = 'input[name="search"]';
+    return this.remote
+      .assertElementsExist(btnQuickSearchSelector, '"Quick Search" button exists')
+      .clickByCssSelector(btnQuickSearchSelector)
+      .assertElementsAppear(txtSearchSelector, 500, 'Textfield for search value appears');
+  },
+  checkQuickSearch(nodeSelector, totalNodes, nameSelector, searchName, searchValue, notClean) {
+    var btnClearSelector = 'button.btn-clear-search';
+    var txtSearchSelector = 'input[name="search"]';
+    var chain = this.remote;
+
+    chain = chain.assertElementsExist(txtSearchSelector, 'Textfield for search value exists')
+    .setInputValue(txtSearchSelector, searchValue)
+    .sleep(500)
+    .assertElementsExist(nodeSelector, 1, 'Only one node with correct name "' +
+      searchName + '" is observed')
+    .assertElementTextEquals(nameSelector, searchName, 'Only one node with correct name "' +
+      searchName + '" is observed');
+    if (!notClean) {
+      chain = chain.assertElementsExist(btnClearSelector, '"Clear Search" button exists')
+      .clickByCssSelector(btnClearSelector)
+      .assertElementsExist(nodeSelector, totalNodes, 'Default nodes quantity is observed')
+      .assertElementPropertyEquals(txtSearchSelector, 'value', '',
+        'Textfield for search value is cleared');
+    }
+    return chain;
   }
 };
 
