@@ -13,25 +13,39 @@
  * License for the specific language governing permissions and limitations
  * under the License.
 **/
+import $ from 'jquery';
 import _ from 'underscore';
 import React from 'react';
-import models from 'models';
-import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {NODE_STATUSES, NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
+import NodeListScreenWrapper from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 
 var ClusterNodesScreen = React.createClass({
+  statics: {
+    fetchData({cluster}) {
+      return $.Deferred().resolve().then(() => ({
+        nodes: cluster.get('nodes'),
+        uiSettings: cluster.get('ui_settings')
+      }));
+    }
+  },
+  updateUISettings(name, value) {
+    var uiSettings = this.props.cluster.get('ui_settings');
+    uiSettings[name] = value;
+    this.props.cluster.save({ui_settings: uiSettings}, {patch: true, wait: true, validate: false});
+  },
   render() {
-    return <NodeListScreen {... _.omit(this.props, 'screenOptions')}
+    return <NodeListScreenWrapper
       ref='screen'
+      {... _.omit(this.props, 'screenOptions')}
       mode='list'
-      nodes={this.props.cluster.get('nodes')}
       roles={this.props.cluster.get('roles')}
       nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
-      sorters={_.without(models.Nodes.prototype.sorters, 'cluster')}
-      defaultSorting={[{roles: 'asc'}]}
-      filters={_.without(models.Nodes.prototype.filters, 'cluster')}
-      statusesToFilter={_.without(models.Node.prototype.statuses, 'discover')}
+      updateUISettings={this.updateUISettings}
       defaultFilters={{roles: [], status: []}}
-      saveUISettings
+      statusesToFilter={_.without(NODE_STATUSES, 'discover')}
+      availableFilters={_.without(NODE_LIST_FILTERS, 'cluster')}
+      defaultSorting={[{roles: 'asc'}]}
+      availableSorters={_.without(NODE_LIST_SORTERS, 'cluster')}
     />;
   }
 });
