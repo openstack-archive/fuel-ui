@@ -279,8 +279,8 @@
                 "send_statistics_title": "Send Statistics About Usage",
                 "save_changes": "Save Changes",
                 "documentation_link": "Go to Documentation",
-                "documentation_title": "Fuel Documentation",
-                "documentation_text": "The page contains the most recent Fuel documentation. You can read it online or download in PDF."
+                "documentation_title": "OpenStack Documentation",
+                "documentation_text": "The page contains the most recent OpenStack documentation."
             },
             "release_page": {
                 "title": "Releases",
