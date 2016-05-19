@@ -15,23 +15,43 @@
 **/
 import _ from 'underscore';
 import React from 'react';
-import models from 'models';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {nodeListMixin} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_mixin';
+import {
+  NODE_STATUSES, NODE_LIST_SORTERS, NODE_LIST_FILTERS
+} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen_objects';
 
 var ClusterNodesScreen = React.createClass({
+  mixins: [nodeListMixin],
+  getInitialState() {
+    return this.getNodeListStates(
+      this.props.cluster.get('nodes'),
+      this.props.cluster.get('ui_settings')
+    );
+  },
+  getDefaultProps() {
+    return {
+      defaultFilters: {roles: [], status: []},
+      statusesToFilter: _.without(NODE_STATUSES, 'discover'),
+      availableFilters: _.without(NODE_LIST_FILTERS, 'cluster'),
+      defaultSorting: [{roles: 'asc'}],
+      availableSorters: _.without(NODE_LIST_SORTERS, 'cluster')
+    };
+  },
+  updateUISettings() {
+    return this.props.updateUISettings(...arguments);
+  },
   render() {
-    return <NodeListScreen {... _.omit(this.props, 'screenOptions')}
+    var {cluster} = this.props;
+    var nodes = cluster.get('nodes');
+    return <NodeListScreen
       ref='screen'
+      {... _.omit(this.props, 'screenOptions', 'updateUISettings')}
+      {... this.getNodeListProps(nodes)}
       mode='list'
-      nodes={this.props.cluster.get('nodes')}
-      roles={this.props.cluster.get('roles')}
-      nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
-      sorters={_.without(models.Nodes.prototype.sorters, 'cluster')}
-      defaultSorting={[{roles: 'asc'}]}
-      filters={_.without(models.Nodes.prototype.filters, 'cluster')}
-      statusesToFilter={_.without(models.Node.prototype.statuses, 'discover')}
-      defaultFilters={{roles: [], status: []}}
-      saveUISettings
+      nodes={nodes}
+      roles={cluster.get('roles')}
+      nodeNetworkGroups={cluster.get('nodeNetworkGroups')}
     />;
   }
 });

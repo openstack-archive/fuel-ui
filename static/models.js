@@ -435,19 +435,6 @@ models.Clusters = BaseCollection.extend({
 models.Node = BaseModel.extend({
   constructorName: 'Node',
   urlRoot: '/api/nodes',
-  statuses: [
-    'ready',
-    'pending_addition',
-    'pending_deletion',
-    'provisioned',
-    'provisioning',
-    'deploying',
-    'stopped',
-    'discover',
-    'error',
-    'offline',
-    'removing'
-  ],
   resource(resourceName) {
     var resource = 0;
     try {
@@ -538,36 +525,6 @@ models.Nodes = BaseCollection.extend({
   model: models.Node,
   url: '/api/nodes',
   comparator: 'id',
-  sorters: [
-    'cluster',
-    'roles',
-    'status',
-    'name',
-    'mac',
-    'ip',
-    'manufacturer',
-    'cores',
-    'ht_cores',
-    'hdd',
-    'disks',
-    'ram',
-    'interfaces',
-    'group_id'
-  ],
-  filters: [
-    'cluster',
-    'roles',
-    'status',
-    'manufacturer',
-    'cores',
-    'ht_cores',
-    'hdd',
-    'disks_amount',
-    'ram',
-    'interfaces',
-    'group_id'
-  ],
-  viewModes: ['standard', 'compact'],
   hasChanges() {
     return _.some(this.invokeMap('hasChanges'));
   },

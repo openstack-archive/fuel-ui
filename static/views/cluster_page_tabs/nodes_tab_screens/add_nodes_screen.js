@@ -18,38 +18,50 @@ import _ from 'underscore';
 import React from 'react';
 import models from 'models';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {
+  nodeListMixin, roleManagementMixin
+} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_mixin';
+import {
+  NODE_LIST_SORTERS, NODE_LIST_FILTERS
+} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen_objects';
 
 var AddNodesScreen = React.createClass({
+  mixins: [
+    nodeListMixin,
+    roleManagementMixin
+  ],
   statics: {
-    fetchData(options) {
+    fetchData({cluster}) {
       var nodes = new models.Nodes();
       nodes.fetch = function(options) {
         return this.constructor.__super__.fetch.call(this, _.extend({data: {cluster_id: ''}},
           options));
       };
-      return $.when(nodes.fetch(), options.cluster.get('roles').fetch(),
-        options.cluster.get('settings').fetch({cache: true})).then(() => ({nodes: nodes}));
+      return $.when(
+        nodes.fetch(),
+        cluster.get('roles').fetch(),
+        cluster.get('settings').fetch({cache: true})
+      ).then(() => ({nodes}));
     }
   },
+  getInitialState() {
+    return _.extend({}, this.getNodeListStates(), this.getRoleStates());
+  },
+  getDefaultProps() {
+    return {
+      statusesToFilter: ['discover', 'error', 'offline', 'removing'],
+      availableFilters: _.without(NODE_LIST_FILTERS, 'cluster', 'roles', 'group_id'),
+      availableSorters: _.without(NODE_LIST_SORTERS, 'cluster', 'roles', 'group_id')
+    };
+  },
   render() {
-    return <NodeListScreen {... _.omit(this.props, 'screenOptions')}
+    return <NodeListScreen
+      {... _.omit(this.props, 'screenOptions')}
+      {... this.getNodeListProps()}
+      {... this.getRoleProps()}
       ref='screen'
       mode='add'
-      roles={this.props.cluster.get('roles')}
       nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
-      sorters={_.without(models.Nodes.prototype.sorters, 'cluster', 'roles', 'group_id')}
-      defaultSorting={[{status: 'asc'}]}
-      filters={_.without(models.Nodes.prototype.filters, 'cluster', 'roles', 'group_id')}
-      statusesToFilter={_.without(models.Node.prototype.statuses,
-        'ready',
-        'pending_addition',
-        'pending_deletion',
-        'provisioned',
-        'provisioning',
-        'deploying',
-        'stopped'
-      )}
-      defaultFilters={{status: []}}
     />;
   }
 });
