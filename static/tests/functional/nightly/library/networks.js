@@ -840,6 +840,23 @@ NetworksLib.prototype = {
           }
         })
         .end();
+  },
+  renameNetworkGroup(oldName, newName) {
+    var oldGroupSelector = 'div[data-name="' + oldName + '"] ';
+    var newGroupSelector = 'div[data-name="' + newName + '"] ';
+    var pencilSelector = oldGroupSelector + 'i.glyphicon-pencil';
+    var renameSelector = oldGroupSelector + 'input[name="new-name"]';
+    return this.remote
+      .assertElementsAppear(pencilSelector, 1000, '"Pencil" icon appears')
+      .clickByCssSelector(pencilSelector)
+      .assertElementAppears(renameSelector, 1000, 'Node network group renaming control appears')
+      .findByCssSelector(renameSelector)
+        .clearValue()
+        .type(newName)
+        .type('\uE007')
+        .end()
+      .assertElementsAppear(newGroupSelector, 1000, 'New network group appears')
+      .assertElementNotExists(oldGroupSelector, 'Old network group is not exist');
   }
 };
 
