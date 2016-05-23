@@ -408,14 +408,16 @@ var ClusterActionsPanel = React.createClass({
           },
           // check if TLS settings are not configured
           function(cluster) {
-            var sslSettings = cluster.get('settings').get('public_ssl');
-            if (!sslSettings.horizon.value && !sslSettings.services.value) {
+            var settings = cluster.get('settings');
+            if (!settings.get('public_ssl')) return {};
+            if (!settings.get('public_ssl.horizon.value') &&
+              !settings.get('public_ssl.services.value')) {
               return {warning: [i18n(ns + 'tls_not_enabled')]};
             }
-            if (!sslSettings.horizon.value) {
+            if (!settings.get('public_ssl.horizon.value')) {
               return {warning: [i18n(ns + 'tls_for_horizon_not_enabled')]};
             }
-            if (!sslSettings.services.value) {
+            if (!settings.get('public_ssl.services.value')) {
               return {warning: [i18n(ns + 'tls_for_services_not_enabled')]};
             }
           },
