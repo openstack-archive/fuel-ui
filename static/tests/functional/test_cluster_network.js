@@ -137,19 +137,7 @@ registerSuite(() => {
         .then(() => networkPage.goToNodeNetworkGroup('default'))
         .then(() => common.addNodesToCluster(2, ['Controller']))
         .then(() => clusterPage.goToTab('Networks'))
-        .setInputValue('.public input[name=gateway]', '172.16.0.2')
         .clickByCssSelector('.subtab-link-network_verification')
-        .clickByCssSelector('.verify-networks-btn')
-        .assertElementAppears('.alert-danger.network-alert', 4000, 'Verification error is shown')
-        .assertElementAppears('.alert-danger.network-alert', 'Address intersection',
-          'Verification result is shown in case of address intersection')
-        // Testing cluster networks: verification task deletion
-        .then(() => networkPage.goToNodeNetworkGroup('default'))
-        .setInputValue('.public input[name=gateway]', '172.16.0.5')
-        .clickByCssSelector('.subtab-link-network_verification')
-        .assertElementNotExists('.page-control-box .alert',
-          'Verification task was removed after settings has been changed')
-        .clickByCssSelector('.btn-revert-changes')
         .clickByCssSelector('.verify-networks-btn')
         .waitForElementDeletion('.animation-box .success.connect-1', 6000)
         .assertElementAppears('.alert-success', 10000, 'Success verification message appears')
