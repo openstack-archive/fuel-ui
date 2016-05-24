@@ -188,8 +188,15 @@ var ClusterPage = React.createClass({
   },
   getInitialState() {
     var tabs = this.constructor.getTabs();
+    var selectedNodes = utils.deserializeTabOptions(this.props.tabOptions[1]).nodes;
     var states = {
-      selectedNodeIds: {},
+      selectedNodeIds: selectedNodes ?
+        _.reduce(selectedNodes.split(','), (result, id) => {
+          result[Number(id)] = true;
+          return result;
+        }, {})
+      :
+        {},
       showAllNetworks: false
     };
     _.each(tabs, (tabData) => {
