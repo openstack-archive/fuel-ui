@@ -629,7 +629,7 @@ registerSuite(() => {
           'Renamed node network group has correct width');
     },
     'User can add and rename new node network group after deployment'() {
-      this.timeout = 60000;
+      this.timeout = 45000;
       var newName = 'Network_Group_1';
       var reName = 'Network_Group_2';
       var netNames = ['new_default', 'fgbhsjdkgbhsdjkbhsdjkbhfjkbhfbjhgjbhsfjgbhsfjgbhsg', reName];
@@ -640,8 +640,8 @@ registerSuite(() => {
         // Precondition
         .then(() => clusterPage.goToTab('Dashboard'))
         .then(() => dashboardPage.startDeployment())
-        .assertElementExists(progressSelector, 'Deployment is started')
-        .waitForElementDeletion(progressSelector, 45000)
+        .assertElementsAppear(progressSelector, 5000, 'Deployment is started')
+        .assertElementDisappears(progressSelector, 30000, 'Deployment is finished')
         .then(() => clusterPage.goToTab('Networks'))
         .then(() => networksLib.selectAllNetworksCheckbox(true))
         // Can add new node network group after deployment
