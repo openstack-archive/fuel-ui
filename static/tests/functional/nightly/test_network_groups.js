@@ -640,8 +640,8 @@ registerSuite(() => {
         // Precondition
         .then(() => clusterPage.goToTab('Dashboard'))
         .then(() => dashboardPage.startDeployment())
-        .assertElementExists(progressSelector, 'Deployment is started')
-        .waitForElementDeletion(progressSelector, 45000)
+        .assertElementsAppear(progressSelector, 5000, 'Deployment is started')
+        .assertElementDisappears(progressSelector, 45000, 'Deployment is finished')
         .then(() => clusterPage.goToTab('Networks'))
         .then(() => networksLib.selectAllNetworksCheckbox(true))
         // Can add new node network group after deployment
