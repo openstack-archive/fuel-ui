@@ -509,7 +509,8 @@ models.Node = BaseModel.extend({
   },
   areInterfacesConfigurable() {
     var status = this.get('status');
-    return status === 'discover' || status === 'error' || status === 'stopped';
+    return status === 'discover' || status === 'error' ||
+    status === 'stopped' || status === 'ready';
   },
   getRolesSummary(releaseRoles) {
     return _.map(this.sortedRoles(releaseRoles.map('name')),
