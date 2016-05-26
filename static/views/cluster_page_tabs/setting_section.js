@@ -178,7 +178,7 @@ var SettingSection = React.createClass({
     // this form of validation isn't supported in Backbone DeepModel
     settings.validationError = null;
     settings.set(utils.makePath(pluginName, 'metadata', 'chosen_id'), Number(version));
-    settings.mergePluginSettings();
+    settings.mergePluginSettings(pluginName);
     settings.isValid({models: this.props.configModels});
     this.props.settingsForChecks.set(_.cloneDeep(settings.attributes));
   },

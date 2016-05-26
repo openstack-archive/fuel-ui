@@ -724,20 +724,33 @@ models.Settings = Backbone.DeepModel
     parse(response) {
       return this.root ? response[this.root] : response;
     },
-    mergePluginSettings() {
-      _.each(this.attributes, (section, sectionName) => {
-        if (this.isPlugin(section)) {
-          var chosenVersionData = section.metadata.versions.find(
-              (version) => version.metadata.plugin_id === section.metadata.chosen_id
-            );
-          // merge metadata of a chosen plugin version
-          _.extend(section.metadata,
-            _.omit(chosenVersionData.metadata, 'plugin_id', 'plugin_version'));
-          // merge settings of a chosen plugin version
-          this.attributes[sectionName] = _.extend(_.pick(section, 'metadata'),
-            _.omit(chosenVersionData, 'metadata'));
-        }
-      });
+    mergePluginSettings(pluginNames) {
+      if (!pluginNames) {
+        pluginNames = _.compact(_.map(this.attributes,
+          (section, sectionName) => this.isPlugin(section) && sectionName
+        ));
+      } else if (_.isString(pluginNames)) {
+        pluginNames = [pluginNames];
+      }
+
+      var mergeSettings = (pluginName) => {
+        var plugin = this.get(pluginName);
+        var chosenVersionData = plugin.metadata.versions.find(
+          (version) => version.metadata.plugin_id === plugin.metadata.chosen_id
+        );
+        // merge metadata of a chosen plugin version
+        _.extend(
+          plugin.metadata,
+          _.omit(chosenVersionData.metadata, 'plugin_id', 'plugin_version')
+        );
+        // merge settings of a chosen plugin version
+        this.attributes[pluginName] = _.extend(
+          _.pick(plugin, 'metadata'),
+          _.omit(chosenVersionData, 'metadata')
+        );
+      };
+
+      _.each(pluginNames, mergeSettings);
     },
     toJSON() {
       var settings = this._super('toJSON', arguments);
@@ -760,7 +773,7 @@ models.Settings = Backbone.DeepModel
       return {[this.root]: settings};
     },
     initialize() {
-      this.once('change', this.mergePluginSettings, this);
+      this.once('change', () => this.mergePluginSettings(), this);
     },
     validate(attrs, options) {
       var errors = {};
@@ -841,23 +854,33 @@ models.Settings = Backbone.DeepModel
       });
       return _.intersection(this.groupList, groups);
     },
-    updateAttributes(settings, models, updateNetworkSettings = false) {
+    updateAttributes(newSettings, models, updateNetworkSettings = false) {
+      this.validationError = null;
       _.each(this.attributes, (section, sectionName) => {
         var isNetworkGroup = section.metadata.group === 'network';
         if (updateNetworkSettings === isNetworkGroup) {
-          _.each(section, (setting, settingName) => {
-            // do not update hidden settings (hack for #1442143)
-            if (setting.type === 'hidden') return;
-
-            if (isNetworkGroup || setting.group !== 'network') {
-              var path = utils.makePath(sectionName, settingName);
-              this.set(path, settings.get(path));
+          if (this.isPlugin(section)) {
+            if (newSettings.get(sectionName)) {
+              var pathToMetadata = utils.makePath(sectionName, 'metadata');
+              _.extend(
+                this.get(pathToMetadata),
+                _.pick(newSettings.get(pathToMetadata), 'enabled', 'chosen_id', 'versions')
+              );
+              this.mergePluginSettings(sectionName);
             }
-          });
+          } else {
+            _.each(section, (setting, settingName) => {
+              // do not update hidden settings (hack for #1442143)
+              if (setting.type === 'hidden') return;
+
+              if (isNetworkGroup || setting.group !== 'network') {
+                var path = utils.makePath(sectionName, settingName);
+                this.set(path, newSettings.get(path));
+              }
+            });
+          }
         }
       });
-
-      this.mergePluginSettings();
       this.isValid({models});
     }
   });
