@@ -18,7 +18,6 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Backbone from 'backbone';
 import models from 'models';
 import utils from 'utils';
 import {dialogMixin} from 'views/dialogs';
@@ -629,7 +628,7 @@ var CreateClusterWizard = React.createClass({
   componentWillMount() {
     this.stopHandlingKeys = false;
 
-    this.wizard = new Backbone.DeepModel();
+    this.wizard = new models.Wizard();
     this.settings = new models.Settings();
     this.releases = new models.Releases();
     this.cluster = new models.Cluster();

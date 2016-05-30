@@ -23,7 +23,6 @@ import {ModelPath} from 'expression/objects';
 import utils from 'utils';
 import customControls from 'views/custom_controls';
 import {Input} from 'views/controls';
-import 'deep-model';
 
 var models = {};
 
@@ -73,6 +72,270 @@ _.each(collectionMethods, (method) => {
 var BaseModel = models.BaseModel = Backbone.Model.extend(superMixin);
 var BaseCollection = models.BaseCollection =
   Backbone.Collection.extend(collectionMixin).extend(superMixin);
+
+var objToPaths = function(obj) {
+  var ret = {};
+  _.each(obj, (val, key) => {
+    if (val && val.constructor === Object && !_.isEmpty(val)) {
+      //Recursion for embedded objects
+      var obj2 = objToPaths(val);
+      _.each(obj2, (val2, key2) => {
+        ret[key + '.' + key2] = val2;
+      });
+    } else {
+      ret[key] = val;
+    }
+  });
+  return ret;
+};
+
+var deepExtendCouple = function(destination, source, maxDepth) {
+  var basicObjects = (object) => _.filter(_.keys(object), (key) => _.isPlainObject(object[key]));
+  var arrays = (object) => _.filter(_.keys(object), (key) => _.isArray(object[key]));
+
+  if (maxDepth === null) maxDepth = 20;
+  if (maxDepth <= 0) return _.extend(destination, source);
+
+  var sharedObjectKeys = _.intersection(basicObjects(destination), basicObjects(source));
+  var recurse = (key) =>
+    source[key] = deepExtendCouple(destination[key], source[key], maxDepth - 1);
+  for (var _i = 0; _i < sharedObjectKeys.length; _i++) {
+    var sharedObjectKey = sharedObjectKeys[_i];
+    recurse(sharedObjectKey);
+  }
+
+  var sharedArrayKeys = _.intersection(arrays(destination), arrays(source));
+  var combine = (key) => source[key] = _.union(destination[key], source[key]);
+  for (var _j = 0; _j < sharedArrayKeys.length; _j++) {
+    var sharedArrayKey = sharedArrayKeys[_j];
+    combine(sharedArrayKey);
+  }
+  return _.extend(destination, source);
+};
+
+var deepExtend = function() {
+  var argCount = 0;
+  var objects = arguments.length >= 2 ? _.slice(arguments, 0, argCount = arguments.length - 1) : [];
+  var maxDepth = arguments[argCount++];
+
+  if (!_.isNumber(maxDepth)) {
+    objects.push(maxDepth);
+    maxDepth = 20;
+  }
+  if (objects.length <= 1) return objects[0];
+  if (maxDepth <= 0) _.extend.apply(this, objects);
+
+  var finalObj = objects.shift();
+  while (objects.length > 0) {
+    finalObj = deepExtendCouple(finalObj, _.cloneDeep(objects.shift()), maxDepth);
+  }
+  return finalObj;
+};
+
+var setNested = function(result, path, val) {
+  var fields = path.split('.');
+  var fieldslength = fields.length;
+  for (var i = 0; i < fieldslength && result !== undefined; i++) {
+    var field = fields[i];
+
+    //If the last in the path, set the value
+    if (i === fieldslength - 1) {
+      result[field] = val;
+    } else {
+      //Create the child object if it doesn't exist, or isn't an object
+      if (typeof result[field] === 'undefined' || !_.isObject(result[field])) {
+        result[field] = {};
+      }
+      //Move onto the next part of the path
+      result = result[field];
+    }
+  }
+};
+
+//based on https://github.com/powmedia/backbone-deep-model
+var DeepModel = Backbone.Model.extend({
+  // Override constructor
+  // Support having nested defaults by using _.deepExtend instead of _.extend
+  constructor(attributes, options) {
+    var attrs = attributes || {};
+    this.cid = _.uniqueId('c');
+    this.attributes = {};
+    if (options && options.collection) this.collection = options.collection;
+    if (options && options.parse) attrs = this.parse(attrs, options) || {};
+    var defaults = _.result(this, 'defaults');
+    //<custom code>
+    // Replaced the call to _.defaults with _.deepExtend.
+    attrs = deepExtend({}, defaults, attrs);
+    //</custom code>
+    this.set(attrs, options);
+    this.changed = {};
+    this.initialize(...arguments);
+  },
+
+  // Return a copy of the model's `attributes` object.
+  toJSON() {
+    return _.cloneDeep(this.attributes);
+  },
+
+  // Override get
+  // Supports nested attributes via the syntax 'obj.attr' e.g. 'author.user.name'
+  get(attr) {
+    return _.get(this.attributes, attr);
+  },
+
+  // Override set
+  // Supports nested attributes via the syntax 'obj.attr' e.g. 'author.user.name'
+  set(key, val, options) {
+    if (key === null) return this;
+
+    // Handle both `"key", value` and `{key: value}` -style arguments.
+    var attrs;
+    if (typeof key === 'object') {
+      attrs = key;
+      options = val || {};
+    } else {
+      (attrs = {})[key] = val;
+    }
+
+    options = options || {};
+
+    // Run validation.
+    if (!this._validate(attrs, options)) return false;
+
+    // Extract attributes and options.
+    var unset = options.unset;
+    var silent = options.silent;
+    var changes = [];
+    var changing = this._changing;
+    this._changing = true;
+
+    if (!changing) {
+      this._previousAttributes = _.cloneDeep(this.attributes); // Replaced _.clone with _.cloneDeep
+      this.changed = {};
+    }
+
+    var current = this.attributes;
+    var changed = this.changed;
+    var prev = this._previousAttributes;
+
+    // Check for changes of `id`.
+    if (this.idAttribute in attrs) this.id = attrs[this.idAttribute];
+
+    //<custom code>
+    attrs = objToPaths(attrs);
+    //</custom code>
+
+    // For each `set` attribute, update or delete the current value.
+    _.each(attrs, (val, attr) => {
+      //<custom code>: Using _.get, setNested and unset
+      if (!_.isEqual(_.get(current, attr), val)) changes.push(attr);
+      if (!_.isEqual(_.get(prev, attr), val)) {
+        setNested(changed, attr, val);
+      } else {
+        _.unset(changed, attr);
+      }
+      if (unset) {
+        _.unset(current, attr);
+      } else {
+        setNested(current, attr, val);
+      }
+      //</custom code>
+    });
+
+    // Trigger all relevant attribute changes.
+    if (!silent) {
+      if (changes.length) this._pending = true;
+      //<custom code>
+      for (var i = 0; i < changes.length; i++) {
+        var change = changes[i];
+        this.trigger('change:' + change, this, _.get(current, change), options);
+
+        var fields = change.split('.');
+        //Trigger change events for parent keys with wildcard (*) notation
+        for (var n = fields.length - 1; n > 0; n--) {
+          var parentKey = _.take(fields, n).join('.');
+          var wildcardKey = parentKey + '.*';
+          this.trigger('change:' + wildcardKey, this, _.get(current, parentKey), options);
+        }
+        //</custom code>
+      }
+    }
+
+    if (changing) return this;
+    if (!silent) {
+      while (this._pending) {
+        this._pending = false;
+        this.trigger('change', this, options);
+      }
+    }
+    this._pending = false;
+    this._changing = false;
+    return this;
+  },
+
+  // Clear all attributes on the model, firing `"change"` unless you choose
+  // to silence it.
+  clear(options) {
+    var attrs = {};
+    var shallowAttributes = objToPaths(this.attributes);
+    _.each(shallowAttributes, (attr, key) => {
+      attrs[key] = undefined;
+    });
+    return this.set(attrs, _.extend({}, options, {unset: true}));
+  },
+
+  // Determine if the model has changed since the last `"change"` event.
+  // If you specify an attribute name, determine if that attribute has changed.
+  hasChanged(attr) {
+    if (attr === null) return !_.isEmpty(this.changed);
+    return _.get(this.changed, attr) !== undefined;
+  },
+
+  // Return an object containing all the attributes that have changed, or
+  // false if there are no changed attributes. Useful for determining what
+  // parts of a view need to be updated and/or what attributes need to be
+  // persisted to the server. Unset attributes will be set to undefined.
+  // You can also pass an attributes object to diff against the model,
+  // determining if there *would be* a change.
+  changedAttributes(diff) {
+    //<custom code>: objToPaths
+    if (!diff) return this.hasChanged() ? objToPaths(this.changed) : false;
+    //</custom code>
+
+    var old = this._changing ? this._previousAttributes : this.attributes;
+
+    //<custom code>
+    diff = objToPaths(diff);
+    old = objToPaths(old);
+    //</custom code>
+
+    var changed = false;
+    _.each(diff, (val, attr) => {
+      if (!_.isEqual(old[attr], val)) {
+        (changed || (changed = {}))[attr] = val;
+      }
+    });
+    return changed;
+  },
+
+  // Get the previous value of an attribute, recorded at the time the last
+  // `"change"` event was fired.
+  previous(attr) {
+    if (attr === null || !this._previousAttributes) return null;
+
+    //<custom code>
+    return _.get(this._previousAttributes, attr);
+    //</custom code>
+  },
+
+  // Get all of the attributes of the model at the time of the previous
+  // `"change"` event.
+  previousAttributes() {
+    //<custom code>
+    return _.cloneDeep(this._previousAttributes);
+    //</custom code>
+  }
+});
 
 var cacheMixin = {
   fetch(options) {
@@ -704,7 +967,7 @@ models.Notifications = BaseCollection.extend({
   }
 });
 
-models.Settings = Backbone.DeepModel
+models.Settings = DeepModel
   .extend(superMixin)
   .extend(cacheMixin)
   .extend(restrictionMixin)
@@ -952,7 +1215,7 @@ models.Volumes = BaseCollection.extend({
   url: '/api/volumes/'
 });
 
-models.Interface = Backbone.DeepModel
+models.Interface = DeepModel
   .extend(superMixin)
   .extend({
     constructorName: 'Interface',
@@ -1569,69 +1832,8 @@ models.CapacityLog = BaseModel.extend({
   urlRoot: '/api/capacity'
 });
 
-models.WizardModel = Backbone.DeepModel.extend({
-  constructorName: 'WizardModel',
-  parseConfig(config) {
-    var result = {};
-    _.each(config, (paneConfig, paneName) => {
-      result[paneName] = {};
-      _.each(paneConfig, (attributeConfig, attribute) => {
-        var attributeConfigValue = attributeConfig.value;
-        if (_.isUndefined(attributeConfigValue)) {
-          switch (attributeConfig.type) {
-            case 'checkbox':
-              attributeConfigValue = false;
-              break;
-            case 'radio':
-              attributeConfigValue = _.first(attributeConfig.values).data;
-              break;
-            case 'password':
-            case 'text':
-              attributeConfigValue = '';
-              break;
-          }
-        }
-        result[paneName][attribute] = attributeConfigValue;
-      });
-    });
-    return result;
-  },
-  processConfig(config) {
-    this.set(this.parseConfig(config));
-  },
-  restoreDefaultValues(panesToRestore) {
-    var result = {};
-    _.each(this.defaults, (paneConfig, paneName) => {
-      if (_.includes(panesToRestore, paneName)) {
-        result[paneName] = this.defaults[paneName];
-      }
-    });
-    this.set(result);
-  },
-  validate(attrs, options) {
-    var errors = [];
-    _.each(options.config, (attributeConfig, attribute) => {
-      if (!(attributeConfig.regex && attributeConfig.regex.source)) return;
-      // this probably will be changed when other controls need validation
-      var hasNoSatisfiedRestrictions = _.every(
-        _.reject(attributeConfig.restrictions, {action: 'none'}),
-        (restriction) => (new Expression(restriction.condition, {default: this})).evaluate()
-      );
-      if (hasNoSatisfiedRestrictions) {
-        var regExp = new RegExp(attributeConfig.regex.source);
-        if (!this.get(options.paneName + '.' + attribute).match(regExp)) {
-          errors.push({
-            field: attribute,
-            message: i18n(attributeConfig.regex.error)
-          });
-        }
-      }
-    });
-    return errors.length ? errors : null;
-  },
-  initialize(config) {
-    this.defaults = this.parseConfig(config);
-  }
+models.Wizard = DeepModel.extend({
+  constructorName: 'Wizard'
 });
 
 models.NodeNetworkGroup = BaseModel.extend({
