@@ -24,7 +24,7 @@ import {ModelPath} from 'expression/objects';
 import utils from 'utils';
 import customControls from 'views/custom_controls';
 import {Input} from 'views/controls';
-import 'deep-model';
+import deepModelMixin from 'deep_model_mixin';
 
 var models = {};
 
@@ -705,8 +705,8 @@ models.Notifications = BaseCollection.extend({
   }
 });
 
-models.Settings = Backbone.DeepModel
-  .extend(superMixin)
+models.Settings = BaseModel
+  .extend(deepModelMixin)
   .extend(cacheMixin)
   .extend(restrictionMixin)
   .extend({
@@ -987,8 +987,8 @@ models.Volumes = BaseCollection.extend({
   url: '/api/volumes/'
 });
 
-models.Interface = Backbone.DeepModel
-  .extend(superMixin)
+models.Interface = BaseModel
+  .extend(deepModelMixin)
   .extend({
     constructorName: 'Interface',
     parse(response) {
