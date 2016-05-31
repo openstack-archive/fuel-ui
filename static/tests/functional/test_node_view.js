@@ -87,10 +87,8 @@ registerSuite(() => {
       return this.remote
         // switch to compact view mode
         .clickByCssSelector('label.compact')
-        .findByCssSelector('.compact-node div.node-checkbox')
-          .click()
-          .assertElementExists('i.glyphicon-ok', 'Self node is selectable')
-          .end()
+        .clickByCssSelector('.compact-node')
+        .assertElementExists('.compact-node i.glyphicon-ok', 'Self node is selectable')
         .clickByCssSelector('.compact-node .node-name p')
         .assertElementNotExists('.compact-node .node-name-input',
           'Node can not be renamed from compact panel')
