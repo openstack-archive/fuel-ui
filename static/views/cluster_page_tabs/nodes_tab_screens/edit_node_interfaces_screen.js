@@ -1141,7 +1141,7 @@ var NodeInterface = React.createClass({
       case 'mtu':
         return (
           <Input
-            type='number'
+            type='text'
             min={42}
             max={65536}
             label={i18n(ns + 'mtu')}
