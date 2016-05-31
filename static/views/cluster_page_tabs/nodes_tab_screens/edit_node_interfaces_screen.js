@@ -1016,7 +1016,7 @@ var NodeInterface = React.createClass({
   },
   renderConfigurableAttributes() {
     var ifc = this.props.interface;
-    var limitations = this.props.limitations;
+    var {limitations} = this.props;
     var ifcProperties = ifc.get('interface_properties');
     var errors = (this.props.errors || {}).interface_properties;
     var offloadingModes = ifc.get('offloading_modes') || [];
@@ -1028,6 +1028,8 @@ var NodeInterface = React.createClass({
       'property-item-container': true,
       active: !collapsed && activeInterfaceSectionName === renderableIfcProperties[0]
     };
+    var isMassConfiguration = !!this.props.nodes.length;
+    var isBond = ifc.isBond();
     return (
       <div className='properties-list'>
         <span className={utils.classNames(offloadingTabClasses)}>
@@ -1056,7 +1058,7 @@ var NodeInterface = React.createClass({
             limitations, propertyName,
             {equal: true, shown: true}
           );
-          var propertyShown = !equal || shown;
+          var propertyShown = (!equal && isMassConfiguration && !isBond) || (equal && shown);
 
           if (_.isPlainObject(propertyValue) && !propertyShown) return null;
 
@@ -1077,6 +1079,7 @@ var NodeInterface = React.createClass({
               case 'sriov':
               case 'dpdk':
                 return (
+                // return ((isMassConfiguration || (equal && shown)) &&
                   <span key={propertyName} className={utils.classNames(classes)}>
                     {!equal && this.renderLockTooltip(propertyName)}
                     {i18n(ns + propertyName) + ':'}
@@ -1088,7 +1091,6 @@ var NodeInterface = React.createClass({
                           i18n('common.disabled')
                        :
                        i18n(ns + 'different_availability')
-
                       }
                     </button>
                   </span>
