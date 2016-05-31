@@ -24,7 +24,8 @@ import dispatcher from 'dispatcher';
 import Expression from 'expression';
 import OffloadingModes from 'views/cluster_page_tabs/nodes_tab_screens/offloading_modes_control';
 import {Input, Tooltip} from 'views/controls';
-import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
+import {unsavedChangesMixin} from 'component_mixins';
+import backboneMixin from 'react_backbone_mixin';
 import {DragSource, DropTarget} from 'react-dnd';
 import ReactDOM from 'react-dom';
 

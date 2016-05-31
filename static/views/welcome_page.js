@@ -16,7 +16,7 @@
 import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
-import {backboneMixin} from 'component_mixins';
+import backboneMixin from 'react_backbone_mixin';
 import statisticsMixin from 'views/statistics_mixin';
 
 var WelcomePage = React.createClass({

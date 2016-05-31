@@ -21,7 +21,8 @@ import Backbone from 'backbone';
 import React from 'react';
 import utils from 'utils';
 import models from 'models';
-import {backboneMixin, pollingMixin, dispatcherMixin} from 'component_mixins';
+import {pollingMixin, dispatcherMixin} from 'component_mixins';
+import backboneMixin from 'react_backbone_mixin';
 import {Popover} from 'views/controls';
 import {ChangePasswordDialog, ShowNodeInfoDialog} from 'views/dialogs';
 

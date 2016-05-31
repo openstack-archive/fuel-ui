@@ -21,9 +21,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import dispatcher from 'dispatcher';
 import {DiscardSettingsChangesDialog} from 'views/dialogs';
-import 'react.backbone';
-
-export var backboneMixin = React.BackboneMixin;
 
 export function dispatcherMixin(events, callback) {
   return {

@@ -21,7 +21,8 @@ import React from 'react';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
-import {backboneMixin, pollingMixin} from 'component_mixins';
+import {pollingMixin} from 'component_mixins';
+import backboneMixin from 'react_backbone_mixin';
 import CreateClusterWizard from 'views/wizard';
 
 var ClustersPage, ClusterList, Cluster;

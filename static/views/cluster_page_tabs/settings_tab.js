@@ -19,7 +19,8 @@ import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
 import models from 'models';
-import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
+import {unsavedChangesMixin} from 'component_mixins';
+import backboneMixin from 'react_backbone_mixin';
 import SettingSection from 'views/cluster_page_tabs/setting_section';
 import CSSTransitionGroup from 'react-addons-transition-group';
 
