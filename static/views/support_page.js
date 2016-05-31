@@ -19,7 +19,8 @@ import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
 import models from 'models';
-import {backboneMixin, pollingMixin, unsavedChangesMixin} from 'component_mixins';
+import {pollingMixin, unsavedChangesMixin} from 'component_mixins';
+import backboneMixin from 'react_backbone_mixin';
 import statisticsMixin from 'views/statistics_mixin';
 
 var SupportPage = React.createClass({

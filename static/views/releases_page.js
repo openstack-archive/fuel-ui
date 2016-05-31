@@ -17,7 +17,7 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import {Table} from 'views/controls';
-import {backboneMixin} from 'component_mixins';
+import backboneMixin from 'react_backbone_mixin';
 
 var ReleasesPage = React.createClass({
   mixins: [backboneMixin('releases')],

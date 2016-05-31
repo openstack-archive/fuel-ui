@@ -23,7 +23,8 @@ import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
 import {CreateNodeNetworkGroupDialog, RemoveNodeNetworkGroupDialog} from 'views/dialogs';
-import {backboneMixin, dispatcherMixin, unsavedChangesMixin, renamingMixin} from 'component_mixins';
+import {dispatcherMixin, unsavedChangesMixin, renamingMixin} from 'component_mixins';
+import backboneMixin from 'react_backbone_mixin';
 import {Input, RadioGroup, Table, Popover, Tooltip} from 'views/controls';
 import customControls from 'views/custom_controls';
 import SettingSection from 'views/cluster_page_tabs/setting_section';
@@ -561,8 +562,7 @@ var NetworkTab = React.createClass({
     backboneMixin({
       modelOrCollection(props) {
         return props.cluster.get('networkConfiguration').get('networking_parameters');
-      },
-      renderOn: 'change'
+      }
     }),
     backboneMixin({
       modelOrCollection(props) {

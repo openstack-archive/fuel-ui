@@ -18,7 +18,8 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import models from 'models';
-import {backboneMixin, pollingMixin} from 'component_mixins';
+import {pollingMixin} from 'component_mixins';
+import backboneMixin from 'react_backbone_mixin';
 import {ProgressBar, Table} from 'views/controls';
 
 var CapacityPage = React.createClass({

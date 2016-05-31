@@ -24,7 +24,8 @@ import models from 'models';
 import dispatcher from 'dispatcher';
 import {Input, Popover, Tooltip} from 'views/controls';
 import {DeleteNodesDialog} from 'views/dialogs';
-import {backboneMixin, pollingMixin, dispatcherMixin, unsavedChangesMixin} from 'component_mixins';
+import {pollingMixin, dispatcherMixin, unsavedChangesMixin} from 'component_mixins';
+import backboneMixin from 'react_backbone_mixin';
 import Node from 'views/cluster_page_tabs/nodes_tab_screens/node';
 
 var NodeListScreen, MultiSelectControl, NumberRangeControl, ManagementPanel,

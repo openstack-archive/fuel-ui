@@ -27,7 +27,8 @@ import {
   DeployNodesDialog, RemoveClusterDialog, ResetEnvironmentDialog, StopDeploymentDialog,
   SelectNodesDialog
 } from 'views/dialogs';
-import {backboneMixin, pollingMixin, renamingMixin} from 'component_mixins';
+import {pollingMixin, renamingMixin} from 'component_mixins';
+import backboneMixin from 'react_backbone_mixin';
 
 var ns = 'cluster_page.dashboard_tab.';
 
@@ -56,7 +57,7 @@ var DashboardTab = React.createClass({
     backboneMixin({
       modelOrCollection: (props) => props.cluster.get('deployedNetworkConfiguration')
     }),
-    backboneMixin('cluster', 'change'),
+    backboneMixin('cluster'),
     pollingMixin(20, true)
   ],
   statics: {

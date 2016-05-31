@@ -21,14 +21,15 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import utils from 'utils';
 import models from 'models';
-import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
+import {unsavedChangesMixin} from 'component_mixins';
+import backboneMixin from 'react_backbone_mixin';
 import {Input} from 'views/controls';
 
 var EditNodeDisksScreen = React.createClass({
   mixins: [
     backboneMixin('cluster', 'change:status change:nodes sync'),
     backboneMixin('nodes', 'change sync'),
-    backboneMixin('disks', 'reset change'),
+    backboneMixin('disks'),
     unsavedChangesMixin
   ],
   statics: {

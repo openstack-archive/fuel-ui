@@ -19,7 +19,7 @@ import React from 'react';
 import utils from 'utils';
 import models from 'models';
 import {ShowNodeInfoDialog} from 'views/dialogs';
-import {backboneMixin} from 'component_mixins';
+import backboneMixin from 'react_backbone_mixin';
 
 var NotificationsPage, Notification;
 

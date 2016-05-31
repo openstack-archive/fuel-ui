@@ -24,7 +24,8 @@ import dispatcher from 'dispatcher';
 import Expression from 'expression';
 import OffloadingModes from 'views/cluster_page_tabs/nodes_tab_screens/offloading_modes_control';
 import {Input, Tooltip} from 'views/controls';
-import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
+import {unsavedChangesMixin} from 'component_mixins';
+import backboneMixin from 'react_backbone_mixin';
 import {DragSource, DropTarget} from 'react-dnd';
 import ReactDOM from 'react-dom';
 
@@ -32,9 +33,9 @@ var ns = 'cluster_page.nodes_tab.configure_interfaces.';
 
 var EditNodeInterfacesScreen = React.createClass({
   mixins: [
-    backboneMixin('interfaces', 'change reset update'),
+    backboneMixin('interfaces'),
     backboneMixin('cluster'),
-    backboneMixin('nodes', 'change reset update'),
+    backboneMixin('nodes'),
     unsavedChangesMixin
   ],
   statics: {
