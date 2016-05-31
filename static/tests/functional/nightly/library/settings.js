@@ -47,6 +47,12 @@ SettingsLib.prototype = {
     var repositoriesSelector = 'div.setting-section-repo_setup';
     var kernelSelector = 'div.setting-section-kernel_params';
     var provisionSelector = 'div.setting-section-provision';
+    var repositoriesMessage = RegExp(
+      'Please note: the first repository will be considered the operating system mirror that ' +
+      'will be used during node provisioning[\\s\\S]*To create a local repository mirror on the ' +
+      'Fuel master node, please follow the instructions provided by running "fuel-createmirror ' +
+      '--help" on the Fuel master node[\\s\\S]*Please make sure your Fuel master node has ' +
+      'Internet access to the repository before attempting to create a mirror.', 'i');
     return this.remote
       // Check Access subgroup
       .assertElementsExist(accessSelector, 'Access subgroup exists')
@@ -61,14 +67,7 @@ SettingsLib.prototype = {
       .assertElementsExist(repositoriesSelector, 'Repositories subgroup exists')
       .findByCssSelector(repositoriesSelector)
         .assertElementMatchesRegExp('h3', /Repositories/i, 'Default subgroup name is observed')
-        .assertElementContainsText('span.help-block',
-          'Please note: the first repository will be considered the operating system mirror ' +
-          'that will be used during node provisioning.\nTo create a local repository mirror on ' +
-          'the Fuel master node, please follow the instructions provided by running ' +
-          '"fuel-createmirror --help" on the Fuel master node.\nPlease make sure your Fuel ' +
-          'master node has Internet access to the repository before attempting to create a ' +
-          'mirror.\nFor more details, please refer to the documentation (https://docs.mirantis' +
-          '.com/openstack/fuel/fuel-10.0/operations.html#external-ubuntu-ops).',
+        .assertElementMatchesRegExp('span.help-block', repositoriesMessage,
           'Default subgroup description is observed')
         .assertElementsExist('div.repo-name', 8,
           'Default quantity of Name textfields is observed')

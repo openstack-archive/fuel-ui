@@ -225,18 +225,17 @@ NetworksLib.prototype = {
         '"Floating network name" textfield enabled')
       .end()
     .findByCssSelector('div.form-internal-network')
-      .assertElementTextEquals('h3', 'Internal Network Parameters',
+      .assertElementTextEquals('h3', 'Admin Tenant Network Parameters',
         'Default subgroup name is observed')
       .assertElementContainsText('div.network-description',
-        'The Internal network connects all OpenStack nodes in the environment. All components ' +
-        'of an OpenStack environment communicate with each other using this network',
-        'Default subgroup description is observed')
+        'This Admin Tenant network provides internal network access for instances. It can be ' +
+        'used only by the Admin tenant.', 'Default subgroup description is observed')
       .assertElementEnabled('input[name="internal_cidr"]',
-        '"Internal network CIDR" textfield enabled')
+        '"Admin Tenant network CIDR" textfield enabled')
       .assertElementEnabled('input[name="internal_gateway"]',
-        '"Internal network gateway" textfield enabled')
+        '"Admin Tenant network gateway" textfield enabled')
       .assertElementEnabled('input[name="internal_name"]',
-        '"Internal network name" textfield enabled')
+        '"Admin Tenant network name" textfield enabled')
       .end()
     .findByCssSelector('div.form-dns-nameservers')
       .assertElementTextEquals('h3', 'Guest OS DNS Servers', 'Default subgroup name is observed')
