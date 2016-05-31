@@ -85,9 +85,9 @@ var HealthCheckTab = React.createClass({
 
 var HealthcheckTabContent = React.createClass({
   mixins: [
-    backboneMixin('tests', 'update change'),
-    backboneMixin('testsets', 'update change:checked'),
-    backboneMixin('testruns', 'update change'),
+    backboneMixin('tests'),
+    backboneMixin('testsets'),
+    backboneMixin('testruns'),
     pollingMixin(3)
   ],
   shouldDataBeFetched() {

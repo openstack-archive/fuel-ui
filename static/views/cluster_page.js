@@ -37,8 +37,7 @@ var ClusterPage = React.createClass({
       modelOrCollection: (props) => props.cluster.get('nodes')
     }),
     backboneMixin({
-      modelOrCollection: (props) => props.cluster.get('tasks'),
-      renderOn: 'update change'
+      modelOrCollection: (props) => props.cluster.get('tasks')
     }),
     dispatcherMixin('networkConfigurationUpdated', 'removeFinishedNetworkTasks'),
     dispatcherMixin('deploymentTasksUpdated', 'removeFinishedDeploymentTasks'),

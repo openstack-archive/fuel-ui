@@ -32,7 +32,7 @@ export var Navbar = React.createClass({
     backboneMixin('user'),
     backboneMixin('version'),
     backboneMixin('statistics'),
-    backboneMixin('notifications', 'update change:status'),
+    backboneMixin('notifications'),
     pollingMixin(20)
   ],
   togglePopover(popoverName) {

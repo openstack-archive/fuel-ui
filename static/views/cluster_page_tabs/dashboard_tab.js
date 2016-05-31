@@ -36,16 +36,13 @@ var DashboardTab = React.createClass({
     // this is needed to somehow handle the case when verification
     // is in progress and user pressed Deploy
     backboneMixin({
-      modelOrCollection: (props) => props.cluster.get('tasks'),
-      renderOn: 'update change'
+      modelOrCollection: (props) => props.cluster.get('tasks')
     }),
     backboneMixin({
-      modelOrCollection: (props) => props.cluster.get('nodes'),
-      renderOn: 'update change'
+      modelOrCollection: (props) => props.cluster.get('nodes')
     }),
     backboneMixin({
-      modelOrCollection: (props) => props.cluster.get('pluginLinks'),
-      renderOn: 'update change'
+      modelOrCollection: (props) => props.cluster.get('pluginLinks')
     }),
     backboneMixin({
       modelOrCollection: (props) => props.cluster.get('networkConfiguration')
@@ -56,7 +53,7 @@ var DashboardTab = React.createClass({
     backboneMixin({
       modelOrCollection: (props) => props.cluster.get('deployedNetworkConfiguration')
     }),
-    backboneMixin('cluster', 'change'),
+    backboneMixin('cluster'),
     pollingMixin(20, true)
   ],
   statics: {

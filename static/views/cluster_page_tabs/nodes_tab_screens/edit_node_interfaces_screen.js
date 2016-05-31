@@ -32,9 +32,9 @@ var ns = 'cluster_page.nodes_tab.configure_interfaces.';
 
 var EditNodeInterfacesScreen = React.createClass({
   mixins: [
-    backboneMixin('interfaces', 'change reset update'),
+    backboneMixin('interfaces'),
     backboneMixin('cluster'),
-    backboneMixin('nodes', 'change reset update'),
+    backboneMixin('nodes'),
     unsavedChangesMixin
   ],
   statics: {

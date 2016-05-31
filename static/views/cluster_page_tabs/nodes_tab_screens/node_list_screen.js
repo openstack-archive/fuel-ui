@@ -100,7 +100,7 @@ NodeListScreen = React.createClass({
   mixins: [
     pollingMixin(20, true),
     backboneMixin('cluster', 'change:status'),
-    backboneMixin('nodes', 'update change'),
+    backboneMixin('nodes'),
     backboneMixin({
       modelOrCollection: (props) => props.cluster && props.cluster.get('tasks'),
       renderOn: 'update change:status'

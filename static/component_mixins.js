@@ -21,9 +21,61 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import dispatcher from 'dispatcher';
 import {DiscardSettingsChangesDialog} from 'views/dialogs';
-import 'react.backbone';
 
-export var backboneMixin = React.BackboneMixin;
+// Based on https://github.com/clayallsopp/react.backbone
+export var backboneMixin = (options, customChangeOptions) => {
+  var modelOrCollection;
+  if (_.isPlainObject(options)) {
+    customChangeOptions = options.renderOn;
+    modelOrCollection = options.modelOrCollection;
+  } else {
+    modelOrCollection = (props) => props[options];
+  }
+
+  var subscribe = function(component, modelOrCollection, customChangeOptions) {
+    if (!modelOrCollection) return;
+
+    var updateScheduler = modelOrCollection instanceof Backbone.Collection ?
+      (func) => _.debounce(func, 0, {leading: true, trailing: true}) : _.identity;
+
+    var triggerUpdate = updateScheduler(() => {
+      if (component.isMounted()) {
+        (component.onModelChange || component.forceUpdate).call(component);
+      }
+    });
+
+    var changeOptions = customChangeOptions ||
+      component.changeOptions ||
+      (modelOrCollection instanceof Backbone.Collection ? 'update reset change sort' : 'change');
+    modelOrCollection.on(changeOptions, triggerUpdate, component);
+  };
+
+  var unsubscribe = (component, modelOrCollection) => {
+    if (!modelOrCollection) return;
+    modelOrCollection.off(null, null, component);
+  };
+
+  return {
+    componentDidMount() {
+      subscribe(this, modelOrCollection(this.props), customChangeOptions);
+    },
+    componentWillReceiveProps(nextProps) {
+      if (modelOrCollection(this.props) === modelOrCollection(nextProps)) return;
+
+      unsubscribe(this, modelOrCollection(this.props));
+      subscribe(this, modelOrCollection(nextProps), customChangeOptions);
+
+      if (_.isFunction(this.componentWillChangeModel)) this.componentWillChangeModel();
+    },
+    componentDidUpdate(prevProps) {
+      if (modelOrCollection(this.props) === modelOrCollection(prevProps)) return;
+      if (_.isFunction(this.componentDidChangeModel)) this.componentDidChangeModel();
+    },
+    componentWillUnmount() {
+      unsubscribe(this, modelOrCollection(this.props));
+    }
+  };
+};
 
 export function dispatcherMixin(events, callback) {
   return {

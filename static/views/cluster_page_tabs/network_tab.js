@@ -555,20 +555,17 @@ var NetworkTab = React.createClass({
     backboneMixin({
       modelOrCollection(props) {
         return props.cluster.get('nodeNetworkGroups');
-      },
-      renderOn: 'change update'
+      }
     }),
     backboneMixin({
       modelOrCollection(props) {
         return props.cluster.get('networkConfiguration').get('networking_parameters');
-      },
-      renderOn: 'change'
+      }
     }),
     backboneMixin({
       modelOrCollection(props) {
         return props.cluster.get('networkConfiguration').get('networks');
-      },
-      renderOn: 'change reset update'
+      }
     }),
     backboneMixin({
       modelOrCollection(props) {

@@ -28,7 +28,7 @@ var EditNodeDisksScreen = React.createClass({
   mixins: [
     backboneMixin('cluster', 'change:status change:nodes sync'),
     backboneMixin('nodes', 'change sync'),
-    backboneMixin('disks', 'reset change'),
+    backboneMixin('disks'),
     unsavedChangesMixin
   ],
   statics: {
