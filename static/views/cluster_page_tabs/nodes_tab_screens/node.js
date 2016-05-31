@@ -139,7 +139,8 @@ var Node = React.createClass({
       renderActionButtons: this.props.renderActionButtons
     });
   },
-  toggleExtendedNodePanel() {
+  toggleExtendedNodePanel(e) {
+    if (e) e.stopPropagation();
     var states = this.state.extendedView ?
       {extendedView: false, isRenaming: false} : {extendedView: true};
     this.setState(states);
@@ -392,22 +393,39 @@ var Node = React.createClass({
   },
   renderCompactNode(options) {
     var {node, checked, onNodeSelection} = this.props;
-    var {ns, status, nodePanelClasses, statusClasses, isSelectable} = options;
+    var {status, nodePanelClasses, statusClasses, isSelectable} = options;
 
     return (
       <div className='compact-node'>
         <div className={utils.classNames(nodePanelClasses)}>
-          <label className='node-box'>
-            <div
-              className='node-box-inner clearfix'
-              onClick={isSelectable && _.partial(onNodeSelection, null, !checked)}
-            >
-              <div className='node-checkbox'>
-                {checked && <i className='glyphicon glyphicon-ok' />}
-              </div>
+          <label
+            className='node-box'
+            onClick={isSelectable && _.partial(onNodeSelection, null, !checked)}
+          >
+            <div>
+              {checked &&
+                <div className='node-checkbox'>
+                  <i className='glyphicon glyphicon-ok' />
+                </div>
+              }
               <div className='node-name'>
                 <p>{node.get('name') || node.get('mac')}</p>
               </div>
+            </div>
+            <div className='node-hardware'>
+              <span>
+                {node.resource('cores')} ({node.resource('ht_cores') || '?'})
+              </span> / <span>
+                {node.resource('hdd') ? utils.showSize(node.resource('hdd')) : '?' +
+                  i18n('common.size.gb')
+                }
+              </span> / <span>
+                {node.resource('ram') ? utils.showSize(node.resource('ram')) : '?' +
+                  i18n('common.size.gb')
+                }
+              </span>
+            </div>
+            <div>
               <div className={utils.classNames(statusClasses)}>
                 {_.includes(['provisioning', 'deploying'], status) ?
                   this.renderNodeProgress()
@@ -415,24 +433,7 @@ var Node = React.createClass({
                   this.renderStatusLabel(status)
                 }
               </div>
-            </div>
-            <div className='node-hardware'>
-              <p>
-                <span>
-                  {node.resource('cores')} ({node.resource('ht_cores') || '?'})
-                </span> / <span>
-                  {node.resource('hdd') ? utils.showSize(node.resource('hdd')) : '?' +
-                    i18n('common.size.gb')
-                  }
-                </span> / <span>
-                  {node.resource('ram') ? utils.showSize(node.resource('ram')) : '?' +
-                    i18n('common.size.gb')
-                  }
-                </span>
-              </p>
-              <p className='btn btn-link' onClick={this.toggleExtendedNodePanel}>
-                {i18n(ns + 'more_info')}
-              </p>
+              <div className='node-settings' onClick={this.toggleExtendedNodePanel} />
             </div>
           </label>
         </div>
