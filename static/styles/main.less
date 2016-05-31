@@ -2179,7 +2179,6 @@ input[type=range] {
       font-size: @base-font-size - 2;
       border: 1px solid @base-node-border;
       border-radius: @node-border-radius;
-      box-shadow: inset 0 0 0 1px @white;
       background-color: @base-node-color;
       box-sizing: border-box;
 
@@ -2430,72 +2429,54 @@ input[type=range] {
       .node {
         height: @node-height * 1.25;
 
-        .node-box > div {
-          float: none;
-        }
-
-        .node-name {
-          height: 18px;
-          word-break: break-all;
-          p {
-            border: none;
-          }
-        }
-
-        .node-box-inner {
-          height: @node-height * 0.75;
+        .node-box {
           padding: @compact-node-indent;
+          > div {
+            float: none;
+            height: auto;
+          }
+
+          .node-checkbox {
+            float: left;
+            height: 100%;
+            width: 23px;
+            i.glyphicon {
+              font-size: @base-font-size + 4;
+            }
+          }
           .node-name {
             width: auto;
-            p:hover {
-              color: @base-text-color;
+            height: 18px;
+            word-break: break-all;
+            p {
+              border: none;
+              &:hover {
+                color: @base-text-color;
+              }
+            }
+          }
+          .node-hardware {
+            text-align: left;
+            padding: 2px 0 3px;
+            margin: 0;
+            overflow: hidden;
+            span {
+              padding: 0;
             }
           }
           .node-status {
             width: auto;
-            padding: 0;
+            padding: 2px 0;
             text-align: left;
             .progress {
               margin: 2px 0;
               height: 12px;
             }
           }
-        }
-
-        .node-checkbox {
-          float: left;
-          height: 100%;
-          width: 23px;
-          i.glyphicon {
-            font-size: @base-font-size + 4;
-          }
-        }
-
-        .node-hardware {
-          @node-hardware-height: 25px;
-          height: @node-hardware-height;
-          padding: 0;
-          margin: 0;
-          text-align: center;
-          border-top: 1px dashed @gray + 40%;
-          overflow: hidden;
-          .font-semibold;
-          p {
+          .node-settings {
             margin: 0;
-            padding: 4px 0;
-            display: block;
-            transition: all 0.3s ease-out;
-            &.btn-link {
-              font-size: @base-font-size - 2;
-              text-decoration: none;
-            }
-          }
-          &:hover {
-            transition: all 0.3s ease-out;
-            /* toggle More Info label */
-            p:not(.btn-link) {
-              margin-top: -@node-hardware-height;
-            }
+            top: auto;
+            bottom: 0;
           }
         }
 
