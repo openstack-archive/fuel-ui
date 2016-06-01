@@ -67,16 +67,22 @@ Testing
 * Run full Web UI test suite, run::
 
     npm run lint
-    npm test
+    npm run unit-tests
+    npm run func-tests
 
   UI functional tests require Nailgun server from fuel-web repo to be
   installed. By default it's assumed that fuel-web repo is in the same
   directory as fuel-ui repo, but you can specify another path using
   FUEL_WEB_ROOT environment variable::
 
-    FUEL_WEB_ROOT=/path/to/fuel-web npm test
+    FUEL_WEB_ROOT=/path/to/fuel-web npm run func-tests
+
+  To run a single functional test file, use::
+
+    npm run func-tests -- static/tests/functional/test_cluster_page.js
 
   By default Firefox browser is used. You can specify the browser using
   BROWSER environment variable::
 
-    BROWSER=chrome npm test
+    BROWSER=chrome npm run unit-tests
+    BROWSER=firefox npm run func-tests
