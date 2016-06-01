@@ -345,6 +345,16 @@ export var DiscardClusterChangesDialog = React.createClass({
               new models.Settings(currentSettings),
               this.state.configModels
             );
+            this.showError(
+              null,
+              <span>
+                {i18n(ns + 'cant_discard_cluster_settings_start')}
+                <a href={'#cluster/' + cluster.id + '/settings'}>
+                  {i18n('cluster_page.tabs.settings')}
+                </a>
+                {i18n(ns + 'cant_discard_cluster_settings_end')}
+              </span>
+            );
           }
         )
         .then(() => {
@@ -356,12 +366,21 @@ export var DiscardClusterChangesDialog = React.createClass({
         })
         .then(
           () => this.close(),
-          (response) => {
+          () => {
             networkConfiguration.updateEditableAttributes(
               new models.NetworkConfiguration(currentNetworkConfiguration),
               cluster.get('nodeNetworkGroups')
             );
-            this.showError(response, i18n(ns + 'cant_discard'));
+            this.showError(
+              null,
+              <span>
+                {i18n(ns + 'cant_discard_cluster_networks_start')}
+                <a href={'#cluster/' + cluster.id + '/network'}>
+                  {i18n('cluster_page.tabs.network')}
+                </a>
+                {i18n(ns + 'cant_discard_cluster_networks_end')}
+              </span>
+            );
           }
         );
     } else {
