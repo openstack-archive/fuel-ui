@@ -146,11 +146,10 @@ export var dialogMixin = {
     this.close();
   },
   render() {
-    var classes = {'modal fade': true};
-    classes[this.props.modalClass] = this.props.modalClass;
+    var {message, error, closeable, modalClass} = this.props;
     return (
       <div
-        className={utils.classNames(classes)}
+        className={utils.classNames('modal', 'fade', modalClass)}
         tabIndex='-1'
         onClick={this.closeOnLinkClick}
         onKeyDown={this.closeOnEscapeKey}
@@ -158,7 +157,7 @@ export var dialogMixin = {
         <div className='modal-dialog'>
           <div className='modal-content'>
             <div className='modal-header'>
-              {this.props.closeable !== false &&
+              {closeable !== false &&
                 <button type='button' className='close' aria-label='Close' onClick={this.close}>
                   <span aria-hidden='true'>&times;</span>
                 </button>
@@ -167,19 +166,23 @@ export var dialogMixin = {
                 {
                   this.props.title ||
                   this.state.title ||
-                  (this.props.error ? i18n('dialog.error_dialog.title') : '')
+                  (error ? i18n('dialog.error_dialog.title') : '')
                 }
               </h4>
             </div>
             <div className='modal-body'>
-              {this.props.error ?
-                <div className='text-error'>
-                  {this.props.message || i18n('dialog.error_dialog.server_error')}
+              {error ?
+                <div className='error'>
+                  {message ?
+                    utils.renderMultilineText(message)
+                  :
+                    i18n('dialog.error_dialog.server_error')
+                  }
                 </div>
               : this.renderBody()}
             </div>
             <div className='modal-footer'>
-              {this.renderFooter && !this.props.error ?
+              {this.renderFooter && !error ?
                 this.renderFooter()
               :
                 <button className='btn btn-default' onClick={this.close}>
@@ -345,6 +348,7 @@ export var DiscardClusterChangesDialog = React.createClass({
               new models.Settings(currentSettings),
               this.state.configModels
             );
+            this.showError(null, i18n(ns + 'cant_discard_cluster_settings'));
           }
         )
         .then(() => {
@@ -356,12 +360,12 @@ export var DiscardClusterChangesDialog = React.createClass({
         })
         .then(
           () => this.close(),
-          (response) => {
+          () => {
             networkConfiguration.updateEditableAttributes(
               new models.NetworkConfiguration(currentNetworkConfiguration),
               cluster.get('nodeNetworkGroups')
             );
-            this.showError(response, i18n(ns + 'cant_discard'));
+            this.showError(null, i18n(ns + 'cant_discard_cluster_networks'));
           }
         );
     } else {
