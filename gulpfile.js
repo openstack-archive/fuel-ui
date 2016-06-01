@@ -28,7 +28,7 @@ var _ = require('lodash');
 
 var webpack = require('webpack');
 
-var gulp = require('gulp');
+var gulp = require('gulp-help')(require('gulp'), {hideEmpty: true, hideDepsMessage: true});
 var gutil = require('gulp-util');
 var shell = require('gulp-shell');
 var runSequence = require('run-sequence');
@@ -101,11 +101,15 @@ gulp.task('karma', function(cb) {
   }, cb).start();
 });
 
-gulp.task('unit-tests', function(cb) {
+gulp.task('unit-tests', 'Run unit tests.', function(cb) {
   runSequence('selenium', 'karma', function(err) {
     shutdownSelenium();
     cb(err);
   });
+}, {
+  options: {
+    'browser=[firefox]': 'browser to execute tests against'
+  }
 });
 
 var originalBaseDir = 'static/';
@@ -161,12 +165,17 @@ gulp.task('intern:run', runIntern(
   argv.browser || process.env.BROWSER || 'firefox'
 ));
 
-gulp.task('functional-tests', function(cb) {
+gulp.task('functional-tests', 'Run functional tests.', function(cb) {
   var tasks = ['selenium', argv.transpile === false ? null : 'intern:transpile', 'intern:run'];
   runSequence.apply(this, _.compact(tasks).concat(function(err) {
     shutdownSelenium();
     cb(err);
   }));
+}, {
+  options: {
+    suites: 'functional test suites to be run',
+    'browser=[firefox]': 'browser to execute tests against'
+  }
 });
 
 gulp.task('jison', function() {
@@ -245,7 +254,7 @@ gulp.task('lintspaces:styles', function() {
     .pipe(lintspaces.reporter());
 });
 
-gulp.task('lint', [
+gulp.task('lint', 'Run lint checks.', [
   'eslint',
   'lintspaces:styles'
 ]);
@@ -258,7 +267,7 @@ var WEBPACK_STATS_OPTIONS = {
   chunks: false
 };
 
-gulp.task('dev-server', function() {
+gulp.task('dev-server', 'Launch development server.', function() {
   var devServerHost = argv['dev-server-host'] || '127.0.0.1';
   var devServerPort = argv['dev-server-port'] || 8080;
   var devServerUrl = 'http://' + devServerHost + ':' + devServerPort;
@@ -309,9 +318,19 @@ gulp.task('dev-server', function() {
       if (err) throw err;
       gutil.log('Development server started at ' + devServerUrl);
     });
+}, {
+  options: {
+    'dev-server-host=[127.0.0.1]': 'server host',
+    'dev-server-port=[8080]': 'server port',
+    'nailgun-host=[127.0.0.1]': 'nailgun host',
+    'nailgun-port=[8000]': 'nailgun port',
+    'no-hot': 'disable hot reloading',
+    'fake-ostf': 'enable ostf server responses emulation',
+    running: 'make fake ostf server respond with testset in in progress state instead of finished'
+  }
 });
 
-gulp.task('build', function(cb) {
+gulp.task('build', 'Build the project.', function(cb) {
   var sourceDir = path.resolve('static');
   var targetDir = argv['static-dir'] ? path.resolve(argv['static-dir']) : sourceDir;
 
