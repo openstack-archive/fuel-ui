@@ -1118,7 +1118,9 @@
                     "discard_addition": "Are you sure you want to discard node addition?",
                     "discard_deletion": "Are you sure you want to discard node deletion?",
                     "discard_environment_configuration": "Are you sure you want to discard changes in the environment network and Openstack settings configuration? The configuration will be reset to its deployed state.",
-                    "cant_discard": "Cannot discard the changes."
+                    "cant_discard": "Cannot discard the changes.",
+                    "cant_discard_cluster_settings": "The environment settings cannot be reset automatically.\nPlease visit the Settings tab to make a manual configuration.",
+                    "cant_discard_cluster_networks": "The environment network settings cannot be reset automatically.\nPlease visit the Networks tab to make a manual configuration."
                 },
                 "remove_node": {
                     "default_message": "Fuel will remove this node from its database. This operation will not erase MBR or any data on this node. If you power on the node, it will boot bootstrap (discovery) system, and the node will appear in Fuel as a new unallocated server.",
