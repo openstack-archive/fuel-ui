@@ -1241,28 +1241,29 @@ ManagementPanel = React.createClass({
                 </div>
               :
                 [
-                  <div className='btn-group' role='group' key='configuration-buttons'>
-                    <button
-                      className='btn btn-default btn-configure-disks'
-                      disabled={!nodes.length}
-                      onClick={() => this.goToConfigurationScreen('disks', disksConflict)}
-                    >
-                      {disksConflict && <i className='glyphicon glyphicon-danger-sign' />}
-                      {i18n('dialog.show_node.disk_configuration' +
-                        (_.every(nodes.invokeMap('areDisksConfigurable')) ? '_action' : ''))
-                      }
-                    </button>
-                    <button
-                      className='btn btn-default btn-configure-interfaces'
-                      disabled={!nodes.length}
-                      onClick={() => this.goToConfigurationScreen('interfaces', interfaceConflict)}
-                    >
-                      {interfaceConflict && <i className='glyphicon glyphicon-danger-sign' />}
-                      {i18n('dialog.show_node.network_configuration' +
-                        (_.every(nodes.invokeMap('areInterfacesConfigurable')) ? '_action' : ''))
-                      }
-                    </button>
-                  </div>,
+                  !!nodes.length &&
+                    <div className='btn-group' role='group' key='configuration-buttons'>
+                      <button
+                        className='btn btn-default btn-configure-disks'
+                        disabled={!nodes.length}
+                        onClick={() => this.goToConfigurationScreen('disks', disksConflict)}
+                      >
+                        {disksConflict && <i className='glyphicon glyphicon-danger-sign' />}
+                        {i18n('dialog.show_node.disk_configuration' +
+                          (_.every(nodes.invokeMap('areDisksConfigurable')) ? '_action' : ''))
+                        }
+                      </button>
+                      <button
+                        className='btn btn-default btn-configure-interfaces'
+                        disabled={!nodes.length}
+                        onClick={() => this.goToConfigurationScreen('interfaces', interfaceConflict)}
+                      >
+                        {interfaceConflict && <i className='glyphicon glyphicon-danger-sign' />}
+                        {i18n('dialog.show_node.network_configuration' +
+                          (_.every(nodes.invokeMap('areInterfacesConfigurable')) ? '_action' : ''))
+                        }
+                      </button>
+                    </div>,
                   <div className='btn-group' role='group' key='role-management-buttons'>
                     {!locked && !!nodes.length && nodes.some({pending_deletion: false}) &&
                       <button
