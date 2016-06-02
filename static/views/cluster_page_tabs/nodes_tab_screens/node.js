@@ -531,7 +531,9 @@ var Node = React.createClass({
       selected: checked,
       'col-xs-12': viewMode !== 'compact',
       unavailable: !isSelectable,
-      [status]: true
+      [status]: true,
+      offline: !node.get('online'),
+      error: node.get('status') === 'error'
     };
 
     var manufacturer = node.get('manufacturer') || '';

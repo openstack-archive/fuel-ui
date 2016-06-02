@@ -2190,13 +2190,6 @@ input[type=range] {
           background-color: @node-color-discover-hover;
         }
       }
-      &.error {
-        background-color: @node-color-error;
-        border-color: @node-border-color-error;
-        &:hover {
-          background-color: @node-color-error + 5%;
-        }
-      }
       &.pending_addition {
         background-color: @node-color-pending_addition;
         border-color: @node-border-color-pending_addition;
@@ -2207,6 +2200,13 @@ input[type=range] {
       &.pending_deletion {
         background-color: @node-color-pending_deletion;
         border-color: @node-border-color-pending_deletion;
+      }
+      &.error {
+        background-color: @node-color-error;
+        border-color: @node-border-color-error;
+        &:hover {
+          background-color: @node-color-error + 5%;
+        }
       }
       &.offline {
         background-color: @node-color-offline + 10%;
@@ -2220,14 +2220,14 @@ input[type=range] {
         background-color: @node-color-selected;
         border-color: @node-border-color-selected;
         box-shadow: inset 0 0 0 0px #c3c5c7;
-        &.error {
-          border-color: @node-border-color-error;
-        }
         &.pending_addition {
           border-color: @node-border-color-pending_addition;
         }
         &.pending_deletion {
           border-color: @node-border-color-pending_deletion;
+        }
+        &.error {
+          border-color: @node-border-color-error;
         }
         &:hover {
           background-color: @node-color-selected + 10%;
@@ -2513,11 +2513,11 @@ input[type=range] {
           &.discover .node-box-inner:hover {
             .lighten-node-panel(@node-color-discover-hover)
           }
-          &.error .node-box-inner:hover {
-            .lighten-node-panel(@node-color-error)
-          }
           &.pending_addition .node-box-inner:hover {
             .lighten-node-panel(@node-color-pending_addition)
+          }
+          &.error .node-box-inner:hover {
+            .lighten-node-panel(@node-color-error)
           }
           &.offline .node-box-inner:hover {
             .lighten-node-panel(@node-color-offline)
