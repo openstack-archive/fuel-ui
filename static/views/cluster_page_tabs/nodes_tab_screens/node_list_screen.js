@@ -483,7 +483,13 @@ NodeListScreen = React.createClass({
         result = _.some(filter.values, (role) => node.hasRole(role));
         break;
       case 'status':
-        result = _.includes(filter.values, node.getStatusSummary());
+        if (_.includes(filter.values, 'offline')) {
+          result = !node.get('online');
+        } else if (_.includes(filter.values, 'error')) {
+          result = node.get('status') === 'error';
+        } else {
+          result = _.includes(filter.values, node.getStatusSummary());
+        }
         break;
       case 'manufacturer':
       case 'cluster':
@@ -1978,9 +1984,12 @@ NodeList = React.createClass({
         var cluster = this.props.cluster || this.props.clusters.get(node.get('cluster'));
         var sorterNameFormatters = {
           roles: () => node.getRolesSummary(this.props.roles) || i18n(ns + 'no_roles'),
-          status: () => i18n(ns + 'status.' + node.getStatusSummary(), {
-            os: cluster && cluster.get('release').get('operating_system') || 'OS'
-          }),
+          status: () => {
+            if (!node.get('online')) return i18n(ns + 'status.offline');
+            return i18n(ns + 'status.' + node.get('status'), {
+              os: cluster && cluster.get('release').get('operating_system') || 'OS'
+            });
+          },
           manufacturer: () => node.get('manufacturer') || i18n('common.not_specified'),
           group_id: () => {
             var nodeNetworkGroup = this.props.nodeNetworkGroups.get(node.get('group_id'));

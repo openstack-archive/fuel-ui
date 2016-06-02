@@ -51,7 +51,7 @@ registerSuite(() => {
       return this.remote
         .assertElementsExist('.node', 8, 'All Fuel nodes are presented')
         .assertElementNotExists('.control-buttons-box .btn', 'No management buttons presented')
-        .assertElementsExist('.nodes-group', 4, 'The page has default sorting by node status');
+        .assertElementsExist('.nodes-group', 3, 'The page has default sorting by node status');
     },
     'Check action buttons'() {
       return this.remote
