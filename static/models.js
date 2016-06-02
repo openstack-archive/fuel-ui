@@ -521,14 +521,10 @@ models.Node = BaseModel.extend({
     }).join(', ');
   },
   getStatusSummary() {
-    // 'offline' status has higher priority
-    if (!this.get('online')) return 'offline';
-    var status = this.get('status');
-    // 'removing' end 'error' statuses have higher priority
-    if (_.contains(['removing', 'error'], status)) return status;
     if (this.get('pending_addition')) return 'pending_addition';
     if (this.get('pending_deletion')) return 'pending_deletion';
-    return status;
+    if (!this.get('online')) return 'offline';
+    return this.get('status');
   },
   getLabel(label) {
     var labelValue = this.get('labels')[label];
