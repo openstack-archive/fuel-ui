@@ -63,7 +63,7 @@ var SettingsTab = React.createClass({
         if (!subroute || !_.includes(subtabs, subroute)) {
           app.navigate('/cluster/' + cluster.id + '/settings/' + subtabs[0], {replace: true});
         }
-        return {activeSettingsSectionName: subroute};
+        return {activeSettingsSectionName: section};
       }
       return {activeSettingsSectionName: subtabs[0]};
     }

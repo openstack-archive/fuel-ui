@@ -38,13 +38,37 @@ var EditNodeInterfacesScreen = React.createClass({
     unsavedChangesMixin
   ],
   statics: {
-    fetchData(options) {
-      var cluster = options.cluster;
-      var nodes = utils.getNodeListFromTabOptions(options);
-
-      if (!nodes || !nodes.areInterfacesConfigurable()) {
-        return Promise.reject();
+    fetchData({params}) {
+      var clusterId = Number(params.id);
+      var promises = [];
+      var {cluster} = app;
+      if (!cluster) {
+        cluster = new models.Cluster({id: clusterId});
+        promises = [
+          cluster.fetch(),
+          cluster.get('nodes').fetch()
+        ];
       }
+      var baseUrl = _.result(cluster, 'url');
+
+      return Promise.all(promises)
+        .then(() => {
+          var selectedNodes = utils.getNodeListFromTabOptions(
+            params.options,
+            cluster
+          );
+
+          if (!selectedNodes || !selectedNodes.areInterfacesConfigurable()) {
+            // Interrupt further fetching and get back to cluster nodes
+            app.navigate('/cluster/' + clusterId + '/nodes/');
+            return Promise.reject();
+          }
+
+          var networkConfiguration = new models.NetworkConfiguration();
+          networkConfiguration.url = [
+            baseUrl, '/network_configuration/', cluster.get('net_provider')
+          ].join('');
+          cluster.set({networkConfiguration});
 
       var networkConfiguration = cluster.get('networkConfiguration');
       var networksMetadata = new models.ReleaseNetworkProperties();
@@ -965,10 +989,9 @@ var NodeInterface = React.createClass({
     var interfaces = ifc.isBond() ? ifc.getSlaveInterfaces() : [ifc];
     _.each(interfaces, (ifc) => {
       availableModes.push(_.reduce(modes, (result, modeSet) => {
-        if (
-          modeSet.condition &&
-        !(new Expression(modeSet.condition, configModels, {strict: false}))
-          .evaluate({interface: ifc})
+        if (modeSet.condition &&
+          !(new Expression(modeSet.condition, configModels, {strict: false}))
+            .evaluate({interface: ifc})
         ) {
           return result;
         }

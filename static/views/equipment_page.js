@@ -86,8 +86,8 @@ EquipmentPage = React.createClass({
         });
 
         return {
-          nodes, clusters, nodeNetworkGroups, links, roles,
-          fuelSettings, uiSettings: fuelSettings.get('ui_settings')
+          nodes, clusters, nodeNetworkGroups, links, roles, fuelSettings,
+          uiSettings: fuelSettings.get('ui_settings')
         };
       });
     }

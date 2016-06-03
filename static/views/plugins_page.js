@@ -30,6 +30,7 @@ var PluginsPage = React.createClass({
       var releases = app.releases;
       var plugins = new models.Plugins();
       var availableVersions = {};
+
       return Promise.all([
         plugins.fetch()
           .then(() => {
@@ -42,7 +43,7 @@ var PluginsPage = React.createClass({
           }),
         releases.fetch({cache: true})
           .then(() => {
-            releases.each((release) => {
+            return releases.each((release) => {
               availableVersions[
                 release.get('operating_system').toLowerCase() + '-' + release.get('version')
               ] = true;

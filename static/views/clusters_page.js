@@ -144,7 +144,7 @@ Cluster = React.createClass({
             clusterbox: true,
             'cluster-disabled': isClusterDeleting
           })}
-          to={isClusterDeleting ? null : '/cluster/' + cluster.id}
+          to={isClusterDeleting ? null : '/cluster/' + cluster.id + '/dashboard'}
         >
           <div className='name'>{cluster.get('name')}</div>
           <div className='tech-info'>

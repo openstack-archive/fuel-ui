@@ -21,20 +21,31 @@ import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_
 var EditNodesScreen = React.createClass({
   statics: {
     fetchData(options) {
-      var {cluster} = options;
+      var {cluster} = app;
       var nodes = utils.getNodeListFromTabOptions(options);
 
-      if (!nodes) {
-        return Promise.reject();
+      if (cluster) {
+        promises = [
+          cluster.get('roles').fetch(),
+          cluster.get('settings').fetch({cache: true})
+        ];
+      } else {
+        cluster = new models.Cluster({id: clusterId});
+        promises = [cluster.get('nodes').fetch()];
       }
 
-      nodes.parse = function() {
-        return this.getByIds(nodes.map('id'));
-      };
-      return Promise.all([
-        cluster.get('roles').fetch(),
-        cluster.get('settings').fetch({cache: true})
-      ]).then(() => ({nodes}));
+      return Promise.all(promises)
+        .then(() => {
+          var selectedNodes = utils.getNodeListFromTabOptions(params.options, cluster);
+          if (!selectedNodes) {
+            app.navigate('/cluster/' + clusterId + '/nodes/');
+            return Promise.reject();
+          }
+          selectedNodes.parse = function() {
+            return this.getByIds(nodes.map('id'));
+          };
+          return {nodes: selectedNodes};
+        });
     }
   },
   render() {

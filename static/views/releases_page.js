@@ -30,7 +30,8 @@ var ReleasesPage = React.createClass({
     breadcrumbsPath: [['home', '/'], 'releases'],
     fetchData() {
       var releases = app.releases;
-      return releases.fetch({cache: true}).then(() => ({releases}));
+      return releases.fetch({cache: true})
+        .then(() => ({releases}));
     }
   },
   getReleaseData(release) {

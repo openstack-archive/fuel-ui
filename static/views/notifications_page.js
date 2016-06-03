@@ -31,9 +31,8 @@ NotificationsPage = React.createClass({
     breadcrumbsPath: [['home', '/'], 'notifications'],
     fetchData() {
       var notifications = app.notifications;
-      return notifications.fetch().then(() =>
-        ({notifications: notifications})
-      );
+      return notifications.fetch()
+        .then(() => ({notifications}));
     }
   },
   checkDateIsToday(date) {

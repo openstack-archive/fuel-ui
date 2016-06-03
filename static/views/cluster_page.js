@@ -131,6 +131,9 @@ var ClusterPage = React.createClass({
           cluster.get('nodeNetworkGroups').fetch()
         ])
           .then(() => {
+            app.cluster = cluster;
+            dispatcher.trigger('updatePageLayout');
+
             var networkConfiguration = new models.NetworkConfiguration();
             networkConfiguration.url = baseUrl + '/network_configuration/' +
               cluster.get('net_provider');
@@ -281,7 +284,8 @@ var ClusterPage = React.createClass({
     this.setState({selectedNodeIds});
   },
   render() {
-    var cluster = this.props.cluster;
+    var {cluster, children, tabData} = this.props;
+    var activeTab = this.props.location.pathname.replace(/^.*cluster\/\d+\/([^\/]+).*$/g, '$1');
     var availableTabs = this.getAvailableTabs(cluster);
     var tabUrls = _.map(availableTabs, 'url');
     var subroutes = {
@@ -292,7 +296,15 @@ var ClusterPage = React.createClass({
     };
     var tab = _.find(availableTabs, {url: this.props.activeTab});
     if (!tab) return null;
-    var Tab = tab.tab;
+    var props = _.assign(
+        _.pick(this, 'selectNodes', 'changeLogSelection'),
+        _.pick(this.props, 'cluster', 'tabOptions'),
+        this.state,
+        tabData,
+        {activeTab}
+      );
+    var Tab = children &&
+      React.cloneElement(React.Children.only(children), props);
 
     return (
       <div className='cluster-page' key={cluster.id}>

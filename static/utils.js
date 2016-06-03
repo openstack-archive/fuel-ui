@@ -39,12 +39,12 @@ var utils = {
   deserializeTabOptions(serializedOptions) {
     return _.fromPairs(_.map((serializedOptions || '').split(';'), (option) => option.split(':')));
   },
-  getNodeListFromTabOptions(options) {
-    var nodeIds = utils.deserializeTabOptions(options.screenOptions[0]).nodes;
+  getNodeListFromTabOptions(options, cluster) {
+    var nodeIds = utils.deserializeTabOptions(options).nodes;
     var ids = nodeIds ? nodeIds.split(',').map((id) => parseInt(id, 10)) : [];
     var nodes = new models.Nodes(
-      options.cluster.get('nodes').getByIds(ids),
-      {fetchOptions: {cluster_id: options.cluster.id}}
+      cluster.get('nodes').getByIds(ids),
+      {fetchOptions: {cluster_id: cluster.id}}
     );
     if (nodes.length === ids.length) return nodes;
   },

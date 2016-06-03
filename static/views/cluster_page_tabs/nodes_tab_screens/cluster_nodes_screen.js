@@ -33,12 +33,15 @@ var ClusterNodesScreen = React.createClass({
     this.props.cluster.save({ui_settings: uiSettings}, {patch: true, wait: true, validate: false});
   },
   render() {
+    var {cluster} = this.props;
     return <NodeListScreen
       ref='screen'
       {... _.omit(this.props, 'screenOptions')}
+      uiSettings={cluster.get('ui_settings')}
       mode='list'
-      roles={this.props.cluster.get('roles')}
-      nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
+      nodes={cluster.get('nodes')}
+      roles={cluster.get('roles')}
+      nodeNetworkGroups={cluster.get('nodeNetworkGroups')}
       updateUISettings={this.updateUISettings}
       defaultFilters={{roles: [], status: []}}
       statusesToFilter={_.without(NODE_STATUSES, 'discover')}

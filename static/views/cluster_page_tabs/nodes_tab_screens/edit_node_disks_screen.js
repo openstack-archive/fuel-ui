@@ -32,12 +32,24 @@ var EditNodeDisksScreen = React.createClass({
     unsavedChangesMixin
   ],
   statics: {
-    fetchData(options) {
-      var nodes = utils.getNodeListFromTabOptions(options);
-
-      if (!nodes || !nodes.areDisksConfigurable()) {
-        return Promise.reject();
+    fetchData({params}) {
+      var clusterId = Number(params.id);
+      var promises = [];
+      var {cluster} = app;
+      if (!cluster) {
+        cluster = new models.Cluster({id: clusterId});
+        promises = [cluster.get('nodes').fetch()];
       }
+
+      return Promise.all(promises)
+        .then(() => {
+          var selectedNodes = utils.getNodeListFromTabOptions(params.options, cluster);
+
+          if (!selectedNodes || !selectedNodes.areDisksConfigurable()) {
+            // Interrupt further fetching and redirect to cluster nodes
+            app.navigate('/cluster/' + clusterId + '/nodes/');
+            return Promise.reject();
+          }
 
       var volumes = new models.Volumes();
       volumes.url = _.result(nodes.at(0), 'url') + '/volumes';

@@ -38,6 +38,7 @@ HistoryTab = React.createClass({
       var {activeTab, cluster, tabOptions} = tabProps;
       var subtabs = this.getSubtabs(tabProps);
       var defaultSubtab = _.last(subtabs);
+
       if (activeTab === 'history') {
         var transactionId = Number(tabOptions[0]);
         if (!transactionId || !_.includes(subtabs, transactionId)) {

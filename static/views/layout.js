@@ -439,9 +439,7 @@ export var Breadcrumbs = React.createClass({
       <ol className='breadcrumb'>
         {_.map(this.state.path, (breadcrumb, index) => {
           if (!_.isArray(breadcrumb)) breadcrumb = [breadcrumb, null, {active: true}];
-          var text = breadcrumb[0];
-          var link = breadcrumb[1];
-          var options = breadcrumb[2] || {};
+          var [text, link, options = {}] = breadcrumb;
           if (!options.skipTranslation) {
             text = i18n('breadcrumbs.' + text, {defaultValue: text});
           }
