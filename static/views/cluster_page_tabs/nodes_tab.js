@@ -14,28 +14,18 @@
  * under the License.
 **/
 
-import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
-import ReactDOM from 'react-dom';
-import {ProgressBar} from 'views/controls';
-import ClusterNodesScreen from 'views/cluster_page_tabs/nodes_tab_screens/cluster_nodes_screen';
-import AddNodesScreen from 'views/cluster_page_tabs/nodes_tab_screens/add_nodes_screen';
-import EditNodesScreen from 'views/cluster_page_tabs/nodes_tab_screens/edit_nodes_screen';
-import EditNodeDisksScreen from 'views/cluster_page_tabs/nodes_tab_screens/edit_node_disks_screen';
-import EditNodeInterfacesScreen from
-  'views/cluster_page_tabs/nodes_tab_screens/edit_node_interfaces_screen';
-import ReactTransitionGroup from 'react-addons-transition-group';
 
 var NodesTab = React.createClass({
   statics: {
     breadcrumbsPath(pageOptions) {
-      var subroute = pageOptions.tabOptions[0];
+      var {id, subroute} = pageOptions.params;
       var breadcrumbs = [
         [
           i18n('cluster_page.tabs.nodes'),
-          '#cluster/' + pageOptions.cluster.id + '/nodes',
+          '/cluster/' + id + '/nodes',
           {active: !subroute}
         ]
       ];
@@ -51,122 +41,9 @@ var NodesTab = React.createClass({
       return breadcrumbs;
     }
   },
-  getInitialState() {
-    var screen = this.getScreen();
-    return {
-      loading: this.shouldScreenDataBeLoaded(screen),
-      screen,
-      screenOptions: this.getScreenOptions(),
-      screenData: {}
-    };
-  },
-  getScreenConstructor(screen) {
-    return {
-      list: ClusterNodesScreen,
-      add: AddNodesScreen,
-      edit: EditNodesScreen,
-      disks: EditNodeDisksScreen,
-      interfaces: EditNodeInterfacesScreen
-    }[screen];
-  },
-  checkScreenExists(screen) {
-    if (!this.getScreenConstructor(screen || this.state.screen)) {
-      app.navigate('cluster/' + this.props.cluster.id + '/nodes', {trigger: true, replace: true});
-      return false;
-    }
-    return true;
-  },
-  loadScreenData(screen, screenOptions) {
-    return this.getScreenConstructor(screen || this.state.screen)
-      .fetchData({
-        cluster: this.props.cluster,
-        screenOptions: screenOptions || this.state.screenOptions
-      })
-      .then(
-        (data) => {
-          this.setState({
-            loading: false,
-            screenData: data || {}
-          });
-        },
-        () => {
-          app.navigate(
-            '#cluster/' + this.props.cluster.id + '/nodes',
-            {trigger: true, replace: true}
-          );
-        }
-      );
-  },
-  getScreen(props) {
-    return (props || this.props).tabOptions[0] || 'list';
-  },
-  getScreenOptions(props) {
-    return (props || this.props).tabOptions.slice(1);
-  },
-  shouldScreenDataBeLoaded(screen) {
-    return !!this.getScreenConstructor(screen).fetchData;
-  },
-  componentDidMount() {
-    if (this.checkScreenExists() && this.state.loading) this.loadScreenData();
-  },
-  componentWillReceiveProps(newProps) {
-    var screen = this.getScreen(newProps);
-    var screenOptions = this.getScreenOptions(newProps);
-    if (
-      this.state.screen !== screen && this.checkScreenExists(screen) ||
-      !_.isEqual(this.state.screenOptions, screenOptions)
-    ) {
-      var newState = {screen, screenOptions, screenData: {}};
-      if (this.shouldScreenDataBeLoaded(screen)) {
-        this.setState(_.extend(newState, {loading: true}));
-        this.loadScreenData(screen, screenOptions);
-      } else {
-        this.setState(_.extend(newState, {loading: false}));
-      }
-    }
-  },
   render() {
-    var {screen, loading, screenData, screenOptions} = this.state;
-    var Screen = this.getScreenConstructor(screen) || {};
-    return (
-      <ReactTransitionGroup
-        component='div'
-        className='wrapper'
-        transitionName='screen'
-      >
-        <ScreenTransitionWrapper key={screen} loading={loading}>
-          <Screen
-            {...screenData}
-            {..._.pick(this.props, 'cluster', 'selectedNodeIds', 'selectNodes')}
-            ref='screen'
-            screenOptions={screenOptions}
-          />
-        </ScreenTransitionWrapper>
-      </ReactTransitionGroup>
-    );
-  }
-});
-
-// additional screen wrapper to keep ref to screen in the tab component
-// see https://github.com/facebook/react/issues/1950 for more info
-var ScreenTransitionWrapper = React.createClass({
-  componentWillEnter(cb) {
-    $(ReactDOM.findDOMNode(this)).hide().delay('fast').fadeIn('fast', cb);
-  },
-  componentWillLeave(cb) {
-    $(ReactDOM.findDOMNode(this)).fadeOut('fast', cb);
-  },
-  render() {
-    if (this.props.loading) {
-      return (
-        <div className='row'>
-          <div className='col-xs-12' style={{paddingTop: '40px'}}>
-            <ProgressBar />
-          </div>
-        </div>
-      );
-    }
-    return <div>{this.props.children}</div>;
+    var props = _.pick(this.props, 'cluster', 'selectedNodeIds', 'selectNodes');
+    return React.cloneElement(this.props.children, props);
   }
 });
 
