@@ -28,9 +28,11 @@ var WelcomePage = React.createClass({
   statics: {
     title: i18n('welcome_page.title'),
     hiddenLayout: true,
-    fetchData() {
+    loadProps(props, cb) {
       return app.fuelSettings.fetch()
-        .then(() => ({settings: app.fuelSettings}));
+        .then(() => {
+          cb(null, {settings: app.fuelSettings});
+        });
     }
   },
   onStartButtonClick() {
