@@ -17,20 +17,23 @@ import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
 import {backboneMixin} from 'component_mixins';
-import statisticsMixin from 'views/statistics_mixin';
+import {statisticsMixin, loadPropsMixin} from 'views/statistics_mixin';
 import {ProgressButton} from 'views/controls';
 
 var WelcomePage = React.createClass({
   mixins: [
     statisticsMixin,
-    backboneMixin('settings')
+    backboneMixin('settings'),
+    loadPropsMixin
   ],
   statics: {
     title: i18n('welcome_page.title'),
     hiddenLayout: true,
     fetchData() {
       return app.fuelSettings.fetch()
-        .then(() => ({settings: app.fuelSettings}));
+        .then(() => {
+          return {settings: app.fuelSettings};
+        });
     }
   },
   onStartButtonClick() {

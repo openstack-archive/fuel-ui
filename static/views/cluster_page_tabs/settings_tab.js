@@ -16,9 +16,10 @@
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
+import {Link} from 'react-router';
 import utils from 'utils';
 import models from 'models';
-import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
+import {backboneMixin, unsavedChangesMixin, loadPropsMixin} from 'component_mixins';
 import SettingSection from 'views/cluster_page_tabs/setting_section';
 import CSSTransitionGroup from 'react-addons-transition-group';
 import {ProgressButton} from 'views/controls';
@@ -38,7 +39,8 @@ var SettingsTab = React.createClass({
     backboneMixin({modelOrCollection(props) {
       return props.cluster.task({group: 'deployment', active: true});
     }}),
-    unsavedChangesMixin
+    unsavedChangesMixin,
+    loadPropsMixin
   ],
   statics: {
     breadcrumbsPath() {
@@ -46,27 +48,29 @@ var SettingsTab = React.createClass({
         [i18n('cluster_page.tabs.settings'), null, {active: true}]
       ];
     },
-    fetchData({cluster}) {
-      return Promise.all([
-        cluster.get('settings').fetch({cache: true}),
-        cluster.get('networkConfiguration').fetch({cache: true})
-      ]).then(() => ({}));
+    fetchData() {
+      var {cluster} = app;
+      if (cluster) {
+        return Promise.all([
+          cluster.get('settings').fetch({cache: true}),
+          cluster.get('networkConfiguration').fetch({cache: true})
+        ]).then(() => Promise.resolve());
+      }
+      return Promise.resolve();
     },
-    getSubtabs(options) {
-      return options.cluster.get('settings').getGroupList();
+    getSubtabs(props) {
+      return props.cluster.get('settings').getGroupList();
     },
-    checkSubroute(tabProps) {
-      var {activeTab, cluster, tabOptions} = tabProps;
-      var subtabs = this.getSubtabs(tabProps);
+    checkSubroute(props) {
+      var {section, id} = props.params;
+      var {activeTab} = props;
+
+      var subtabs = this.getSubtabs(props);
       if (activeTab === 'settings') {
-        var subroute = tabOptions[0];
-        if (!subroute || !_.includes(subtabs, subroute)) {
-          app.navigate(
-            'cluster/' + cluster.id + '/settings/' + subtabs[0],
-            {trigger: true, replace: true}
-          );
+        if (!section || !_.includes(subtabs, section)) {
+          app.setPath('/cluster/' + id + '/settings/' + subtabs[0]);
         }
-        return {activeSettingsSectionName: subroute};
+        return {activeSettingsSectionName: section};
       }
       return {activeSettingsSectionName: subtabs[0]};
     }
@@ -397,13 +401,14 @@ var SettingSubtabs = React.createClass({
                   active: groupName === this.props.activeSettingsSectionName
                 })}
               >
-                <a
-                  className={'no-leave-check subtab-link-' + groupName}
-                  href={'#cluster/' + this.props.cluster.id + '/settings/' + groupName}
+                <Link
+                  className={'subtab-link-' + groupName}
+                  to={'/cluster/' + this.props.cluster.id + '/settings/' + groupName}
+                  onClick={app.allowLeaving}
                 >
                   {hasErrors && <i className='subtab-icon glyphicon-danger-sign' />}
                   {i18n('cluster_page.settings_tab.groups.' + groupName, {defaultValue: groupName})}
-                </a>
+                </Link>
               </li>
             );
           })
