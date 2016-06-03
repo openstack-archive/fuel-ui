@@ -23,15 +23,15 @@ import models from 'models';
 import dispatcher from 'dispatcher';
 import {backboneMixin, pollingMixin} from 'component_mixins';
 import CreateClusterWizard from 'views/wizard';
+import {Link} from 'react-router';
 
 var ClustersPage, ClusterList, Cluster;
 
 ClustersPage = React.createClass({
   statics: {
     title: i18n('clusters_page.title'),
-    navbarActiveElement: 'clusters',
-    breadcrumbsPath: [['home', '#'], 'environments'],
-    fetchData() {
+    breadcrumbsPath: [['home', '/'], 'environments'],
+    loadProps(params, cb) {
       var clusters = new models.Clusters();
       var nodes = new models.Nodes();
       var tasks = new models.Tasks();
@@ -42,7 +42,7 @@ ClustersPage = React.createClass({
             cluster.set('nodes', new models.Nodes(nodes.filter({cluster: cluster.id})));
             cluster.set('tasks', new models.Tasks(tasks.filter({cluster: cluster.id})));
           });
-          return ({clusters});
+          cb(null, {clusters});
         });
     }
   },
@@ -136,7 +136,7 @@ Cluster = React.createClass({
     var isClusterDeleting = !!cluster.task({name: 'cluster_deletion', active: true}) ||
       !!cluster.task({name: 'cluster_deletion', status: 'ready'});
     var deploymentTask = cluster.task({group: 'deployment', active: true});
-    var Tag = isClusterDeleting ? 'div' : 'a';
+    var Tag = isClusterDeleting ? 'div' : Link;
     return (
       <div className='col-xs-3'>
         <Tag
@@ -144,7 +144,7 @@ Cluster = React.createClass({
             clusterbox: true,
             'cluster-disabled': isClusterDeleting
           })}
-          href={isClusterDeleting ? null : '#cluster/' + cluster.id}
+          to={isClusterDeleting ? null : '/cluster/' + cluster.id + '/dashboard'}
         >
           <div className='name'>{cluster.get('name')}</div>
           <div className='tech-info'>
