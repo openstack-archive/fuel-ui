@@ -28,7 +28,6 @@ var CapacityPage = React.createClass({
   ],
   statics: {
     title: i18n('capacity_page.title'),
-    navbarActiveElement: 'support',
     breadcrumbsPath: [['home', '#'], ['support', '#support'], 'capacity'],
     fetchData() {
       var task = new models.Task();

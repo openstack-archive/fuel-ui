@@ -91,7 +91,7 @@ var LogsTab = React.createClass({
     var logOptions = this.props.selectedLogs.type === 'remote' ?
       _.extend({}, this.props.selectedLogs) : _.omit(this.props.selectedLogs, 'node');
     logOptions.level = logOptions.level.toLowerCase();
-    app.navigate('#cluster/' + this.props.cluster.id + '/logs/' +
+    app.navigate('/cluster/' + this.props.cluster.id + '/logs/' +
       utils.serializeTabOptions(logOptions), {trigger: false, replace: true});
     params = params || {};
     this.fetchLogs(params)
