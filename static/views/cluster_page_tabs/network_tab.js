@@ -1305,121 +1305,6 @@ var NodeNetworkGroup = React.createClass({
   }
 });
 
-var NetworkSubtabs = React.createClass({
-  renderClickablePills(subtabs) {
-    return subtabs.map((subtab) => {
-      var urlParts = subtab.url.split('/');
-      var subTabClassName = urlParts[0] === 'group' && urlParts[1] || urlParts[0];
-      return (
-        <li
-          key={subtab.label}
-          role='presentation'
-          className={utils.classNames({
-            active: String(subtab.url) === this.props.activeGroupName,
-            warning: this.props.isMultiRack && subtab.url === 'network_verification',
-            [subTabClassName]: true
-          })}
-        >
-          <a
-            className={'no-leave-check subtab-link-' + subTabClassName}
-            href={'#cluster/' + this.props.cluster.id + '/network/' + subtab.url}
-          >
-            {subtab.isInvalid && <i className='subtab-icon glyphicon-danger-sign' />}
-            {subtab.label}
-          </a>
-        </li>
-      );
-    });
-  },
-  getNetworkSettingsError(subtab) {
-    var errors = (this.props.validationError || {}).networking_parameters;
-    if (subtab === 'neutron_l2') {
-      return !!_.intersection(NetworkingL2Parameters.renderedParameters, _.keys(errors)).length;
-    }
-    if (subtab === 'neutron_l3') {
-      return !!_.intersection(NetworkingL3Parameters.renderedParameters, _.keys(errors)).length;
-    }
-    if (subtab === 'nova_configuration') {
-      return !!_.intersection(NovaParameters.renderedParameters, _.keys(errors)).length;
-    }
-    if (subtab === 'network_settings') {
-      var settings = this.props.cluster.get('settings');
-      return _.some(_.keys(settings.validationError), (settingPath) => {
-        var settingSection = settingPath.split('.')[0];
-        return settings.get(settingSection).metadata.group === 'network' ||
-          settings.get(settingPath).group === 'network';
-      });
-    }
-    return false;
-  },
-  getError(subtab) {
-    var {cluster, validationError, showVerificationResult} = this.props;
-    subtab = subtab.split('/');
-    if (subtab[0] === 'group') {
-      var networksValidationError = (validationError || {}).networks;
-      return subtab[1] === 'all' ?
-        !!networksValidationError
-      :
-        !!(networksValidationError || {})[subtab[1]];
-    }
-    if (subtab[0] === 'network_verification') {
-      return showVerificationResult && !!cluster.task({name: 'verify_networks', status: 'error'});
-    }
-    return this.getNetworkSettingsError(subtab[0]);
-  },
-  render() {
-    var {showAllNetworks} = this.props;
-    var nodeNetworkGroups = this.props.cluster.get('nodeNetworkGroups');
-    var groupedSubtabs = _.groupBy(this.props.subtabs, (subtab) => {
-      subtab = subtab.split('/');
-      if (showAllNetworks && subtab[0] === 'group') return 'networks';
-      if (subtab[0] === 'group') return 'node_network_groups';
-      if (subtab[0] === 'network_verification') return subtab[0];
-      return 'settings';
-    });
-    return (
-      <div className='col-xs-2'>
-        <CSSTransitionGroup
-          component='div'
-          transitionName='subtab-item'
-          transitionEnter={false}
-          transitionLeave={false}
-          key='network-subtabs'
-          id='network-subtabs'
-        >
-          {_.map([
-            showAllNetworks ? 'networks' : 'node_network_groups',
-            'settings',
-            'network_verification'
-          ], (groupName) => {
-            return (
-              <ul className={'nav nav-pills nav-stacked ' + groupName} key={groupName}>
-                <li className={'group-title ' + groupName}>
-                  {i18n(networkTabNS + 'subtabs.groups.' + groupName)}
-                </li>
-                {this.renderClickablePills(groupedSubtabs[groupName].map((url) => {
-                  var label = i18n(networkTabNS + 'subtabs.' + url);
-                  if (groupName === 'node_network_groups') {
-                    label = nodeNetworkGroups.get(url.split('/')[1]).get('name');
-                  }
-                  if (groupName === 'networks') {
-                    label = i18n(networkTabNS + 'subtabs.all_networks');
-                  }
-                  return {
-                    url: url,
-                    label: label,
-                    isInvalid: this.getError(url)
-                  };
-                }))}
-              </ul>
-            );
-          })}
-        </CSSTransitionGroup>
-      </div>
-    );
-  }
-});
-
 var NodeNetworkGroupTitle = React.createClass({
   mixins: [
     renamingMixin('node-group-title-input')
@@ -1751,6 +1636,121 @@ var NetworkingL3Parameters = React.createClass({
           </div>
           <customControls.text_list max={5} {...this.composeProps('dns_nameservers', true)} />
         </div>
+      </div>
+    );
+  }
+});
+
+var NetworkSubtabs = React.createClass({
+  renderClickablePills(subtabs) {
+    return subtabs.map((subtab) => {
+      var urlParts = subtab.url.split('/');
+      var subTabClassName = urlParts[0] === 'group' && urlParts[1] || urlParts[0];
+      return (
+        <li
+          key={subtab.label}
+          role='presentation'
+          className={utils.classNames({
+            active: String(subtab.url) === this.props.activeGroupName,
+            warning: this.props.isMultiRack && subtab.url === 'network_verification',
+            [subTabClassName]: true
+          })}
+        >
+          <a
+            className={'no-leave-check subtab-link-' + subTabClassName}
+            href={'#cluster/' + this.props.cluster.id + '/network/' + subtab.url}
+          >
+            {subtab.isInvalid && <i className='subtab-icon glyphicon-danger-sign' />}
+            {subtab.label}
+          </a>
+        </li>
+      );
+    });
+  },
+  getNetworkSettingsError(subtab) {
+    var errors = (this.props.validationError || {}).networking_parameters;
+    if (subtab === 'neutron_l2') {
+      return !!_.intersection(NetworkingL2Parameters.renderedParameters, _.keys(errors)).length;
+    }
+    if (subtab === 'neutron_l3') {
+      return !!_.intersection(NetworkingL3Parameters.renderedParameters, _.keys(errors)).length;
+    }
+    if (subtab === 'nova_configuration') {
+      return !!_.intersection(NovaParameters.renderedParameters, _.keys(errors)).length;
+    }
+    if (subtab === 'network_settings') {
+      var settings = this.props.cluster.get('settings');
+      return _.some(_.keys(settings.validationError), (settingPath) => {
+        var settingSection = settingPath.split('.')[0];
+        return settings.get(settingSection).metadata.group === 'network' ||
+          settings.get(settingPath).group === 'network';
+      });
+    }
+    return false;
+  },
+  getError(subtab) {
+    var {cluster, validationError, showVerificationResult} = this.props;
+    subtab = subtab.split('/');
+    if (subtab[0] === 'group') {
+      var networksValidationError = (validationError || {}).networks;
+      return subtab[1] === 'all' ?
+        !!networksValidationError
+      :
+        !!(networksValidationError || {})[subtab[1]];
+    }
+    if (subtab[0] === 'network_verification') {
+      return showVerificationResult && !!cluster.task({name: 'verify_networks', status: 'error'});
+    }
+    return this.getNetworkSettingsError(subtab[0]);
+  },
+  render() {
+    var {showAllNetworks} = this.props;
+    var nodeNetworkGroups = this.props.cluster.get('nodeNetworkGroups');
+    var groupedSubtabs = _.groupBy(this.props.subtabs, (subtab) => {
+      subtab = subtab.split('/');
+      if (showAllNetworks && subtab[0] === 'group') return 'networks';
+      if (subtab[0] === 'group') return 'node_network_groups';
+      if (subtab[0] === 'network_verification') return subtab[0];
+      return 'settings';
+    });
+    return (
+      <div className='col-xs-2'>
+        <CSSTransitionGroup
+          component='div'
+          transitionName='subtab-item'
+          transitionEnter={false}
+          transitionLeave={false}
+          key='network-subtabs'
+          id='network-subtabs'
+        >
+          {_.map([
+            showAllNetworks ? 'networks' : 'node_network_groups',
+            'settings',
+            'network_verification'
+          ], (groupName) => {
+            return (
+              <ul className={'nav nav-pills nav-stacked ' + groupName} key={groupName}>
+                <li className={'group-title ' + groupName}>
+                  {i18n(networkTabNS + 'subtabs.groups.' + groupName)}
+                </li>
+                {this.renderClickablePills(groupedSubtabs[groupName].map((url) => {
+                  var label = i18n(networkTabNS + 'subtabs.' + url);
+                  if (groupName === 'node_network_groups') {
+                    label = nodeNetworkGroups.get(url.split('/')[1]).get('name');
+                  }
+                  if (groupName === 'networks') {
+                    label = i18n(networkTabNS + 'subtabs.all_networks');
+                  }
+                  return {
+                    url: url,
+                    label: label,
+                    isInvalid: this.getError(url)
+                  };
+                }))}
+              </ul>
+            );
+          })}
+        </CSSTransitionGroup>
       </div>
     );
   }

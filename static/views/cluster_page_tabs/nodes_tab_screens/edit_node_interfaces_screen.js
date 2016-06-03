@@ -271,8 +271,10 @@ var EditNodeInterfacesScreen = React.createClass({
     var targetInterfaceProperties = targetInterface.get('interface_properties');
     var sourceInterfaceProperties = sourceInterface.get('interface_properties');
 
-    if (targetInterface.get('offloading_modes')
-        && _.get(limitations, 'offloading_modes.equal', false)) {
+    if (
+      targetInterface.get('offloading_modes') &&
+      _.get(limitations, 'offloading_modes.equal', false)
+    ) {
       targetInterface.set({
         offloading_modes: sourceInterface.get('offloading_modes')
       });
@@ -286,8 +288,10 @@ var EditNodeInterfacesScreen = React.createClass({
 
     _.each(sourceInterfaceProperties, (propertyValue, propertyName) => {
       // Set all unrestricted parameters values
-      if (!_.isPlainObject(propertyValue)
-          && _.get(limitations, propertyName + '.equal', false)) {
+      if (
+        !_.isPlainObject(propertyValue) &&
+        _.get(limitations, propertyName + '.equal', false)
+      ) {
         _.set(targetInterfaceProperties, propertyName, propertyValue);
       }
     });
@@ -1084,26 +1088,26 @@ var NodeInterface = React.createClass({
                                 </span>
                               </div>
                             :
-                            [
-                              this.props.nodes.length === 1 &&
-                                <div key='mac'>
-                                  {i18n(ns + 'mac')}: {renderedInterface.get('mac')}
+                              ([
+                                this.props.nodes.length === 1 &&
+                                  <div key='mac'>
+                                    {i18n(ns + 'mac')}: {renderedInterface.get('mac')}
+                                  </div>,
+                                <div key='speed'>
+                                  {i18n(ns + 'speed')}: {interfaceSpeeds[index].join(', ')}
                                 </div>,
-                              <div key='speed'>
-                                {i18n(ns + 'speed')}: {interfaceSpeeds[index].join(', ')}
-                              </div>,
-                              (bondingPossible && slaveInterfaces.length >= 3) &&
-                                <button
-                                  key='remove_from_bond'
-                                  className='btn btn-link'
-                                  onClick={_.partial(
-                                        this.props.removeInterfaceFromBond,
-                                        ifc.get('name'), renderedInterface.get('name')
-                                      )}
-                                  >
-                                  {i18n('common.remove_button')}
-                                </button>
-                            ]
+                                (bondingPossible && slaveInterfaces.length >= 3) &&
+                                  <button
+                                    key='remove_from_bond'
+                                    className='btn btn-link'
+                                    onClick={_.partial(
+                                          this.props.removeInterfaceFromBond,
+                                          ifc.get('name'), renderedInterface.get('name')
+                                        )}
+                                    >
+                                    {i18n('common.remove_button')}
+                                  </button>
+                              ])
                           }
                         </div>
                       </div>
@@ -1476,37 +1480,35 @@ var NodeInterfaceAttributes = React.createClass({
           wrapperClassName='sriov-control'
           error={errors && errors.common}
         />
-        {isSRIOVEnabled &&
-          [
-            <Input
-              key='sriov.sriov_numvfs'
-              type='number'
-              min={0}
-              max={interfaceProperties.sriov.sriov_totalvfs}
-              label={i18n(ns + 'virtual_functions')}
-              value={interfaceProperties.sriov.sriov_numvfs}
-              name='sriov.sriov_numvfs'
-              onChange={this.onInterfacePropertiesChange}
-              disabled={this.props.locked}
-              wrapperClassName='sriov-virtual-functions'
-              error={errors && errors.sriov_numvfs}
-            />,
-            <Input
-              key='sriov.physnet'
-              type='text'
-              label={i18n(ns + 'physical_network')}
-              value={physnet}
-              name='sriov.physnet'
-              onChange={this.onInterfacePropertiesChange}
-              disabled={this.props.locked}
-              wrapperClassName='physnet'
-              error={errors && errors.physnet}
-              tooltipText={_.trim(physnet) && _.trim(physnet) !== 'physnet2' &&
+        {isSRIOVEnabled && [
+          <Input
+            key='sriov.sriov_numvfs'
+            type='number'
+            min={0}
+            max={interfaceProperties.sriov.sriov_totalvfs}
+            label={i18n(ns + 'virtual_functions')}
+            value={interfaceProperties.sriov.sriov_numvfs}
+            name='sriov.sriov_numvfs'
+            onChange={this.onInterfacePropertiesChange}
+            disabled={this.props.locked}
+            wrapperClassName='sriov-virtual-functions'
+            error={errors && errors.sriov_numvfs}
+          />,
+          <Input
+            key='sriov.physnet'
+            type='text'
+            label={i18n(ns + 'physical_network')}
+            value={physnet}
+            name='sriov.physnet'
+            onChange={this.onInterfacePropertiesChange}
+            disabled={this.props.locked}
+            wrapperClassName='physnet'
+            error={errors && errors.physnet}
+            tooltipText={_.trim(physnet) && _.trim(physnet) !== 'physnet2' &&
               i18n(ns + 'validation.non_default_physnet')
-              }
-            />
-          ]
-        }
+            }
+          />
+        ]}
       </div>
     );
   },
@@ -1573,10 +1575,11 @@ var NodeInterfaceAttributes = React.createClass({
             <i
               className={toggleConfigurationPanelClasses}
               onClick={() => this.switchActiveSubtab(
-              isConfigurationModeOn ?
-                this.state.activeInterfaceSectionName :
-                defaultSubtab
-            )}
+                isConfigurationModeOn ?
+                  this.state.activeInterfaceSectionName
+                :
+                  defaultSubtab
+              )}
             />
           </div>
         </div>

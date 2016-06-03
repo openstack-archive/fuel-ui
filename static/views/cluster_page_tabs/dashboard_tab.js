@@ -114,7 +114,7 @@ var DashboardTab = React.createClass({
             task={runningDeploymentTask}
           />
         :
-          [
+          ([
             finishedDeploymentTask &&
               <DeploymentResult
                 key='task-result'
@@ -133,7 +133,7 @@ var DashboardTab = React.createClass({
                 cluster={cluster}
                 links={dashboardLinks}
               />
-          ]
+          ])
         }
         <ClusterInfo cluster={cluster} />
         <DocumentationLinks />
@@ -198,12 +198,12 @@ var DashboardLink = React.createClass({
         <div className='title'>
           {isURLRelative ?
             isSSLEnabled ?
-              [
+              ([
                 <a key='link' href={httpsLink} target='_blank'>{title}</a>,
                 <a key='http-link' href={httpLink} className='http-link' target='_blank'>
                   {i18n(ns + 'http_plugin_link')}
                 </a>
-              ]
+              ])
             :
               <a href={httpLink} target='_blank'>{title}</a>
           :
@@ -1090,7 +1090,7 @@ var ClusterInfo = React.createClass({
       <div className='row statistics-block'>
         <div className='title'>{i18n(ns + 'cluster_info_fields.statistics')}</div>
         {cluster.get('nodes').length ?
-          [
+          ([
             <div className='col-xs-6' key='roles'>
               {this.renderLegend(roles, true)}
               {!cluster.task({group: 'deployment', active: true}) &&
@@ -1100,7 +1100,7 @@ var ClusterInfo = React.createClass({
             <div className='col-xs-6' key='statuses'>
               {this.renderLegend(statuses)}
             </div>
-          ]
+          ])
         :
           <div className='col-xs-12 no-nodes-block'>
             <p>{i18n(ns + 'no_nodes_warning_add_them')}</p>
