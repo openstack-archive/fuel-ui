@@ -37,24 +37,39 @@ var HealthCheckTab = React.createClass({
         [i18n('cluster_page.tabs.healthcheck'), null, {active: true}]
       ];
     },
-    fetchData(options) {
-      if (!options.cluster.get('ostf')) {
-        var ostf = {};
-        var clusterId = options.cluster.id;
-        ostf.testsets = new models.TestSets();
-        ostf.testsets.url = _.result(ostf.testsets, 'url') + '/' + clusterId;
-        ostf.tests = new models.Tests();
-        ostf.tests.url = _.result(ostf.tests, 'url') + '/' + clusterId;
-        ostf.testruns = new models.TestRuns();
-        ostf.testruns.url = _.result(ostf.testruns, 'url') + '/last/' + clusterId;
-        return $.when(ostf.testsets.fetch(), ostf.tests.fetch(), ostf.testruns.fetch()).then(() => {
-          options.cluster.set({ostf: ostf});
-          return {};
-        })
-        .catch(() => true);
-      }
-      return $.Deferred().resolve();
+    loadProps(params, cb) {
+      var cluster = new models.Cluster({id: Number(params.params.id)});
+      cluster.fetch()
+        .then(() => {
+          var ostf = cluster.get('ostf') || {};
+          if (_.isEmpty(ostf)) {
+            var clusterId = cluster.id;
+            ostf.testsets = new models.TestSets();
+            ostf.testsets.url = _.result(ostf.testsets, 'url') + '/' + clusterId;
+            ostf.tests = new models.Tests();
+            ostf.tests.url = _.result(ostf.tests, 'url') + '/' + clusterId;
+            ostf.testruns = new models.TestRuns();
+            ostf.testruns.url = _.result(ostf.testruns, 'url') + '/last/' + clusterId;
+            $.when(
+              ostf.testsets.fetch(),
+              ostf.tests.fetch(),
+              ostf.testruns.fetch()
+            )
+              .then(() => {
+                cb(null, {ostf});
+              });
+          } else {
+            return cb(null, {ostf});
+          }
+        }
+      );
     }
+  },
+  getInitialState() {
+    if (this.props.cluster) {
+      this.props.cluster.set({ostf: this.props.ostf});
+    }
+    return {};
   },
   render() {
     var ostf = this.props.cluster.get('ostf');

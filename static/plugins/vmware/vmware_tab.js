@@ -16,6 +16,7 @@
 import React from 'react';
 import $ from 'jquery';
 import i18n from 'i18n';
+import models from 'models';
 import _ from 'underscore';
 import dispatcher from 'dispatcher';
 import {Input, Tooltip} from 'views/controls';
@@ -307,16 +308,28 @@ var VmWareTab = React.createClass({
     isVisible(cluster) {
       return cluster.get('settings').get('common.use_vcenter').value;
     },
-    fetchData(options) {
-      if (!options.cluster.get('vcenter_defaults')) {
-        var defaultModel = new VmWareModels.VCenter({id: options.cluster.id});
-        defaultModel.loadDefaults = true;
-        options.cluster.set({vcenter_defaults: defaultModel});
-      }
-      return $.when(
-        options.cluster.get('vcenter').fetch({cache: true}),
-        options.cluster.get('vcenter_defaults').fetch({cache: true})
-      );
+    loadProps(params, cb) {
+      var id = Number(params.params.id);
+      var cluster = new models.Cluster({id: id});
+      return $.when(cluster.fetch())
+        .then(() => {
+          var vcenter = new VmWareModels.VCenter({id: id});
+          cluster.set({vcenter: vcenter});
+
+          var vcenterDefaults = new VmWareModels.VCenter({id: id});
+          vcenterDefaults.loadDefaults = true;
+          cluster.set({vcenter_defaults: vcenterDefaults});
+          return $.when(
+            cluster.get('vcenter').fetch({cache: true}),
+            cluster.get('vcenter_defaults').fetch({cache: true})
+          )
+            .then(() => cb(null, {
+              vcenter: cluster.get('vcenter'),
+              vcenter_defaults: cluster.get('vcenter_defaults')
+            }), () => {
+              app.navigate('/cluster/' + id + '/');
+            });
+        });
     }
   },
   onModelSync() {
@@ -354,6 +367,12 @@ var VmWareTab = React.createClass({
     dispatcher.off('vcenter_model_update');
   },
   getInitialState() {
+    if (this.props.cluster) {
+      this.props.cluster.set({
+        vcenter: this.props.vcenter,
+        vcenter_defaults: this.props.vcenter_defaults
+      });
+    }
     return {model: null};
   },
   readData() {
