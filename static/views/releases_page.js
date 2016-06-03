@@ -17,16 +17,18 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import {Table} from 'views/controls';
-import {backboneMixin} from 'component_mixins';
+import {backboneMixin, loadPropsMixin} from 'component_mixins';
 
 var ReleasesPage = React.createClass({
-  mixins: [backboneMixin('releases')],
+  mixins: [
+    backboneMixin('releases'),
+    loadPropsMixin
+  ],
   getDefaultProps() {
     return {columns: ['name', 'version', 'state']};
   },
   statics: {
     title: i18n('release_page.title'),
-    navbarActiveElement: 'releases',
     breadcrumbsPath: [['home', '/'], 'releases'],
     fetchData() {
       var releases = app.releases;
@@ -51,7 +53,7 @@ var ReleasesPage = React.createClass({
           <div className='row'>
             <div className='col-xs-12 content-elements'>
               <Table
-                head={_.map(this.props.columns, (column) => {
+                head={this.props.columns.map((column) => {
                   return ({label: i18n('release_page.' + column), className: column});
                 })}
                 body={this.props.releases.map(this.getReleaseData)}

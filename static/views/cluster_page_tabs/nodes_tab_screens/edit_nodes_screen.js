@@ -15,27 +15,46 @@
 **/
 import _ from 'underscore';
 import React from 'react';
+import models from 'models';
 import utils from 'utils';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {loadPropsMixin} from 'component_mixins';
 
 var EditNodesScreen = React.createClass({
+  mixins: [
+    loadPropsMixin
+  ],
   statics: {
-    fetchData(options) {
-      var {cluster} = options;
-      var nodes = utils.getNodeListFromTabOptions(options);
+    fetchData({params}) {
+      var {cluster} = app;
+      var promises = [];
+      var clusterId = Number(params.id);
 
-      if (!nodes) {
-        return Promise.reject();
+      if (cluster) {
+        promises = [
+          cluster.get('roles').fetch(),
+          cluster.get('settings').fetch({cache: true})
+        ];
+      } else {
+        cluster = new models.Cluster({id: clusterId});
       }
+      var nodes = cluster.get('nodes');
 
-      nodes.fetch = utils.fetchClusterProperties(cluster.id);
-      nodes.parse = function() {
-        return this.getByIds(nodes.map('id'));
-      };
-      return Promise.all([
-        cluster.get('roles').fetch(),
-        cluster.get('settings').fetch({cache: true})
-      ]).then(() => ({nodes}));
+      return nodes.fetch()
+        .then(() => {
+          var selectedNodes = utils.getNodeListFromTabOptions(params.options, nodes);
+          if (!selectedNodes) {
+            app.navigate('/cluster/' + clusterId + '/nodes/');
+            return Promise.reject();
+          }
+          return Promise.all(promises)
+            .then(() => {
+              selectedNodes.parse = function() {
+                return this.getByIds(nodes.map('id'));
+              };
+              return {nodes: selectedNodes};
+            });
+        });
     }
   },
   render() {

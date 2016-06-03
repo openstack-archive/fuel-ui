@@ -44,25 +44,20 @@ export var unsavedChangesMixin = {
   componentWillMount() {
     this.eventName = _.uniqueId('unsavedchanges');
     $(window).on('beforeunload.' + this.eventName, this.onBeforeunloadEvent);
-    $('body').on('click.' + this.eventName, 'a[href^="#"]:not(.no-leave-check)', this.onLeave);
+    app.onLeave = this.onLeave;
   },
   componentWillUnmount() {
     $(window).off('beforeunload.' + this.eventName);
-    $('body').off('click.' + this.eventName);
+    app.onLeave = null;
   },
-  onLeave(e) {
-    var href = $(e.currentTarget).attr('href');
-    if (Backbone.history.getHash() !== href.substr(1) && _.result(this, 'hasChanges')) {
-      e.preventDefault();
-
-      DiscardSettingsChangesDialog
+  onLeave() {
+    if (_.result(this, 'hasChanges')) {
+      return DiscardSettingsChangesDialog
         .show({
           isDiscardingPossible: _.result(this, 'isDiscardingPossible'),
           isSavingPossible: _.result(this, 'isSavingPossible'),
           applyChanges: this.applyChanges,
           revertChanges: this.revertChanges
-        }).then(() => {
-          app.navigate(href);
         });
     }
   }
@@ -162,3 +157,24 @@ export function renamingMixin(refname) {
     }
   };
 }
+
+export var loadPropsMixin = {
+  statics: {
+    loadProps(params, cb) {
+      dispatcher.trigger('pageLoadStarted');
+      return new Promise((resolve, reject) =>
+        (_.invoke(this, 'fetchData', params) || Promise.resolve({}))
+          .then(
+            (props) => {
+              dispatcher.trigger('pageLoadFinished');
+              return resolve(cb(null, props));
+            },
+            (error) => {
+              dispatcher.trigger('pageLoadFinished');
+              return reject(error);
+            }
+          )
+      );
+    }
+  }
+};
