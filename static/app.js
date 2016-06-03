@@ -20,14 +20,32 @@ import i18n from 'i18n';
 import Backbone from 'backbone';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Router, Route, IndexRoute, Redirect,
+  IndexRedirect, hashHistory, withRouter} from 'react-router';
+import AsyncProps from 'async-props';
 import models from 'models';
-import dispatcher from 'dispatcher';
 import {NailgunUnavailabilityDialog} from 'views/dialogs';
 import KeystoneClient from 'keystone_client';
 import RootComponent from 'views/root';
 import LoginPage from 'views/login_page.js';
 import WelcomePage from 'views/welcome_page';
+
 import ClusterPage from 'views/cluster_page';
+import DashboardTab from 'views/cluster_page_tabs/dashboard_tab';
+import NodesTab from 'views/cluster_page_tabs/nodes_tab';
+import NetworkTab from 'views/cluster_page_tabs/network_tab';
+import SettingsTab from 'views/cluster_page_tabs/settings_tab';
+import LogsTab from 'views/cluster_page_tabs/logs_tab';
+import HealthCheckTab from 'views/cluster_page_tabs/healthcheck_tab';
+import {VmWareTab} from 'plugins/vmware/vmware';
+
+import ClusterNodesScreen from 'views/cluster_page_tabs/nodes_tab_screens/cluster_nodes_screen';
+import AddNodesScreen from 'views/cluster_page_tabs/nodes_tab_screens/add_nodes_screen';
+import EditNodesScreen from 'views/cluster_page_tabs/nodes_tab_screens/edit_nodes_screen';
+import EditNodeDisksScreen from 'views/cluster_page_tabs/nodes_tab_screens/edit_node_disks_screen';
+import EditNodeInterfacesScreen from
+  'views/cluster_page_tabs/nodes_tab_screens/edit_node_interfaces_screen';
+
 import ClustersPage from 'views/clusters_page';
 import EquipmentPage from 'views/equipment_page';
 import ReleasesPage from 'views/releases_page';
@@ -35,124 +53,8 @@ import PluginsPage from 'views/plugins_page';
 import NotificationsPage from 'views/notifications_page';
 import SupportPage from 'views/support_page';
 import CapacityPage from 'views/capacity_page';
-import 'backbone.routefilter';
 import 'bootstrap';
 import './styles/main.less';
-
-class Router extends Backbone.Router {
-  routes() {
-    return {
-      login: 'login',
-      logout: 'logout',
-      welcome: 'welcome',
-      clusters: 'listClusters',
-      'cluster/:id(/:tab)(/:opt1)(/:opt2)': 'showCluster',
-      equipment: 'showEquipmentPage',
-      releases: 'listReleases',
-      plugins: 'listPlugins',
-      notifications: 'showNotifications',
-      support: 'showSupportPage',
-      capacity: 'showCapacityPage',
-      '*default': 'default'
-    };
-  }
-
-  // pre-route hook
-  before(currentRouteName) {
-    var currentUrl = Backbone.history.getHash();
-    var preventRouting = false;
-    // remove trailing slash
-    if (_.endsWith(currentUrl, '/')) {
-      this.navigate(currentUrl.substr(0, currentUrl.length - 1), {trigger: true, replace: true});
-      preventRouting = true;
-    }
-    // handle special routes
-    if (!preventRouting) {
-      var specialRoutes = [
-        {name: 'login', condition: () => {
-          var result = app.version.get('auth_required') && !app.user.get('authenticated');
-          if (result && currentUrl !== 'login' && currentUrl !== 'logout') {
-            this.returnUrl = currentUrl;
-          }
-          return result;
-        }},
-        {name: 'welcome', condition: (previousUrl) => {
-          return previousUrl !== 'logout' &&
-            _.find(app.keystoneClient.userRoles, {name: 'admin'}) &&
-            !app.fuelSettings.get('statistics.user_choice_saved.value');
-        }}
-      ];
-      _.each(specialRoutes, (route) => {
-        if (route.condition(currentRouteName)) {
-          if (currentRouteName !== route.name) {
-            preventRouting = true;
-            this.navigate(route.name, {trigger: true, replace: true});
-          }
-          return false;
-        } else if (currentRouteName === route.name) {
-          preventRouting = true;
-          this.navigate('', {trigger: true});
-          return false;
-        }
-      });
-    }
-    return !preventRouting;
-  }
-
-  // routes
-  default() {
-    this.navigate('clusters', {trigger: true, replace: true});
-  }
-
-  login() {
-    app.loadPage(LoginPage);
-  }
-
-  logout() {
-    app.logout();
-  }
-
-  welcome() {
-    app.loadPage(WelcomePage);
-  }
-
-  showCluster(clusterId, tab) {
-    var tabs = _.map(ClusterPage.getTabs(), 'url');
-    if (!tab || !_.includes(tabs, tab)) {
-      this.navigate('cluster/' + clusterId + '/' + tabs[0], {trigger: true, replace: true});
-    } else {
-      app.loadPage(ClusterPage, arguments).catch(() => this.default());
-    }
-  }
-
-  listClusters() {
-    app.loadPage(ClustersPage);
-  }
-
-  showEquipmentPage() {
-    app.loadPage(EquipmentPage);
-  }
-
-  listReleases() {
-    app.loadPage(ReleasesPage);
-  }
-
-  listPlugins() {
-    app.loadPage(PluginsPage);
-  }
-
-  showNotifications() {
-    app.loadPage(NotificationsPage);
-  }
-
-  showSupportPage() {
-    app.loadPage(SupportPage);
-  }
-
-  showCapacityPage() {
-    app.loadPage(CapacityPage);
-  }
-}
 
 class App {
   constructor() {
@@ -165,7 +67,6 @@ class App {
     this.overrideBackboneSyncMethod();
     this.overrideBackboneAjax();
 
-    this.router = new Router();
     this.version = new models.FuelVersion();
     this.fuelSettings = new models.FuelSettings();
     this.user = new models.User();
@@ -177,6 +78,11 @@ class App {
       tenant: 'admin',
       token: this.user.get('token')
     });
+    this.breadcrumbs = {clusterName: ''};
+    this.cluster = null;
+    this.onLeave = null;
+    this.leaveCheck = true;
+    this.longFetch = false;
   }
 
   initialize() {
@@ -213,42 +119,124 @@ class App {
           return Promise.reject();
         }
       })
-      .then(() => Backbone.history.start());
+      .then(() => this.renderLayout());
+  }
+
+  checkAuthentication(nextState, replace) {
+    if (!this.user.get('authenticated') &&
+      this.version.get('auth_required') &&
+      nextState.location.pathname !== '/login') {
+      // Redirect to login page and save return path
+      replace({
+        pathname: '/login',
+        state: {nextPathname: nextState.location.pathname}
+      });
+    } else if (_.find(app.keystoneClient.userRoles, {name: 'admin'}) &&
+      !app.fuelSettings.get('statistics.user_choice_saved.value') &&
+      nextState.location.pathname !== '/welcome') {
+      // Show user a welcome page
+      replace({
+        pathname: '/welcome',
+        state: {nextPathname: nextState.location.pathname}
+      });
+    }
+  }
+
+  onRouteChange(prevState, nextState, replace, cb) {
+    // Checks if there are conditions for transition abortion (unsaved data)
+    app.longFetch = _.find(nextState.routes, (route) => _.get(route.component, 'longFetch'));
+
+    if (app.onLeave &&
+      prevState.location.pathname !== nextState.location.pathname &&
+      app.leaveCheck
+    ) {
+      Promise.all([
+        _.result(app, 'onLeave')
+      ])
+        .then(
+          () => {
+            app.onLeave = null;
+            app.leaveCheck = true;
+            // Proceed with routing
+            this.onEnter(nextState, replace);
+          },
+          () => {
+            // Routing abortion, returning to the previous path
+            replace({
+              pathname: prevState.location.pathname
+            });
+          })
+        .then(cb);
+    } else {
+      app.leaveCheck = true;
+      // No leave checks registered or they are ignored, proceed with the transition
+      this.onEnter(nextState, replace);
+      return cb();
+    }
+  }
+
+  allowLeaving() {
+    app.leaveCheck = false;
   }
 
   renderLayout() {
-    var wrappedRootComponent = ReactDOM.render(
-      React.createElement(
-        RootComponent,
-        _.pick(this, 'version', 'user', 'fuelSettings', 'statistics', 'notifications')
-      ),
-      this.mountNode[0]
-    );
-    // RootComponent is wrapped with React-DnD, extracting link to it using ref
-    this.rootComponent = wrappedRootComponent.refs.child;
+    var defaults = _.pick(this, 'version', 'user', 'fuelSettings', 'statistics', 'notifications');
+    this.routerComponent = ReactDOM.render(
+      <Router
+        history={hashHistory}
+        render={(props) => <AsyncProps {...props} />}
+      >
+        <Route
+          path='/'
+          component={withRouter(RootComponent)}
+          onEnter={this.checkAuthentication}
+          onChange={this.onRouteChange}
+          {...defaults}
+        >
+          <IndexRedirect to='clusters' />
+          <Route path='login' component={LoginPage} />
+          <Route path='welcome' component={WelcomePage} />
+          <Route path='clusters' component={ClustersPage} />
+          <Route path='cluster/:id' component={ClusterPage}>
+            <IndexRedirect to='dashboard' />
+            <Route path='dashboard' component={DashboardTab} />
+            <Route path='nodes' component={NodesTab}>
+              <IndexRoute component={ClusterNodesScreen} />
+              <Route path='add' component={AddNodesScreen} />
+              <Route path='edit/:options' component={EditNodesScreen} />
+              <Route path='disks/:options' component={EditNodeDisksScreen} />
+              <Route path='interfaces/:options' component={EditNodeInterfacesScreen} />
+            </Route>
+            <Route path='network(/:section(/:groupId))' component={NetworkTab} />
+            <Route path='settings(/:section)' component={SettingsTab} />
+            <Route path='logs(/:options)' component={LogsTab} />
+            <Route path='healthcheck' component={HealthCheckTab} />
+            <Route path='vmware' component={VmWareTab} />
+            <Redirect from='*' to='dashboard' />
+          </Route>
+          <Route path='equipment' component={EquipmentPage} />
+          <Route path='releases' component={ReleasesPage} />
+          <Route path='plugins' component={PluginsPage} />
+          <Route path='notifications' component={NotificationsPage} />
+          <Route path='support' component={SupportPage} />
+          <Route path='capacity' component={CapacityPage} />
+        </Route>
+        <Redirect from='*' to='/clusters' />
+      </Router>,
+      this.mountNode[0]);
   }
 
-  loadPage(Page, options = []) {
-    dispatcher.trigger('pageLoadStarted');
-    return (Page.fetchData ? Page.fetchData(...options) : Promise.resolve())
-      .then((pageOptions) => {
-        if (!this.rootComponent) this.renderLayout();
-        this.setPage(Page, pageOptions);
-      })
-      .catch(() => true)
-      .then(() => dispatcher.trigger('pageLoadFinished'));
+  navigate(path) {
+    this.routerComponent.router.push(path);
   }
 
-  setPage(Page, options) {
-    this.page = this.rootComponent.setPage(Page, options);
+  navigatePreviousPath() {
+    var path = _.result(this.routerComponent, 'state.location.state.nextPathname') || '/';
+    this.navigate(path);
   }
 
-  navigate(url) {
-    return this.router.navigate(url.replace(/^\//, '#'), {trigger: true, replace: false});
-  }
-
-  setPath(url) {
-    return this.router.navigate(url.replace(/^\//, '#'), {trigger: true, replace: true});
+  setPath(path) {
+    this.routerComponent.router.replace(path);
   }
 
   logout() {
@@ -260,7 +248,7 @@ class App {
       this.keystoneClient.deauthenticate();
     }
 
-    _.defer(() => this.navigate('login', {trigger: true, replace: true}));
+    _.defer(() => this.navigate('/login', {trigger: true, replace: true}));
   }
 
   overrideBackboneSyncMethod() {
