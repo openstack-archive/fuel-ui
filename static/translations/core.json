@@ -251,7 +251,18 @@
                 "plugins": "Plugins",
                 "support": "Support",
                 "notifications": "Notifications",
-                "capacity": "Capacity"
+                "capacity": "Capacity",
+                "dashboard": "Dashboard",
+                "nodes": "Nodes",
+                "networks": "Networks",
+                "settings": "Settings",
+                "logs": "Logs",
+                "history": "History",
+                "healthcheck": "Health Check",
+                "add": "Add",
+                "edit": "Edit",
+                "disks": "Disks",
+                "Interfaces": "Interfaces"
             },
             "notifications_page": {
                 "title": "Notifications",

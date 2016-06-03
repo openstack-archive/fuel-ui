@@ -34,17 +34,17 @@ var utils = {
   },
   /*eslint-enable max-len*/
   serializeTabOptions(options) {
-    return _.map(options, (value, key) => key + ':' + value).join(';');
+    return _.map(options, (value, key) => key + ':' + _.replace(value, '/', '%2F')).join(';');
   },
   deserializeTabOptions(serializedOptions) {
     return _.fromPairs(_.map((serializedOptions || '').split(';'), (option) => option.split(':')));
   },
-  getNodeListFromTabOptions(options) {
-    var nodeIds = utils.deserializeTabOptions(options.screenOptions[0]).nodes;
+  getNodeListFromTabOptions(options, cluster) {
+    var nodeIds = utils.deserializeTabOptions(options).nodes;
     var ids = nodeIds ? nodeIds.split(',').map((id) => parseInt(id, 10)) : [];
     var nodes = new models.Nodes(
-      options.cluster.get('nodes').getByIds(ids),
-      {fetchOptions: {cluster_id: options.cluster.id}}
+      cluster.get('nodes').getByIds(ids),
+      {fetchOptions: {cluster_id: cluster.id}}
     );
     if (nodes.length === ids.length) return nodes;
   },
@@ -349,6 +349,10 @@ var utils = {
       hash = hash & hash; // convert to 32bit integer
     }
     return hash;
+  },
+  injectRouteParams(route, params) {
+    var path = route.path.replace(/:([^/())]+)/g, (match, parameter) => params[parameter]);
+    return path.replace(/[()]/g, '').replace(/\/?undefined.*$/g, '');
   }
 };
 

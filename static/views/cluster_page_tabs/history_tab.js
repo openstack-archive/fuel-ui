@@ -16,31 +16,29 @@
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
-import ReactTransitionGroup from 'react-addons-transition-group';
+import {Link} from 'react-router';
 import models from 'models';
 import utils from 'utils';
-import {Link, ScreenTransitionWrapper} from 'views/controls';
 import DeploymentHistory from 'views/cluster_page_tabs/deployment_history_component';
+import {loadPropsMixin} from 'component_mixins';
 
-var HistoryTab, DeploymentHistoryScreen;
-
-HistoryTab = React.createClass({
+var HistoryTab = React.createClass({
+  mixins: [
+    loadPropsMixin
+  ],
   statics: {
-    breadcrumbsPath() {
-      return [
-        [i18n('cluster_page.tabs.history'), null, {active: true}]
-      ];
-    },
+    breadcrumbTitle: 'history',
     getSubtabs({cluster}) {
       return _.map(cluster.get('transactions').filterTasks({active: false}), 'id');
     },
     checkSubroute(tabProps) {
-      var {activeTab, cluster, tabOptions} = tabProps;
+      var {activeTab, cluster} = tabProps;
       var subtabs = this.getSubtabs(tabProps);
       var defaultSubtab = _.last(subtabs);
+
       if (activeTab === 'history') {
-        var transactionId = Number(tabOptions[0]);
-        if (!transactionId || !_.includes(subtabs, transactionId)) {
+        var transactionId = Number(tabProps.params.transactionId);
+        if (defaultSubtab && (!transactionId || !_.includes(subtabs, transactionId))) {
           app.navigate(
             '/cluster/' + cluster.id + '/history' + (defaultSubtab ? '/' + defaultSubtab : ''),
             {replace: true}
@@ -49,46 +47,15 @@ HistoryTab = React.createClass({
         return {activeTransactionId: transactionId || null};
       }
       return {activeTransactionId: defaultSubtab || null};
-    }
-  },
-  getInitialState() {
-    return {
-      loading: !!this.props.cluster.get('transactions').findTask({active: false}),
-      deploymentHistory: null
-    };
-  },
-  loadScreenData(transactionId) {
-    transactionId = transactionId || this.props.activeTransactionId;
-    if (_.isNull(transactionId)) return;
-
-    return DeploymentHistoryScreen
-      .fetchData(transactionId)
-      .then(
-        ({deploymentHistory}) => {
-          this.setState({loading: false, deploymentHistory});
-        },
-        () => {
-          app.navigate(
-            '/cluster/' + this.props.cluster.id + '/history',
-            {replace: true}
-          );
-        }
-      );
-  },
-  componentDidMount() {
-    this.loadScreenData();
-  },
-  componentWillReceiveProps({cluster, activeTransactionId}) {
-    var transaction = _.last(cluster.get('transactions').filterTasks({active: false}));
-    if (_.isNull(this.props.activeTransactionId) && transaction) {
-      app.navigate(
-        '/cluster/' + cluster.id + '/history/' + transaction.id,
-        {replace: true}
-      );
-    }
-    if (this.props.activeTransactionId !== activeTransactionId) {
-      this.setState({loading: true, deploymentHistory: null});
-      this.loadScreenData(activeTransactionId);
+    },
+    fetchData({params}) {
+      var {transactionId} = params;
+      var deploymentHistory = new models.DeploymentTasks();
+      if (!transactionId) return Promise.resolve({deploymentHistory});
+      deploymentHistory.url = '/api/transactions/' + transactionId + '/deployment_history';
+      return deploymentHistory.fetch()
+        .then(() => ({deploymentHistory}))
+        .catch(() => true);
     }
   },
   render() {
@@ -171,19 +138,10 @@ HistoryTab = React.createClass({
                   );
                 })}
               </div>
-              <ReactTransitionGroup
-                component='div'
-                transitionName='screen'
-              >
-                <ScreenTransitionWrapper key={screen} loading={this.state.loading}>
-                  <DeploymentHistoryScreen
-                    {...this.props}
-                    ref='screen'
-                    deploymentHistory={this.state.deploymentHistory}
-                    transaction={cluster.get('transactions').get(activeTransactionId)}
-                  />
-                </ScreenTransitionWrapper>
-              </ReactTransitionGroup>
+              <DeploymentHistory
+                {...this.props}
+                transaction={cluster.get('transactions').get(activeTransactionId)}
+              />
             </div>
           :
             <div className='alert alert-warning'>
@@ -193,20 +151,6 @@ HistoryTab = React.createClass({
         </div>
       </div>
     );
-  }
-});
-
-DeploymentHistoryScreen = React.createClass({
-  statics: {
-    fetchData(transactionId) {
-      var deploymentHistory = new models.DeploymentTasks();
-      deploymentHistory.url = '/api/transactions/' + transactionId + '/deployment_history';
-      return deploymentHistory.fetch()
-        .then(() => ({deploymentHistory}));
-    }
-  },
-  render() {
-    return <DeploymentHistory {...this.props} />;
   }
 });
 
