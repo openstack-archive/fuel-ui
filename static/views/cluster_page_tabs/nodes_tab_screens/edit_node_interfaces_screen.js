@@ -17,14 +17,15 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 import React from 'react';
+import {Link} from 'react-router';
 import i18n from 'i18n';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
 import Expression from 'expression';
 import OffloadingModes from 'views/cluster_page_tabs/nodes_tab_screens/offloading_modes_control';
-import {Input, Tooltip, ProgressButton, Link} from 'views/controls';
-import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
+import {Input, Tooltip, ProgressButton} from 'views/controls';
+import {backboneMixin, unsavedChangesMixin, loadPropsMixin} from 'component_mixins';
 import {DragSource, DropTarget} from 'react-dnd';
 import ReactDOM from 'react-dom';
 
@@ -35,44 +36,75 @@ var EditNodeInterfacesScreen = React.createClass({
     backboneMixin('interfaces', 'change reset update'),
     backboneMixin('cluster'),
     backboneMixin('nodes', 'change reset update'),
-    unsavedChangesMixin
+    unsavedChangesMixin,
+    loadPropsMixin
   ],
   statics: {
-    fetchData(options) {
-      var {cluster} = options;
-      var nodes = utils.getNodeListFromTabOptions(options, cluster);
-
-      if (!nodes || !nodes.areInterfacesConfigurable()) {
-        return Promise.reject();
+    fetchData({params}) {
+      var clusterId = Number(params.id);
+      var promises = [];
+      var {cluster} = app;
+      if (!cluster) {
+        cluster = new models.Cluster({id: clusterId});
+        promises = [
+          cluster.fetch(),
+          cluster.get('nodes').fetch()
+        ];
       }
+      var baseUrl = _.result(cluster, 'url');
 
-      var networkConfiguration = cluster.get('networkConfiguration');
-      var networksMetadata = new models.ReleaseNetworkProperties();
-
-      return Promise.all(nodes.map((node) => {
-        node.interfaces = new models.Interfaces();
-        return node.interfaces.fetch({
-          url: _.result(node, 'url') + '/interfaces',
-          reset: true
-        });
-      }).concat([
-        networkConfiguration.fetch({cache: true}),
-        networksMetadata.fetch({
-          url: '/api/releases/' + cluster.get('release_id') + '/networks'
-        })]))
+      return Promise.all(promises)
         .then(() => {
-          var interfaces = new models.Interfaces();
-          interfaces.set(_.cloneDeep(nodes.at(0).interfaces.toJSON()), {parse: true});
-          return {
-            interfaces: interfaces,
-            nodes: nodes,
-            bondingConfig: networksMetadata.get('bonding'),
-            configModels: {
-              version: app.version,
-              cluster: cluster,
-              settings: cluster.get('settings')
-            }
-          };
+          var selectedNodes = utils.getNodeListFromTabOptions(
+            params.options,
+            cluster
+          );
+
+          if (!selectedNodes || !selectedNodes.areDisksConfigurable()) {
+            // Interrupt further fetching and get back to cluster nodes
+            app.navigate('/cluster/' + clusterId + '/nodes/');
+            return Promise.reject();
+          }
+
+          var networkConfiguration = new models.NetworkConfiguration();
+          networkConfiguration.url = [
+            baseUrl, '/network_configuration/', cluster.get('net_provider')
+          ].join('');
+          cluster.set({networkConfiguration});
+
+          var networksMetadata = new models.ReleaseNetworkProperties();
+
+          return Promise.all(
+            selectedNodes.map(
+              (node) => {
+                node.interfaces = new models.Interfaces();
+                return node.interfaces.fetch({
+                  url: _.result(node, 'url') + '/interfaces',
+                  reset: true
+                });
+              }
+            )
+              .concat([
+                networkConfiguration.fetch({cache: true}),
+                networksMetadata.fetch({
+                  url: '/api/releases/' + cluster.get('release_id') + '/networks'
+                })
+              ])
+            )
+            .then(() => {
+              var interfaces = new models.Interfaces();
+              interfaces.set(_.cloneDeep(selectedNodes.at(0).interfaces.toJSON()), {parse: true});
+              return {
+                interfaces: interfaces,
+                nodes: selectedNodes,
+                bondingConfig: networksMetadata.get('bonding'),
+                configModels: {
+                  version: app.version,
+                  cluster: cluster,
+                  settings: cluster.get('settings')
+                }
+              };
+            });
         });
     }
   },
@@ -874,11 +906,11 @@ var ErrorScreen = React.createClass({
                 return (
                   <Link
                     key={networkNames}
-                    className='no-leave-check'
                     to={
                       '/cluster/' + cluster.id + '/nodes/interfaces/' +
                       utils.serializeTabOptions({nodes: nodeIds})
                     }
+                    onClick={app.allowLeaving}
                   >
                     {i18n(ns + 'node_networks', {
                       count: nodeIds.length,
@@ -965,10 +997,9 @@ var NodeInterface = React.createClass({
     var interfaces = ifc.isBond() ? ifc.getSlaveInterfaces() : [ifc];
     _.each(interfaces, (ifc) => {
       availableModes.push(_.reduce(modes, (result, modeSet) => {
-        if (
-          modeSet.condition &&
-        !(new Expression(modeSet.condition, configModels, {strict: false}))
-          .evaluate({interface: ifc})
+        if (modeSet.condition &&
+          !(new Expression(modeSet.condition, configModels, {strict: false}))
+            .evaluate({interface: ifc})
         ) {
           return result;
         }
