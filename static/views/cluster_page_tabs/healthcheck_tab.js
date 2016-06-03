@@ -20,7 +20,7 @@ import React from 'react';
 import utils from 'utils';
 import models from 'models';
 import {Input, ProgressButton} from 'views/controls';
-import {backboneMixin, pollingMixin} from 'component_mixins';
+import {backboneMixin, pollingMixin, loadPropsMixin} from 'component_mixins';
 
 var HealthCheckTab = React.createClass({
   mixins: [
@@ -28,7 +28,8 @@ var HealthCheckTab = React.createClass({
       modelOrCollection: (props) => props.cluster.get('tasks'),
       renderOn: 'update change:status'
     }),
-    backboneMixin('cluster', 'change:status')
+    backboneMixin('cluster', 'change:status'),
+    loadPropsMixin
   ],
   statics: {
     breadcrumbsPath() {
@@ -36,35 +37,47 @@ var HealthCheckTab = React.createClass({
         [i18n('cluster_page.tabs.healthcheck'), null, {active: true}]
       ];
     },
-    fetchData(options) {
-      if (!options.cluster.get('ostf')) {
-        var ostf = {};
-        var clusterId = options.cluster.id;
-        ostf.testsets = new models.TestSets();
-        ostf.testsets.url = _.result(ostf.testsets, 'url') + '/' + clusterId;
-        ostf.tests = new models.Tests();
-        ostf.tests.url = _.result(ostf.tests, 'url') + '/' + clusterId;
-        ostf.testruns = new models.TestRuns();
-        ostf.testruns.url = _.result(ostf.testruns, 'url') + '/last/' + clusterId;
-        return Promise.all([ostf.testsets.fetch(), ostf.tests.fetch(), ostf.testruns.fetch()])
-          .then(() => {
-            options.cluster.set({ostf: ostf});
-            return {};
-          })
-          .catch(() => true);
+    fetchData({params}) {
+      var clusterId = Number(params.id);
+      var {cluster} = app;
+      var ostf = {};
+
+      if (cluster && cluster.get('ostf')) {
+        return Promise.resolve({ostf: cluster.get('ostf')});
       }
-      return Promise.resolve();
+      ostf.testsets = new models.TestSets();
+      ostf.testsets.url = _.result(ostf.testsets, 'url') + '/' + clusterId;
+      ostf.tests = new models.Tests();
+      ostf.tests.url = _.result(ostf.tests, 'url') + '/' + clusterId;
+      ostf.testruns = new models.TestRuns();
+      ostf.testruns.url = _.result(ostf.testruns, 'url') + '/last/' + clusterId;
+      return Promise.all([
+        ostf.testsets.fetch().catch(() => true),
+        ostf.tests.fetch().catch(() => true),
+        ostf.testruns.fetch().catch(() => true)
+      ])
+      .then(
+        () => ({ostf}),
+        () => ({ostf})
+      );
     }
   },
+  getInitialState() {
+    var {cluster} = this.props;
+    if (cluster) {
+      cluster.set({ostf: this.props.ostf});
+    }
+    return {ostf: this.props.ostf};
+  },
   render() {
-    var ostf = this.props.cluster.get('ostf');
+    var {ostf} = this.state;
     return (
       <div className='row'>
         <div className='title'>
           {i18n('cluster_page.healthcheck_tab.title')}
         </div>
         <div className='col-xs-12 content-elements'>
-          {ostf ?
+          {!_.isEmpty(ostf) ?
             <HealthcheckTabContent
               ref='content'
               testsets={ostf.testsets}
