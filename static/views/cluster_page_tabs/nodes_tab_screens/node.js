@@ -17,10 +17,11 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import Backbone from 'backbone';
 import React from 'react';
+import {Link} from 'react-router';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
-import {Input, Popover, Tooltip, Link} from 'views/controls';
+import {Input, Popover, Tooltip} from 'views/controls';
 import {DeleteNodesDialog, RemoveOfflineNodeDialog, ShowNodeInfoDialog} from 'views/dialogs';
 import {renamingMixin} from 'component_mixins';
 
@@ -464,7 +465,7 @@ var Node = React.createClass({
             {this.props.nodeActionsAvailable && [
               !!node.get('cluster') &&
                 <Tooltip wrap key='logs' text={i18n(ns + 'view_logs')}>
-                  <a className='btn-view-logs icon icon-logs' href={this.getNodeLogsLink()} />
+                  <Link className='btn-view-logs icon icon-logs' to={this.getNodeLogsLink()} />
                 </Tooltip>,
               renderActionButtons &&
                 (node.get('pending_addition') || node.get('pending_deletion')) &&

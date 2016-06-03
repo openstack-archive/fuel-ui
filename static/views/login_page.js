@@ -79,12 +79,7 @@ var LoginForm = React.createClass({
           app.fuelSettings.fetch({cache: true})]);
       })
       .then(() => {
-        var nextUrl = '';
-        if (app.router.returnUrl) {
-          nextUrl = app.router.returnUrl;
-          delete app.router.returnUrl;
-        }
-        app.navigate(nextUrl);
+        app.navigatePreviousPath();
       });
   },
   componentDidMount() {
