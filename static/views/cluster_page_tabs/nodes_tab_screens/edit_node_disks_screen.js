@@ -19,9 +19,10 @@ import Backbone from 'backbone';
 import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Link} from 'react-router';
 import utils from 'utils';
 import models from 'models';
-import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
+import {backboneMixin, unsavedChangesMixin, loadPropsMixin} from 'component_mixins';
 import {Input, ProgressButton} from 'views/controls';
 
 var EditNodeDisksScreen = React.createClass({
@@ -29,29 +30,44 @@ var EditNodeDisksScreen = React.createClass({
     backboneMixin('cluster', 'change:status change:nodes sync'),
     backboneMixin('nodes', 'change sync'),
     backboneMixin('disks', 'reset change'),
-    unsavedChangesMixin
+    unsavedChangesMixin,
+    loadPropsMixin
   ],
   statics: {
-    fetchData(options) {
-      var nodes = utils.getNodeListFromTabOptions(options);
+    fetchData(params) {
+      var clusterId = Number(params.params.id);
+      var nodes = new models.Nodes();
+      nodes.fetch = utils.fetchClusterProperties(clusterId);
 
-      if (!nodes || !nodes.areDisksConfigurable()) {
-        return Promise.reject();
-      }
-
-      var volumes = new models.Volumes();
-      volumes.url = _.result(nodes.at(0), 'url') + '/volumes';
-      return Promise.all(nodes.map((node) => {
-        node.disks = new models.Disks();
-        return node.disks.fetch({url: _.result(node, 'url') + '/disks'});
-      }).concat(volumes.fetch()))
+      return nodes.fetch()
         .then(() => {
-          var disks = new models.Disks(_.cloneDeep(nodes.at(0).disks.toJSON()), {parse: true});
-          return {
-            disks: disks,
-            nodes: nodes,
-            volumes: volumes
-          };
+          var selectedNodes = utils.getNodeListFromTabOptions(params.params.options, nodes);
+
+          if (!selectedNodes || !selectedNodes.areDisksConfigurable()) {
+            // Interrupt furter fetching and redirect to cluster nodes
+            app.navigate('/cluster/' + clusterId + '/nodes/');
+            return Promise.reject();
+          }
+
+          var volumes = new models.Volumes();
+          volumes.url = _.result(selectedNodes.at(0), 'url') + '/volumes';
+          return Promise.all(selectedNodes.map(
+            (node) => {
+              node.disks = new models.Disks();
+              return node.disks.fetch({url: _.result(node, 'url') + '/disks'});
+            }
+          ).concat(volumes.fetch()))
+            .then(() => {
+              var disks = new models.Disks(
+                _.cloneDeep(selectedNodes.at(0).disks.toJSON()),
+                {parse: true}
+              );
+              return {
+                disks,
+                volumes,
+                nodes: selectedNodes
+              };
+            });
         });
     }
   },
@@ -235,12 +251,12 @@ var EditNodeDisksScreen = React.createClass({
           <div className='col-xs-12 page-buttons content-elements'>
             <div className='well clearfix'>
               <div className='btn-group'>
-                <a className='btn btn-default'
-                  href={'#cluster/' + this.props.cluster.id + '/nodes'}
+                <Link className='btn btn-default'
+                  to={'/cluster/' + this.props.cluster.id + '/nodes'}
                   disabled={this.state.actionInProgress}
                 >
                   {i18n('cluster_page.nodes_tab.back_to_nodes_button')}
-                </a>
+                </Link>
               </div>
               {!locked && !!this.props.disks.length &&
                 <div className='btn-group pull-right'>

@@ -19,20 +19,24 @@ import React from 'react';
 import utils from 'utils';
 import models from 'models';
 import {ShowNodeInfoDialog} from 'views/dialogs';
-import {backboneMixin} from 'component_mixins';
+import {backboneMixin, loadPropsMixin} from 'component_mixins';
 
 var NotificationsPage, Notification;
 
 NotificationsPage = React.createClass({
-  mixins: [backboneMixin('notifications')],
+  mixins: [
+    backboneMixin('notifications'),
+    loadPropsMixin
+  ],
   statics: {
     title: i18n('notifications_page.title'),
-    navbarActiveElement: null,
-    breadcrumbsPath: [['home', '#'], 'notifications'],
+    breadcrumbsPath: [['home', '/'], 'notifications'],
     fetchData() {
       var notifications = app.notifications;
-      return notifications.fetch().then(() =>
-        ({notifications: notifications})
+      return notifications.fetch()
+        .then(() => {
+          return {notifications};
+        }
       );
     }
   },
