@@ -34,10 +34,12 @@ var LogsTab = React.createClass({
         [i18n('cluster_page.tabs.logs'), null, {active: true}]
       ];
     },
-    checkSubroute(tabProps) {
-      var {activeTab, tabOptions, defaultLogLevel} = tabProps;
-      if (activeTab === 'logs' && tabOptions[0]) {
-        var selectedLogs = utils.deserializeTabOptions(_.compact(tabOptions).join('/'));
+    checkSubroute(props) {
+      var {activeTab, defaultLogLevel} = props;
+      var {options} = props.params;
+
+      if (activeTab === 'logs' && options) {
+        var selectedLogs = utils.deserializeTabOptions(_.compact([options]).join('/'));
         selectedLogs.level = selectedLogs.level ?
             selectedLogs.level.toUpperCase()
           :

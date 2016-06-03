@@ -845,21 +845,19 @@ input[type=range] {
         }
       }
     }
-    .active {
-      a {
+    a.active {
+      color: @white;
+      background-color: @navbar-color-active;
+      border-radius: 4px;
+      &:hover {
         color: @white;
         background-color: @navbar-color-active;
         border-radius: 4px;
-        &:hover {
-          color: @white;
-          background-color: @navbar-color-active;
-          border-radius: 4px;
-        }
-        &:focus {
-          color: @white;
-          background-color: @navbar-color-active;
-          border-radius: 4px;
-        }
+      }
+      &:focus {
+        color: @white;
+        background-color: @navbar-color-active;
+        border-radius: 4px;
       }
     }
   }
