@@ -15,30 +15,48 @@
 **/
 import _ from 'underscore';
 import React from 'react';
+import models from 'models';
 import utils from 'utils';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {loadPropsMixin} from 'component_mixins';
 
 var EditNodesScreen = React.createClass({
+  mixins: [
+    loadPropsMixin
+  ],
   statics: {
-    fetchData(options) {
-      var {cluster} = options;
-      var nodes = utils.getNodeListFromTabOptions(options);
+    fetchData({params}) {
+      var {cluster} = app;
+      var fetched = [];
+      var clusterId = Number(params.id);
+      var nodes;
 
-      if (!nodes) {
-        return Promise.reject();
+      if (!cluster) {
+        cluster = new models.Cluster({id: clusterId});
+        nodes = new models.Nodes();
+        nodes.fetch = utils.fetchClusterProperties(clusterId);
+        cluster.set({nodes});
+      } else {
+        fetched = [
+          cluster.get('roles').fetch(),
+          cluster.get('settings').fetch({cache: true})
+        ];
+        nodes = cluster.get('nodes');
       }
+      fetched.push(cluster.get('nodes').fetch());
 
-      nodes.fetch = function(options) {
-        return this.constructor.__super__.fetch.call(this,
-          _.extend({data: {cluster_id: cluster.id}}, options));
-      };
-      nodes.parse = function() {
-        return this.getByIds(nodes.map('id'));
-      };
-      return Promise.all([
-        cluster.get('roles').fetch(),
-        cluster.get('settings').fetch({cache: true})
-      ]).then(() => ({nodes}));
+      return Promise.all(fetched)
+        .then(() => {
+          var selectedNodes = utils.getNodeListFromTabOptions(params.options, nodes);
+          if (!selectedNodes) {
+            app.navigate('/cluster/' + clusterId + '/nodes/');
+            return Promise.reject();
+          }
+          selectedNodes.parse = function() {
+            return this.getByIds(nodes.map('id'));
+          };
+          return {nodes: selectedNodes};
+        });
     }
   },
   render() {
