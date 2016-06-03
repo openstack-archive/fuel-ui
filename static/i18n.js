@@ -14,7 +14,8 @@
  * under the License.
 **/
 import _ from 'underscore';
-import i18next from 'i18next-client';
+import i18next from 'i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
 import translations from './translations/core.json';
 
 var defaultLocale = 'en-US';
@@ -30,24 +31,27 @@ var i18n = _.extend(_.bind(i18next.t, i18next), {
     return _.keys(translations).sort();
   },
   getCurrentLocale() {
-    return i18next.lng();
+    return i18next.language;
   },
   setLocale(locale) {
-    i18next.setLng(locale, {});
+    i18next.changeLanguage(locale);
   },
   addTranslations(extraTranslations) {
-    _.merge(i18next.options.resStore, extraTranslations);
+    _.merge(i18next.options.resources, extraTranslations);
   }
 });
 
-i18next.init({resStore: translations, fallbackLng: defaultLocale});
-
-// reset locale to default if current locale is not available
-if (!_.includes(i18n.getAvailableLocales(), i18n.getCurrentLocale())) {
-  i18n.setLocale(defaultLocale);
-}
-
-// export global i18n variable to use in templates
-window.i18n = i18n;
+i18next
+  .use(LanguageDetector)
+  .init({
+    compatibilityJSON: 'v1',
+    resources: translations,
+    whitelist: i18n.getAvailableLocales(),
+    fallbackLng: defaultLocale,
+    detection: {
+      lookupLocalStorage: 'i18nextLocale',
+      caches: ['localStorage']
+    }
+  });
 
 export default i18n;
