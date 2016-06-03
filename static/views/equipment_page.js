@@ -29,8 +29,9 @@ EquipmentPage = React.createClass({
   statics: {
     title: i18n('equipment_page.title'),
     navbarActiveElement: 'equipment',
-    breadcrumbsPath: [['home', '#'], 'equipment'],
-    fetchData() {
+    breadcrumbsPath: [['home', '/'], 'equipment'],
+    loadProps(params, cb) {
+      console.log('Fetch equipment');
       var nodes = new models.Nodes();
       var clusters = new models.Clusters();
       var plugins = new models.Plugins();
@@ -86,10 +87,11 @@ EquipmentPage = React.createClass({
           );
         });
 
-        return {
+        console.log('Fetched equipment');
+        cb(null, {
           nodes, clusters, nodeNetworkGroups, links, roles,
           fuelSettings, uiSettings: fuelSettings.get('ui_settings')
-        };
+        });
       });
     }
   },
@@ -105,6 +107,7 @@ EquipmentPage = React.createClass({
     this.props.fuelSettings.save(null, {patch: true, wait: true, validate: false});
   },
   render() {
+    console.log('Render equipment');
     return (
       <div className='equipment-page'>
         <div className='page-title'>

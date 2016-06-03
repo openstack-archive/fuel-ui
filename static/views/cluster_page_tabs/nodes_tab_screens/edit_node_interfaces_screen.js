@@ -38,42 +38,65 @@ var EditNodeInterfacesScreen = React.createClass({
     unsavedChangesMixin
   ],
   statics: {
-    fetchData(options) {
-      var cluster = options.cluster;
-      var nodes = utils.getNodeListFromTabOptions(options);
+    loadProps(params, cb) {
+      console.log('Fetch edit node interfaces:', params);
 
-      if (!nodes || !nodes.areInterfacesConfigurable()) {
-        return $.Deferred().reject();
-      }
+      var id = Number(params.params.id);
+      var cluster = new models.Cluster({id: id});
+      var baseUrl = _.result(cluster, 'url');
 
-      var networkConfiguration = cluster.get('networkConfiguration');
-      var networksMetadata = new models.ReleaseNetworkProperties();
+      cluster.get('nodes').fetch = utils.fetchClusterProperties(id);
 
-      return $.when(...nodes.map((node) => {
-        node.interfaces = new models.Interfaces();
-        return node.interfaces.fetch({
-          url: _.result(node, 'url') + '/interfaces',
-          reset: true
-        });
-      }).concat([
-        networkConfiguration.fetch({cache: true}),
-        networksMetadata.fetch({
-          url: '/api/releases/' + cluster.get('release_id') + '/networks'
-        })]))
+      return $.when(
+        cluster.fetch(),
+        cluster.fetchRelated('nodes')
+      )
         .then(() => {
-          var interfaces = new models.Interfaces();
-          interfaces.set(_.cloneDeep(nodes.at(0).interfaces.toJSON()), {parse: true});
-          return {
-            interfaces: interfaces,
-            nodes: nodes,
-            bondingConfig: networksMetadata.get('bonding'),
-            configModels: {
-              version: app.version,
-              cluster: cluster,
-              settings: cluster.get('settings')
-            }
-          };
-        });
+          var networkConfiguration = new models.NetworkConfiguration();
+          networkConfiguration.url = [
+            baseUrl,
+            '/network_configuration/',
+            cluster.get('net_provider')
+          ].join('');
+          cluster.set({networkConfiguration});
+
+          var clusterNodes = utils.getNodeListFromTabOptions(params.params.options, cluster);
+
+          if (!clusterNodes || !clusterNodes.areDisksConfigurable()) {
+            console.log('Interrupt:', clusterNodes);
+            return $.Deferred().reject();
+          }
+
+          var networkConfiguration = cluster.get('networkConfiguration');
+          var networksMetadata = new models.ReleaseNetworkProperties();
+
+          return $.when(...clusterNodes.map((node) => {
+            node.interfaces = new models.Interfaces();
+            return node.interfaces.fetch({
+              url: _.result(node, 'url') + '/interfaces',
+              reset: true
+            });
+          }).concat([
+            networkConfiguration.fetch({cache: true}),
+            networksMetadata.fetch({
+              url: '/api/releases/' + cluster.get('release_id') + '/networks'
+            })]))
+            .then(() => {
+              var interfaces = new models.Interfaces();
+              interfaces.set(_.cloneDeep(clusterNodes.at(0).interfaces.toJSON()), {parse: true});
+              cb(null, {
+                interfaces: interfaces,
+                nodes: clusterNodes,
+                bondingConfig: networksMetadata.get('bonding'),
+                configModels: {
+                  version: app.version,
+                  cluster: cluster,
+                  settings: cluster.get('settings')
+                }
+              });
+            });
+          }
+        );
     }
   },
   getInitialState() {

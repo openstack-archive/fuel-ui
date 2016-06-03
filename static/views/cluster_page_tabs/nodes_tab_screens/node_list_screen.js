@@ -145,6 +145,8 @@ NodeListScreen = React.createClass({
       viewMode = this.props.viewMode || _.first(NODE_VIEW_MODES);
     }
 
+    console.log('Node List Screen props: ', this.props);
+
     _.invokeMap(activeFilters, 'updateLimits', nodes, false);
     var availableFilters = _.map(this.props.availableFilters, (name) => {
       var filter = new Filter(name, [], false);
@@ -852,7 +854,7 @@ ManagementPanel = React.createClass({
   changeScreen(url, passNodeIds) {
     url = url ? '/' + url : '';
     if (passNodeIds) url += '/' + utils.serializeTabOptions({nodes: this.props.nodes.map('id')});
-    app.navigate('#cluster/' + this.props.cluster.id + '/nodes' + url, {trigger: true});
+    app.navigate('/cluster/' + this.props.cluster.id + '/nodes' + url, {trigger: true});
   },
   goToConfigurationScreen(action, conflict) {
     if (conflict) {
