@@ -19,6 +19,7 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import Backbone from 'backbone';
 import React from 'react';
+import {Link} from 'react-router';
 import utils from 'utils';
 import models from 'models';
 import {backboneMixin, pollingMixin, dispatcherMixin} from 'component_mixins';
@@ -78,11 +79,11 @@ export var Navbar = React.createClass({
     return {
       notificationsDisplayCount: 5,
       elements: [
-        {label: 'environments', url: '#clusters'},
-        {label: 'equipment', url: '#equipment'},
-        {label: 'releases', url: '#releases'},
-        {label: 'plugins', url: '#plugins'},
-        {label: 'support', url: '#support'}
+        {label: 'environments', url: '/clusters', activeFor: /^\/cluster\//},
+        {label: 'equipment', url: '/equipment'},
+        {label: 'releases', url: '/releases'},
+        {label: 'plugins', url: '/plugins'},
+        {label: 'support', url: '/support'}
       ]
     };
   },
@@ -96,6 +97,7 @@ export var Navbar = React.createClass({
     var unreadNotificationsCount = this.props.notifications.filter({status: 'unread'}).length;
     var authenticationEnabled = this.props.version.get('auth_required') &&
       this.props.user.get('authenticated');
+    var currentPath = this.props.location.pathname;
 
     return (
       <div className='navigation-box'>
@@ -103,21 +105,24 @@ export var Navbar = React.createClass({
         <nav className='navbar navbar-default' role='navigation'>
           <div className='row'>
             <div className='navbar-header col-xs-2'>
-              <a className='navbar-logo' href='#'></a>
+              <Link className='navbar-logo' to='/' />
             </div>
             <div className='col-xs-6'>
               <ul className='nav navbar-nav pull-left'>
                 {_.map(this.props.elements, (element) => {
                   return (
                     <li
-                      className={utils.classNames({
-                        active: this.props.activeElement === element.url.slice(1)
-                      })}
                       key={element.label}
                     >
-                      <a href={element.url}>
+                      <Link
+                        to={element.url}
+                        activeClassName='active'
+                        className={utils.classNames({
+                          active: element.activeFor && currentPath.search(element.activeFor) >= 0
+                        })}
+                      >
                         {i18n('navbar.' + element.label, {defaultValue: element.label})}
-                      </a>
+                      </Link>
                     </li>
                   );
                 })}
@@ -247,9 +252,9 @@ var StatisticsPopover = React.createClass({
           </li>
           <li className='list-group-item text-success font-semibold'>
             <span className='badge bg-green'>{this.props.statistics.get('total')}</span>
-            <a href='#equipment'>
+            <Link to='/equipment'>
               {i18n('navbar.stats.total', {count: this.props.statistics.get('total')})}
-            </a>
+            </Link>
           </li>
         </div>
       </Popover>
@@ -353,7 +358,7 @@ var NotificationsPopover = React.createClass({
         {_.map(notifications, this.renderNotification)}
         {showMore &&
           <div className='show-more'>
-            <a href='#notifications'>{i18n('notifications_popover.view_all_button')}</a>
+            <Link to='/notifications'>{i18n('notifications_popover.view_all_button')}</Link>
           </div>
         }
       </Popover>
@@ -441,16 +446,14 @@ export var Breadcrumbs = React.createClass({
       <ol className='breadcrumb'>
         {_.map(this.state.path, (breadcrumb, index) => {
           if (!_.isArray(breadcrumb)) breadcrumb = [breadcrumb, null, {active: true}];
-          var text = breadcrumb[0];
-          var link = breadcrumb[1];
-          var options = breadcrumb[2] || {};
+          var [text, link, options = {}] = breadcrumb;
           if (!options.skipTranslation) {
             text = i18n('breadcrumbs.' + text, {defaultValue: text});
           }
           if (options.active) {
             return <li key={index} className='active'>{text}</li>;
           } else {
-            return <li key={index}><a href={link}>{text}</a></li>;
+            return <li key={index}><Link to={link}>{text}</Link></li>;
           }
         })}
       </ol>
