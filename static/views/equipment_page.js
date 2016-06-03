@@ -18,16 +18,19 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import models from 'models';
-import {backboneMixin} from 'component_mixins';
+import {backboneMixin, loadPropsMixin} from 'component_mixins';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 
 var EquipmentPage, PluginLinks;
 
 EquipmentPage = React.createClass({
-  mixins: [backboneMixin('nodes')],
+  mixins: [
+    backboneMixin('nodes'),
+    loadPropsMixin
+  ],
   statics: {
+    longFetch: true,
     title: i18n('equipment_page.title'),
-    navbarActiveElement: 'equipment',
     breadcrumbsPath: [['home', '/'], 'equipment'],
     fetchData() {
       var nodes = new models.Nodes();
@@ -86,8 +89,8 @@ EquipmentPage = React.createClass({
         });
 
         return {
-          nodes, clusters, nodeNetworkGroups, links, roles,
-          fuelSettings, uiSettings: fuelSettings.get('ui_settings')
+          nodes, clusters, nodeNetworkGroups, links, roles, fuelSettings,
+          uiSettings: fuelSettings.get('ui_settings')
         };
       });
     }

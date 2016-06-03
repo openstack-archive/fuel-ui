@@ -34,16 +34,16 @@ var utils = {
   },
   /*eslint-enable max-len*/
   serializeTabOptions(options) {
-    return _.map(options, (value, key) => key + ':' + value).join(';');
+    return _.map(options, (value, key) => key + ':' + _.replace(value, '/', '%2F')).join(';');
   },
   deserializeTabOptions(serializedOptions) {
     return _.fromPairs(_.map((serializedOptions || '').split(';'), (option) => option.split(':')));
   },
   getNodeListFromTabOptions(options, cluster) {
-    var nodeIds = utils.deserializeTabOptions(options.screenOptions[0]).nodes;
+    var nodeIds = utils.deserializeTabOptions(options).nodes;
     var ids = nodeIds ? nodeIds.split(',').map((id) => parseInt(id, 10)) : [];
     var nodes = new models.Nodes(
-      options.cluster.get('nodes').getByIds(ids),
+      cluster.get('nodes').getByIds(ids),
       {fetchOptions: {cluster_id: cluster.id}}
     );
     if (nodes.length === ids.length) return nodes;
@@ -337,6 +337,12 @@ var utils = {
     return addLeadingZero(date.getHours()) + ':' + addLeadingZero(date.getMinutes()) + ':' +
       addLeadingZero(date.getSeconds()) + ' ' + addLeadingZero(date.getDate()) + '/' +
       addLeadingZero(date.getMonth() + 1) + '/' + date.getFullYear();
+  },
+  fetchClusterProperties(clusterId = '') {
+    return function(options) {
+      return this.constructor.__super__.fetch.call(this,
+        _.extend({data: {cluster_id: clusterId}}, options));
+    };
   }
 };
 
