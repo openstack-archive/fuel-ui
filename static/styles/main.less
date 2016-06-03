@@ -4751,9 +4751,14 @@ input[type=range] {
     background-color: @base-light-color;
     width: @page-width;
     margin: 0 0 @dashboard-offset -@dashboard-offset * 2;
-    padding: @dashboard-offset @dashboard-offset * 2;
+    padding: @dashboard-offset @dashboard-offset * 2 @dashboard-offset * 2;
+
+    .title {
+      padding: 0;
+    }
+
     .go-to-healthcheck {
-      margin-bottom: @dashboard-offset;
+      margin-bottom: @dashboard-offset * 2;
     }
     .cluster-info-value, .cluster-info-title {
       height: auto;
@@ -4786,59 +4791,28 @@ input[type=range] {
       }
     }
     .rename-block {
-      height: 30px;
       line-height: 13px;
-      margin-bottom: 4px;
-      text-align: left;
-      &.has-error {
-        height: auto;
-        .text-danger {
+      .form-group {
+        margin: 0;
+        position: relative;
+        top: -6px;
+        left: -13px;
+        input[type=text] {
+          height: 30px;
+          margin: 0;
+        }
+        .help-block {
           font-size: 12px;
-          width: 215px;
-          padding-top: 30px;
-          margin-bottom: 10px;
+          margin-bottom: 0;
         }
-      }
-      input[type=text] {
-        width: 240px;
-        height: 32px;
-        margin: -21px 0 0 -12px;
-        float: left;
-      }
-    }
-    .capacity-block {
-      margin-bottom: 15px;
-      .capacity-items {
-        margin-top: -9px;
-        > div {
-          cursor: default;
-          background-color: @white;
-          padding: 4px 10px;
-          &.cpu {
-            border: 1px solid @dashboard-gray;
-          }
-          &.hdd {
-            border: 1px solid @dashboard-gray;
-          }
-          &.ram {
-            border-top: 1px solid @dashboard-gray;
-            border-bottom: 1px solid @dashboard-gray;
-          }
-          .capacity-value {
-            .font-semibold;
-            float: right;
-          }
+        &:not(.has-error) .help-block {
+          display: none;
         }
       }
     }
-    .statistics-block {
-      margin-bottom: 15px;
-      .cluster-info-title {
-        margin-bottom: @dashboard-offset;
-      }
-    }
+
     .dashboard-actions-wrapper {
-      margin: @dashboard-offset 0 @dashboard-offset 0;
+      margin: 0;
       .reset-environment {
         margin-right: 87px;
       }
@@ -4847,6 +4821,38 @@ input[type=range] {
       }
       .glyphicon-info-sign {
         vertical-align: sub;
+      }
+    }
+
+    .statistics {
+      .title {
+        padding-left: 15px;
+      }
+      .capacity-block {
+        margin-bottom: 15px;
+        .capacity-items {
+          > div {
+            background-color: @white;
+            padding: 4px 10px;
+            &.cpu {
+              border: 1px solid @dashboard-gray;
+            }
+            &.hdd {
+              border: 1px solid @dashboard-gray;
+            }
+            &.ram {
+              border-top: 1px solid @dashboard-gray;
+              border-bottom: 1px solid @dashboard-gray;
+            }
+            .capacity-value {
+              .font-semibold;
+              float: right;
+            }
+          }
+        }
+      }
+      .cluster-info-title {
+        margin-bottom: @dashboard-offset;
       }
     }
   }

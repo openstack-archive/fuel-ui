@@ -69,12 +69,12 @@ registerSuite(() => {
         .then(() => clusterPage.goToTab('Dashboard'))
         .then(() => dashboardPage.setClusterName(initialName))
         .assertElementAppears(
-          '.rename-block.has-error',
+          '.rename-block .has-error',
           1000,
           'Error style for duplicate name is applied'
         )
         .assertElementTextEquals(
-          '.rename-block .text-danger',
+          '.rename-block .help-block',
           'Environment with this name already exists',
           'Duplicate name error text appears'
         )
