@@ -682,7 +682,9 @@ export var SelectNodesDialog = React.createClass({
   mixins: [dialogMixin],
   getInitialState() {
     var selectedNodeIds = {};
-    _.each(this.props.selectedNodeIds, (id) => selectedNodeIds[id] = true);
+    _.each(this.props.selectedNodeIds, (id) => {
+      selectedNodeIds[id] = true;
+    });
     return {selectedNodeIds};
   },
   getDefaultProps() {
@@ -834,7 +836,8 @@ export var StopDeploymentDialog = React.createClass({
         {taskName === 'deploy' && cluster.get('nodes').some({status: 'provisioning'}) ?
           <span>
             {i18n(ns + 'provisioning_warning')}
-            <br/><br/>
+            <br />
+            <br />
             {i18n(ns + 'redeployment_warning')}
           </span>
         :
@@ -1825,7 +1828,7 @@ export var DeleteNodesDialog = React.createClass({
       <div className='text-danger'>
         {this.renderImportantLabel()}
         {i18n(ns + 'common_message', {count: this.props.nodes.length})}
-        <br/>
+        <br />
         {!!addedNodes.length &&
           i18n(ns + 'added_nodes_message', {count: addedNodes.length})
         }

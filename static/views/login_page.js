@@ -150,7 +150,7 @@ var LoginForm = React.createClass({
           <div className='http-warning'>
             <i className='glyphicon glyphicon-warning-sign'></i>
             {i18n('login_page.http_warning')}
-            <br/>
+            <br />
             <a href={httpsLink}>{i18n('login_page.http_warning_link')}</a>
           </div>
         }

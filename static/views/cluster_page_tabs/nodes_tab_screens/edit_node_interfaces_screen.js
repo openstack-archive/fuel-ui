@@ -271,8 +271,10 @@ var EditNodeInterfacesScreen = React.createClass({
     var targetInterfaceProperties = targetInterface.get('interface_properties');
     var sourceInterfaceProperties = sourceInterface.get('interface_properties');
 
-    if (targetInterface.get('offloading_modes')
-        && _.get(limitations, 'offloading_modes.equal', false)) {
+    if (
+      targetInterface.get('offloading_modes') &&
+      _.get(limitations, 'offloading_modes.equal', false)
+    ) {
       targetInterface.set({
         offloading_modes: sourceInterface.get('offloading_modes')
       });
@@ -286,8 +288,10 @@ var EditNodeInterfacesScreen = React.createClass({
 
     _.each(sourceInterfaceProperties, (propertyValue, propertyName) => {
       // Set all unrestricted parameters values
-      if (!_.isPlainObject(propertyValue)
-          && _.get(limitations, propertyName + '.equal', false)) {
+      if (
+        !_.isPlainObject(propertyValue) &&
+        _.get(limitations, propertyName + '.equal', false)
+      ) {
         _.set(targetInterfaceProperties, propertyName, propertyValue);
       }
     });
@@ -1229,7 +1233,7 @@ var NodeInterface = React.createClass({
           error={errors && errors.common}
         />
         {isSRIOVEnabled &&
-          [
+          ([
             <Input
               key='sriov.sriov_numvfs'
               type='number'
@@ -1257,7 +1261,7 @@ var NodeInterface = React.createClass({
                 i18n(ns + 'validation.non_default_physnet')
               }
             />
-          ]
+          ])
         }
       </div>
     );
@@ -1466,8 +1470,8 @@ var NodeInterface = React.createClass({
                                   {interfaceNames.length > 2 && ', ...'}
                                 </span>
                               </div>
-                            :
-                            [
+                          :
+                            ([
                               this.props.nodes.length === 1 &&
                                 <div key='mac'>
                                   {i18n(ns + 'mac')}: {renderedInterface.get('mac')}
@@ -1486,7 +1490,7 @@ var NodeInterface = React.createClass({
                                   >
                                   {i18n('common.remove_button')}
                                 </button>
-                            ]
+                            ])
                           }
                         </div>
                       </div>

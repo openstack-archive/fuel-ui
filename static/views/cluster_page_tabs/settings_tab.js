@@ -239,7 +239,9 @@ var SettingsTab = React.createClass({
 
     // Prepare list of settings organized by groups
     var groupedSettings = {};
-    _.each(settingsGroupList, (group) => groupedSettings[group] = {});
+    _.each(settingsGroupList, (group) => {
+      groupedSettings[group] = {};
+    });
     _.each(settings.attributes, (section, sectionName) => {
       var isHidden = this.checkRestrictions('hide', section.metadata).result;
       if (!isHidden) {
@@ -401,7 +403,7 @@ var SettingSubtabs = React.createClass({
                   className={'no-leave-check subtab-link-' + groupName}
                   href={'#cluster/' + this.props.cluster.id + '/settings/' + groupName}
                 >
-                  {hasErrors && <i className='subtab-icon glyphicon-danger-sign'/>}
+                  {hasErrors && <i className='subtab-icon glyphicon-danger-sign' />}
                   {i18n('cluster_page.settings_tab.groups.' + groupName, {defaultValue: groupName})}
                 </a>
               </li>

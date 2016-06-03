@@ -170,11 +170,11 @@ var Node = React.createClass({
     );
   },
   renderStatusLabel(status) {
+    var {cluster} = this.props;
     return (
       <span>
         {i18n('cluster_page.nodes_tab.node.status.' + status, {
-          os: this.props.cluster && this.props.cluster.get('release').get('operating_system')
-            || 'OS'
+          os: cluster && cluster.get('release').get('operating_system') || 'OS'
         })}
       </span>
     );
@@ -245,8 +245,8 @@ var Node = React.createClass({
         checked={!!this.props.checked}
         disabled={
           this.props.locked ||
-          !this.props.node.isSelectable()
-          || this.props.mode === 'edit'
+          !this.props.node.isSelectable() ||
+          this.props.mode === 'edit'
         }
         onChange={this.props.mode !== 'edit' ? this.props.onNodeSelection : _.noop}
         wrapperClassName='pull-left'
