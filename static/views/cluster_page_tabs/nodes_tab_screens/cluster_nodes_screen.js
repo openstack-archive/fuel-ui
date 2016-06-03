@@ -20,12 +20,14 @@ import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_
 
 var ClusterNodesScreen = React.createClass({
   render() {
+    var {cluster} = this.props;
+    console.log('Cluster nodes screen props: ', cluster);
     return <NodeListScreen {... _.omit(this.props, 'screenOptions')}
       ref='screen'
       mode='list'
-      nodes={this.props.cluster.get('nodes')}
-      roles={this.props.cluster.get('roles')}
-      nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
+      nodes={cluster.get('nodes')}
+      roles={cluster.get('roles')}
+      nodeNetworkGroups={cluster.get('nodeNetworkGroups')}
       sorters={_.without(models.Nodes.prototype.sorters, 'cluster')}
       defaultSorting={[{roles: 'asc'}]}
       filters={_.without(models.Nodes.prototype.filters, 'cluster')}
