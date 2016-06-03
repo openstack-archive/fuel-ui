@@ -34,10 +34,12 @@ var LogsTab = React.createClass({
         [i18n('cluster_page.tabs.logs'), null, {active: true}]
       ];
     },
-    checkSubroute(tabProps) {
-      var {activeTab, tabOptions, defaultLogLevel} = tabProps;
-      if (activeTab === 'logs' && tabOptions[0]) {
-        var selectedLogs = utils.deserializeTabOptions(_.compact(tabOptions).join('/'));
+    checkSubroute(props) {
+      var {activeTab, defaultLogLevel} = props;
+      var {options} = props.params;
+
+      if (activeTab === 'logs' && options) {
+        var selectedLogs = utils.deserializeTabOptions(_.compact([options]).join('/'));
         selectedLogs.level = selectedLogs.level ?
             selectedLogs.level.toUpperCase()
           :
@@ -91,7 +93,7 @@ var LogsTab = React.createClass({
     var logOptions = this.props.selectedLogs.type === 'remote' ?
       _.extend({}, this.props.selectedLogs) : _.omit(this.props.selectedLogs, 'node');
     logOptions.level = logOptions.level.toLowerCase();
-    app.navigate('#cluster/' + this.props.cluster.id + '/logs/' +
+    app.navigate('/cluster/' + this.props.cluster.id + '/logs/' +
       utils.serializeTabOptions(logOptions), {trigger: false, replace: true});
     params = params || {};
     this.fetchLogs(params)

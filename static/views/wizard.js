@@ -693,7 +693,7 @@ var CreateClusterWizard = React.createClass({
           () => {
             this.props.clusters.add(cluster);
             this.close();
-            app.navigate('#cluster/' + this.cluster.id, {trigger: true});
+            app.navigate('/cluster/' + this.cluster.id, {trigger: true});
           },
           (response) => {
             this.stopHandlingKeys = false;

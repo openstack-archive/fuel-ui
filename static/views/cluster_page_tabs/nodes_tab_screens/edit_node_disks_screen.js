@@ -19,6 +19,7 @@ import Backbone from 'backbone';
 import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Link} from 'react-router';
 import utils from 'utils';
 import models from 'models';
 import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
@@ -32,26 +33,40 @@ var EditNodeDisksScreen = React.createClass({
     unsavedChangesMixin
   ],
   statics: {
-    fetchData(options) {
-      var nodes = utils.getNodeListFromTabOptions(options);
+    loadProps(params, cb) {
+      var id = Number(params.params.id);
+      var cluster = new models.Cluster({id: id});
 
-      if (!nodes || !nodes.areDisksConfigurable()) {
-        return Promise.reject();
-      }
+      cluster.get('nodes').fetch = utils.fetchClusterProperties(id);
 
-      var volumes = new models.Volumes();
-      volumes.url = _.result(nodes.at(0), 'url') + '/volumes';
-      return Promise.all(nodes.map((node) => {
-        node.disks = new models.Disks();
-        return node.disks.fetch({url: _.result(node, 'url') + '/disks'});
-      }).concat(volumes.fetch()))
+      return cluster.fetchRelated('nodes')
         .then(() => {
-          var disks = new models.Disks(_.cloneDeep(nodes.at(0).disks.toJSON()), {parse: true});
-          return {
-            disks: disks,
-            nodes: nodes,
-            volumes: volumes
-          };
+          var clusterNodes = utils.getNodeListFromTabOptions(params.params.options, cluster);
+
+          if (!clusterNodes || !clusterNodes.areDisksConfigurable()) {
+            // Interrupt furter fetching and redirect to cluster nodes
+            return app.navigate('/cluster/' + id + '/nodes/');
+          }
+
+          var volumes = new models.Volumes();
+          volumes.url = _.result(clusterNodes.at(0), 'url') + '/volumes';
+          return $.when(...clusterNodes.map(
+            (node) => {
+              node.disks = new models.Disks();
+              return node.disks.fetch({url: _.result(node, 'url') + '/disks'});
+            }
+          ).concat(volumes.fetch()))
+            .then(() => {
+              var disks = new models.Disks(
+                _.cloneDeep(clusterNodes.at(0).disks.toJSON()),
+                {parse: true}
+              );
+              cb(null, {
+                disks,
+                nodes: clusterNodes,
+                volumes
+              });
+            });
         });
     }
   },
@@ -235,12 +250,12 @@ var EditNodeDisksScreen = React.createClass({
           <div className='col-xs-12 page-buttons content-elements'>
             <div className='well clearfix'>
               <div className='btn-group'>
-                <a className='btn btn-default'
-                  href={'#cluster/' + this.props.cluster.id + '/nodes'}
+                <Link className='btn btn-default'
+                  to={'/cluster/' + this.props.cluster.id + '/nodes'}
                   disabled={this.state.actionInProgress}
                 >
                   {i18n('cluster_page.nodes_tab.back_to_nodes_button')}
-                </a>
+                </Link>
               </div>
               {!locked && !!this.props.disks.length &&
                 <div className='btn-group pull-right'>
