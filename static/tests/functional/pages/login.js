@@ -30,7 +30,7 @@ class LoginPage {
       .setWindowSize(1280, 1024)
       .getCurrentUrl()
       .then((url) => {
-        if (url !== Helpers.serverUrl + '/#login') {
+        if (url !== Helpers.serverUrl + '/#/login') {
           return this.logout();
         }
       })
@@ -45,7 +45,7 @@ class LoginPage {
       .then((url) => {
         if (url.indexOf(Helpers.serverUrl) !== 0) {
           return this.remote
-            .get(Helpers.serverUrl + '/#logout')
+            .get(Helpers.serverUrl + '/#/logout')
             .findByClassName('login-btn')
             .then(() => true);
         }

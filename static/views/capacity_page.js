@@ -18,13 +18,14 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import models from 'models';
-import {backboneMixin, pollingMixin} from 'component_mixins';
+import {backboneMixin, pollingMixin, loadPropsMixin} from 'component_mixins';
 import {ProgressBar, Table} from 'views/controls';
 
 var CapacityPage = React.createClass({
   mixins: [
     backboneMixin('capacityLog'),
-    pollingMixin(2)
+    pollingMixin(2),
+    loadPropsMixin
   ],
   statics: {
     title: i18n('capacity_page.title'),
@@ -33,7 +34,10 @@ var CapacityPage = React.createClass({
     fetchData() {
       var task = new models.Task();
       return task.save({}, {url: '/api/capacity/', method: 'PUT'})
-        .then(() => ({capacityLog: new models.CapacityLog()}));
+        .then(
+          () => ({capacityLog: new models.CapacityLog()}),
+          () => true
+        );
     }
   },
   shouldDataBeFetched() {
