@@ -18,21 +18,38 @@ import _ from 'underscore';
 import React from 'react';
 import {NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
 import models from 'models';
+import utils from 'utils';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 
 var AddNodesScreen = React.createClass({
   statics: {
-    fetchData({cluster}) {
+    loadProps(params, cb) {
+      var id = Number(params.params.id);
+      var cluster = new models.Cluster({id: id});
+      var baseUrl = _.result(cluster, 'url');
+
+      var settings = new models.Settings();
+      settings.url = baseUrl + '/attributes';
+      cluster.set({settings});
+      settings.fetch = utils.fetchClusterProperties(id);
+
+      var roles = new models.Roles();
+      roles.url = baseUrl + '/roles';
+      cluster.set({roles});
+      roles.fetch = utils.fetchClusterProperties(id);
+
       var nodes = new models.Nodes();
-      nodes.fetch = function(options) {
-        return this.constructor.__super__.fetch.call(this, _.extend({data: {cluster_id: ''}},
-          options));
-      };
+      nodes.fetch = utils.fetchClusterProperties();
+
       return $.when(
         nodes.fetch(),
-        cluster.get('roles').fetch(),
-        cluster.get('settings').fetch({cache: true})
-      ).then(() => ({nodes}));
+        cluster.get('roles').fetch()
+      )
+        .then(() => cb(null, {
+          nodes: nodes,
+          roles: cluster.get('roles'),
+          settings: cluster.get('settings')
+        }));
     }
   },
   render() {
@@ -40,6 +57,7 @@ var AddNodesScreen = React.createClass({
       {... _.omit(this.props, 'screenOptions')}
       ref='screen'
       mode='add'
+      roles={this.props.roles}
       nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
       showRolePanel
       statusesToFilter={['discover', 'error', 'offline', 'removing']}
