@@ -16,12 +16,13 @@
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
+import {Link} from 'react-router';
 import utils from 'utils';
 import models from 'models';
-import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
+import {backboneMixin, unsavedChangesMixin, loadPropsMixin} from 'component_mixins';
 import SettingSection from 'views/cluster_page_tabs/setting_section';
 import CSSTransitionGroup from 'react-addons-transition-group';
-import {ProgressButton, Link} from 'views/controls';
+import {ProgressButton} from 'views/controls';
 
 var SettingsTab = React.createClass({
   mixins: [
@@ -38,9 +39,11 @@ var SettingsTab = React.createClass({
     backboneMixin({modelOrCollection(props) {
       return props.cluster.task({group: 'deployment', active: true});
     }}),
-    unsavedChangesMixin
+    unsavedChangesMixin,
+    loadPropsMixin
   ],
   statics: {
+    waitForParentData: true,
     breadcrumbsPath() {
       return [
         [i18n('cluster_page.tabs.settings'), null, {active: true}]
@@ -52,16 +55,18 @@ var SettingsTab = React.createClass({
         cluster.get('networkConfiguration').fetch({cache: true})
       ]).then(() => ({}));
     },
-    getSubtabs(options) {
-      return options.cluster.get('settings').getGroupList();
+    getSubtabs({cluster}) {
+      return cluster.get('settings').getGroupList();
     },
     checkSubroute(tabProps) {
-      var {activeTab, cluster, tabOptions} = tabProps;
+      var {id} = tabProps.params;
+      var {activeTab} = tabProps;
+
       var subtabs = this.getSubtabs(tabProps);
       if (activeTab === 'settings') {
-        var subroute = tabOptions[0];
+        var subroute = tabProps.params.section;
         if (!subroute || !_.includes(subtabs, subroute)) {
-          app.navigate('/cluster/' + cluster.id + '/settings/' + subtabs[0], {replace: true});
+          app.navigate('/cluster/' + id + '/settings/' + subtabs[0], {replace: true});
         }
         return {activeSettingsSectionName: subroute};
       }
@@ -395,7 +400,7 @@ var SettingSubtabs = React.createClass({
                 })}
               >
                 <Link
-                  className={'no-leave-check subtab-link-' + groupName}
+                  className={'subtab-link-' + groupName}
                   to={'/cluster/' + this.props.cluster.id + '/settings/' + groupName}
                 >
                   {hasErrors && <i className='subtab-icon glyphicon-danger-sign' />}

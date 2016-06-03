@@ -18,7 +18,7 @@ import i18n from 'i18n';
 import _ from 'underscore';
 import dispatcher from 'dispatcher';
 import {Input, Tooltip} from 'views/controls';
-import {unsavedChangesMixin} from 'component_mixins';
+import {unsavedChangesMixin, loadPropsMixin} from 'component_mixins';
 import VmWareModels from 'plugins/vmware/vmware_models';
 
 var Field = React.createClass({
@@ -295,9 +295,11 @@ var UnassignedNodesWarning = React.createClass({
 
 var VmWareTab = React.createClass({
   mixins: [
-    unsavedChangesMixin
+    unsavedChangesMixin,
+    loadPropsMixin
   ],
   statics: {
+    waitForParentData: true,
     breadcrumbsPath() {
       return [
         [i18n('vmware.title'), null, {active: true}]

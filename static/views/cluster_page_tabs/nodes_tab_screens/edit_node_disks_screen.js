@@ -19,21 +19,24 @@ import Backbone from 'backbone';
 import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Link} from 'react-router';
 import utils from 'utils';
 import models from 'models';
-import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
-import {Input, ProgressButton, Link} from 'views/controls';
+import {backboneMixin, unsavedChangesMixin, loadPropsMixin} from 'component_mixins';
+import {Input, ProgressButton} from 'views/controls';
 
 var EditNodeDisksScreen = React.createClass({
   mixins: [
     backboneMixin('cluster', 'change:status change:nodes sync'),
     backboneMixin('nodes', 'change sync'),
     backboneMixin('disks', 'reset change'),
-    unsavedChangesMixin
+    unsavedChangesMixin,
+    loadPropsMixin
   ],
   statics: {
-    fetchData(options) {
-      var nodes = utils.getNodeListFromTabOptions(options);
+    waitForParentData: true,
+    fetchData({params, cluster}) {
+      var nodes = utils.getNodeListFromTabOptions(params.options, cluster);
 
       if (!nodes || !nodes.areDisksConfigurable()) {
         return Promise.reject();
