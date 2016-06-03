@@ -34,15 +34,15 @@ var utils = {
   },
   /*eslint-enable max-len*/
   serializeTabOptions(options) {
-    return _.map(options, (value, key) => key + ':' + value).join(';');
+    return _.map(options, (value, key) => key + ':' + _.replace(value, '/', '%2F')).join(';');
   },
   deserializeTabOptions(serializedOptions) {
     return _.fromPairs(_.map((serializedOptions || '').split(';'), (option) => option.split(':')));
   },
-  getNodeListFromTabOptions(options) {
-    var nodeIds = utils.deserializeTabOptions(options.screenOptions[0]).nodes;
+  getNodeListFromTabOptions(options, clusterNodes) {
+    var nodeIds = utils.deserializeTabOptions(options).nodes;
     var ids = nodeIds ? nodeIds.split(',').map((id) => parseInt(id, 10)) : [];
-    var nodes = new models.Nodes(options.cluster.get('nodes').getByIds(ids));
+    var nodes = new models.Nodes(clusterNodes.getByIds(ids));
     if (nodes.length === ids.length) return nodes;
   },
   renderMultilineText(text) {
