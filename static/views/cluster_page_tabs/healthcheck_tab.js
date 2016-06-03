@@ -37,24 +37,41 @@ var HealthCheckTab = React.createClass({
         [i18n('cluster_page.tabs.healthcheck'), null, {active: true}]
       ];
     },
-    fetchData(options) {
-      if (!options.cluster.get('ostf')) {
-        var ostf = {};
-        var clusterId = options.cluster.id;
-        ostf.testsets = new models.TestSets();
-        ostf.testsets.url = _.result(ostf.testsets, 'url') + '/' + clusterId;
-        ostf.tests = new models.Tests();
-        ostf.tests.url = _.result(ostf.tests, 'url') + '/' + clusterId;
-        ostf.testruns = new models.TestRuns();
-        ostf.testruns.url = _.result(ostf.testruns, 'url') + '/last/' + clusterId;
-        return $.when(ostf.testsets.fetch(), ostf.tests.fetch(), ostf.testruns.fetch()).then(() => {
-          options.cluster.set({ostf: ostf});
-          return {};
+    loadProps(params, cb) {
+      var clusterId = Number(params.params.id);
+      var cluster = new models.Cluster({id: clusterId});
+      var ostf;
+      cluster.fetch()
+        .then(() => {
+          ostf = cluster.get('ostf') || {};
+          if (_.isEmpty(ostf)) {
+            ostf.testsets = new models.TestSets();
+            ostf.testsets.url = _.result(ostf.testsets, 'url') + '/' + clusterId;
+            ostf.tests = new models.Tests();
+            ostf.tests.url = _.result(ostf.tests, 'url') + '/' + clusterId;
+            ostf.testruns = new models.TestRuns();
+            ostf.testruns.url = _.result(ostf.testruns, 'url') + '/last/' + clusterId;
+            $.when(
+              ostf.testsets.fetch().catch(() => true),
+              ostf.tests.fetch().catch(() => true),
+              ostf.testruns.fetch().catch(() => true)
+            )
+            .then(
+              () => cb(null, {ostf}),
+              () => cb(null, {ostf})
+            );
+          } else {
+            return cb(null, {ostf});
+          }
         })
-        .catch(() => true);
-      }
-      return $.Deferred().resolve();
+        .catch(() => cb(null, {ostf}));
     }
+  },
+  getInitialState() {
+    if (this.props.cluster) {
+      this.props.cluster.set({ostf: this.props.ostf});
+    }
+    return {};
   },
   render() {
     var ostf = this.props.cluster.get('ostf');
@@ -64,7 +81,7 @@ var HealthCheckTab = React.createClass({
           {i18n('cluster_page.healthcheck_tab.title')}
         </div>
         <div className='col-xs-12 content-elements'>
-          {ostf ?
+          {!_.isEmpty(ostf) ?
             <HealthcheckTabContent
               ref='content'
               testsets={ostf.testsets}
