@@ -19,6 +19,7 @@ import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
 import models from 'models';
+import {Link} from 'react-router';
 import {backboneMixin, pollingMixin, unsavedChangesMixin} from 'component_mixins';
 import statisticsMixin from 'views/statistics_mixin';
 import {ProgressButton} from 'views/controls';
@@ -29,12 +30,13 @@ var SupportPage = React.createClass({
   ],
   statics: {
     title: i18n('support_page.title'),
-    navbarActiveElement: 'support',
-    breadcrumbsPath: [['home', '#'], 'support'],
-    fetchData() {
+    breadcrumbsPath: [['home', '/'], 'support'],
+    loadProps(params, cb) {
       var tasks = new models.Tasks();
       return $.when(app.fuelSettings.fetch({cache: true}), tasks.fetch())
-        .then(() => ({tasks, settings: app.fuelSettings}));
+        .then(() => {
+          cb(null, {tasks, settings: app.fuelSettings});
+        });
     }
   },
   render() {
@@ -247,9 +249,9 @@ var CapacityAudit = React.createClass({
         text={i18n('support_page.capacity_audit_text')}
       >
         <p>
-          <a className='btn btn-default capacity-audit' href='#capacity'>
+          <Link className='btn btn-default capacity-audit' to='/capacity'>
             {i18n('support_page.view_capacity_audit')}
-          </a>
+          </Link>
         </p>
       </SupportPageElement>
     );
