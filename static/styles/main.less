@@ -3138,11 +3138,11 @@ input[type=range] {
         margin: 10px 0;
       }
     }
-    &:not(.disabled):hover,  &:not(.disabled):focus  {
+    &:not(.unavailable):hover,  &:not(.disabled):focus  {
       background-color: @gray + 77%;
       border: 1px solid @gray + 77%;
     }
-    &:not(.disabled):not(.selected):not(.indeterminated) {
+    &:not(.unavailable):not(.selected):not(.indeterminated) {
       i {
         display: none;
         & + span {
@@ -3159,7 +3159,7 @@ input[type=range] {
         border: 1px solid @green - 20%;
       }
     }
-    &.disabled {
+    &.unavailable {
       cursor: default;
       color: @orange;
       border-color: lighten(@orange, 20%);

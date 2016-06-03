@@ -1858,17 +1858,18 @@ Role = React.createClass({
   },
   render() {
     var {role, selected, indeterminated, restrictions, isRolePanelDisabled} = this.props;
-    var disabled = isRolePanelDisabled || restrictions.result;
+    var isRoleAvailable = !restrictions.result;
+    var disabled = !isRoleAvailable || isRolePanelDisabled;
     var {warnings} = restrictions;
     return (
       <div
-        tabIndex={disabled ? -1 : 0}
+        tabIndex={isRoleAvailable ? 0 : -1}
         className={utils.classNames({
           'role-block': true,
           [role.get('name')]: true,
           selected,
           indeterminated,
-          disabled
+          unavailable: !isRoleAvailable
         })}
         onFocus={this.resetCountdown}
         onBlur={() => this.togglePopover(false)}
