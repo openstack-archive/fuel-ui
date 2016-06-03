@@ -18,11 +18,12 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Link} from 'react-router';
 import {NODE_STATUSES} from 'consts';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
-import {Input, ProgressBar, Tooltip, Link} from 'views/controls';
+import {Input, ProgressBar, Tooltip} from 'views/controls';
 import {
   DiscardClusterChangesDialog, DeployClusterDialog, ProvisionVMsDialog, ProvisionNodesDialog,
   DeployNodesDialog, RemoveClusterDialog, ResetEnvironmentDialog, StopDeploymentDialog,
@@ -61,11 +62,7 @@ var DashboardTab = React.createClass({
     pollingMixin(20, true)
   ],
   statics: {
-    breadcrumbsPath() {
-      return [
-        [i18n('cluster_page.tabs.dashboard'), null, {active: true}]
-      ];
-    }
+    breadcrumbTitle: 'dashboard'
   },
   getInitialState() {
     var {cluster} = this.props;
