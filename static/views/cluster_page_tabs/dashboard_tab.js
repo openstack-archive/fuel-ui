@@ -18,6 +18,7 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Link} from 'react-router';
 import {NODE_STATUSES} from 'consts';
 import utils from 'utils';
 import models from 'models';
@@ -84,6 +85,7 @@ var DashboardTab = React.createClass({
     return this.props.cluster.get('nodes').fetch();
   },
   render() {
+    console.log('Dashboard render', this.props);
     var {cluster} = this.props;
     var {configModels} = this.state;
     var release = cluster.get('release');
@@ -444,9 +446,9 @@ var ClusterActionsPanel = React.createClass({
               return !vcenter.isValid() && {
                 blocker: [
                   <span key='vcenter'>{i18n('vmware.has_errors') + ' '}
-                    <a href={'/#cluster/' + cluster.id + '/vmware'}>
+                    <Link to={'/cluster/' + cluster.id + '/vmware'}>
                       {i18n('vmware.tab_name')}
-                    </a>
+                    </Link>
                   </span>
                 ]
               };
@@ -477,17 +479,17 @@ var ClusterActionsPanel = React.createClass({
                 <span key='invalid_settings'>
                   {i18n(ns + 'invalid_settings')}
                   {' ' + i18n(ns + 'get_more_info') + ' '}
-                  <a href={'#cluster/' + cluster.id + '/settings'}>
+                  <Link to={'/cluster/' + cluster.id + '/settings'}>
                     {i18n(ns + 'settings_link')}
-                  </a>.
+                  </Link>.
                 </span>,
               !areNetworkSettingsValid &&
                 <span key='invalid_network_settings'>
                   {i18n(ns + 'invalid_network_settings')}
                   {' ' + i18n(ns + 'get_more_info') + ' '}
-                  <a href={'#cluster/' + cluster.id + '/network/network_settings'}>
+                  <Link to={'/cluster/' + cluster.id + '/network/network_settings'}>
                     {i18n(ns + 'network_settings_link')}
-                  </a>.
+                  </Link>.
                 </span>
             ]};
           },
@@ -528,9 +530,9 @@ var ClusterActionsPanel = React.createClass({
                 <span key='invalid_networks'>
                   {text}
                   {' ' + i18n(ns + 'get_more_info') + ' '}
-                  <a href={'#cluster/' + cluster.id + '/network/network_verification'}>
+                  <Link to={'/cluster/' + cluster.id + '/network/network_verification'}>
                     {i18n(ns + 'networks_link')}
-                  </a>.
+                  </Link>.
                 </span>
               );
               return isError ? {error: [span]} : {warning: [span]};
@@ -820,13 +822,13 @@ var ClusterActionsPanel = React.createClass({
               <div className='instruction'>
                 {i18n(ns + 'no_nodes_instruction')}
               </div>
-              <a
+              <Link
                 className='btn btn-success btn-add-nodes'
-                href={'#cluster/' + cluster.id + '/nodes/add'}
+                to={'/cluster/' + cluster.id + '/nodes/add'}
               >
                 <i className='glyphicon glyphicon-plus-white' />
                 {i18n(ns + 'go_to_nodes')}
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -854,10 +856,7 @@ var ClusterActionButton = React.createClass({
   },
   showSelectNodesDialog() {
     var {nodes, cluster, nodeStatusesToFilter} = this.props;
-    nodes.fetch = function(options) {
-      return this.constructor.__super__.fetch.call(this,
-        _.extend({data: {cluster_id: cluster.id}}, options));
-    };
+    nodes.fetch = utils.fetchClusterProperties(cluster.id);
     nodes.parse = function() {
       return this.getByIds(nodes.map('id'));
     };
@@ -1100,12 +1099,12 @@ var ClusterInfo = React.createClass({
               {!cluster.task({group: 'deployment', active: true}) &&
                 <div className='row'>
                   <div className='col-xs-12'>
-                    <a
+                    <Link
                       className='btn btn-link btn-add-nodes'
-                      href={'#cluster/' + cluster.id + '/nodes/add'}
+                      to={'/cluster/' + cluster.id + '/nodes/add'}
                     >
                       {i18n(ns + 'go_to_nodes')}
-                    </a>
+                    </Link>
                   </div>
                 </div>
               }
@@ -1156,9 +1155,9 @@ var ClusterInfo = React.createClass({
             {cluster.isHealthCheckAvailable() &&
               <div className='go-to-healthcheck'>
                 {i18n(ns + 'healthcheck')}
-                <a href={'#cluster/' + cluster.id + '/healthcheck'}>
+                <Link to={'/cluster/' + cluster.id + '/healthcheck'}>
                   {i18n(ns + 'healthcheck_tab')}
-                </a>
+                </Link>
               </div>
             }
             <div className='row dashboard-actions-wrapper'>

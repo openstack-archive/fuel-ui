@@ -17,6 +17,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
+import {Link} from 'react-router';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
@@ -56,20 +57,22 @@ var ClusterPage = React.createClass({
     })
   ],
   statics: {
-    navbarActiveElement: 'clusters',
     breadcrumbsPath(pageOptions) {
-      var {activeTab, cluster} = pageOptions;
+      var clusterId = pageOptions.params.id;
+      var clusterTitle = app.breadcrumbs.clusterName;
+      var activeTab = pageOptions.location.pathname.replace(/^.*cluster\/\d+\/([^\/?]+).*$/g, '$1');
       var breadcrumbs = [
-        ['home', '#'],
-        ['environments', '#clusters'],
-        [cluster.get('name'), '#cluster/' + cluster.get('id'), {skipTranslation: true}]
+        ['home', '/'],
+        ['environments', '/clusters'],
+        [clusterTitle, '/cluster/' + clusterId, {skipTranslation: true}]
       ];
       return breadcrumbs.concat(
           _.find(this.getTabs(), {url: activeTab}).tab.breadcrumbsPath(pageOptions)
         );
     },
-    title(pageOptions) {
-      return pageOptions.cluster.get('name');
+    title() {
+      var clusterTitle = app.breadcrumbs.clusterName;
+      return clusterTitle;
     },
     getTabs() {
       return [
@@ -82,104 +85,84 @@ var ClusterPage = React.createClass({
         {url: 'healthcheck', tab: HealthCheckTab}
       ];
     },
-    fetchData(id, activeTab, ...tabOptions) {
+    loadProps(params, cb) {
+      console.log('Cluster page fetch');
+      var {id} = params.params;
+      var activeTab = null;
       id = Number(id);
-      var cluster, promise, currentClusterId, currentTab;
-      var tab = _.find(this.getTabs(), {url: activeTab}).tab;
-      try {
-        currentClusterId = app.page.props.cluster.id;
-        currentTab = app.page.props.activeTab;
-      } catch (ignore) {}
+      var cluster;
 
-      if (currentClusterId === id) {
-        // just another tab has been chosen, do not load cluster again
-        cluster = app.page.props.cluster;
-        // do not load tab data if just another subtab has been chosen
-        promise = (_.isUndefined(currentTab) || currentTab !== activeTab) && tab.fetchData ?
-          tab.fetchData({cluster, tabOptions})
-        :
-          $.Deferred().resolve();
-      } else {
-        cluster = new models.Cluster({id: id});
-        var baseUrl = _.result(cluster, 'url');
+      cluster = new models.Cluster({id: id});
+      var baseUrl = _.result(cluster, 'url');
 
-        var settings = new models.Settings();
-        settings.url = baseUrl + '/attributes';
-        cluster.set({settings});
+      var settings = new models.Settings();
+      settings.url = baseUrl + '/attributes';
+      cluster.set({settings});
 
-        var roles = new models.Roles();
-        roles.url = baseUrl + '/roles';
-        cluster.set({roles});
+      var roles = new models.Roles();
+      roles.url = baseUrl + '/roles';
+      cluster.set({roles});
 
-        var pluginLinks = new models.PluginLinks();
-        pluginLinks.url = baseUrl + '/plugin_links';
-        cluster.set({pluginLinks});
+      var pluginLinks = new models.PluginLinks();
+      pluginLinks.url = baseUrl + '/plugin_links';
+      cluster.set({pluginLinks});
 
-        cluster.get('nodeNetworkGroups').fetch = function(options) {
-          return this.constructor.__super__.fetch.call(this,
-            _.extend({data: {cluster_id: id}}, options));
+      cluster.get('nodeNetworkGroups').fetch = utils.fetchClusterProperties(id);
+      cluster.get('nodes').fetch = utils.fetchClusterProperties(id);
+
+      $.when(
+        cluster.fetch(),
+        cluster.get('settings').fetch(),
+        cluster.get('roles').fetch(),
+        cluster.get('pluginLinks').fetch({cache: true}),
+        cluster.fetchRelated('nodes'),
+        cluster.fetchRelated('tasks'),
+        cluster.fetchRelated('nodeNetworkGroups')
+      )
+      .then(() => {
+        app.breadcrumbs.clusterName = cluster.get('name');
+        dispatcher.trigger('updatePageLayout');
+
+        var networkConfiguration = new models.NetworkConfiguration();
+        networkConfiguration.url = baseUrl + '/network_configuration/' +
+          cluster.get('net_provider');
+
+        cluster.set({
+          networkConfiguration,
+          release: new models.Release({id: cluster.get('release_id')})
+        });
+
+        var allFetched = [
+          cluster.get('networkConfiguration').fetch(),
+          cluster.get('release').fetch()
+        ];
+
+        if (cluster.get('settings').get('common.use_vcenter.value')) {
+          cluster.set({vcenter: new VmWareModels.VCenter({id: id})});
+          allFetched.push(cluster.get('vcenter').fetch());
         };
-        cluster.get('nodes').fetch = function(options) {
-          return this.constructor.__super__.fetch.call(this,
-            _.extend({data: {cluster_id: id}}, options));
+
+        if (cluster.get('status') !== 'new') {
+          var deployedSettings = new models.Settings();
+          deployedSettings.url = baseUrl + '/attributes/deployed';
+
+          var deployedNetworkConfiguration = new models.NetworkConfiguration();
+          deployedNetworkConfiguration.url = baseUrl + '/network_configuration/deployed';
+
+          cluster.set({deployedSettings, deployedNetworkConfiguration});
+
+          allFetched.push(cluster.get('deployedSettings').fetch());
+          allFetched.push(cluster.get('deployedNetworkConfiguration').fetch());
         };
 
-        promise = $.when(
-            cluster.fetch(),
-            cluster.get('settings').fetch(),
-            cluster.get('roles').fetch(),
-            cluster.get('pluginLinks').fetch({cache: true}),
-            cluster.fetchRelated('nodes'),
-            cluster.fetchRelated('tasks'),
-            cluster.fetchRelated('nodeNetworkGroups')
-          )
-          .then(() => {
-            var networkConfiguration = new models.NetworkConfiguration();
-            networkConfiguration.url = baseUrl + '/network_configuration/' +
-              cluster.get('net_provider');
-
-            cluster.set({
-              networkConfiguration,
-              release: new models.Release({id: cluster.get('release_id')})
-            });
-
-            return $.when(
-              cluster.get('networkConfiguration').fetch(),
-              cluster.get('release').fetch()
-            );
-          })
-          .then(() => {
-            if (!cluster.get('settings').get('common.use_vcenter.value')) return true;
-
-            var vcenter = new VmWareModels.VCenter({id: id});
-            cluster.set({vcenter});
-            return vcenter.fetch();
-          })
-          .then(() => {
-            var deployedSettings = new models.Settings();
-            deployedSettings.url = baseUrl + '/attributes/deployed';
-
-            var deployedNetworkConfiguration = new models.NetworkConfiguration();
-            deployedNetworkConfiguration.url = baseUrl +
-              '/network_configuration/deployed';
-
-            cluster.set({deployedSettings, deployedNetworkConfiguration});
-
-            if (cluster.get('status') === 'new') return $.Deferred().resolve();
-            return $.when(
-              cluster.get('deployedSettings').fetch(),
-              cluster.get('deployedNetworkConfiguration').fetch()
-            )
-            .catch(() => true);
-          })
+        $.when(...allFetched)
           .then(
-            () => tab.fetchData ? tab.fetchData({cluster, tabOptions}) : $.Deferred().resolve()
-          );
+            () => {
+              console.log('Cluster fetched:', cluster);
+              cb(null, {cluster, tabOptions: params.params});
+            });
       }
-      return promise.then(
-        (tabData) => ({cluster, activeTab, tabOptions, tabData})
-      );
-    }
+    )}
   },
   getDefaultProps() {
     return {
@@ -187,21 +170,27 @@ var ClusterPage = React.createClass({
     };
   },
   getInitialState() {
-    var tabs = this.constructor.getTabs();
-    var selectedNodes = utils.deserializeTabOptions(this.props.tabOptions[1]).nodes;
+    var selectedNodes = utils.deserializeTabOptions(this.props.params.options).nodes;
+    // var activeTab = this.props.location.pathname.replace(/^.*cluster\/\d+\/([^\/]+).*$/g, '$1');
     var states = {
       selectedNodeIds: selectedNodes ?
         _.reduce(selectedNodes.split(','), (result, id) => {
-          result[Number(id)] = true;
-          return result;
-        }, {})
+            result[Number(id)] = true;
+            return result;
+          }, {}
+        )
       :
         {},
       showAllNetworks: false
     };
-    _.each(tabs, (tabData) => {
-      if (tabData.tab.checkSubroute) _.extend(states, tabData.tab.checkSubroute(this.props));
-    });
+    // _.each(tabs, (tabData) => {
+    //   if (tabData.tab.checkSubroute) {
+    //     _.extend(
+    //       states,
+    //       tabData.tab.checkSubroute(_.extend({}, this.props, {activeTab}))
+    //     );
+    //   }
+    // });
     return states;
   },
   removeFinishedNetworkTasks(callback) {
@@ -257,6 +246,8 @@ var ClusterPage = React.createClass({
     });
   },
   componentWillMount() {
+    console.log('Cluster mount:', this.props);
+
     this.props.cluster.on('change:release_id', () => {
       var release = new models.Release({id: this.props.cluster.get('release_id')});
       release.fetch().then(() => {
@@ -265,12 +256,16 @@ var ClusterPage = React.createClass({
     });
   },
   componentWillReceiveProps(newProps) {
-    var tab = _.find(this.constructor.getTabs(), {url: newProps.activeTab}).tab;
-    if (tab.checkSubroute) {
-      this.setState(tab.checkSubroute(_.extend({}, newProps, {
-        showAllNetworks: this.state.showAllNetworks
-      })));
-    }
+    // var activeTab = newProps.location.pathname.replace(/^.*cluster\/\d+\/([^\/]+).*$/g, '$1');
+    // var tab = _.find(this.constructor.getTabs(), {url: activeTab}).tab;
+    // if (tab.checkSubroute) {
+    //   this.setState(tab.checkSubroute(_.extend(
+    //     {},
+    //     newProps,
+    //     {showAllNetworks: this.state.showAllNetworks},
+    //     {activeTab}
+    //   )));
+    // }
   },
   changeLogSelection(selectedLogs) {
     this.setState({selectedLogs});
@@ -283,7 +278,9 @@ var ClusterPage = React.createClass({
     this.setState({selectedNodeIds});
   },
   render() {
-    var cluster = this.props.cluster;
+    console.log('Cluster page render:', this.props);
+    var {cluster, children, tabData} = this.props;
+    var activeTab = this.props.location.pathname.replace(/^.*cluster\/\d+\/([^\/]+).*$/g, '$1');
     var availableTabs = this.getAvailableTabs(cluster);
     var tabUrls = _.map(availableTabs, 'url');
     var subroutes = {
@@ -291,9 +288,18 @@ var ClusterPage = React.createClass({
       network: this.state.activeNetworkSectionName,
       logs: utils.serializeTabOptions(this.state.selectedLogs)
     };
-    var tab = _.find(availableTabs, {url: this.props.activeTab});
+    var tab = _.find(availableTabs, {url: activeTab});
     if (!tab) return null;
-    var Tab = tab.tab;
+    var props = _.assign(
+        _.pick(this, 'selectNodes', 'changeLogSelection'),
+        _.pick(this.props, 'cluster', 'tabOptions'),
+        this.state,
+        tabData,
+        {activeTab}
+      );
+    console.log('Cluster -> tab props:', props);
+    var Tab = children &&
+      React.cloneElement(children, props);
 
     return (
       <div className='cluster-page' key={cluster.id}>
@@ -310,34 +316,28 @@ var ClusterPage = React.createClass({
         <div className='tabs-box'>
           <div className='tabs'>
             {tabUrls.map((tabUrl) => {
-              var url = '#cluster/' + cluster.id + '/' + tabUrl +
+              var url = '/cluster/' + cluster.id + '/' + tabUrl +
                 (subroutes[tabUrl] ? '/' + subroutes[tabUrl] : '');
               return (
-                <a
+                <Link
                   key={tabUrl}
                   className={
                     tabUrl + ' ' + utils.classNames({
                       'cluster-tab': true,
-                      active: this.props.activeTab === tabUrl
+                      active: activeTab === tabUrl
                     })
                   }
-                  href={url}
+                  to={url}
                 >
                   <div className='icon' />
                   <div className='label'>{i18n('cluster_page.tabs.' + tabUrl)}</div>
-                </a>
+                </Link>
               );
             })}
           </div>
         </div>
         <div key={tab.url + cluster.id} className={'content-box tab-content ' + tab.url + '-tab'}>
-          <Tab
-            ref='tab'
-            {... _.pick(this, 'selectNodes', 'changeLogSelection')}
-            {... _.pick(this.props, 'cluster', 'tabOptions')}
-            {...this.state}
-            {...this.props.tabData}
-          />
+          {Tab}
         </div>
       </div>
     );
