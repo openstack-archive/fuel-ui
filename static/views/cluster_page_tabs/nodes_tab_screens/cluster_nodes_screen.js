@@ -17,11 +17,16 @@ import _ from 'underscore';
 import React from 'react';
 import {NODE_STATUSES, NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {loadPropsMixin} from 'component_mixins';
 
 var ClusterNodesScreen = React.createClass({
+  mixins: [
+    loadPropsMixin
+  ],
   statics: {
-    fetchData({cluster}) {
-      return Promise.resolve({
+    fetchData() {
+      var {cluster} = app;
+      return Promise.resolve(cluster && {
         nodes: cluster.get('nodes'),
         uiSettings: cluster.get('ui_settings')
       });
@@ -33,12 +38,15 @@ var ClusterNodesScreen = React.createClass({
     this.props.cluster.save({ui_settings: uiSettings}, {patch: true, wait: true, validate: false});
   },
   render() {
+    var {cluster} = this.props;
     return <NodeListScreen
       ref='screen'
       {... _.omit(this.props, 'screenOptions')}
+      uiSettings={cluster.get('ui_settings')}
       mode='list'
-      roles={this.props.cluster.get('roles')}
-      nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
+      nodes={cluster.get('nodes')}
+      roles={cluster.get('roles')}
+      nodeNetworkGroups={cluster.get('nodeNetworkGroups')}
       updateUISettings={this.updateUISettings}
       defaultFilters={{roles: [], status: []}}
       statusesToFilter={_.without(NODE_STATUSES, 'discover')}
