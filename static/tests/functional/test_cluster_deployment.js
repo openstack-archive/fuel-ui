@@ -68,7 +68,7 @@ registerSuite(() => {
         .then(() => modal.clickFooterButton('Provision 1 Node'))
         .then(() => modal.waitToClose())
         .assertElementAppears('div.deploy-process div.progress', 2000, 'Provisioning started')
-        .assertElementDisappears('div.deploy-process div.progress', 10000, 'Provisioning finished')
+        .assertElementDisappears('div.deploy-process div.progress', 20000, 'Provisioning finished')
         .assertElementContainsText(
           'div.alert-success strong',
           'Success',
