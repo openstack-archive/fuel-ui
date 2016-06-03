@@ -17,12 +17,17 @@ import _ from 'underscore';
 import React from 'react';
 import utils from 'utils';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {loadPropsMixin} from 'component_mixins';
 
 var EditNodesScreen = React.createClass({
+  mixins: [
+    loadPropsMixin
+  ],
   statics: {
-    fetchData(options) {
-      var {cluster} = options;
-      var nodes = utils.getNodeListFromTabOptions(options);
+    waitForParentData: true,
+    breadcrumbTitle: 'cluster_page.nodes_tab.breadcrumbs.edit',
+    fetchData({params, cluster}) {
+      var nodes = utils.getNodeListFromTabOptions(params.options, cluster);
 
       if (!nodes) {
         return Promise.reject();

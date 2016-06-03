@@ -18,9 +18,15 @@ import React from 'react';
 import {NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
 import models from 'models';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {loadPropsMixin} from 'component_mixins';
 
 var AddNodesScreen = React.createClass({
+  mixins: [
+    loadPropsMixin
+  ],
   statics: {
+    waitForParentData: true,
+    breadcrumbTitle: 'cluster_page.nodes_tab.breadcrumbs.add',
     fetchData({cluster}) {
       var nodes = new models.Nodes({fetchOptions: {cluster_id: ''}});
       return Promise.all([
@@ -35,6 +41,7 @@ var AddNodesScreen = React.createClass({
       {... _.omit(this.props, 'screenOptions')}
       ref='screen'
       mode='add'
+      roles={this.props.cluster.get('roles')}
       nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
       showRolePanel
       statusesToFilter={['discover', 'error', 'offline', 'removing']}

@@ -29,15 +29,13 @@ var LogsTab = React.createClass({
     pollingMixin(5)
   ],
   statics: {
-    breadcrumbsPath() {
-      return [
-        [i18n('cluster_page.tabs.logs'), null, {active: true}]
-      ];
-    },
+    breadcrumbTitle: 'cluster_page.tabs.logs',
     checkSubroute(tabProps) {
-      var {activeTab, tabOptions, defaultLogLevel} = tabProps;
-      if (activeTab === 'logs' && tabOptions[0]) {
-        var selectedLogs = utils.deserializeTabOptions(_.compact(tabOptions).join('/'));
+      var {activeTab, defaultLogLevel} = tabProps;
+      var {options} = tabProps.params;
+
+      if (activeTab === 'logs' && options) {
+        var selectedLogs = utils.deserializeTabOptions(_.compact([options]).join('/'));
         selectedLogs.level = selectedLogs.level ?
             selectedLogs.level.toUpperCase()
           :

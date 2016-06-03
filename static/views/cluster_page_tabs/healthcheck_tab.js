@@ -20,7 +20,7 @@ import React from 'react';
 import utils from 'utils';
 import models from 'models';
 import {Input, ProgressButton} from 'views/controls';
-import {backboneMixin, pollingMixin} from 'component_mixins';
+import {backboneMixin, pollingMixin, loadPropsMixin} from 'component_mixins';
 
 var HealthCheckTab = React.createClass({
   mixins: [
@@ -28,14 +28,12 @@ var HealthCheckTab = React.createClass({
       modelOrCollection: (props) => props.cluster.get('tasks'),
       renderOn: 'update change:status'
     }),
-    backboneMixin('cluster', 'change:status')
+    backboneMixin('cluster', 'change:status'),
+    loadPropsMixin
   ],
   statics: {
-    breadcrumbsPath() {
-      return [
-        [i18n('cluster_page.tabs.healthcheck'), null, {active: true}]
-      ];
-    },
+    waitForParentData: true,
+    breadcrumbTitle: 'cluster_page.tabs.healthcheck',
     fetchData(options) {
       if (!options.cluster.get('ostf')) {
         var ostf = {};
@@ -64,7 +62,7 @@ var HealthCheckTab = React.createClass({
           {i18n('cluster_page.healthcheck_tab.title')}
         </div>
         <div className='col-xs-12 content-elements'>
-          {ostf ?
+          {!_.isEmpty(ostf) ?
             <HealthcheckTabContent
               ref='content'
               testsets={ostf.testsets}

@@ -20,17 +20,20 @@ import React from 'react';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
-import {backboneMixin, pollingMixin} from 'component_mixins';
+import {backboneMixin, pollingMixin, loadPropsMixin} from 'component_mixins';
 import CreateClusterWizard from 'views/wizard';
-import {Link} from 'views/controls';
+import {Link} from 'react-router';
 
 var ClustersPage, ClusterList, Cluster;
 
 ClustersPage = React.createClass({
+  mixins: [
+    loadPropsMixin
+  ],
   statics: {
     title: i18n('clusters_page.title'),
-    navbarActiveElement: 'clusters',
-    breadcrumbsPath: [['home', '/'], 'environments'],
+    navbarActiveElement: 'environments',
+    breadcrumbTitle: 'environments',
     fetchData() {
       var clusters = new models.Clusters();
       var nodes = new models.Nodes();
@@ -42,7 +45,7 @@ ClustersPage = React.createClass({
             cluster.set('nodes', new models.Nodes(nodes.filter({cluster: cluster.id})));
             cluster.set('tasks', new models.Tasks(tasks.filter({cluster: cluster.id})));
           });
-          return ({clusters});
+          return {clusters};
         });
     }
   },
