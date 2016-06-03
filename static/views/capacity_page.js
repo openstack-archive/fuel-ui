@@ -28,12 +28,12 @@ var CapacityPage = React.createClass({
   ],
   statics: {
     title: i18n('capacity_page.title'),
-    navbarActiveElement: 'support',
     breadcrumbsPath: [['home', '#'], ['support', '#support'], 'capacity'],
-    fetchData() {
+    loadProps(params, cb) {
       var task = new models.Task();
       return task.save({}, {url: '/api/capacity/', method: 'PUT'})
-        .then(() => ({capacityLog: new models.CapacityLog()}));
+        .then(() => cb(null, {capacityLog: new models.CapacityLog()}))
+        .catch(() => true);
     }
   },
   shouldDataBeFetched() {
