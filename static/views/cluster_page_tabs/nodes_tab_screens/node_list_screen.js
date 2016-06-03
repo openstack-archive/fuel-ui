@@ -586,7 +586,11 @@ NodeListScreenContent = React.createClass({
             'resetFilters',
             'getFilterOptions',
             'changeSearch',
-            'toggleLabelsPanel'
+            'toggleLabelsPanel',
+            'updateInitialRoles',
+            'revertChanges',
+            'selectNodes',
+            'hasChanges'
           )}
           isLabelsPanelOpen={this.state.isLabelsPanelOpen}
           labelSorters={screenNodesLabels.map((name) => new Sorter(name, 'asc', true))}
@@ -595,10 +599,7 @@ NodeListScreenContent = React.createClass({
           screenNodes={nodes}
           filteredNodes={filteredNodes}
           selectedNodeLabels={selectedNodeLabels}
-          hasChanges={this.hasChanges()}
           locked={locked}
-          revertChanges={this.revertChanges}
-          selectNodes={this.selectNodes}
         />
         {showRolePanel &&
           <RolePanel
@@ -852,7 +853,7 @@ ManagementPanel = React.createClass({
   changeScreen(url, passNodeIds) {
     url = url ? '/' + url : '';
     if (passNodeIds) url += '/' + utils.serializeTabOptions({nodes: this.props.nodes.map('id')});
-    app.navigate('#cluster/' + this.props.cluster.id + '/nodes' + url, {trigger: true});
+    app.navigate('/cluster/' + this.props.cluster.id + '/nodes' + url, {trigger: true});
   },
   goToConfigurationScreen(action, conflict) {
     if (conflict) {
@@ -875,7 +876,7 @@ ManagementPanel = React.createClass({
       .then(_.partial(selectNodes, _.map(nodes.filter({status: 'ready'}), 'id'), null, true));
   },
   hasChanges() {
-    return this.props.hasChanges;
+    return this.props.hasChanges();
   },
   isSavingPossible() {
     return !this.state.actionInProgress && this.hasChanges();
@@ -921,6 +922,8 @@ ManagementPanel = React.createClass({
             'labelsConfigurationUpdated');
           this.props.selectNodes();
         }
+        this.props.updateInitialRoles();
+        this.setState({actionInProgress: false});
       });
   },
   applyAndRedirect() {

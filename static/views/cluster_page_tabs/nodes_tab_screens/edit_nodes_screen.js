@@ -16,30 +16,45 @@
 import $ from 'jquery';
 import _ from 'underscore';
 import React from 'react';
+import models from 'models';
 import utils from 'utils';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 
 var EditNodesScreen = React.createClass({
   statics: {
-    fetchData(options) {
-      var {cluster} = options;
-      var nodes = utils.getNodeListFromTabOptions(options);
-
-      if (!nodes) {
-        return $.Deferred().reject();
+    loadProps(params, cb) {
+      var {cluster} = app;
+      var allFetched = [];
+      var id = Number(params.params.id);
+      var nodes;
+      if (!cluster) {
+        cluster = new models.Cluster({id: id});
+        nodes = new models.Nodes();
+        nodes.fetch = utils.fetchClusterProperties(id);
+        cluster.set({nodes});
+      } else {
+        allFetched = [
+          cluster.get('roles').fetch(),
+          cluster.get('settings').fetch({cache: true})
+        ];
+        nodes = cluster.get('nodes');
       }
 
-      nodes.fetch = function(options) {
-        return this.constructor.__super__.fetch.call(this,
-          _.extend({data: {cluster_id: cluster.id}}, options));
-      };
-      nodes.parse = function() {
-        return this.getByIds(nodes.map('id'));
-      };
       return $.when(
-        cluster.get('roles').fetch(),
-        cluster.get('settings').fetch({cache: true})
-      ).then(() => ({nodes}));
+        cluster.get('nodes').fetch(),
+        ...allFetched
+      )
+        .then(() => {
+          var selectedNodes = utils.getNodeListFromTabOptions(params.params.options, cluster);
+          if (!selectedNodes) {
+            return app.navigate('/cluster/' + id + '/nodes/');
+          }
+          selectedNodes.fetch = utils.fetchClusterProperties(id);
+          selectedNodes.parse = function() {
+            return this.getByIds(nodes.map('id'));
+          };
+          cb(null, {nodes: selectedNodes});
+        });
     }
   },
   render() {
