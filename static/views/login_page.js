@@ -77,11 +77,12 @@ var LoginForm = React.createClass({
       })
       .then(() => {
         var nextUrl = '';
-        if (app.router.returnUrl) {
-          nextUrl = app.router.returnUrl;
-          delete app.router.returnUrl;
-        }
-        app.navigate(nextUrl, {trigger: true});
+        console.log('AppRouter:', app.routerComponent);
+        // if (app.router.returnUrl) {
+        //   nextUrl = app.router.returnUrl;
+        //   delete app.router.returnUrl;
+        // }
+        app.navigatePreviousPath(nextUrl, {trigger: true});
       });
   },
   componentDidMount() {

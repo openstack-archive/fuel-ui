@@ -21,21 +21,48 @@ import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_
 
 var AddNodesScreen = React.createClass({
   statics: {
-    fetchData(options) {
-      var nodes = new models.Nodes();
-      nodes.fetch = function(options) {
-        return this.constructor.__super__.fetch.call(this, _.extend({data: {cluster_id: ''}},
-          options));
+    loadProps(params, cb) {
+      console.log(params);
+      var id = Number(params.params.id);
+      var cluster = new models.Cluster({id: id});
+      var baseUrl = _.result(cluster, 'url');
+      var clusterDataFetch = (clusterId='') => function(options) {
+        return this.constructor.__super__.fetch.call(this,
+          _.extend({data: {cluster_id: clusterId}}, options));
       };
-      return $.when(nodes.fetch(), options.cluster.get('roles').fetch(),
-        options.cluster.get('settings').fetch({cache: true})).then(() => ({nodes: nodes}));
+      console.log(baseUrl);
+
+      var settings = new models.Settings();
+      settings.url = baseUrl + '/attributes';
+      cluster.set({settings});
+      settings.fetch = clusterDataFetch(id);
+
+      var roles = new models.Roles();
+      roles.url = baseUrl + '/roles';
+      cluster.set({roles});
+      roles.fetch = clusterDataFetch(id);
+
+      var nodes = new models.Nodes();
+      nodes.fetch = clusterDataFetch();
+      console.log(nodes);
+
+      return $.when(
+        nodes.fetch(),
+        cluster.get('roles').fetch()
+        // cluster.get('settings').fetch({cache: true})
+      )
+        .then(() => cb(null, {
+          nodes: nodes,
+          roles: cluster.get('roles'),
+          settings: cluster.get('settings')
+        }));
     }
   },
   render() {
     return <NodeListScreen {... _.omit(this.props, 'screenOptions')}
       ref='screen'
       mode='add'
-      roles={this.props.cluster.get('roles')}
+      roles={this.props.roles}
       nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
       sorters={_.without(models.Nodes.prototype.sorters, 'cluster', 'roles', 'group_id')}
       defaultSorting={[{status: 'asc'}]}

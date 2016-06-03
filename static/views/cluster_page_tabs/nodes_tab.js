@@ -31,11 +31,12 @@ import ReactTransitionGroup from 'react-addons-transition-group';
 var NodesTab = React.createClass({
   statics: {
     breadcrumbsPath(pageOptions) {
-      var subroute = pageOptions.tabOptions[0];
+      console.log('Node page options: ', pageOptions);
+      var {id, subroute} = pageOptions.params;
       var breadcrumbs = [
         [
           i18n('cluster_page.tabs.nodes'),
-          '#cluster/' + pageOptions.cluster.id + '/nodes',
+          '#cluster/' + id + '/nodes',
           {active: !subroute}
         ]
       ];
@@ -126,7 +127,15 @@ var NodesTab = React.createClass({
     }
   },
   render() {
-    var Screen = this.getScreenConstructor(this.state.screen) || {};
+    // var Screen = this.getScreenConstructor(this.state.screen) || {};
+    var screen = React.cloneElement(
+      this.props.children,
+      _.assign(
+        {},
+        _.pick(this.props, 'cluster', 'selectedNodeIds', 'selectNodes'),
+        {screenOptions: this.state.screenOptions}
+      )
+    );
     return (
       <ReactTransitionGroup
         component='div'
@@ -137,17 +146,18 @@ var NodesTab = React.createClass({
           key={this.state.screen}
           loading={this.state.loading}
         >
-          <Screen
-            {...this.state.screenData}
-            {..._.pick(this.props, 'cluster', 'selectedNodeIds', 'selectNodes')}
-            ref='screen'
-            screenOptions={this.state.screenOptions}
-          />
+          {screen}
         </ScreenTransitionWrapper>
       </ReactTransitionGroup>
     );
   }
 });
+//          <Screen
+//            {...this.state.screenData}
+            // {..._.pick(this.props, 'cluster', 'selectedNodeIds', 'selectNodes')}
+            // ref='screen'
+            // screenOptions={this.state.screenOptions}
+          // />
 
 // additional screen wrapper to keep ref to screen in the tab component
 // see https://github.com/facebook/react/issues/1950 for more info
