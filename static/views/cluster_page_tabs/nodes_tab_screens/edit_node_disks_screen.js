@@ -19,39 +19,59 @@ import Backbone from 'backbone';
 import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Link} from 'react-router';
 import utils from 'utils';
 import models from 'models';
-import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
-import {Input, ProgressButton, Link} from 'views/controls';
+import {backboneMixin, unsavedChangesMixin, loadPropsMixin} from 'component_mixins';
+import {Input, ProgressButton} from 'views/controls';
 
 var EditNodeDisksScreen = React.createClass({
   mixins: [
     backboneMixin('cluster', 'change:status change:nodes sync'),
     backboneMixin('nodes', 'change sync'),
     backboneMixin('disks', 'reset change'),
-    unsavedChangesMixin
+    unsavedChangesMixin(),
+    loadPropsMixin
   ],
   statics: {
-    fetchData(options) {
-      var nodes = utils.getNodeListFromTabOptions(options);
-
-      if (!nodes || !nodes.areDisksConfigurable()) {
-        return Promise.reject();
+    fetchData({params}) {
+      var clusterId = Number(params.id);
+      var promises = [];
+      var {cluster} = app;
+      if (!cluster) {
+        cluster = new models.Cluster({id: clusterId});
+        promises = [cluster.get('nodes').fetch()];
       }
 
-      var volumes = new models.Volumes();
-      volumes.url = _.result(nodes.at(0), 'url') + '/volumes';
-      return Promise.all(nodes.map((node) => {
-        node.disks = new models.Disks();
-        return node.disks.fetch({url: _.result(node, 'url') + '/disks'});
-      }).concat(volumes.fetch()))
+      return Promise.all(promises)
         .then(() => {
-          var disks = new models.Disks(_.cloneDeep(nodes.at(0).disks.toJSON()), {parse: true});
-          return {
-            disks: disks,
-            nodes: nodes,
-            volumes: volumes
-          };
+          var selectedNodes = utils.getNodeListFromTabOptions(params.options, cluster);
+
+          if (!selectedNodes || !selectedNodes.areDisksConfigurable()) {
+            // Interrupt further fetching and redirect to cluster nodes
+            app.navigate('/cluster/' + clusterId + '/nodes/');
+            return Promise.reject();
+          }
+
+          var volumes = new models.Volumes();
+          volumes.url = _.result(selectedNodes.at(0), 'url') + '/volumes';
+          return Promise.all(selectedNodes.map(
+            (node) => {
+              node.disks = new models.Disks();
+              return node.disks.fetch({url: _.result(node, 'url') + '/disks'});
+            }
+          ).concat(volumes.fetch()))
+            .then(() => {
+              var disks = new models.Disks(
+                _.cloneDeep(selectedNodes.at(0).disks.toJSON()),
+                {parse: true}
+              );
+              return {
+                disks,
+                volumes,
+                nodes: selectedNodes
+              };
+            });
         });
     }
   },
