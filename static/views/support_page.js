@@ -18,13 +18,15 @@ import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
 import models from 'models';
-import {backboneMixin, pollingMixin, unsavedChangesMixin} from 'component_mixins';
+import {Link} from 'react-router';
+import {backboneMixin, pollingMixin, unsavedChangesMixin, loadPropsMixin} from 'component_mixins';
 import statisticsMixin from 'views/statistics_mixin';
-import {ProgressButton, Link} from 'views/controls';
+import {ProgressButton} from 'views/controls';
 
 var SupportPage = React.createClass({
   mixins: [
-    backboneMixin('tasks')
+    backboneMixin('tasks'),
+    loadPropsMixin
   ],
   statics: {
     title: i18n('support_page.title'),
@@ -33,7 +35,7 @@ var SupportPage = React.createClass({
     fetchData() {
       var tasks = new models.Tasks();
       return Promise.all([app.fuelSettings.fetch({cache: true}), tasks.fetch()])
-        .then(() => ({tasks, settings: app.fuelSettings}));
+        .then(() => ({tasks, settings: app.fuelSettings}), () => true);
     }
   },
   render() {
@@ -109,7 +111,7 @@ var StatisticsSettings = React.createClass({
   mixins: [
     statisticsMixin,
     backboneMixin('settings'),
-    unsavedChangesMixin
+    unsavedChangesMixin()
   ],
   hasChanges() {
     return _.some(this.props.renderableStatisticsFields, (settingName) => {

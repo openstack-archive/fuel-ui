@@ -17,14 +17,15 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 import React from 'react';
+import {Link} from 'react-router';
 import i18n from 'i18n';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
 import Expression from 'expression';
 import OffloadingModes from 'views/cluster_page_tabs/nodes_tab_screens/offloading_modes_control';
-import {Input, Tooltip, ProgressButton, Link} from 'views/controls';
-import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
+import {Input, Tooltip, ProgressButton} from 'views/controls';
+import {backboneMixin, unsavedChangesMixin, loadPropsMixin} from 'component_mixins';
 import {DragSource, DropTarget} from 'react-dnd';
 import ReactDOM from 'react-dom';
 
@@ -35,12 +36,13 @@ var EditNodeInterfacesScreen = React.createClass({
     backboneMixin('interfaces', 'change reset update'),
     backboneMixin('cluster'),
     backboneMixin('nodes', 'change reset update'),
-    unsavedChangesMixin
+    unsavedChangesMixin(),
+    loadPropsMixin
   ],
   statics: {
-    fetchData(options) {
-      var cluster = options.cluster;
-      var nodes = utils.getNodeListFromTabOptions(options);
+    waitForParentData: true,
+    fetchData({params, cluster}) {
+      var nodes = utils.getNodeListFromTabOptions(params.options, cluster);
 
       if (!nodes || !nodes.areInterfacesConfigurable()) {
         return Promise.reject();
@@ -874,7 +876,6 @@ var ErrorScreen = React.createClass({
                 return (
                   <Link
                     key={networkNames}
-                    className='no-leave-check'
                     to={
                       '/cluster/' + cluster.id + '/nodes/interfaces/' +
                       utils.serializeTabOptions({nodes: nodeIds})
@@ -965,10 +966,9 @@ var NodeInterface = React.createClass({
     var interfaces = ifc.isBond() ? ifc.getSlaveInterfaces() : [ifc];
     _.each(interfaces, (ifc) => {
       availableModes.push(_.reduce(modes, (result, modeSet) => {
-        if (
-          modeSet.condition &&
-        !(new Expression(modeSet.condition, configModels, {strict: false}))
-          .evaluate({interface: ifc})
+        if (modeSet.condition &&
+          !(new Expression(modeSet.condition, configModels, {strict: false}))
+            .evaluate({interface: ifc})
         ) {
           return result;
         }
