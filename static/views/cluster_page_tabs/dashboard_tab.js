@@ -18,6 +18,7 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Link} from 'react-router';
 import {NODE_STATUSES} from 'consts';
 import utils from 'utils';
 import models from 'models';
@@ -444,9 +445,9 @@ var ClusterActionsPanel = React.createClass({
               return !vcenter.isValid() && {
                 blocker: [
                   <span key='vcenter'>{i18n('vmware.has_errors') + ' '}
-                    <a href={'/#cluster/' + cluster.id + '/vmware'}>
+                    <Link to={'/cluster/' + cluster.id + '/vmware'}>
                       {i18n('vmware.tab_name')}
-                    </a>
+                    </Link>
                   </span>
                 ]
               };
@@ -854,10 +855,7 @@ var ClusterActionButton = React.createClass({
   },
   showSelectNodesDialog() {
     var {nodes, cluster, nodeStatusesToFilter} = this.props;
-    nodes.fetch = function(options) {
-      return this.constructor.__super__.fetch.call(this,
-        _.extend({data: {cluster_id: cluster.id}}, options));
-    };
+    nodes.fetch = utils.fetchClusterProperties(cluster.id);
     nodes.parse = function() {
       return this.getByIds(nodes.map('id'));
     };

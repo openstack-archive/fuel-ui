@@ -17,6 +17,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 import React from 'react';
+import {Link} from 'react-router';
 import i18n from 'i18n';
 import utils from 'utils';
 import models from 'models';
@@ -38,42 +39,65 @@ var EditNodeInterfacesScreen = React.createClass({
     unsavedChangesMixin
   ],
   statics: {
-    fetchData(options) {
-      var cluster = options.cluster;
-      var nodes = utils.getNodeListFromTabOptions(options);
+    loadProps(params, cb) {
+      console.log('Fetch edit node interfaces:', params);
 
-      if (!nodes || !nodes.areInterfacesConfigurable()) {
-        return $.Deferred().reject();
-      }
+      var id = Number(params.params.id);
+      var cluster = new models.Cluster({id: id});
+      var baseUrl = _.result(cluster, 'url');
 
-      var networkConfiguration = cluster.get('networkConfiguration');
-      var networksMetadata = new models.ReleaseNetworkProperties();
+      cluster.get('nodes').fetch = utils.fetchClusterProperties(id);
 
-      return $.when(...nodes.map((node) => {
-        node.interfaces = new models.Interfaces();
-        return node.interfaces.fetch({
-          url: _.result(node, 'url') + '/interfaces',
-          reset: true
-        });
-      }).concat([
-        networkConfiguration.fetch({cache: true}),
-        networksMetadata.fetch({
-          url: '/api/releases/' + cluster.get('release_id') + '/networks'
-        })]))
+      return $.when(
+        cluster.fetch(),
+        cluster.fetchRelated('nodes')
+      )
         .then(() => {
-          var interfaces = new models.Interfaces();
-          interfaces.set(_.cloneDeep(nodes.at(0).interfaces.toJSON()), {parse: true});
-          return {
-            interfaces: interfaces,
-            nodes: nodes,
-            bondingConfig: networksMetadata.get('bonding'),
-            configModels: {
-              version: app.version,
-              cluster: cluster,
-              settings: cluster.get('settings')
-            }
-          };
-        });
+          var networkConfiguration = new models.NetworkConfiguration();
+          networkConfiguration.url = [
+            baseUrl,
+            '/network_configuration/',
+            cluster.get('net_provider')
+          ].join('');
+          cluster.set({networkConfiguration});
+
+          var clusterNodes = utils.getNodeListFromTabOptions(params.params.options, cluster);
+
+          if (!clusterNodes || !clusterNodes.areDisksConfigurable()) {
+            console.log('Interrupt:', clusterNodes);
+            return $.Deferred().reject();
+          }
+
+          var networkConfiguration = cluster.get('networkConfiguration');
+          var networksMetadata = new models.ReleaseNetworkProperties();
+
+          return $.when(...clusterNodes.map((node) => {
+            node.interfaces = new models.Interfaces();
+            return node.interfaces.fetch({
+              url: _.result(node, 'url') + '/interfaces',
+              reset: true
+            });
+          }).concat([
+            networkConfiguration.fetch({cache: true}),
+            networksMetadata.fetch({
+              url: '/api/releases/' + cluster.get('release_id') + '/networks'
+            })]))
+            .then(() => {
+              var interfaces = new models.Interfaces();
+              interfaces.set(_.cloneDeep(clusterNodes.at(0).interfaces.toJSON()), {parse: true});
+              cb(null, {
+                interfaces: interfaces,
+                nodes: clusterNodes,
+                bondingConfig: networksMetadata.get('bonding'),
+                configModels: {
+                  version: app.version,
+                  cluster: cluster,
+                  settings: cluster.get('settings')
+                }
+              });
+            });
+          }
+        );
     }
   },
   getInitialState() {
@@ -625,6 +649,8 @@ var EditNodeInterfacesScreen = React.createClass({
     this.setState({viewMode});
   },
   render() {
+    console.log('Edit node interfaces props:', this.props);
+
     var nodesByNetworksMap = {};
     this.props.nodes.each((node) => {
       var networkNames = _.flatten(
@@ -873,20 +899,20 @@ var ErrorScreen = React.createClass({
               {i18n(ns + 'nodes_have_different_networks')}
               {_.map(nodesByNetworksMap, (nodeIds, networkNames) => {
                 return (
-                  <a
+                  <Link
                     key={networkNames}
-                    className='no-leave-check'
-                    href={
-                      '#cluster/' + cluster.id + '/nodes/interfaces/' +
+                    to={
+                      '/cluster/' + cluster.id + '/nodes/interfaces/' +
                       utils.serializeTabOptions({nodes: nodeIds})
                     }
+                    onClick={app.allowLeaving}
                   >
                     {i18n(ns + 'node_networks', {
                       count: nodeIds.length,
                       networks: _.map(networkNames.split(','), (name) => i18n('network.' + name))
                         .join(', ')
                     })}
-                  </a>
+                  </Link>
                 );
               })}
             </div>
