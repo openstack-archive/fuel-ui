@@ -31,10 +31,11 @@ var SupportPage = React.createClass({
     title: i18n('support_page.title'),
     navbarActiveElement: 'support',
     breadcrumbsPath: [['home', '#'], 'support'],
-    fetchData() {
+    loadProps(params, cb) {
+      console.log('Fetch support');
       var tasks = new models.Tasks();
       return $.when(app.fuelSettings.fetch({cache: true}), tasks.fetch())
-        .then(() => ({tasks, settings: app.fuelSettings}));
+        .then(() => (cb(null, {tasks, settings: app.fuelSettings})));
     }
   },
   render() {

@@ -28,7 +28,7 @@ import HTML5Backend from 'react-dnd-html5-backend';
 
 var RootComponent = React.createClass({
   mixins: [
-    dispatcherMixin('updatePageLayout', 'updateTitle'),
+    // dispatcherMixin('updatePageLayout', 'updateTitle'),
     dispatcherMixin('showDefaultPasswordWarning', 'showDefaultPasswordWarning'),
     dispatcherMixin('hideDefaultPasswordWarning', 'hideDefaultPasswordWarning')
   ],
@@ -57,25 +57,28 @@ var RootComponent = React.createClass({
     dispatcher.trigger('updatePageLayout');
   },
   render() {
-    var {Page, showDefaultPasswordWarning} = this.state;
-    var {fuelSettings, version} = this.props;
+    console.log('Root render');
+    var {showDefaultPasswordWarning} = this.state;
+    var {fuelSettings, version} = this.props.route;
+    var {children, Component} = this.props;
+    var isLayoutHidden = _.isUndefined(Component) ? false : Component.hiddenLayout;
 
-    if (!Page) return null;
+    // if (!Page) return null;
     var layoutClasses = {
       clamp: true,
-      'fixed-width-layout': !Page.hiddenLayout
+      'fixed-width-layout': !isLayoutHidden
     };
 
     return (
       <div id='content-wrapper'>
         <div className={utils.classNames(layoutClasses)}>
-          {!Page.hiddenLayout && [
+          {!isLayoutHidden && [
             <PageLoadProgressBar key='page-load-progress' />,
             <Navbar
               key='navbar'
               ref='navbar'
-              activeElement={Page.navbarActiveElement}
               {...this.props}
+              {...this.props.route}
             />,
             <Breadcrumbs key='breadcrumbs' ref='breadcrumbs' {...this.state} />,
             showDefaultPasswordWarning &&
@@ -90,11 +93,11 @@ var RootComponent = React.createClass({
               />
           ]}
           <div id='content'>
-            <Page ref='page' {...this.state.pageOptions} />
+            {children}
           </div>
-          {!Page.hiddenLayout && <div id='footer-spacer'></div>}
+          {!isLayoutHidden && <div id='footer-spacer'></div>}
         </div>
-        {!Page.hiddenLayout && <Footer version={version} />}
+        {!isLayoutHidden && <Footer version={version} />}
       </div>
     );
   }

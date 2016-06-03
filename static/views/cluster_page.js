@@ -82,10 +82,14 @@ var ClusterPage = React.createClass({
         {url: 'healthcheck', tab: HealthCheckTab}
       ];
     },
-    fetchData(id, activeTab, ...tabOptions) {
+    loadProps(props, cb) {
+      var clusterTabs = this.getTabs();
+      var {id, activeTab=clusterTabs[0].url, opt1, opt2} = props.params;
+      var tabOptions = [opt1, opt2];
+      console.log('Fetch cluster. props: ', props);
       id = Number(id);
       var cluster, promise, currentClusterId, currentTab;
-      var tab = _.find(this.getTabs(), {url: activeTab}).tab;
+      var tab = _.find(clusterTabs, {url: activeTab}).tab;
       try {
         currentClusterId = app.page.props.cluster.id;
         currentTab = app.page.props.activeTab;
@@ -177,7 +181,7 @@ var ClusterPage = React.createClass({
           );
       }
       return promise.then(
-        (tabData) => ({cluster, activeTab, tabOptions, tabData})
+        (tabData) => {cb(null, {cluster, activeTab, tabOptions, tabData})}
       );
     }
   },
@@ -187,6 +191,7 @@ var ClusterPage = React.createClass({
     };
   },
   getInitialState() {
+    console.log(this.props);
     var tabs = this.constructor.getTabs();
     var selectedNodes = utils.deserializeTabOptions(this.props.tabOptions[1]).nodes;
     var states = {
@@ -295,7 +300,7 @@ var ClusterPage = React.createClass({
     }
   },
   render() {
-    var cluster = this.props.cluster;
+    var {cluster, children, activeTab, tabData} = this.props;
     var availableTabs = this.getAvailableTabs(cluster);
     var tabUrls = _.map(availableTabs, 'url');
     var subroutes = {
@@ -303,9 +308,15 @@ var ClusterPage = React.createClass({
       network: this.state.activeNetworkSectionName,
       logs: utils.serializeTabOptions(this.state.selectedLogs)
     };
-    var tab = _.find(availableTabs, {url: this.props.activeTab});
+    var tab = _.find(availableTabs, {url: activeTab});
     if (!tab) return null;
-    var Tab = tab.tab;
+    var Tab = children &&
+      React.cloneElement(children, _.assign(
+        _.pick(this, 'selectNodes', 'changeLogSelection'),
+        _.pick(this.props, 'cluster', 'tabOptions'),
+        this.state,
+        tabData
+      ));
 
     return (
       <div className='cluster-page' key={cluster.id}>
@@ -343,17 +354,19 @@ var ClusterPage = React.createClass({
           </div>
         </div>
         <div key={tab.url + cluster.id} className={'content-box tab-content ' + tab.url + '-tab'}>
-          <Tab
-            ref='tab'
-            {... _.pick(this, 'selectNodes', 'changeLogSelection')}
-            {... _.pick(this.props, 'cluster', 'tabOptions')}
-            {...this.state}
-            {...this.props.tabData}
-          />
+          { Tab }
         </div>
       </div>
     );
   }
 });
+
+          // <Tab
+          //   ref='tab'
+          //   {... _.pick(this, 'selectNodes', 'changeLogSelection')}
+          //   {... _.pick(this.props, 'cluster', 'tabOptions')}
+          //   {...this.state}
+          //   {...this.props.tabData}
+          // />
 
 export default ClusterPage;

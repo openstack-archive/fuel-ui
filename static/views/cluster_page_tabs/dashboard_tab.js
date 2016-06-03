@@ -67,6 +67,7 @@ var DashboardTab = React.createClass({
     }
   },
   getInitialState() {
+    console.log('Dashboard props: ', this.props);
     var {cluster} = this.props;
     return {
       configModels: {
