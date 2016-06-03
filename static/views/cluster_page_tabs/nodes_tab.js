@@ -31,11 +31,12 @@ import ReactTransitionGroup from 'react-addons-transition-group';
 var NodesTab = React.createClass({
   statics: {
     breadcrumbsPath(pageOptions) {
-      var subroute = pageOptions.tabOptions[0];
+      console.log('Node page options: ', pageOptions);
+      var {id, subroute} = pageOptions.params;
       var breadcrumbs = [
         [
           i18n('cluster_page.tabs.nodes'),
-          '#cluster/' + pageOptions.cluster.id + '/nodes',
+          '#cluster/' + id + '/nodes',
           {active: !subroute}
         ]
       ];
@@ -91,7 +92,7 @@ var NodesTab = React.createClass({
         },
         () => {
           app.navigate(
-            '#cluster/' + this.props.cluster.id + '/nodes',
+            '/cluster/' + this.props.cluster.id + '/nodes',
             {trigger: true, replace: true}
           );
         }
@@ -107,40 +108,48 @@ var NodesTab = React.createClass({
     return !!this.getScreenConstructor(screen).fetchData;
   },
   componentDidMount() {
-    if (this.checkScreenExists() && this.state.loading) this.loadScreenData();
+    // if (this.checkScreenExists() && this.state.loading) this.loadScreenData();
   },
   componentWillReceiveProps(newProps) {
-    var screen = this.getScreen(newProps);
-    var screenOptions = this.getScreenOptions(newProps);
-    if (
-      this.state.screen !== screen && this.checkScreenExists(screen) ||
-      !_.isEqual(this.state.screenOptions, screenOptions)
-    ) {
-      var newState = {screen, screenOptions, screenData: {}};
-      if (this.shouldScreenDataBeLoaded(screen)) {
-        this.setState(_.extend(newState, {loading: true}));
-        this.loadScreenData(screen, screenOptions);
-      } else {
-        this.setState(_.extend(newState, {loading: false}));
-      }
-    }
+    // var screen = this.getScreen(newProps);
+    // var screenOptions = this.getScreenOptions(newProps);
+    // if (
+    //   this.state.screen !== screen && this.checkScreenExists(screen) ||
+    //   !_.isEqual(this.state.screenOptions, screenOptions)
+    // ) {
+    //   var newState = {screen, screenOptions, screenData: {}};
+    //   if (this.shouldScreenDataBeLoaded(screen)) {
+    //     this.setState(_.extend(newState, {loading: true}));
+    //     this.loadScreenData(screen, screenOptions);
+    //   } else {
+    //     this.setState(_.extend(newState, {loading: false}));
+    //   }
+    // }
   },
   render() {
-    var {screen, loading, screenData, screenOptions} = this.state;
-    var Screen = this.getScreenConstructor(screen) || {};
+    var {children, loading, screenData, screenOptions} = this.state;
+    var props = _.pick(this.props, 'cluster', 'selectedNodeIds', 'selectNodes');
+    console.log('Nodes tab props:', this.props);
+    var screen = React.cloneElement(
+      this.props.children,
+      _.assign(
+        {},
+        props,
+        {screenData},
+        {screenOptions}
+      )
+    );
     return (
       <ReactTransitionGroup
         component='div'
         className='wrapper'
         transitionName='screen'
       >
-        <ScreenTransitionWrapper key={screen} loading={loading}>
-          <Screen
-            {...screenData}
-            {..._.pick(this.props, 'cluster', 'selectedNodeIds', 'selectNodes')}
-            ref='screen'
-            screenOptions={screenOptions}
-          />
+        <ScreenTransitionWrapper
+          key={screen}
+          loading={loading}
+        >
+          {screen}
         </ScreenTransitionWrapper>
       </ReactTransitionGroup>
     );
