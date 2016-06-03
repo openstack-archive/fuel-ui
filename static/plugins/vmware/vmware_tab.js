@@ -109,7 +109,7 @@ var GenericSection = React.createClass({
             </Tooltip>
           }
         </h3>
-        <FieldGroup model={this.props.model} disabled={this.props.disabled}/>
+        <FieldGroup model={this.props.model} disabled={this.props.disabled} />
       </div>
     );
   }
@@ -165,7 +165,7 @@ var NovaCompute = React.createClass({
           </div>
           {i18n('vmware.nova_compute')}
         </h4>
-        <FieldGroup model={this.props.model} disabled={this.props.disabled}/>
+        <FieldGroup model={this.props.model} disabled={this.props.disabled} />
       </div>
     );
   }
@@ -196,7 +196,7 @@ var AvailabilityZone = React.createClass({
     var meta = model.get('metadata');
     meta = _.filter(meta, VmWareModels.isRegularField);
     return (
-      <FieldGroup model={model} disabled={this.props.isLocked || this.props.disabled}/>
+      <FieldGroup model={model} disabled={this.props.isLocked || this.props.disabled} />
     );
   },
   renderComputes(actions) {
@@ -420,7 +420,7 @@ var VmWareTab = React.createClass({
     return (
       <div className='row'>
         <div className='title'>{i18n('vmware.title')}</div>
-        <UnassignedNodesWarning errors={model.validationError}/>
+        <UnassignedNodesWarning errors={model.validationError} />
         {!hide.availability_zones.result &&
           <AvailabilityZones
             collection={model.get('availability_zones')}

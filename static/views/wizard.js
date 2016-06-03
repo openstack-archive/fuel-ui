@@ -795,7 +795,7 @@ var CreateClusterWizard = React.createClass({
           </div>
           {!this.components &&
             <div className='pane-content col-xs-9 pane-progress-bar'>
-              <ProgressBar/>
+              <ProgressBar />
             </div>
           }
           {this.components &&

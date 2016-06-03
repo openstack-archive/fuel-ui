@@ -1327,7 +1327,7 @@ ManagementPanel = React.createClass({
                     options={inactiveSorters}
                     onChange={addSorting}
                     dynamicValues
-                    isOpen= {this.state.isMoreSorterControlVisible}
+                    isOpen={this.state.isMoreSorterControlVisible}
                     toggle={this.toggleMoreSorterControl}
                   />
                 </div>
@@ -1877,7 +1877,7 @@ Role = React.createClass({
         onMouseLeave={() => this.togglePopover(false)}
         onKeyDown={!disabled && this.onKeyDown}
       >
-        <div className='popover-binder'/>
+        <div className='popover-binder' />
         <div onClick={this.forceHidePopover}>
           <div className='role' onClick={!disabled && this.onClick}>
             <i

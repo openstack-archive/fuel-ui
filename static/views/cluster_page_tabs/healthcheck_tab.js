@@ -109,8 +109,12 @@ var HealthcheckTabContent = React.createClass({
     return {
       actionInProgress: false,
       credentialsVisible: null,
-      credentials: _.transform(this.props.cluster.get('settings').get('access'),
-        (result, value, key) => result[key] = value.value),
+      credentials: _.transform(
+        this.props.cluster.get('settings').get('access'),
+        (result, value, key) => {
+          result[key] = value.value;
+        }
+      ),
       stoppingTestsInProgress: false
     };
   },
