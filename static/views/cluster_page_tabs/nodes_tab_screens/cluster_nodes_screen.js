@@ -17,11 +17,16 @@ import _ from 'underscore';
 import React from 'react';
 import {NODE_STATUSES, NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {loadPropsMixin} from 'component_mixins';
 
 var ClusterNodesScreen = React.createClass({
+  mixins: [
+    loadPropsMixin
+  ],
   statics: {
-    fetchData({cluster}) {
-      return Promise.resolve({
+    fetchData() {
+      var {cluster} = app;
+      return Promise.resolve(cluster && {
         nodes: cluster.get('nodes'),
         uiSettings: cluster.get('ui_settings')
       });
@@ -36,7 +41,9 @@ var ClusterNodesScreen = React.createClass({
     return <NodeListScreen
       ref='screen'
       {... _.omit(this.props, 'screenOptions')}
+      uiSettings={this.props.cluster.get('ui_settings')}
       mode='list'
+      nodes={this.props.cluster.get('nodes')}
       roles={this.props.cluster.get('roles')}
       nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
       updateUISettings={this.updateUISettings}

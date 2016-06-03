@@ -19,10 +19,11 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import Backbone from 'backbone';
 import React from 'react';
+import {Link} from 'react-router';
 import utils from 'utils';
 import models from 'models';
 import {backboneMixin, pollingMixin, dispatcherMixin} from 'component_mixins';
-import {Popover, Link} from 'views/controls';
+import {Popover} from 'views/controls';
 import {ChangePasswordDialog, ShowNodeInfoDialog} from 'views/dialogs';
 
 export var Navbar = React.createClass({
@@ -78,11 +79,11 @@ export var Navbar = React.createClass({
     return {
       notificationsDisplayCount: 5,
       elements: [
-        {label: 'environments', url: '/clusters'},
+        {label: 'environments', url: '/clusters', activeFor: /^\/cluster\//},
         {label: 'equipment', url: '/equipment'},
         {label: 'releases', url: '/releases'},
         {label: 'plugins', url: '/plugins'},
-        {label: 'support', url: '/support'}
+        {label: 'support', url: '/support', activeFor: /^\/capacity/}
       ]
     };
   },
@@ -96,6 +97,7 @@ export var Navbar = React.createClass({
     var unreadNotificationsCount = this.props.notifications.filter({status: 'unread'}).length;
     var authenticationEnabled = this.props.version.get('auth_required') &&
       this.props.user.get('authenticated');
+    var currentPath = this.props.location.pathname;
 
     return (
       <div className='navigation-box'>
@@ -110,12 +112,15 @@ export var Navbar = React.createClass({
                 {_.map(this.props.elements, (element) => {
                   return (
                     <li
-                      className={utils.classNames({
-                        active: this.props.activeElement === element.url.slice(1)
-                      })}
                       key={element.label}
                     >
-                      <Link to={element.url}>
+                      <Link
+                        to={element.url}
+                        activeClassName='active'
+                        className={utils.classNames({
+                          active: element.activeFor && currentPath.search(element.activeFor) >= 0
+                        })}
+                      >
                         {i18n('navbar.' + element.label, {defaultValue: element.label})}
                       </Link>
                     </li>
@@ -194,6 +199,7 @@ export var Navbar = React.createClass({
                     notifications={this.props.notifications}
                     displayCount={this.props.notificationsDisplayCount}
                     toggle={this.togglePopover('notifications')}
+                    pathname={this.props.location.pathname}
                   />
                 }
               </ul>
@@ -346,7 +352,7 @@ var NotificationsPopover = React.createClass({
     );
   },
   render() {
-    var showMore = Backbone.history.getHash() !== 'notifications';
+    var showMore = this.props.pathname !== '/notifications';
     var notifications = this.props.notifications.take(this.props.displayCount);
     return (
       <Popover {...this.props} className='notifications-popover'>
@@ -392,7 +398,9 @@ export var PageLoadProgressBar = React.createClass({
       progress: this.props.initialProgress
     };
   },
+  componentsLoading: 0,
   showProgressBar() {
+    this.componentsLoading++;
     this.setState({progress: this.props.initialProgress, visible: true});
     this.activeInterval = setInterval(() => {
       if (this.state.progress < this.props.maxProgress) {
@@ -401,6 +409,9 @@ export var PageLoadProgressBar = React.createClass({
     }, this.props.stepDelay);
   },
   hideProgressBar() {
+    if (--this.componentsLoading) {
+      return;
+    }
     clearInterval(this.activeInterval);
     this.setState({progress: 100, visible: false}, () => {
       setTimeout(() => this.setState({progress: this.props.initialProgress}), 400);
