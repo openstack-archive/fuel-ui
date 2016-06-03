@@ -31,11 +31,12 @@ import ReactTransitionGroup from 'react-addons-transition-group';
 var NodesTab = React.createClass({
   statics: {
     breadcrumbsPath(pageOptions) {
-      var subroute = pageOptions.tabOptions[0];
+      console.log('Node page options: ', pageOptions);
+      var {id, subroute} = pageOptions.params;
       var breadcrumbs = [
         [
           i18n('cluster_page.tabs.nodes'),
-          '#cluster/' + pageOptions.cluster.id + '/nodes',
+          '#cluster/' + id + '/nodes',
           {active: !subroute}
         ]
       ];

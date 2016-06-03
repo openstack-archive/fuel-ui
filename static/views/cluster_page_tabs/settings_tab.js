@@ -57,17 +57,14 @@ var SettingsTab = React.createClass({
       return options.cluster.get('settings').getGroupList();
     },
     checkSubroute(tabProps) {
-      var {activeTab, cluster, tabOptions} = tabProps;
+      var {activeTab, cluster} = tabProps;
       var subtabs = this.getSubtabs(tabProps);
       if (activeTab === 'settings') {
-        var subroute = tabOptions[0];
-        if (!subroute || !_.includes(subtabs, subroute)) {
-          app.navigate(
-            'cluster/' + cluster.id + '/settings/' + subtabs[0],
-            {trigger: true, replace: true}
-          );
+        var {section} = tabProps.params;
+        if (!section || !_.includes(subtabs, section)) {
+          app.navigate('/cluster/' + cluster.id + '/settings/' + subtabs[0]);
         }
-        return {activeSettingsSectionName: subroute};
+        return {activeSettingsSectionName: section};
       }
       return {activeSettingsSectionName: subtabs[0]};
     }
