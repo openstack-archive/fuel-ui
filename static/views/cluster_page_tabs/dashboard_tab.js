@@ -18,11 +18,12 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Link} from 'react-router';
 import {NODE_STATUSES} from 'consts';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
-import {Input, ProgressBar, Tooltip, Link} from 'views/controls';
+import {Input, ProgressBar, Tooltip} from 'views/controls';
 import {
   DiscardClusterChangesDialog, DeployClusterDialog, ProvisionVMsDialog, ProvisionNodesDialog,
   DeployNodesDialog, RemoveClusterDialog, ResetEnvironmentDialog, StopDeploymentDialog,
@@ -854,10 +855,7 @@ var ClusterActionButton = React.createClass({
   },
   showSelectNodesDialog() {
     var {nodes, cluster, nodeStatusesToFilter} = this.props;
-    nodes.fetch = function(options) {
-      return this.constructor.__super__.fetch.call(this,
-        _.extend({data: {cluster_id: cluster.id}}, options));
-    };
+    nodes.fetch = utils.fetchClusterProperties(cluster.id);
     nodes.parse = function() {
       return this.getByIds(nodes.map('id'));
     };
