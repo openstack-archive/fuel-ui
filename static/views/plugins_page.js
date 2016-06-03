@@ -25,9 +25,9 @@ import {Tooltip} from 'views/controls';
 var PluginsPage = React.createClass({
   statics: {
     title: i18n('plugins_page.title'),
-    navbarActiveElement: 'plugins',
-    breadcrumbsPath: [['home', '#'], 'plugins'],
-    fetchData() {
+    breadcrumbsPath: [['home', '/'], 'plugins'],
+    loadProps(props, cb) {
+      console.log('Fetch plugins');
       var releases = app.releases;
       var plugins = new models.Plugins();
       var availableVersions = {};
@@ -50,7 +50,10 @@ var PluginsPage = React.createClass({
             });
           })
       )
-      .then(() => ({plugins, availableVersions}));
+      .then(() => {
+        console.log('Fetched plugins');
+        cb(null, {plugins, availableVersions});
+      });
     }
   },
   getDefaultProps() {
@@ -129,6 +132,7 @@ var PluginsPage = React.createClass({
     );
   },
   render() {
+    console.log('Render plugins');
     return (
       <div className='plugins-page'>
         <div className='page-title'>

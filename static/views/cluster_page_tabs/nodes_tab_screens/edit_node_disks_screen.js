@@ -32,27 +32,46 @@ var EditNodeDisksScreen = React.createClass({
     unsavedChangesMixin
   ],
   statics: {
-    fetchData(options) {
-      var nodes = utils.getNodeListFromTabOptions(options);
+    loadProps(params, cb) {
+      console.log('Fetch edit node disks:', params);
 
-      if (!nodes || !nodes.areDisksConfigurable()) {
-        return $.Deferred().reject();
-      }
+      var id = Number(params.params.id);
+      var cluster = new models.Cluster({id: id});
 
-      var volumes = new models.Volumes();
-      volumes.url = _.result(nodes.at(0), 'url') + '/volumes';
-      return $.when(...nodes.map((node) => {
-        node.disks = new models.Disks();
-        return node.disks.fetch({url: _.result(node, 'url') + '/disks'});
-      }).concat(volumes.fetch()))
+      cluster.get('nodes').fetch = utils.fetchClusterProperties(id);
+
+      return $.when(
+        cluster.fetchRelated('nodes')
+      )
         .then(() => {
-          var disks = new models.Disks(_.cloneDeep(nodes.at(0).disks.toJSON()), {parse: true});
-          return {
-            disks: disks,
-            nodes: nodes,
-            volumes: volumes
-          };
-        });
+          var clusterNodes = utils.getNodeListFromTabOptions(params.params.options, cluster);
+
+          if (!clusterNodes || !clusterNodes.areDisksConfigurable()) {
+            console.log('Interrupt:', clusterNodes);
+            return $.Deferred().reject();
+          }
+
+          var volumes = new models.Volumes();
+          volumes.url = _.result(clusterNodes.at(0), 'url') + '/volumes';
+          return $.when(...clusterNodes.map(
+            (node) => {
+              node.disks = new models.Disks();
+              return node.disks.fetch({url: _.result(node, 'url') + '/disks'});
+            }
+          ).concat(volumes.fetch()))
+            .then(() => {
+              var disks = new models.Disks(
+                _.cloneDeep(clusterNodes.at(0).disks.toJSON()),
+                {parse: true}
+              );
+              console.log('Edit node disks data fetched');
+              cb(null, {
+                disks,
+                nodes: clusterNodes,
+                volumes
+              });
+            });
+          });
     }
   },
   getInitialState() {

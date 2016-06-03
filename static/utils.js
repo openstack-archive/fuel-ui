@@ -39,10 +39,11 @@ var utils = {
   deserializeTabOptions(serializedOptions) {
     return _.fromPairs(_.map((serializedOptions || '').split(';'), (option) => option.split(':')));
   },
-  getNodeListFromTabOptions(options) {
-    var nodeIds = utils.deserializeTabOptions(options.screenOptions[0]).nodes;
-    var ids = nodeIds ? nodeIds.split(',').map((id) => parseInt(id, 10)) : [];
-    var nodes = new models.Nodes(options.cluster.get('nodes').getByIds(ids));
+  getNodeListFromTabOptions(options, cluster) {
+    var nodesIds = utils.deserializeTabOptions(options).nodes;
+    var ids = nodesIds ? nodesIds.split(',').map((id) => parseInt(id, 10)) : [];
+    var nodes = new models.Nodes(cluster.get('nodes').getByIds(ids));
+    console.log(nodesIds, ids, nodes);
     if (nodes.length === ids.length) return nodes;
   },
   renderMultilineText(text) {
@@ -326,6 +327,12 @@ var utils = {
       result[key] = this.deepOmit(object[key], keys);
       return result;
     }, _.isArray(object) ? [] : {});
+  },
+  fetchClusterProperties(clusterId='') {
+    return function(options) {
+      return this.constructor.__super__.fetch.call(this,
+        _.extend({data: {cluster_id: clusterId}}, options));
+    };
   }
 };
 
