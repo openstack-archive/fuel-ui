@@ -1857,28 +1857,29 @@ Role = React.createClass({
   },
   render() {
     var {role, selected, indeterminated, restrictions, isRolePanelDisabled} = this.props;
-    var disabled = isRolePanelDisabled || restrictions.result;
+    var isUnavailable = restrictions.result;
+    var isSelectable = !isRolePanelDisabled && !isUnavailable;
     var {warnings} = restrictions;
     return (
       <div
-        tabIndex={disabled ? -1 : 0}
+        tabIndex={isUnavailable ? -1 : 0}
         className={utils.classNames({
           'role-block': true,
           [role.get('name')]: true,
           selected,
           indeterminated,
-          disabled
+          disabled: isUnavailable
         })}
         onFocus={this.resetCountdown}
         onBlur={() => this.togglePopover(false)}
         onMouseEnter={this.startCountdown}
         onMouseMove={this.resetCountdown}
         onMouseLeave={() => this.togglePopover(false)}
-        onKeyDown={!disabled && this.onKeyDown}
+        onKeyDown={isSelectable && this.onKeyDown}
       >
         <div className='popover-binder'/>
         <div onClick={this.forceHidePopover}>
-          <div className='role' onClick={!disabled && this.onClick}>
+          <div className='role' onClick={isSelectable && this.onClick}>
             <i
               className={utils.classNames({
                 glyphicon: true,
