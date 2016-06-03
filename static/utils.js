@@ -34,15 +34,15 @@ var utils = {
   },
   /*eslint-enable max-len*/
   serializeTabOptions(options) {
-    return _.map(options, (value, key) => key + ':' + value).join(';');
+    return _.map(options, (value, key) => key + ':' + _.replace(value, '/', '%2F')).join(';');
   },
   deserializeTabOptions(serializedOptions) {
     return _.fromPairs(_.map((serializedOptions || '').split(';'), (option) => option.split(':')));
   },
-  getNodeListFromTabOptions(options) {
-    var nodeIds = utils.deserializeTabOptions(options.screenOptions[0]).nodes;
-    var ids = nodeIds ? nodeIds.split(',').map((id) => parseInt(id, 10)) : [];
-    var nodes = new models.Nodes(options.cluster.get('nodes').getByIds(ids));
+  getNodeListFromTabOptions(options, cluster) {
+    var nodesIds = utils.deserializeTabOptions(options).nodes;
+    var ids = nodesIds ? nodesIds.split(',').map((id) => parseInt(id, 10)) : [];
+    var nodes = new models.Nodes(cluster.get('nodes').getByIds(ids));
     if (nodes.length === ids.length) return nodes;
   },
   renderMultilineText(text) {
@@ -326,6 +326,72 @@ var utils = {
       result[key] = this.deepOmit(object[key], keys);
       return result;
     }, _.isArray(object) ? [] : {});
+  },
+  fetchClusterProperties(clusterId = '') {
+    return function(options) {
+      return this.constructor.__super__.fetch.call(this,
+        _.extend({data: {cluster_id: clusterId}}, options));
+    };
+  // },
+  // getClusterProperties(clusterId, propertiesNames, fetchCluster = false) {
+  //   clusterId = Number(clusterId);
+  //   var cluster = new models.Cluster({id: clusterId});
+  //   var baseUrl = _.result(cluster, 'url');
+  //   var clusterDependent = {};
+  //   var clusterIndependent = [];
+  //   var filledModels = {};
+
+  //   var clusterPropertiesData = {
+  //     nodes: {},
+  //     tasks: {},
+  //     nodeNetworkGroups: {},
+  //     settings: {model: models.Settings, path: 'attributes', isDependent: false, cached: true},
+  //     networkConfiguration: {
+  //       model: models.NetworkConfiguration,
+  //       path: (cluster) => baseUrl + '/network_configuration/' + cluster.get('net_provider'),
+  //       isDependent: false,
+  //       cached: true
+  //     }
+  //   };
+
+  //   var props = _.reduce(propertiesNames, (result, propertyName) => {
+  //     var propertyData = clusterPropertiesData[propertyName];
+  //     if (propertyData.model) {
+  //       filledModels[propertyName] = new propertyData.model();
+  //       filledModels[propertyName].fetch = this.fetchClusterProperties(clusterId);
+  //       if (propertyData.isDependent) {
+  //         clusterDependent[propertyName] = propertyData;
+  //       } else {
+  //         filledModels[propertyName].url = _.result(propertyData, path);
+  //         clusterIndependent.push(
+  //           filledModels[propertyName].fetch({cache: propertyData.cached})
+  //         );
+  //       }
+  //     } else {
+  //       clusterIndependent.push(
+  //         cluster.get(propertyName).fetchRelated({cache: propertyData.cached})
+  //       );
+  //     }
+  //   }, {});
+
+  //   if (!_.isEmpty(clusterDependent)) {
+  //     clusterIndependent.push(cluster.fetch());
+  //   };
+
+  //   if (fetchCluster) {
+  //     filledModels.cluster = cluster;
+  //     if (_.isEmpty(clusterDependent)) {
+  //       clusterIndependent.push(cluster.fetch());
+  //     }
+  //   };
+
+  //   return $.when(clusterIndependent)
+  //     .then(() => $.when(_.map(clusterDependent, (propertyData, propertyName) => {
+  //       filledModels[propertyName].url = _.result(propertyData, path, cluster);
+  //       return filledModels[propertyName].fetch({cache: propertyData.cached});
+  //     }))
+  //       .then(() => filledModels)
+  //       .catch(() => true));
   }
 };
 

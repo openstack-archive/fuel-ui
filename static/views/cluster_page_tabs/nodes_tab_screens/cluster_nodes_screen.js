@@ -13,33 +13,27 @@
  * License for the specific language governing permissions and limitations
  * under the License.
 **/
-import $ from 'jquery';
 import _ from 'underscore';
 import React from 'react';
 import {NODE_STATUSES, NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 
 var ClusterNodesScreen = React.createClass({
-  statics: {
-    fetchData({cluster}) {
-      return $.Deferred().resolve().then(() => ({
-        nodes: cluster.get('nodes'),
-        uiSettings: cluster.get('ui_settings')
-      }));
-    }
-  },
   updateUISettings(name, value) {
     var uiSettings = this.props.cluster.get('ui_settings');
     uiSettings[name] = value;
     this.props.cluster.save({ui_settings: uiSettings}, {patch: true, wait: true, validate: false});
   },
   render() {
+    var {cluster} = this.props;
     return <NodeListScreen
       ref='screen'
       {... _.omit(this.props, 'screenOptions')}
+      uiSettings={cluster.get('ui_settings')}
       mode='list'
-      roles={this.props.cluster.get('roles')}
-      nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
+      nodes={cluster.get('nodes')}
+      roles={cluster.get('roles')}
+      nodeNetworkGroups={cluster.get('nodeNetworkGroups')}
       updateUISettings={this.updateUISettings}
       defaultFilters={{roles: [], status: []}}
       statusesToFilter={_.without(NODE_STATUSES, 'discover')}
