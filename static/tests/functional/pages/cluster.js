@@ -36,7 +36,7 @@ class ClusterPage {
         pollUntil(
           (textToFind) => window.$('.cluster-tab.active').text() === textToFind || null,
           [tabName],
-          3000
+          5000
         )
       );
   }
