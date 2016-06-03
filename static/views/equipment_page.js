@@ -27,9 +27,8 @@ EquipmentPage = React.createClass({
   mixins: [backboneMixin('nodes')],
   statics: {
     title: i18n('equipment_page.title'),
-    navbarActiveElement: 'equipment',
-    breadcrumbsPath: [['home', '#'], 'equipment'],
-    fetchData() {
+    breadcrumbsPath: [['home', '/'], 'equipment'],
+    loadProps(params, cb) {
       var nodes = new models.Nodes();
       var clusters = new models.Clusters();
       var plugins = new models.Plugins();
@@ -85,10 +84,10 @@ EquipmentPage = React.createClass({
           );
         });
 
-        return {
+        cb(null, {
           nodes, clusters, nodeNetworkGroups, links, roles,
           fuelSettings, uiSettings: fuelSettings.get('ui_settings')
-        };
+        });
       });
     }
   },

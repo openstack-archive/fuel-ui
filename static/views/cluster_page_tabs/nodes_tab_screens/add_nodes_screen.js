@@ -17,21 +17,22 @@ import _ from 'underscore';
 import React from 'react';
 import {NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
 import models from 'models';
+import utils from 'utils';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 
 var AddNodesScreen = React.createClass({
   statics: {
-    fetchData({cluster}) {
+    loadProps(params, cb) {
       var nodes = new models.Nodes();
-      nodes.fetch = function(options) {
-        return this.constructor.__super__.fetch.call(this, _.extend({data: {cluster_id: ''}},
-          options));
-      };
-      return Promise.all([
-        nodes.fetch(),
-        cluster.get('roles').fetch(),
-        cluster.get('settings').fetch({cache: true})
-      ]).then(() => ({nodes}));
+      nodes.fetch = utils.fetchClusterProperties();
+      var allFetched = [nodes.fetch()];
+      var {cluster} = app;
+      if (cluster) {
+        allFetched.push(cluster.get('roles').fetch());
+        allFetched.push(cluster.get('settings').fetch({cache: true}));
+      }
+      return Promise.all(allFetched)
+        .then(() => cb(null, {nodes}));
     }
   },
   render() {
@@ -39,6 +40,7 @@ var AddNodesScreen = React.createClass({
       {... _.omit(this.props, 'screenOptions')}
       ref='screen'
       mode='add'
+      roles={this.props.cluster.get('roles')}
       nodeNetworkGroups={this.props.cluster.get('nodeNetworkGroups')}
       showRolePanel
       statusesToFilter={['discover', 'error', 'offline', 'removing']}
