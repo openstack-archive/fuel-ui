@@ -18,7 +18,7 @@ import i18n from 'i18n';
 import _ from 'underscore';
 import dispatcher from 'dispatcher';
 import {Input, Tooltip} from 'views/controls';
-import {unsavedChangesMixin} from 'component_mixins';
+import {unsavedChangesMixin, loadPropsMixin} from 'component_mixins';
 import VmWareModels from 'plugins/vmware/vmware_models';
 
 var Field = React.createClass({
@@ -295,7 +295,8 @@ var UnassignedNodesWarning = React.createClass({
 
 var VmWareTab = React.createClass({
   mixins: [
-    unsavedChangesMixin
+    unsavedChangesMixin('vmware'),
+    loadPropsMixin
   ],
   statics: {
     breadcrumbsPath() {
@@ -306,16 +307,23 @@ var VmWareTab = React.createClass({
     isVisible(cluster) {
       return cluster.get('settings').get('common.use_vcenter').value;
     },
-    fetchData(options) {
-      if (!options.cluster.get('vcenter_defaults')) {
-        var defaultModel = new VmWareModels.VCenter({id: options.cluster.id});
-        defaultModel.loadDefaults = true;
-        options.cluster.set({vcenter_defaults: defaultModel});
-      }
+    fetchData({params}) {
+      var clusterId = Number(params.id);
+      var vcenter = new VmWareModels.VCenter({id: clusterId});
+      var vcenterDefaults = new VmWareModels.VCenter({id: clusterId});
+      vcenterDefaults.loadDefaults = true;
+
       return Promise.all([
-        options.cluster.get('vcenter').fetch({cache: true}),
-        options.cluster.get('vcenter_defaults').fetch({cache: true})
-      ]);
+        vcenter.fetch({cache: true}),
+        vcenterDefaults.fetch({cache: true})
+      ])
+        .then(() => ({
+          vcenter: vcenter,
+          vcenter_defaults: vcenterDefaults
+        }), (error) => {
+          app.navigate('/cluster/' + clusterId + '/');
+          return error;
+        });
     }
   },
   onModelSync() {
@@ -353,6 +361,12 @@ var VmWareTab = React.createClass({
     dispatcher.off('vcenter_model_update');
   },
   getInitialState() {
+    if (this.props.cluster) {
+      this.props.cluster.set({
+        vcenter: this.props.vcenter,
+        vcenter_defaults: this.props.vcenter_defaults
+      });
+    }
     return {model: null};
   },
   readData() {
