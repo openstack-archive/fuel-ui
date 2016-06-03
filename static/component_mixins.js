@@ -44,29 +44,26 @@ export var unsavedChangesMixin = {
   componentWillMount() {
     this.eventName = _.uniqueId('unsavedchanges');
     $(window).on('beforeunload.' + this.eventName, this.onBeforeunloadEvent);
-    $('body').on('click.' + this.eventName, 'a[href^="#"]:not(.no-leave-check)', this.onLeave);
+    app.onLeave = this.onLeave;
+    app.baseComponent = this.constructor;
   },
   componentWillUnmount() {
     $(window).off('beforeunload.' + this.eventName);
-    $('body').off('click.' + this.eventName);
+    app.onLeave = null;
+    app.baseComponent = null;
   },
-  onLeave(e) {
-    var href = $(e.currentTarget).attr('href');
-    if (Backbone.history.getHash() !== href.substr(1) && _.result(this, 'hasChanges')) {
-      e.preventDefault();
-
-      DiscardSettingsChangesDialog
+  onLeave() {
+    if (_.result(this, 'hasChanges')) {
+      return DiscardSettingsChangesDialog
         .show({
           isDiscardingPossible: _.result(this, 'isDiscardingPossible'),
           isSavingPossible: _.result(this, 'isSavingPossible'),
           applyChanges: this.applyChanges,
           revertChanges: this.revertChanges
-        }).then(() => {
-          app.navigate(href);
         });
     }
   }
-};
+}
 
 export function pollingMixin(updateInterval, delayedStart) {
   updateInterval = updateInterval * 1000;
@@ -162,3 +159,62 @@ export function renamingMixin(refname) {
     }
   };
 }
+
+export var loadPropsMixin = {
+  statics: {
+    loadProps(params, cb) {
+      dispatcher.trigger('pageLoadStarted');
+      if (!_.isEmpty(app.routerComponent)) {
+        // If router is available one can determine how deep current component in the route
+        // and reuse higher-level prefetched data for own fetches
+        var depth = app.routerComponent.state.routes.reduce((depth, route, index) => {
+          if (route.component === this) depth = index;
+          return depth;
+        });
+        // Unneeded data can be dropped
+        app.dataFetchers = _.take(app.dataFetchers, depth - 1);
+      }
+
+      if (this.waitForParentData && !_.isEmpty(app.dataFetchers)) {
+        // Component's data fetch method depends on parent's data,
+        // so it has to be fetched first
+        var parent = _.last(app.dataFetchers).then((dataFetched) => {
+          return (
+            _.invoke(this, 'fetchData', _.extend({}, params, dataFetched)) ||
+            Promise.resolve(dataFetched)
+          )
+            .then(
+              (props) => {
+                dispatcher.trigger('pageLoadFinished');
+                cb(null, props);
+                return props;
+              },
+              (error) => {
+                dispatcher.trigger('pageLoadFinished');
+                cb(null, {});
+                return error;
+              }
+            );
+        });
+        app.dataFetchers.push(parent);
+      } else {
+        // Component is not dependent on its parent' data so it can start own fetching
+        // asynchronously
+        app.dataFetchers.push(new Promise((resolve, reject) =>
+          (_.invoke(this, 'fetchData', params) || Promise.resolve({})).then(
+            (props) => {
+              dispatcher.trigger('pageLoadFinished');
+              cb(null, props);
+              return resolve(props);
+            },
+            (error) => {
+              dispatcher.trigger('pageLoadFinished');
+              cb(null, null);
+              return reject(error);
+            }
+          )
+        ));
+      }
+    }
+  }
+};

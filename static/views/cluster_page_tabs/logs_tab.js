@@ -35,9 +35,11 @@ var LogsTab = React.createClass({
       ];
     },
     checkSubroute(tabProps) {
-      var {activeTab, tabOptions, defaultLogLevel} = tabProps;
-      if (activeTab === 'logs' && tabOptions[0]) {
-        var selectedLogs = utils.deserializeTabOptions(_.compact(tabOptions).join('/'));
+      var {activeTab, defaultLogLevel} = tabProps;
+      var {options} = tabProps.params;
+
+      if (activeTab === 'logs' && options) {
+        var selectedLogs = utils.deserializeTabOptions(_.compact([options]).join('/'));
         selectedLogs.level = selectedLogs.level ?
             selectedLogs.level.toUpperCase()
           :
