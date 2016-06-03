@@ -19,6 +19,7 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Link} from 'react-router';
 import Backbone from 'backbone';
 import {NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
 import utils from 'utils';
@@ -352,9 +353,9 @@ export var DiscardClusterChangesDialog = React.createClass({
                 {i18n(ns + 'cant_discard_cluster_settings')}
                 {' '}
                 {i18n(ns + 'cant_discard_instruction_start')}
-                <a href={'#cluster/' + cluster.id + '/settings'}>
+                <Link to={'/cluster/' + cluster.id + '/settings'}>
                   {i18n('cluster_page.tabs.settings')}
-                </a>
+                </Link>
                 {i18n(ns + 'cant_discard_instruction_end')}
               </span>
             );
@@ -380,9 +381,9 @@ export var DiscardClusterChangesDialog = React.createClass({
                 {i18n(ns + 'cant_discard_cluster_settings')}
                 {' '}
                 {i18n(ns + 'cant_discard_instruction_start')}
-                <a href={'#cluster/' + cluster.id + '/network'}>
+                <Link to={'/cluster/' + cluster.id + '/network'}>
                   {i18n('cluster_page.tabs.network')}
-                </a>
+                </Link>
                 {i18n(ns + 'cant_discard_instruction_end')}
               </span>
             );
@@ -861,7 +862,7 @@ export var RemoveClusterDialog = React.createClass({
         () => {
           this.close();
           dispatcher.trigger('updateNodeStats updateNotifications');
-          app.navigate('#clusters', {trigger: true});
+          app.navigate('/clusters');
         },
         this.showError
       );
@@ -1038,9 +1039,8 @@ export var ShowNodeInfoDialog = React.createClass({
   goToConfigurationScreen(url) {
     this.close();
     app.navigate(
-      '#cluster/' + this.props.node.get('cluster') + '/nodes/' + url + '/' +
-        utils.serializeTabOptions({nodes: this.props.node.id}),
-      {trigger: true}
+      '/cluster/' + this.props.node.get('cluster') + '/nodes/' + url + '/' +
+        utils.serializeTabOptions({nodes: this.props.node.id})
     );
   },
   showSummary(group) {

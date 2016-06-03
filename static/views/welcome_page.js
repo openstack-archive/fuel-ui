@@ -16,14 +16,15 @@
 import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
-import {backboneMixin} from 'component_mixins';
+import {backboneMixin, loadPropsMixin} from 'component_mixins';
 import statisticsMixin from 'views/statistics_mixin';
 import {ProgressButton} from 'views/controls';
 
 var WelcomePage = React.createClass({
   mixins: [
     statisticsMixin,
-    backboneMixin('settings')
+    backboneMixin('settings'),
+    loadPropsMixin
   ],
   statics: {
     title: i18n('welcome_page.title'),
@@ -40,7 +41,7 @@ var WelcomePage = React.createClass({
     });
     this.saveSettings(this.getStatisticsSettingsToSave())
       .then(
-        () => app.navigate('', {trigger: true}),
+        () => app.navigate('/'),
         (response) => {
           this.setState({actionInProgress: false});
           utils.showErrorDialog({response});
