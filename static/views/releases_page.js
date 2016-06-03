@@ -26,11 +26,12 @@ var ReleasesPage = React.createClass({
   },
   statics: {
     title: i18n('release_page.title'),
-    navbarActiveElement: 'releases',
-    breadcrumbsPath: [['home', '#'], 'releases'],
-    fetchData() {
+    breadcrumbsPath: [['home', '/'], 'releases'],
+    loadProps(params, cb) {
       var releases = app.releases;
-      return releases.fetch({cache: true}).then(() => ({releases}));
+      return releases.fetch({cache: true}).then(() => {
+        cb(null, {releases});
+      });
     }
   },
   getReleaseData(release) {
@@ -51,7 +52,7 @@ var ReleasesPage = React.createClass({
           <div className='row'>
             <div className='col-xs-12 content-elements'>
               <Table
-                head={_.map(this.props.columns, (column) => {
+                head={this.props.columns.map((column) => {
                   return ({label: i18n('release_page.' + column), className: column});
                 })}
                 body={this.props.releases.map(this.getReleaseData)}
