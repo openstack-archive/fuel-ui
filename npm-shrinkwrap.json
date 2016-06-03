@@ -132,6 +132,9 @@
     "async-each": {
       "version": "1.0.0"
     },
+    "async-props": {
+      "version": "0.3.2"
+    },
     "autoprefixer": {
       "version": "5.2.0"
     },

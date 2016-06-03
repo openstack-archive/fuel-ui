@@ -17,6 +17,7 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import Backbone from 'backbone';
 import React from 'react';
+import {Link} from 'react-router';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
@@ -57,7 +58,7 @@ var Node = React.createClass({
     ) {
       options.source = 'install/puppet';
     }
-    return '#cluster/' + this.props.node.get('cluster') + '/logs/' +
+    return '/cluster/' + this.props.node.get('cluster') + '/logs/' +
       utils.serializeTabOptions(options);
   },
   applyNewNodeName(newName) {
@@ -289,9 +290,9 @@ var Node = React.createClass({
             {this.props.nodeActionsAvailable &&
               <div className='node-buttons'>
                 {!!node.get('cluster') &&
-                  <a className='btn btn-view-logs' href={this.getNodeLogsLink()} >
+                  <Link className='btn btn-view-logs' to={this.getNodeLogsLink()} >
                     {i18n('cluster_page.nodes_tab.node.view_logs')}
-                  </a>
+                  </Link>
                 }
                 {renderActionButtons &&
                   (node.get('pending_addition') || node.get('pending_deletion')) &&
@@ -464,7 +465,7 @@ var Node = React.createClass({
             {this.props.nodeActionsAvailable && [
               !!node.get('cluster') &&
                 <Tooltip wrap key='logs' text={i18n(ns + 'view_logs')}>
-                  <a className='btn-view-logs icon icon-logs' href={this.getNodeLogsLink()} />
+                  <Link className='btn-view-logs icon icon-logs' to={this.getNodeLogsLink()} />
                 </Tooltip>,
               renderActionButtons &&
                 (node.get('pending_addition') || node.get('pending_deletion')) &&
