@@ -27,12 +27,11 @@ NotificationsPage = React.createClass({
   mixins: [backboneMixin('notifications')],
   statics: {
     title: i18n('notifications_page.title'),
-    navbarActiveElement: null,
     breadcrumbsPath: [['home', '#'], 'notifications'],
-    fetchData() {
+    loadProps(params, cb) {
       var notifications = app.notifications;
       return notifications.fetch().then(() =>
-        ({notifications: notifications})
+        cb(null, {notifications})
       );
     }
   },

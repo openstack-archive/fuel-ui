@@ -20,6 +20,7 @@
     "nightly-func-tests": "./run_ui_func_tests.sh static/tests/functional/nightly/*.js"
   },
   "dependencies": {
+    "async-props": "0.3.2",
     "autoprefixer": "5.2.0",
     "babel-core": "6.9.0",
     "babel-loader": "6.2.4",
