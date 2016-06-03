@@ -376,8 +376,10 @@ var Node = React.createClass({
   },
   renderStatusBlock(isCompactView = false) {
     var {node, cluster} = this.props;
+    console.log('Node:', node, cluster);
     var statusNs = 'cluster_page.nodes_tab.node.status.';
     var status = node.getStatus();
+    console.log(cluster.get('release').get('operating_system'));
     var statusLabel = i18n(statusNs + status, {
       os: cluster && cluster.get('release').get('operating_system') || 'OS'
     });
