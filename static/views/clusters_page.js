@@ -31,7 +31,8 @@ ClustersPage = React.createClass({
     title: i18n('clusters_page.title'),
     navbarActiveElement: 'clusters',
     breadcrumbsPath: [['home', '#'], 'environments'],
-    fetchData() {
+    loadProps(params, cb) {
+      console.log('Fetch clusters');
       var clusters = new models.Clusters();
       var nodes = new models.Nodes();
       var tasks = new models.Tasks();
@@ -42,11 +43,13 @@ ClustersPage = React.createClass({
             cluster.set('nodes', new models.Nodes(nodes.filter({cluster: cluster.id})));
             cluster.set('tasks', new models.Tasks(tasks.filter({cluster: cluster.id})));
           });
-          return ({clusters});
+          console.log({clusters});
+          cb(null, {clusters});
         });
     }
   },
   render() {
+    console.log('Clusters rendered');
     return (
       <div className='clusters-page'>
         <div className='page-title'>
@@ -70,7 +73,7 @@ ClusterList = React.createClass({
   render() {
     return (
       <div className='row'>
-        {this.props.clusters.map((cluster) => {
+        {_.map(this.props.clusters, (cluster) => {
           return <Cluster key={cluster.id} cluster={cluster} />;
         })}
         <div key='create-cluster' className='col-xs-3'>
@@ -128,6 +131,9 @@ Cluster = React.createClass({
       requests.push(request);
     }
     return $.when(...requests);
+  },
+  componentDidMount () {
+    this.fetchData()
   },
   render() {
     var cluster = this.props.cluster;

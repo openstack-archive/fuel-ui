@@ -20,6 +20,8 @@ import i18n from 'i18n';
 import Backbone from 'backbone';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {Router, Route, Redirect, hashHistory} from 'react-router';
+import AsyncProps from 'async-props'
 import models from 'models';
 import dispatcher from 'dispatcher';
 import {NailgunUnavailabilityDialog} from 'views/dialogs';
@@ -35,11 +37,11 @@ import PluginsPage from 'views/plugins_page';
 import NotificationsPage from 'views/notifications_page';
 import SupportPage from 'views/support_page';
 import CapacityPage from 'views/capacity_page';
-import 'backbone.routefilter';
+// import 'backbone.routefilter';
 import 'bootstrap';
 import './styles/main.less';
 
-class Router extends Backbone.Router {
+class OldRouter extends Backbone.Router {
   routes() {
     return {
       login: 'login',
@@ -163,7 +165,7 @@ class App {
 
     this.overrideBackboneSyncMethod();
 
-    this.router = new Router();
+    // this.router = new Router();
     this.version = new models.FuelVersion();
     this.fuelSettings = new models.FuelSettings();
     this.user = new models.User();
@@ -180,6 +182,7 @@ class App {
   initialize() {
     this.initialized = true;
     this.mountNode = $('#main-container');
+    this.fetchers = [];
 
     document.title = i18n('common.title');
 
@@ -208,30 +211,54 @@ class App {
           NailgunUnavailabilityDialog.show({}, {preventDuplicate: true});
         }
       })
-      .then(() => Backbone.history.start());
+      .then(() => this.renderLayout());
   }
 
   renderLayout() {
+    var defaults = _.pick(this, 'version', 'user', 'fuelSettings', 'statistics', 'notifications');
     var wrappedRootComponent = ReactDOM.render(
-      React.createElement(
-        RootComponent,
-        _.pick(this, 'version', 'user', 'fuelSettings', 'statistics', 'notifications')
-      ),
-      this.mountNode[0]
-    );
+      <Router history={hashHistory} render={(props) => <AsyncProps
+          {...props} />}
+          renderLoading={() => <div>Loading...</div>}
+        >
+        <Route path='/' component={RootComponent} {...defaults}>
+          <Route path='login' component={LoginPage} />
+          <Route path='welcome' component={WelcomePage} />
+          <Route path='clusters' component={ClustersPage} />
+          <Route path='equipment' component={EquipmentPage} />
+          <Route path='releases' component={ReleasesPage} />
+          <Route path='plugins' component={PluginsPage} />
+          <Route path='notifications' component={NotificationsPage} />
+          <Route path='support' component={SupportPage} />
+          <Route path='capacity' component={CapacityPage} />
+        </Route>
+        <Redirect from='*' to='/clusters' />
+      </Router>,
+      this.mountNode[0]);
+      // React.createElement(
+        // RouterComponent,
+        // _.pick(this, 'version', 'user', 'fuelSettings', 'statistics', 'notifications')
+      // ),
+      // this.mountNode[0]
+    // );
     // RootComponent is wrapped with React-DnD, extracting link to it using ref
     this.rootComponent = wrappedRootComponent.refs.child;
   }
 
   loadPage(Page, options = []) {
-    dispatcher.trigger('pageLoadStarted');
-    return (Page.fetchData ? Page.fetchData(...options) : $.Deferred().resolve())
-      .then((pageOptions) => {
-        if (!this.rootComponent) this.renderLayout();
-        this.setPage(Page, pageOptions);
-      })
-      .then(null, () => $.Deferred().resolve())
-      .then(() => dispatcher.trigger('pageLoadFinished'));
+    // dispatcher.trigger('pageLoadStarted');
+    var props = (Page.fetchData ? Page.fetchData(...options) : $.Deferred().resolve())
+      .then((pageOptions) => pageOptions
+        // if (!this.rootComponent) this.renderLayout();
+        // this.setPage(Page, pageOptions);
+      );
+      // .then(null, () => $.Deferred().resolve());
+      // .then(() => dispatcher.trigger('pageLoadFinished'));
+    return <Page
+      data={props}
+      {...options}
+      {..._.pick(this, 'version', 'user', 'fuelSettings', 'statistics', 'notifications')}
+    />
   }
 
   setPage(Page, options) {
@@ -239,7 +266,7 @@ class App {
   }
 
   navigate(...args) {
-    return this.router.navigate(...args);
+    // return this.router.navigate(...args);
   }
 
   logout() {

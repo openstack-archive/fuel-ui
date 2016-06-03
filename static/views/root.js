@@ -28,7 +28,7 @@ import HTML5Backend from 'react-dnd-html5-backend';
 
 var RootComponent = React.createClass({
   mixins: [
-    dispatcherMixin('updatePageLayout', 'updateTitle'),
+    // dispatcherMixin('updatePageLayout', 'updateTitle'),
     dispatcherMixin('showDefaultPasswordWarning', 'showDefaultPasswordWarning'),
     dispatcherMixin('hideDefaultPasswordWarning', 'hideDefaultPasswordWarning')
   ],
@@ -57,14 +57,18 @@ var RootComponent = React.createClass({
     dispatcher.trigger('updatePageLayout');
   },
   render() {
+    console.log('Root render');
     var {Page, showDefaultPasswordWarning} = this.state;
-    var {fuelSettings, version} = this.props;
+    var {fuelSettings, version} = this.props.route;
 
-    if (!Page) return null;
+    Page = {};
+
+    // if (!Page) return null;
     var layoutClasses = {
       clamp: true,
       'fixed-width-layout': !Page.hiddenLayout
     };
+
 
     return (
       <div id='content-wrapper'>
@@ -76,6 +80,7 @@ var RootComponent = React.createClass({
               ref='navbar'
               activeElement={Page.navbarActiveElement}
               {...this.props}
+              {...this.props.route}
             />,
             <Breadcrumbs key='breadcrumbs' ref='breadcrumbs' {...this.state} />,
             showDefaultPasswordWarning &&
@@ -90,7 +95,7 @@ var RootComponent = React.createClass({
               />
           ]}
           <div id='content'>
-            <Page ref='page' {...this.state.pageOptions} />
+            {this.props.children}
           </div>
           {!Page.hiddenLayout && <div id='footer-spacer'></div>}
         </div>

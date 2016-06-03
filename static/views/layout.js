@@ -24,6 +24,7 @@ import models from 'models';
 import {backboneMixin, pollingMixin, dispatcherMixin} from 'component_mixins';
 import {Popover} from 'views/controls';
 import {ChangePasswordDialog, ShowNodeInfoDialog} from 'views/dialogs';
+import {Link} from 'react-router';
 
 export var Navbar = React.createClass({
   mixins: [
@@ -78,11 +79,11 @@ export var Navbar = React.createClass({
     return {
       notificationsDisplayCount: 5,
       elements: [
-        {label: 'environments', url: '#clusters'},
-        {label: 'equipment', url: '#equipment'},
-        {label: 'releases', url: '#releases'},
-        {label: 'plugins', url: '#plugins'},
-        {label: 'support', url: '#support'}
+        {label: 'environments', url: 'clusters'},
+        {label: 'equipment', url: 'equipment'},
+        {label: 'releases', url: 'releases'},
+        {label: 'plugins', url: 'plugins'},
+        {label: 'support', url: 'support'}
       ]
     };
   },
@@ -96,6 +97,7 @@ export var Navbar = React.createClass({
     var unreadNotificationsCount = this.props.notifications.filter({status: 'unread'}).length;
     var authenticationEnabled = this.props.version.get('auth_required') &&
       this.props.user.get('authenticated');
+    var topLevelPath = this.props.location.pathname.slice(1);
 
     return (
       <div className='navigation-box'>
@@ -110,14 +112,11 @@ export var Navbar = React.createClass({
                 {_.map(this.props.elements, (element) => {
                   return (
                     <li
-                      className={utils.classNames({
-                        active: this.props.activeElement === element.url.slice(1)
-                      })}
                       key={element.label}
                     >
-                      <a href={element.url}>
+                      <Link to={element.url} activeClassName='active'>
                         {i18n('navbar.' + element.label, {defaultValue: element.label})}
-                      </a>
+                      </Link>
                     </li>
                   );
                 })}
@@ -429,6 +428,7 @@ export var Breadcrumbs = React.createClass({
     return {path: this.getBreadcrumbsPath()};
   },
   getBreadcrumbsPath() {
+    return null;
     var page = this.props.Page;
     return _.isFunction(page.breadcrumbsPath) ? page.breadcrumbsPath(this.props.pageOptions) :
       page.breadcrumbsPath;
@@ -437,6 +437,7 @@ export var Breadcrumbs = React.createClass({
     this.setState({path: this.getBreadcrumbsPath()});
   },
   render() {
+    return null;
     return (
       <ol className='breadcrumb'>
         {_.map(this.state.path, (breadcrumb, index) => {

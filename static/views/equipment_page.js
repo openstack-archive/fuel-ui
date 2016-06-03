@@ -30,7 +30,8 @@ EquipmentPage = React.createClass({
     title: i18n('equipment_page.title'),
     navbarActiveElement: 'equipment',
     breadcrumbsPath: [['home', '#'], 'equipment'],
-    fetchData() {
+    loadProps(params, cb) {
+      console.log('Fetch equipment');
       var nodes = new models.Nodes();
       var clusters = new models.Clusters();
       var plugins = new models.Plugins();
@@ -79,7 +80,8 @@ EquipmentPage = React.createClass({
           (plugin) => links.add(plugin.get('links') && plugin.get('links').models)
         );
 
-        return {nodes, clusters, nodeNetworkGroups, fuelSettings, links};
+        console.log('Fetched equipment');
+        cb(null, {nodes, clusters, nodeNetworkGroups, fuelSettings, links});
       });
     }
   },
@@ -103,6 +105,7 @@ EquipmentPage = React.createClass({
     this.setState({selectedNodeIds: nodeSelection});
   },
   render() {
+    console.log('Render equipment');
     var roles = new models.Roles();
     this.props.clusters.each((cluster) => {
       roles.add(
