@@ -625,6 +625,25 @@ var EditNodeInterfacesScreen = React.createClass({
     this.setState({viewMode});
   },
   render() {
+    var nodesByNetworksMap = {};
+    this.props.nodes.each((node) => {
+      var networkNames = _.flatten(
+        node.interfaces.map((ifc) => ifc.get('assigned_networks').map('name'))
+      ).sort();
+      nodesByNetworksMap[networkNames] = _.union(
+        (nodesByNetworksMap[networkNames] || []),
+        [node.id]
+      );
+    });
+    if (_.size(nodesByNetworksMap) > 1) {
+      return (
+        <ErrorScreen
+          {... _.pick(this.props, 'nodes', 'cluster')}
+          nodesByNetworksMap={nodesByNetworksMap}
+        />
+      );
+    }
+
     var {nodes, interfaces, viewModes} = this.props;
     var {interfacesByIndex, indexByInterface, viewMode} = this.state;
     var nodeNames = nodes.map('name');
@@ -720,7 +739,6 @@ var EditNodeInterfacesScreen = React.createClass({
             })}
           </div>
         </div>
-
         {_.some(availableBondingTypes, (bondingTypes) => bondingTypes.length) &&
           !configurationTemplateExists &&
           !locked && [
@@ -831,6 +849,59 @@ var EditNodeInterfacesScreen = React.createClass({
                 </ProgressButton>
               </div>
             }
+          </div>
+        </div>
+      </div>
+    );
+  }
+});
+
+var ErrorScreen = React.createClass({
+  render() {
+    var {nodes, cluster, nodesByNetworksMap} = this.props;
+    return (
+      <div className='ifc-management-panel row'>
+        <div className='title'>
+          {i18n(
+            ns + 'read_only_title',
+            {count: nodes.length, name: nodes.map('name').join(', ')}
+          )}
+        </div>
+        {_.size(nodesByNetworksMap) > 1 &&
+          <div className='col-xs-12'>
+            <div className='alert alert-danger different-networks-alert'>
+              {i18n(ns + 'nodes_have_different_networks')}
+              {_.map(nodesByNetworksMap, (nodeIds, networkNames) => {
+                return (
+                  <a
+                    key={networkNames}
+                    className='no-leave-check'
+                    href={
+                      '#cluster/' + cluster.id + '/nodes/interfaces/' +
+                      utils.serializeTabOptions({nodes: nodeIds})
+                    }
+                  >
+                    {i18n(ns + 'node_networks', {
+                      count: nodeIds.length,
+                      networks: _.map(networkNames.split(','), (name) => i18n('network.' + name))
+                        .join(', ')
+                    })}
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        }
+        <div className='col-xs-12 page-buttons content-elements'>
+          <div className='well clearfix'>
+            <div className='btn-group'>
+              <a
+                className='btn btn-default'
+                href={'#cluster/' + cluster.id + '/nodes'}
+              >
+                {i18n('cluster_page.nodes_tab.back_to_nodes_button')}
+              </a>
+            </div>
           </div>
         </div>
       </div>

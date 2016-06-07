@@ -462,7 +462,10 @@
                         "availability_tooltip": "Some network interfaces do not support this feature, therefore, these properties will not change after saving.",
                         "interface_properties_errors": "Some of the properties are misconfigured.",
                         "standard_mode_tooltip": "Standard View",
-                        "compact_mode_tooltip": "Compact View"
+                        "compact_mode_tooltip": "Compact View",
+                        "nodes_have_different_networks": "Interfaces of the selected nodes can not be configured in bulk. The nodes have different set of networks:",
+                        "node_networks": "__count__ node has __networks__ networks",
+                        "node_networks_plural": "__count__ nodes have __networks__ networks"
                     },
                     "configure_disks": {
                         "no_disks": "No unassigned disks available.",
