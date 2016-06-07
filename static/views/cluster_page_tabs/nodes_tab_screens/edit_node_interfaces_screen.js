@@ -77,10 +77,14 @@ var EditNodeInterfacesScreen = React.createClass({
     }
   },
   getInitialState() {
+    var {nodes, interfaces, viewModes} = this.props;
+
     var interfacesByIndex = {};
     var indexByInterface = {};
-    var firstNodeInterfaces = this.props.interfaces.filter((ifc) => !ifc.isBond());
-    this.props.nodes.each((node, nodeIndex) => {
+    var firstNodeInterfaces = interfaces.filter((ifc) => !ifc.isBond());
+    var nodesByNetworksMap = {};
+
+    nodes.each((node, nodeIndex) => {
       var justInterfaces = node.interfaces.filter((ifc) => !ifc.isBond());
       _.each(justInterfaces, (ifc, index) => {
         indexByInterface[ifc.id] = index;
@@ -89,15 +93,23 @@ var EditNodeInterfacesScreen = React.createClass({
           [nodeIndex ? ifc : firstNodeInterfaces[index]]
         );
       });
+
+      var networkNames = _.flatten(
+        node.interfaces.map((ifc) => ifc.get('assigned_networks').map('name'))
+      ).sort();
+      nodesByNetworksMap[networkNames] = _.union(
+        (nodesByNetworksMap[networkNames] || []),
+        [node.id]
+      );
     });
-    var viewMode = _.first(this.props.viewModes);
 
     return {
       actionInProgress: false,
       interfacesErrors: {},
       interfacesByIndex,
       indexByInterface,
-      viewMode
+      viewMode: _.first(viewModes),
+      nodesByNetworksMap
     };
   },
   getDefaultProps() {
@@ -177,7 +189,8 @@ var EditNodeInterfacesScreen = React.createClass({
   },
   isLocked() {
     return !!this.props.cluster.task({group: 'deployment', active: true}) ||
-      !_.every(this.props.nodes.invokeMap('areInterfacesConfigurable'));
+      !_.every(this.props.nodes.invokeMap('areInterfacesConfigurable')) ||
+      _.size(this.state.nodesByNetworksMap) > 1;
   },
   interfacesPickFromJSON(json) {
     // Pick certain interface fields that have influence on hasChanges.
@@ -625,8 +638,8 @@ var EditNodeInterfacesScreen = React.createClass({
     this.setState({viewMode});
   },
   render() {
-    var {nodes, interfaces, viewModes} = this.props;
-    var {interfacesByIndex, indexByInterface, viewMode} = this.state;
+    var {nodes, cluster, interfaces, viewModes} = this.props;
+    var {interfacesByIndex, indexByInterface, viewMode, nodesByNetworksMap} = this.state;
     var nodeNames = nodes.map('name');
     var locked = this.isLocked();
     var configurationTemplateExists = this.configurationTemplateExists();
@@ -686,41 +699,68 @@ var EditNodeInterfacesScreen = React.createClass({
           {i18n(ns + (locked ? 'read_only_' : '') + 'title',
             {count: nodes.length, name: nodeNames.join(', ')})}
         </div>
-        {configurationTemplateExists &&
+        {_.size(nodesByNetworksMap) > 1 ?
           <div className='col-xs-12'>
-            <div className='alert alert-warning'>
-              {i18n(ns + 'configuration_template_warning')}
+            <div className='alert alert-danger different-networks-alert'>
+              {i18n(ns + 'nodes_have_different_networks')}
+              {_.map(nodesByNetworksMap, (nodeIds, networkNames) => {
+                return (
+                  <a
+                    key={networkNames}
+                    className='no-leave-check'
+                    href={
+                      '#cluster/' + cluster.id + '/nodes/interfaces/' +
+                      utils.serializeTabOptions({nodes: nodeIds})
+                    }
+                  >
+                    {i18n(ns + 'node_networks', {
+                      count: nodeIds.length,
+                      networks: _.map(networkNames.split(','), (name) => i18n('network.' + name))
+                        .join(', ')
+                    })}
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        :
+          <div>
+            {configurationTemplateExists &&
+              <div className='col-xs-12'>
+                <div className='alert alert-warning'>
+                  {i18n(ns + 'configuration_template_warning')}
+                </div>
+              </div>
+            }
+            <div className='view-mode-switcher col-xs-4'>
+              <div className='btn-group' data-toggle='buttons'>
+                {_.map(viewModes, (mode) => {
+                  return (
+                    <Tooltip key={mode + '-view'} text={i18n(ns + mode + '_mode_tooltip')}>
+                      <label
+                        className={utils.classNames({
+                          'btn btn-default pull-left': true,
+                          active: mode === viewMode,
+                          [mode]: true
+                        })}
+                        onClick={mode !== viewMode && this.changeViewMode}
+                      >
+                        <input type='radio' name='view_mode' value={mode} />
+                        <i
+                          className={utils.classNames({
+                            glyphicon: true,
+                            'glyphicon-th-list': mode === 'standard',
+                            'glyphicon-compact': mode === 'compact'
+                          })}
+                        />
+                      </label>
+                    </Tooltip>
+                  );
+                })}
+              </div>
             </div>
           </div>
         }
-        <div className='view-mode-switcher col-xs-4'>
-          <div className='btn-group' data-toggle='buttons'>
-            {_.map(viewModes, (mode) => {
-              return (
-                <Tooltip key={mode + '-view'} text={i18n(ns + mode + '_mode_tooltip')}>
-                  <label
-                    className={utils.classNames({
-                      'btn btn-default pull-left': true,
-                      active: mode === viewMode,
-                      [mode]: true
-                    })}
-                    onClick={mode !== viewMode && this.changeViewMode}
-                  >
-                    <input type='radio' name='view_mode' value={mode} />
-                    <i
-                      className={utils.classNames({
-                        glyphicon: true,
-                        'glyphicon-th-list': mode === 'standard',
-                        'glyphicon-compact': mode === 'compact'
-                      })}
-                    />
-                  </label>
-                </Tooltip>
-              );
-            })}
-          </div>
-        </div>
-
         {_.some(availableBondingTypes, (bondingTypes) => bondingTypes.length) &&
           !configurationTemplateExists &&
           !locked && [
@@ -758,41 +798,43 @@ var EditNodeInterfacesScreen = React.createClass({
                 </div>}
             </div>
           ]}
-        <div className='ifc-list col-xs-12'>
-          {interfaces.map((ifc, index) => {
-            var ifcName = ifc.get('name');
-            var limitations = this.state.limitations[ifc.isBond() ? ifcName : ifc.id];
+        {_.size(nodesByNetworksMap) === 1 &&
+          <div className='ifc-list col-xs-12'>
+            {interfaces.map((ifc, index) => {
+              var ifcName = ifc.get('name');
+              var limitations = this.state.limitations[ifc.isBond() ? ifcName : ifc.id];
 
-            if (!_.includes(slaveInterfaceNames, ifcName)) {
-              return (
-                <NodeInterfaceDropTarget
-                  {...this.props}
-                  key={'interface-' + ifcName}
-                  interface={ifc}
-                  limitations={limitations}
-                  nodesInterfaces={nodesInterfaces[index]}
-                  hasChanges={
-                    !_.isEqual(
-                       _.find(this.state.initialInterfaces, {name: ifcName}),
-                      _.omit(ifc.toJSON(), 'state')
-                    )
-                  }
-                  locked={locked}
-                  configurationTemplateExists={configurationTemplateExists}
-                  errors={this.state.interfacesErrors[ifcName]}
-                  validate={this.validate}
-                  removeInterfaceFromBond={this.removeInterfaceFromBond}
-                  bondingProperties={this.props.bondingConfig.properties}
-                  availableBondingTypes={availableBondingTypes[ifcName]}
-                  getAvailableBondingTypes={this.getAvailableBondingTypes}
-                  interfaceSpeeds={interfaceSpeeds[index]}
-                  interfaceNames={interfaceNames[index]}
-                  viewMode={viewMode}
-                />
-              );
-            }
-          })}
-        </div>
+              if (!_.includes(slaveInterfaceNames, ifcName)) {
+                return (
+                  <NodeInterfaceDropTarget
+                    {...this.props}
+                    key={'interface-' + ifcName}
+                    interface={ifc}
+                    limitations={limitations}
+                    nodesInterfaces={nodesInterfaces[index]}
+                    hasChanges={
+                      !_.isEqual(
+                         _.find(this.state.initialInterfaces, {name: ifcName}),
+                        _.omit(ifc.toJSON(), 'state')
+                      )
+                    }
+                    locked={locked}
+                    configurationTemplateExists={configurationTemplateExists}
+                    errors={this.state.interfacesErrors[ifcName]}
+                    validate={this.validate}
+                    removeInterfaceFromBond={this.removeInterfaceFromBond}
+                    bondingProperties={this.props.bondingConfig.properties}
+                    availableBondingTypes={availableBondingTypes[ifcName]}
+                    getAvailableBondingTypes={this.getAvailableBondingTypes}
+                    interfaceSpeeds={interfaceSpeeds[index]}
+                    interfaceNames={interfaceNames[index]}
+                    viewMode={viewMode}
+                  />
+                );
+              }
+            })}
+          </div>
+        }
         <div className='col-xs-12 page-buttons content-elements'>
           <div className='well clearfix'>
             <div className='btn-group'>
