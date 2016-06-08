@@ -2275,19 +2275,16 @@ input[type=range] {
           }
         }
 
-        .node-text-mixin {
-          padding: 18px 0;
-          font-size: @base-font-size - 3;
-        }
-
         .node-status {
           width: 22%;
+          display: table;
           text-align: center;
+          text-transform: uppercase;
+          font-size: @base-font-size - 3;
           .font-semibold;
-          .node-text-mixin;
-          span {
-            display: inline-block;
-            text-transform: uppercase;
+          > div {
+            display: table-cell;
+            vertical-align: middle;
           }
           .node-remove-button {
             font-size: @base-font-size - 2;
@@ -2302,8 +2299,9 @@ input[type=range] {
           text-align: right;
           float: none;
           margin-right: @node-button-size;
+          padding: 18px 0;
+          font-size: @base-font-size - 3;
           .font-normal;
-          .node-text-mixin;
           > span {
             padding-left: 5px;
           }

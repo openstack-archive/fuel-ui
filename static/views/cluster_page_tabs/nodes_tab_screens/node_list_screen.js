@@ -483,9 +483,9 @@ NodeListScreen = React.createClass({
         result = _.some(filter.values, (role) => node.hasRole(role));
         break;
       case 'status':
-        result = _.includes(filter.values, 'offline') && !node.get('online') ||
-          _.includes(filter.values, 'error') && node.get('status') === 'error' ||
-          _.includes(filter.values, node.getStatusSummary());
+        result = _.includes(filter.values, node.getStatus()) ||
+          _.includes(filter.values, 'pending_addition') && node.get('pending_addition') ||
+          _.includes(filter.values, 'pending_deletion') && node.get('pending_deletion');
         break;
       case 'manufacturer':
       case 'cluster':
