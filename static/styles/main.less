@@ -2092,25 +2092,6 @@ input[type=range] {
   }
 
   .nodes-group {
-    .node-progress() {
-      .progress {
-        position: relative;
-        background-color: @base-node-color - 70%;
-        .progress-bar-title {
-          position: absolute;
-          width: 100%;
-          line-height: 16px;
-          left: 0;
-          right: 0;
-          text-align: center;
-          color: @white;
-          margin-top: 2px;
-          text-transform: uppercase;
-          text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
-          span {padding: 0;}
-        }
-      }
-    }
 
     @node-indent: 20px;
     @node-height: 58px;
@@ -2275,35 +2256,13 @@ input[type=range] {
           }
         }
 
-        .node-text-mixin {
-          padding: 18px 0;
-          font-size: @base-font-size - 3;
-        }
-
-        .node-status {
-          width: 22%;
-          text-align: center;
-          .font-semibold;
-          .node-text-mixin;
-          span {
-            display: inline-block;
-            text-transform: uppercase;
-          }
-          .node-remove-button {
-            font-size: @base-font-size - 2;
-            margin-left: 5px;
-            margin-bottom: 3px;
-            padding: 0 5px;
-          }
-          .node-progress;
-        }
-
         .node-hardware {
           text-align: right;
           float: none;
           margin-right: @node-button-size;
+          padding: 18px 0;
+          font-size: @base-font-size - 3;
           .font-normal;
-          .node-text-mixin;
           > span {
             padding-left: 5px;
           }
@@ -2382,6 +2341,43 @@ input[type=range] {
       }
     }
 
+    .node, .node-popover {
+      .node-status {
+        width: 22%;
+        display: table;
+        text-align: center;
+        font-size: @base-font-size - 3;
+        .font-semibold;
+        > div {
+          display: table-cell;
+          vertical-align: middle;
+          text-transform: uppercase;
+        }
+        .node-remove-button {
+          font-size: @base-font-size - 2;
+          margin: 0 0 3px 5px;
+          padding: 0 5px;
+        }
+        .progress {
+          position: relative;
+          background-color: @base-node-color - 70%;
+          .progress-bar-title {
+            position: absolute;
+            width: 100%;
+            line-height: 16px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: @white;
+            margin-top: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+            span {padding: 0;}
+          }
+        }
+      }
+    }
+
     /* override node styles for compact panel */
     .compact-node {
       @compact-node-indent: 5px;
@@ -2440,9 +2436,7 @@ input[type=range] {
             }
           }
           .node-status {
-            display: table-cell;
             height: 36px;
-            vertical-align: middle;
             overflow: hidden;
             width: auto;
             padding: 2px 0;
@@ -2499,7 +2493,6 @@ input[type=range] {
               padding-bottom: 0;
             }
           }
-          .node-progress;
         }
 
         .node-name {
@@ -2582,37 +2575,35 @@ input[type=range] {
               padding-top: 5px;
             }
           }
-          .node-status {
-            text-transform: uppercase;
-            font-size: @base-font-size - 4;
-            margin-left: 24px;
-            div {
-              width: 92%;
-            }
-            span {
-              padding-right: @compact-node-indent;
-              display: inline-block;
+          .node-status-block {
+            margin: 0 0 0 24px;
+            .node-status {
+              font-size: @base-font-size - 4;
               padding-top: 2px;
-            }
-            .node-buttons {
-              margin: @compact-node-indent 0;
-              .btn {
-                padding: 3px 5px;
-                margin: 0 2px 2px;
-                margin-left: 0;
-                color: @white;
-                font-size: @base-font-size - 4;
-                background: @blue;
-                line-height: 1;
-                text-transform: uppercase;
-                &:hover {
-                  background: @blue - 15%;
-                }
+              width: auto;
+              text-align: left;
+              .node-remove-button {
+                position: relative;
+                top: -1px;
+                margin-bottom: 2px;
               }
             }
           }
-          .progress {
-            margin: 0;
+          .node-buttons {
+            margin-left: 44px;
+            .btn {
+              padding: 3px 5px;
+              margin: 0 2px 2px;
+              margin-left: 0;
+              color: @white;
+              font-size: @base-font-size - 4;
+              background: @blue;
+              line-height: 1;
+              text-transform: uppercase;
+              &:hover {
+                background: @blue - 15%;
+              }
+            }
           }
         }
       }

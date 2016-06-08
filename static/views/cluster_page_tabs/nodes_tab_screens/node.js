@@ -170,35 +170,6 @@ var Node = React.createClass({
       </Tooltip>
     );
   },
-  renderStatusLabel(status) {
-    var {cluster} = this.props;
-    return (
-      <span>
-        {i18n('cluster_page.nodes_tab.node.status.' + status, {
-          os: cluster && cluster.get('release').get('operating_system') || 'OS'
-        })}
-      </span>
-    );
-  },
-  renderNodeProgress(status) {
-    var nodeProgress = this.props.node.get('progress');
-    return (
-      <div className='progress'>
-        {status &&
-          <div className='progress-bar-title'>
-            {this.renderStatusLabel(status)}
-            {': ' + nodeProgress + '%'}
-          </div>
-        }
-        <div
-          className='progress-bar'
-          role='progressbar'
-          style={{width: _.max([nodeProgress, 3]) + '%'}}
-        >
-        </div>
-      </div>
-    );
-  },
   renderNodeHardwareSummary() {
     var htCores = this.props.node.resource('ht_cores');
     var hdd = this.props.node.resource('hdd');
@@ -223,21 +194,6 @@ var Node = React.createClass({
       </div>
     );
   },
-  renderLogsLink(iconRepresentation) {
-    return (
-      <Tooltip
-        key='logs'
-        text={iconRepresentation ? i18n('cluster_page.nodes_tab.node.view_logs') : null}
-      >
-        <a
-          className={'btn-view-logs ' + (iconRepresentation ? 'icon icon-logs' : 'btn')}
-          href={this.getNodeLogsLink()}
-        >
-          {!iconRepresentation && i18n('cluster_page.nodes_tab.node.view_logs')}
-        </a>
-      </Tooltip>
-    );
-  },
   renderNodeCheckbox() {
     return (
       <Input
@@ -252,13 +208,6 @@ var Node = React.createClass({
         onChange={this.props.mode !== 'edit' ? this.props.onNodeSelection : _.noop}
         wrapperClassName='pull-left'
       />
-    );
-  },
-  renderRemoveButton() {
-    return (
-      <button onClick={this.removeNode} className='btn node-remove-button'>
-        {i18n('cluster_page.nodes_tab.node.remove')}
-      </button>
     );
   },
   renderRoleList(roles) {
@@ -305,7 +254,7 @@ var Node = React.createClass({
   },
   renderExtendedView(options) {
     var {node, locked, renderActionButtons} = this.props;
-    var {ns, status, roles, logoClasses, statusClasses} = options;
+    var {ns, roles, logoClasses} = options;
 
     return (
       <Popover className='node-popover' toggle={this.toggleExtendedNodePanel}>
@@ -333,48 +282,38 @@ var Node = React.createClass({
                 {this.renderLabels()}
               </div>
             }
-            <div className={utils.classNames(statusClasses)}>
+            <div className='node-status-block'>
               <i className='glyphicon glyphicon-time' />
-              {_.includes(['provisioning', 'deploying'], status) ?
-                <div>
-                  {this.renderStatusLabel(status)}
-                  <div className='node-buttons'>
-                    {this.renderLogsLink()}
-                  </div>
-                  {this.renderNodeProgress(status)}
-                </div>
-              :
-                <div>
-                  {this.renderStatusLabel(status)}
-                  {this.props.nodeActionsAvailable &&
-                    <div className='node-buttons'>
-                      {status === 'offline' && this.renderRemoveButton()}
-                      {[
-                        !!node.get('cluster') && this.renderLogsLink(),
-                        renderActionButtons &&
-                          (node.get('pending_addition') || node.get('pending_deletion')) &&
-                          !locked &&
-                          <button
-                            className='btn btn-discard'
-                            key='btn-discard'
-                            onClick={node.get('pending_deletion') ?
-                              this.discardNodeDeletion
-                            :
-                              this.showDeleteNodesDialog
-                            }
-                          >
-                            {i18n(ns + (node.get('pending_deletion') ?
-                              'discard_deletion'
-                            :
-                              'delete_node'
-                            ))}
-                          </button>
-                      ]}
-                    </div>
-                  }
-                </div>
-              }
+              {this.renderStatusBlock()}
             </div>
+            {this.props.nodeActionsAvailable &&
+              <div className='node-buttons'>
+                {!!node.get('cluster') &&
+                  <a className='btn btn-view-logs' href={this.getNodeLogsLink()} >
+                    {i18n('cluster_page.nodes_tab.node.view_logs')}
+                  </a>
+                }
+                {renderActionButtons &&
+                  (node.get('pending_addition') || node.get('pending_deletion')) &&
+                  !locked &&
+                  <button
+                    className='btn btn-discard'
+                    key='btn-discard'
+                    onClick={node.get('pending_deletion') ?
+                      this.discardNodeDeletion
+                    :
+                      this.showDeleteNodesDialog
+                    }
+                  >
+                    {i18n(ns + (node.get('pending_deletion') ?
+                      'discard_deletion'
+                    :
+                      'delete_node'
+                    ))}
+                  </button>
+                }
+              </div>
+            }
           </div>
           <div className='hardware-info clearfix'>
             <div className={utils.classNames(logoClasses)} />
@@ -393,7 +332,7 @@ var Node = React.createClass({
   },
   renderCompactNode(options) {
     var {node, checked, onNodeSelection} = this.props;
-    var {status, nodePanelClasses, statusClasses, isSelectable} = options;
+    var {nodePanelClasses, isSelectable} = options;
 
     return (
       <div className='compact-node'>
@@ -426,13 +365,7 @@ var Node = React.createClass({
               </span>
             </div>
             <div>
-              <div className={utils.classNames(statusClasses)}>
-                {_.includes(['provisioning', 'deploying'], status) ?
-                  this.renderNodeProgress()
-                :
-                  this.renderStatusLabel(status)
-                }
-              </div>
+              {this.renderStatusBlock(true)}
               <div className='node-settings' onClick={this.toggleExtendedNodePanel} />
             </div>
           </label>
@@ -441,9 +374,57 @@ var Node = React.createClass({
       </div>
     );
   },
+  renderStatusBlock(isCompactView = false) {
+    var {node, cluster} = this.props;
+    var statusNs = 'cluster_page.nodes_tab.node.status.';
+    var status = node.getStatus();
+    var statusLabel = i18n(statusNs + status, {
+      os: cluster && cluster.get('release').get('operating_system') || 'OS'
+    });
+
+    // show provsioning/deployment progress bar
+    if (_.includes(['provisioning', 'deploying'], status)) {
+      return (
+        <div className='node-status'>
+          <div className='progress'>
+            {!isCompactView &&
+              <div className='progress-bar-title'>
+                <span>{statusLabel + ': ' + node.get('progress') + '%'}</span>
+              </div>
+            }
+            <div className='progress-bar' style={{width: _.max([node.get('progress'), 3]) + '%'}} />
+          </div>
+        </div>
+      );
+    }
+
+    // show both status and pending addition/deletion flags
+    return (
+      <div className='node-status'>
+        <div>
+          <div>
+            <span className={utils.classNames({'text-danger': status === 'error'})}>
+              {statusLabel}
+            </span>
+            {!isCompactView && status === 'offline' &&
+              <button onClick={this.removeNode} className='btn node-remove-button'>
+                {i18n('cluster_page.nodes_tab.node.remove')}
+              </button>
+            }
+          </div>
+          {node.get('pending_addition') &&
+            <div className='text-success'>{i18n(statusNs + 'pending_addition')}</div>
+          }
+          {node.get('pending_deletion') &&
+            <div className='text-warning'>{i18n(statusNs + 'pending_deletion')}</div>
+          }
+        </div>
+      </div>
+    );
+  },
   renderStandardNode(options) {
     var {node, locked, renderActionButtons} = this.props;
-    var {ns, status, roles, nodePanelClasses, logoClasses, statusClasses} = options;
+    var {ns, roles, nodePanelClasses, logoClasses} = options;
     return (
       <div className={utils.classNames(nodePanelClasses)}>
         <label className='node-box'>
@@ -476,7 +457,10 @@ var Node = React.createClass({
           </div>
           <div className='node-action'>
             {this.props.nodeActionsAvailable && [
-              !!node.get('cluster') && this.renderLogsLink(true),
+              !!node.get('cluster') &&
+                <Tooltip key='logs' text={i18n(ns + 'view_logs')}>
+                  <a className='btn-view-logs icon icon-logs' href={this.getNodeLogsLink()} />
+                </Tooltip>,
               renderActionButtons &&
                 (node.get('pending_addition') || node.get('pending_deletion')) &&
                 !locked &&
@@ -497,16 +481,7 @@ var Node = React.createClass({
                 </Tooltip>
             ]}
           </div>
-          <div className={utils.classNames(statusClasses)}>
-            {_.includes(['provisioning', 'deploying'], status) ?
-              this.renderNodeProgress(status)
-            :
-              <div>
-                {this.renderStatusLabel(status)}
-                {status === 'offline' && this.renderRemoveButton()}
-              </div>
-            }
-          </div>
+          {this.renderStatusBlock()}
           {this.renderNodeHardwareSummary()}
           {this.props.nodeActionsAvailable &&
             <div className='node-settings' onClick={this.showNodeDetails} />
@@ -524,17 +499,16 @@ var Node = React.createClass({
     var {node, locked, mode, cluster, checked, viewMode} = this.props;
     var ns = 'cluster_page.nodes_tab.node.';
     var isSelectable = node.isSelectable() && !locked && mode !== 'edit';
-    var status = node.getStatusSummary();
     var roles = cluster ? node.sortedRoles(cluster.get('roles').map('name')) : [];
 
     var nodePanelClasses = {
       node: true,
+      [node.getStatus()]: true,
       selected: checked,
       'col-xs-12': viewMode !== 'compact',
       unavailable: !isSelectable,
-      [status]: true,
-      offline: !node.get('online'),
-      error: node.get('status') === 'error'
+      pending_addition: node.get('pending_addition'),
+      pending_deletion: node.get('pending_deletion')
     };
 
     var manufacturer = node.get('manufacturer') || '';
@@ -543,19 +517,8 @@ var Node = React.createClass({
       [manufacturer.toLowerCase()]: !!manufacturer
     };
 
-    var statusClass = {
-      pending_addition: 'text-success',
-      pending_deletion: 'text-warning',
-      error: 'text-danger',
-      deploying: 'text-success'
-    }[status] || 'text-info';
-    var statusClasses = {
-      'node-status': true,
-      [statusClass]: true
-    };
-
     return (viewMode === 'compact' ? this.renderCompactNode : this.renderStandardNode)({
-      ns, status, roles, nodePanelClasses, logoClasses, statusClasses, isSelectable
+      ns, roles, nodePanelClasses, logoClasses, isSelectable
     });
   }
 });

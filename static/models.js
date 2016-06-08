@@ -518,9 +518,7 @@ models.Node = BaseModel.extend({
       (role) => releaseRoles.find({name: role}).get('label')
     ).join(', ');
   },
-  getStatusSummary() {
-    if (this.get('pending_addition')) return 'pending_addition';
-    if (this.get('pending_deletion')) return 'pending_deletion';
+  getStatus() {
     if (!this.get('online')) return 'offline';
     return this.get('status');
   },
