@@ -170,7 +170,7 @@ registerSuite(() => {
       var selectedIconSelector = ' i.glyphicon-selected-role';
       // R = Role
       var selR = '.selected';
-      var disR = '.disabled';
+      var disR = '.unavailable';
       var hovR = ':hover';
       var nselR = ':not(' + selR + ')';
       var ndisR = ':not(' + disR + ')';
@@ -216,7 +216,7 @@ registerSuite(() => {
         .clickByCssSelector(virtualR + btnRole)
         .assertElementNotExists(popupSelector, 'Help popup is gone for "Disabled" state')
         .assertElementsExist(virtualR + nselR + disR + hovR, virtualN + ' role has true state')
-        .then(() => nodesLib.checkRoleColors(virtualN, virtualR, whiteC, lorangeC, orangeC))
+        .then(() => nodesLib.checkRoleColors(virtualN, virtualR, greyC, greyC, orangeC))
         // Precondition
         .clickByCssSelector(btnCancelSelector)
         .waitForCssSelector(btnAddNodesSelector, 1000)

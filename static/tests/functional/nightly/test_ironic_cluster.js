@@ -208,13 +208,13 @@ registerSuite(() => {
         .then(() => clusterPage.goToTab('Nodes'))
         .clickByCssSelector(addNodeButtonSelector)
         .assertElementsAppear('.node', 5000, 'Unallocated nodes loaded')
-        .assertElementExists('.role-block.ironic:not(.disabled)', 'Ironic role is unlocked')
+        .assertElementExists('.role-block.ironic:not(.unavailable)', 'Ironic role is unlocked')
         // Select node
         .then(() => clusterPage.checkNodes(nodesAmount))
         .then(() => clusterPage.checkNodeRoles(['Ironic']))
         .assertElementExists(selectedIronicRoleSelector,
           'Selected role has checkbox icon')
-        .assertElementExists('.role-block.compute.disabled',
+        .assertElementExists('.role-block.compute.unavailable',
           'Compute role can not be added together with selected roles')
         .assertElementEnabled(applyButtonSelector,
           'Apply button is enabled')
@@ -252,7 +252,7 @@ registerSuite(() => {
         .clickByCssSelector(addNodeButtonSelector)
         .waitForElementDeletion(addNodeButtonSelector, 3000)
         .assertElementsAppear('.node', 3000, 'Unallocated nodes loaded')
-        .assertElementExists('.role-block.ironic.disabled',
+        .assertElementExists('.role-block.ironic.unavailable',
           'Ironic role is unlocked');
     }
   };

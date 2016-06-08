@@ -103,19 +103,16 @@ EquipmentLib.prototype = {
       .then(() => this.generic.gotoPage('Equipment'))
       .assertElementsExist(this.nodeSelector, nodesQuantity[0],
         'Filtered nodes quantity is observed after switching to "' + pageName + '"" page')
-      .assertElementsExist(groupSelector, 2, 'Only "Pending Addition" and "Discovered"' +
-        'node groups are correctly filtered after switching to "' + pageName + '"" page')
-      .assertElementContainsText(groupSelector + ':nth-child(2) h4', 'Pending Addition',
-        '"Pending Addition" node group is correctly sorted after' +
-        'switching to "' + pageName + '"" page')
-      .assertElementsExist(groupSelector + ':nth-child(2) div.node.pending_addition',
-        nodesQuantity[1], 'Default quantity of "Pending Addition" nodes is observed after' +
-        'switching to "' + pageName + '"" page')
+      .assertElementsExist(groupSelector, 1, 'Only "Discovered" node group is correctly filtered ' +
+        'after switching to "' + pageName + '"" page')
       .assertElementContainsText(groupSelector + ':nth-child(1) h4', 'Discovered',
         '"Discovered" node group is correctly sorted after switching to "' + pageName + '"" page')
+      .assertElementsExist(groupSelector + ':nth-child(1) div.node.pending_addition',
+        nodesQuantity[1], 'Default quantity of "Pending Addition" nodes is observed after' +
+        'switching to "' + pageName + '"" page')
       .assertElementsExist(groupSelector + ':nth-child(1) div.node.discover',
-        nodesQuantity[2], 'Default quantity of "Discovered" nodes is observed after' +
-        'switching to "' + pageName + '"" page');
+        nodesQuantity[2], 'Default quantity of "Discovered" nodes is observed ' +
+        'after switching to "' + pageName + '"" page');
   },
   checkDefaultSorting(sortDirection, nodesQuantity) {
     // Input array: Nodes quantity by groups.
@@ -123,10 +120,10 @@ EquipmentLib.prototype = {
     var groupSelector = 'div.nodes-group:nth-child(';
     var orderName, sortOrder, sortSelector;
     if (sortDirection === 'down') {
-      sortOrder = [1, 2, 3, 4];
+      sortOrder = [1, 2, 3];
       orderName = 'asc';
     } else if (sortDirection === 'up') {
-      sortOrder = [4, 3, 2, 1];
+      sortOrder = [3, 2, 1];
       orderName = 'desc';
     } else {
       throw new Error('Invalid sort direction value. Check sortDirection: "' + sortDirection +
@@ -142,21 +139,19 @@ EquipmentLib.prototype = {
         .end()
       .assertElementsExist(this.nodeSelector, nodesQuantity[0],
         'Default nodes quantity is observed')
-      .assertElementContainsText(groupSelector + sortOrder[0] + ') h4', 'Pending Addition',
-        '"Pending Addition" node group is correctly sorted')
+      .assertElementContainsText(groupSelector + sortOrder[0] + ') h4', 'Discovered',
+        '"Discovered" node group is correctly sorted')
       .assertElementsExist(groupSelector + sortOrder[0] + ') div.node.pending_addition',
         nodesQuantity[1], 'Default quantity of "Pending Addition" nodes is observed')
-      .assertElementContainsText(groupSelector + sortOrder[1] + ') h4', 'Discovered',
-        '"Discovered" node group is correctly sorted')
-      .assertElementsExist(groupSelector + sortOrder[1] + ') div.node.discover',
+      .assertElementsExist(groupSelector + sortOrder[0] + ') div.node.discover',
         nodesQuantity[2], 'Default quantity of "Discovered" nodes is observed')
-      .assertElementContainsText(groupSelector + sortOrder[2] + ') h4', 'Error',
+      .assertElementContainsText(groupSelector + sortOrder[1] + ') h4', 'Error',
         '"Error" node group is correctly sorted')
-      .assertElementsExist(groupSelector + sortOrder[2] + ') div.node.error',
+      .assertElementsExist(groupSelector + sortOrder[1] + ') div.node.error',
         nodesQuantity[3], 'Default quantity of "Error" nodes is observed')
-      .assertElementContainsText(groupSelector + sortOrder[3] + ') h4', 'Offline',
+      .assertElementContainsText(groupSelector + sortOrder[2] + ') h4', 'Offline',
         '"Offline" node group is correctly sorted')
-      .assertElementsExist(groupSelector + sortOrder[3] + ') div.node.offline',
+      .assertElementsExist(groupSelector + sortOrder[2] + ') div.node.offline',
         nodesQuantity[4], 'Default quantity of "Offline" nodes is observed');
   },
   uncheckNodeRoles() {

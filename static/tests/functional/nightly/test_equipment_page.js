@@ -47,7 +47,7 @@ registerSuite(() => {
   var toAllNodesSelector = 'input[name="assign_to_all_nodes"]:enabled';
   var summarySelector = 'div.node-summary ';
   var settingsSelector = 'div.node-settings';
-  var computeSettingsSelector = clusterSelector + ':last-child ' + settingsSelector;
+  var computeSettingsSelector = clusterSelector + ':nth-child(3) ' + settingsSelector;
   var discoverSettingsSelector = nodeSelector + '.discover ' + settingsSelector;
 
   return {
@@ -95,8 +95,8 @@ registerSuite(() => {
         .assertElementContainsText(clusterSelector + ':nth-child(3)', 'COMPUTE',
             '"Compute" node was successfully added to cluster')
         // Precondition
-        .then(() => equipmentLib.renameNode(clusterSelector + ':first-child', controllerName))
-        .then(() => equipmentLib.renameNode(clusterSelector + ':last-child', computeName))
+        .then(() => equipmentLib.renameNode(clusterSelector + ':nth-child(1)', controllerName))
+        .then(() => equipmentLib.renameNode(clusterSelector + ':nth-child(3)', computeName))
         // Check "Pending Addition" node
         .assertElementsExist(computeSettingsSelector,
           'Node settings button for Compute node exists')
