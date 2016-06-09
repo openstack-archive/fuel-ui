@@ -1242,7 +1242,7 @@ var NodeNetworkGroupTitle = React.createClass({
           :
             !this.state.isRenaming &&
               <i
-                className='glyphicon glyphicon-remove'
+                className='glyphicon glyphicon-remove-alt'
                 onClick={() => this.props.removeNodeNetworkGroup(currentNodeNetworkGroup)}
               />
         )}
