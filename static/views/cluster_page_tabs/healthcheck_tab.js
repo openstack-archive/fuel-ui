@@ -119,9 +119,8 @@ var HealthcheckTabContent = React.createClass({
     };
   },
   isLocked() {
-    var cluster = this.props.cluster;
-    return !_.includes(['operational', 'error'], cluster.get('status')) ||
-      !!cluster.task({group: 'deployment', active: true});
+    return !this.props.cluster.isHealthCheckAvailable() ||
+      !!this.props.cluster.task({group: 'deployment', active: true});
   },
   getNumberOfCheckedTests() {
     return this.props.tests.filter({checked: true}).length;
@@ -282,10 +281,8 @@ var HealthcheckTabContent = React.createClass({
           </div>
         }
         <div>
-          {(cluster.get('status') === 'new') &&
-            <div className='alert alert-warning'>
-              {i18n(ns + 'deploy_alert')}
-            </div>
+          {!cluster.isHealthCheckAvailable() &&
+            <div className='alert alert-warning'>{i18n(ns + 'deploy_alert')}</div>
           }
           <div key='testsets'>
             {testsets.map((testset) => {

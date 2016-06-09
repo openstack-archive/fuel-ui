@@ -419,6 +419,9 @@ models.Cluster = BaseModel.extend({
       .flatten()
       .uniq()
       .value();
+  },
+  isHealthCheckAvailable() {
+    return _.includes(['operational', 'error'], this.get('status'));
   }
 });
 
