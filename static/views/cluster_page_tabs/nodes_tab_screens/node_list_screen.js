@@ -2017,19 +2017,18 @@ NodeList = React.createClass({
     };
     var groups = _.toPairs(_.groupBy(this.props.nodes, groupingMethod));
 
-    // sort grouped nodes by name, mac or ip
+    // sort nodes into a group by name, mac or ip or by id (default)
     var formattedSorters = _.compact(_.map(this.props.activeSorters, (sorter) => {
       if (_.includes(uniqValueSorters, sorter.name)) {
         return {attr: sorter.name, desc: sorter.order === 'desc'};
       }
     }));
-    if (formattedSorters.length) {
-      _.each(groups, (group) => {
-        group[1].sort((node1, node2) =>
-          utils.multiSort(node1, node2, formattedSorters)
-        );
-      });
-    }
+    _.each(groups, (group) => {
+      group[1].sort((node1, node2) => utils.multiSort(
+        node1, node2,
+        formattedSorters.length ? formattedSorters : [{attr: 'id'}]
+      ));
+    });
 
     // sort grouped nodes by other applied sorters
     var preferredRolesOrder = this.props.roles.map('name');
