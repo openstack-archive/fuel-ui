@@ -135,7 +135,7 @@ var utils = {
   validateVlan(vlan) {
     if (
       !_.isNull(vlan) &&
-      (!utils.isNaturalNumber(vlan) || !_.inRange(vlan, 1, 4094))
+      (!utils.isNaturalNumber(vlan) || vlan < 1 || vlan > 4094
     ) {
       return {vlan_start: i18n('cluster_page.network_tab.validation.invalid_vlan')};
     }
