@@ -1848,6 +1848,11 @@ input[type=range] {
     .glyphicon-filter {
       top: 4px;
     }
+    .more-control {
+      .dropdown-toggle {
+        margin-top: -3px;
+      }
+    }
   }
 
   .active-sorters-filters {
@@ -1938,10 +1943,20 @@ input[type=range] {
 
   .sorter-control, .filter-control {
     margin-right: @management-panel-indent;
+    margin-bottom: 5px;
+  }
+  .sorter-control {
     .glyphicon {
       padding-left: @management-panel-indent;
       float: none;
-      margin: 0 10px 0 5px;
+      margin: 0 5px 0 5px;
+    }
+  }
+  .filter-control {
+    .glyphicon {
+      padding-left: @management-panel-indent;
+      float: none;
+      margin: 7px 5px 0 5px;
     }
   }
   .sorters {
