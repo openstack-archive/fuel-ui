@@ -44,7 +44,7 @@ export var unsavedChangesMixin = {
   componentWillMount() {
     this.eventName = _.uniqueId('unsavedchanges');
     $(window).on('beforeunload.' + this.eventName, this.onBeforeunloadEvent);
-    $('body').on('click.' + this.eventName, 'a[href^=#]:not(.no-leave-check)', this.onLeave);
+    $('body').on('click.' + this.eventName, 'a[href^="#"]:not(.no-leave-check)', this.onLeave);
   },
   componentWillUnmount() {
     $(window).off('beforeunload.' + this.eventName);
