@@ -264,7 +264,10 @@ registerSuite(() => {
     },
     'Sorting and Filtering results saved after refreshing of page'() {
       return this.remote
+        // Waits due to too fast execution. Can not reproduce by hands, only by autotest.
+        .sleep(1000)
         .then(() => command.refresh())
+        .sleep(5000)
         .then(() => equipmentLib.checkSortingPageSwitching('Equipment', filterArray));
     },
     'Sorting and Filtering results saved after switching to other page'() {

@@ -458,7 +458,7 @@ NetworksLib.prototype = {
   },
   deleteNetworkGroup_Body(groupName, allNetSelected, numGroups) {
     var groupSelector = 'div[data-name="' + groupName + '"] ';
-    var removeSelector = groupSelector + '.glyphicon-remove';
+    var removeSelector = groupSelector + 'i.glyphicon-remove-alt';
     var chain = this.remote;
     // Precondition check
     if (allNetSelected) {
