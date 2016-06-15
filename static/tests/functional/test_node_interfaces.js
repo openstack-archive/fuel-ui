@@ -59,19 +59,19 @@ registerSuite(() => {
       return this.remote
         .clickByCssSelector('.mtu .btn-link')
         .assertElementExists(
-          '.mtu-control',
+          '.mtu-section .value-control',
           'MTU control is shown when navigating to MTU tab'
         )
-        .setInputValue('.mtu-control input', '2')
+        .setInputValue('.mtu-section .value-control input', '2')
         .assertElementExists(
-          '.has-error.mtu-control',
+          '.mtu-section .has-error.value-control',
           'Error styles are applied to MTU control on invalid value'
         )
         .assertElementExists(
           '.text-danger.mtu',
           'Invalid style is applied to MTU in summary panel'
         )
-        .setInputValue('.mtu-control input', '256')
+        .setInputValue('.mtu-section .value-control input', '256')
         .assertElementExists(
           '.ifc-inner-container.has-changes',
           'Has-Changes style is applied'
@@ -79,7 +79,7 @@ registerSuite(() => {
         .clickByCssSelector('.mtu .btn-link')
         .sleep(500)
         .assertElementNotDisplayed(
-          '.mtu-control',
+          '.mtu-section .value-control',
           'MTU control is hidden after clicking MTU link again'
         );
     },

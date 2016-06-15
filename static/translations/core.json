@@ -497,7 +497,9 @@
                         "compact_mode_tooltip": "Compact View",
                         "nodes_have_different_networks": "Interfaces of the selected nodes can not be configured in bulk. Configure them separately. The following nodes have different sets of networks:",
                         "node_networks": "__count__ node has __networks__ networks",
-                        "node_networks_plural": "__count__ nodes have __networks__ networks"
+                        "node_networks_plural": "__count__ nodes have __networks__ networks",
+                        "default_value": "Default",
+                        "custom_value": "Custom"
                     },
                     "configure_disks": {
                         "no_disks": "No unassigned disks available.",
