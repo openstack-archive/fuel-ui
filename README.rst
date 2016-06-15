@@ -80,3 +80,5 @@ Testing
   BROWSER environment variable::
 
     BROWSER=chrome npm test
+
+Test
