@@ -3904,27 +3904,6 @@ input[type=range] {
         margin: 0;
       }
 
-      .form-group {
-        input, select {
-          width: 150px;
-        }
-        &.pull-right > div {
-          float: left;
-        }
-      }
-      .checkbox-group {
-        label {
-          padding-top: 7px;
-        }
-      }
-      .form-group, .checkbox-group {
-        margin-bottom: 0;
-        label {
-          width: auto;
-          .font-semibold;
-        }
-      }
-
       .ifc-info-block {
         margin-bottom: @base-ifc-indent * 2;
         margin-left: @base-ifc-indent * 2;
@@ -3970,37 +3949,47 @@ input[type=range] {
         .help-block {
           display: none;
         }
+        .form-group {
+          margin-bottom: 0;
+          label {
+            width: auto;
+          }
+          > div {
+            float: left;
+            select {
+              width: 150px;
+            }
+          }
+        }
         .common-ifc-name {
           &.no-checkbox {
             padding: 7px 0 0 @base-ifc-indent * 2;
             .font-semibold;
           }
+          .checkbox-group {
+            margin-bottom: 0;
+            margin-top: 5px;
+            label {
+              .font-semibold;
+            }
+          }
         }
       }
+
       .ifc-properties {
         @common-offset: 10px;
         border-top: 1px dotted @ifc-container-dark-color;
-        padding: @common-offset @common-offset * 2 @common-offset;
-        .checkbox-group {
-          .custom-tumbler {
-            margin-bottom: @common-offset;
-          }
-        }
-        .toggle-offloading, .dpdk-control, .sriov-control {
-          label {padding-top: 0;}
-          .custom-tumbler {margin-bottom: 3px;}
-          .help-block {display: none;}
-        }
-        .dpdk-control, .sriov-control {
-          label {padding-top: 5px;}
-        }
+        padding: @common-offset @common-offset * 2 @common-offset * 2;
+
         .properties-list {
           .btn-link {
             text-decoration: underline;
-          }
-          .text-danger {
-            .btn-link {
-              color: @red;
+            &.text-danger {.text-danger;}
+            .glyphicon {
+              float: none;
+              position: relative;
+              top: 3px;
+              margin-left: 3px;
             }
           }
           .property-item-container {
@@ -4014,13 +4003,6 @@ input[type=range] {
             &.active {
               background-color: @ifc-container-light-color - 17%;
             }
-            .property-item {
-              cursor: pointer;
-              padding-top: 4px;
-              padding-right: 0;
-              padding-left: 0;
-              margin-left: @property-offset;
-            }
             &.forbidden {
               opacity: 0.8;
               .glyphicon {
@@ -4031,51 +4013,42 @@ input[type=range] {
                 color: @gray;
               }
             }
-          }
-        }
-        .mtu-control {
-          div {
-            float: left;
-          }
-        }
-        .configuration-panel {
-          margin-top: 0;
-          > div {padding-top: @common-offset;}
-          .forms-box {
-            margin-bottom: 0;
-          }
-          .interface-sub-tab {
-            text-align: left;
-            .form-group {
-              margin-bottom: 7px;
-            }
-            .has-error {
-              .help-block {
-                color: @red;
-                display: inline;
+            .glyphicon-lock {
+              margin-right: 3px;
+              & + span {
+                margin-left: 5px;
               }
             }
-            .description {
-              font-size: @base-font-size - 2;
-              color: @base-text-color + 35%;
-              margin-bottom: 10px;
-            }
-            .form-group,
-            .checkbox-group {
-              padding-left: 0;
-            }
-          }
-          .sriov-virtual-functions {
-            margin-bottom: @common-offset;
-            &.form-group.has-error .help-block {
-              max-width: 655px;
+            .property-item {
+              cursor: pointer;
+              padding: 4px 0 6px;
+              margin-left: @property-offset;
             }
           }
         }
-        .sriov-virtual-functions,
-        .physnet {
-          label {width: 250px;}
+
+        .configuration-panel {
+          margin-top: 0;
+          padding-top: @common-offset;
+
+          .interface-sub-tab {
+            text-align: left;
+            .forms-box {
+              margin-bottom: 0;
+              .form-group, .checkbox-group {
+                padding-left: 0;
+                padding-right: 0;
+                &:last-child {
+                  margin-bottom: 0;
+                }
+                &.form-group .help-block {
+                  max-width: 585px;
+                }
+              }
+            }
+          }
         }
+
         .toggle-configuration-control {
           .glyphicon {
             margin-top: 9px;
