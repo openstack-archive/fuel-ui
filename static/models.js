@@ -1051,11 +1051,13 @@ models.Interface = BaseModel
     parse(response) {
       response.assigned_networks = new models.InterfaceNetworks(response.assigned_networks);
       response.assigned_networks.interface = this;
+      response.attributes = new models.InterfaceAttributes(response.attributes);
       return response;
     },
     toJSON(options) {
       return _.omit(_.extend(this.constructor.__super__.toJSON.call(this, options), {
-        assigned_networks: this.get('assigned_networks').toJSON()
+        assigned_networks: this.get('assigned_networks').toJSON(),
+        attributes: this.get('attributes').toJSON()
       }), 'checked');
     },
     isBond() {
@@ -1068,6 +1070,7 @@ models.Interface = BaseModel
     },
     validate(attrs, options) {
       var errors = {};
+
       var networkErrors = [];
       var networks = new models.Networks(this.get('assigned_networks')
         .invokeMap('getFullNetwork', attrs.networks));
@@ -1081,8 +1084,6 @@ models.Interface = BaseModel
       if (untaggedNetworks.length > maxUntaggedNetworksCount) {
         networkErrors.push(i18n(ns + 'too_many_untagged_networks'));
       }
-
-      _.extend(errors, this.validateInterfaceProperties(options));
 
       // check interface networks have the same vlan id
       var vlans = _.reject(networks.map('vlan_start'), _.isNull);
@@ -1103,68 +1104,25 @@ models.Interface = BaseModel
         )
       ) networkErrors.push(i18n(ns + 'vlan_range_intersection'));
 
-      var sriov = this.get('interface_properties').sriov;
-      if (sriov && sriov.enabled && networks.length) {
-        networkErrors.push(i18n(ns + 'sriov_placement_error'));
-      }
-      var dpdk = this.get('interface_properties').dpdk;
-      if (dpdk && dpdk.enabled && !_.isEqual(networks.map('name'), ['private'])) {
-        networkErrors.push(i18n(ns + 'dpdk_placement_error'));
+      // network assignment validation based on interface attributes
+      var attributes = this.get('attributes');
+      if (
+        attributes.get('sriov.enabled.value') &&
+        networks.length
+      ) networkErrors.push(i18n(ns + 'sriov_placement_error'));
+      if (
+        attributes.get('dpdk.enabled.value') &&
+        !_.isEqual(networks.map('name'), ['private'])
+      ) networkErrors.push(i18n(ns + 'dpdk_placement_error'));
+
+      if (networkErrors.length) errors.networks = networkErrors;
+
+      attributes.isValid(options);
+      if (!_.isNull(attributes.validationError)) {
+        errors.attributes = attributes.validationError;
       }
 
-      if (networkErrors.length) {
-        errors.network_errors = networkErrors;
-      }
-      return errors;
-    },
-    validateInterfaceProperties(options) {
-      var interfaceProperties = this.get('interface_properties');
-      if (!interfaceProperties) return null;
-      var errors = {};
-      var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
-      var mtuValue = parseInt(interfaceProperties.mtu, 10);
-      if (mtuValue) {
-        if (_.isNaN(mtuValue) || mtuValue < 42 || mtuValue > 65536) {
-          errors.mtu = i18n(ns + 'invalid_mtu');
-        } else if (interfaceProperties.dpdk.enabled && mtuValue > 1500) {
-          errors.mtu = i18n(ns + 'dpdk_mtu_error');
-        }
-      }
-      _.extend(errors, this.validateSRIOV(options), this.validateDPDK(options));
-      return _.isEmpty(errors) ? null : {interface_properties: errors};
-    },
-    validateSRIOV({cluster}) {
-      var sriov = this.get('interface_properties').sriov;
-      if (!sriov || !sriov.enabled) return null;
-      var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
-      var errors = {};
-      if (cluster.get('settings').get('common.libvirt_type.value') !== 'kvm') {
-        errors.common = i18n(ns + 'sriov_hypervisor_alert');
-      }
-      var virtualFunctionsNumber = Number(sriov.sriov_numvfs);
-      var totalVirtualFunctionsNumber = Number(sriov.sriov_totalvfs);
-      if (_.isNaN(virtualFunctionsNumber) || virtualFunctionsNumber < 0) {
-        errors.sriov_numvfs = i18n(ns + 'invalid_virtual_functions_number');
-      } else if (!_.isNaN(totalVirtualFunctionsNumber) &&
-        virtualFunctionsNumber > totalVirtualFunctionsNumber) {
-        errors.sriov_numvfs = i18n(ns + 'invalid_virtual_functions_number_max',
-          {max: totalVirtualFunctionsNumber}
-        );
-      }
-      if (sriov.physnet && !sriov.physnet.match(utils.regexes.networkName)) {
-        errors.physnet = i18n(ns + 'invalid_physnet');
-      } else if (!_.trim(sriov.physnet)) {
-        errors.physnet = i18n(ns + 'empty_physnet');
-      }
-      return _.isEmpty(errors) ? null : {sriov: errors};
-    },
-    validateDPDK({cluster}) {
-      var dppk = this.get('interface_properties').dpdk;
-      if (!dppk || !dppk.enabled ||
-          cluster.get('settings').get('common.libvirt_type.value') === 'kvm') return null;
-
-      var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
-      return {dpdk: {common: i18n(ns + 'dpdk_hypervisor_alert')}};
+      return _.isEmpty(errors) ? null : errors;
     }
   });
 
@@ -1200,6 +1158,49 @@ models.InterfaceNetworks = BaseCollection.extend({
     return _.indexOf(networkPreferredOrder, network.get('name'));
   }
 });
+
+models.InterfaceAttributes = models.Settings.extend({
+  constructorName: 'InterfaceAttributes',
+  root: null,
+  getValueAttribute() {
+    return 'value';
+  },
+  validate(attrs, options = {}) {
+    options.models = _.extend({attributes: this, default: this}, options.configModels);
+
+    var errors = this._super('validate', [attrs, options]);
+    // MTU has a special validation case which depends on DPDK and cant be moved to YAML
+    // SRIOV virtual functions number has maximum which is set into interface plain object metadata
+    _.extend(errors, this.validateMTU(options), this.validateSRIOV(options));
+    return _.isEmpty(errors) ? null : errors;
+  },
+  validateMTU() {
+    var mtu = this.get('mtu.value.value');
+    return this.get('dpdk.enabled.value') && _.isNumber(mtu) && mtu > 1500 ? {
+      'mtu.value': i18n('cluster_page.nodes_tab.configure_interfaces.validation.dpdk_mtu_error')
+    } : null;
+  },
+  validateSRIOV({meta}) {
+    var totalVirtualFunctionsNumber = Number(((meta || {}).sriov || {}).totalvfs);
+    return this.get('sriov.enabled.value') &&
+      _.isNumber(totalVirtualFunctionsNumber) &&
+      this.get('sriov.numvfs.value') > totalVirtualFunctionsNumber ? {
+        'sriov.numvfs': i18n(
+          'cluster_page.nodes_tab.configure_interfaces.validation.big_virtual_functions_number',
+          {max: totalVirtualFunctionsNumber}
+        )
+      } : null;
+  }
+});
+
+models.BondDefaultAttributes = BaseModel
+  .extend(cacheMixin)
+  .extend({
+    constructorName: 'BondDefaultAttributes',
+    url() {
+      return '/api/v1/nodes/' + this.nodeId + '/bonds/attributes/defaults';
+    }
+  });
 
 models.Network = BaseModel.extend({
   constructorName: 'Network',
