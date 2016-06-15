@@ -1047,13 +1047,13 @@ models.Interface = Backbone.DeepModel
         )
       ) networkErrors.push(i18n(ns + 'vlan_range_intersection'));
 
-      var sriov = this.get('interface_properties').sriov;
+      var sriov = this.get('attributes').sriov;
       if (sriov && sriov.enabled && networks.length) {
         networkErrors.push(i18n(ns + 'sriov_placement_error'));
       }
 
       if (
-        this.get('interface_properties').dpdk.enabled &&
+        this.get('attributes').dpdk.dpdk_enabled.enabled &&
         !_.isEqual(networks.map('name'), ['private'])
       ) {
         networkErrors.push(i18n(ns + 'dpdk_placement_error'));
