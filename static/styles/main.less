@@ -3789,6 +3789,10 @@ input[type=range] {
     display: block;
     margin-top: @ifc-panel-indent;
   }
+
+  .bonding-buttons-box {
+    margin-bottom: 10px;
+  }
 }
 
 .ifc-list {
@@ -3832,10 +3836,15 @@ input[type=range] {
         }
       }
       .form-group, .checkbox-group {
-        margin-bottom: 0;
+        margin-bottom: 15px;
         label {
           width: auto;
           .font-semibold;
+        }
+      }
+      .checkbox-group {
+        .help-block {
+          margin-top: -12px;
         }
       }
 
@@ -3881,6 +3890,7 @@ input[type=range] {
         padding-left: @base-ifc-indent * 2;
         padding-right: @base-ifc-indent * 2;
         border-bottom: 1px dotted @ifc-container-dark-color;
+        height: 60px;
         .help-block {
           display: none;
         }
