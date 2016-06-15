@@ -16,25 +16,48 @@
 import OffloadingModes from
   'views/cluster_page_tabs/nodes_tab_screens/offloading_modes_control';
 
-var offloadingModesConrol, TestMode22, TestMode31, fakeOffloadingModes;
+var offloadingModesConrol, TestMode22, TestMode31, fakeOffloadingModes, fakeAttributes;
 var fakeInterface = {
   offloading_modes: fakeOffloadingModes,
+  attributes: fakeAttributes,
   get(key) {
-    assert.equal(key, 'offloading_modes',
-      '"offloading_modes" interface property should be used to get data');
-    return fakeOffloadingModes;
+    switch (key) {
+      case 'attributes':
+        return fakeAttributes;
+      case 'meta.offloading_modes':
+        return fakeOffloadingModes;
+      default:
+        assert(false, 'expected attributes or meta.offloading_modes');
+    }
   },
-  set(key, value) {
-    assert.equal(key, 'offloading_modes',
-      '"offloading_modes" interface property should be used to set data');
-    fakeOffloadingModes = value;
+  set(data) {
+    if (data.attributes) {
+      fakeAttributes = data.attributes;
+    } else {
+      assert(false, 'expected attributes or meta.offloading_modes');
+    }
   }
 };
 
-suite('Offloadning Modes control', () => {
+suite('Offloading Modes control', () => {
   setup(() => {
     TestMode22 = {name: 'TestName22', state: false, sub: []};
     TestMode31 = {name: 'TestName31', state: null, sub: []};
+    fakeAttributes = {
+      offloading: {
+        modes: {
+          value: {
+            TestName1: true,
+            TestName11: true,
+            TestName12: false,
+            TestName13: null,
+            TestName2: false,
+            TestName21: false,
+            TestName22: false
+          }
+        }
+      }
+    };
     fakeOffloadingModes = [
       {
         name: 'TestName1',
