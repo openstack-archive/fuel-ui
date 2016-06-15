@@ -1384,34 +1384,6 @@
         }
       }
     },
-    "gulp-eslint": {
-      "version": "2.0.0",
-      "dependencies": {
-        "clone": {
-          "version": "1.0.2"
-        },
-        "gulp-util": {
-          "version": "3.0.7",
-          "dependencies": {
-            "object-assign": {
-              "version": "3.0.0"
-            }
-          }
-        },
-        "isarray": {
-          "version": "1.0.0"
-        },
-        "readable-stream": {
-          "version": "2.0.6"
-        },
-        "through2": {
-          "version": "2.0.1"
-        },
-        "vinyl": {
-          "version": "0.5.3"
-        }
-      }
-    },
     "gulp-filter": {
       "version": "2.0.1"
     },
@@ -1425,65 +1397,6 @@
     },
     "gulp-jison": {
       "version": "1.2.0"
-    },
-    "gulp-lintspaces": {
-      "version": "0.3.2",
-      "dependencies": {
-        "ansi-regex": {
-          "version": "0.2.1"
-        },
-        "ansi-styles": {
-          "version": "1.1.0"
-        },
-        "chalk": {
-          "version": "0.5.1"
-        },
-        "gulp-util": {
-          "version": "2.2.20"
-        },
-        "has-ansi": {
-          "version": "0.1.0"
-        },
-        "lintspaces": {
-          "version": "0.3.3"
-        },
-        "lodash._reinterpolate": {
-          "version": "2.4.1"
-        },
-        "lodash.escape": {
-          "version": "2.4.1"
-        },
-        "lodash.keys": {
-          "version": "2.4.1"
-        },
-        "lodash.template": {
-          "version": "2.4.1"
-        },
-        "lodash.templatesettings": {
-          "version": "2.4.1"
-        },
-        "minimist": {
-          "version": "0.2.0"
-        },
-        "readable-stream": {
-          "version": "1.0.34"
-        },
-        "strip-ansi": {
-          "version": "0.3.0"
-        },
-        "supports-color": {
-          "version": "0.2.0"
-        },
-        "through2": {
-          "version": "0.5.1"
-        },
-        "vinyl": {
-          "version": "0.2.3"
-        },
-        "xtend": {
-          "version": "3.0.0"
-        }
-      }
     },
     "gulp-replace": {
       "version": "0.5.3",
@@ -2049,14 +1962,11 @@
     "liftoff": {
       "version": "2.2.1"
     },
-    "lintspaces": {
-      "version": "0.5.0",
+    "lintspaces-cli": {
+      "version": "0.3.0",
       "dependencies": {
-        "editorconfig": {
-          "version": "0.13.2"
-        },
-        "lru-cache": {
-          "version": "3.2.0"
+        "lintspaces": {
+          "version": "0.5.0"
         }
       }
     },
