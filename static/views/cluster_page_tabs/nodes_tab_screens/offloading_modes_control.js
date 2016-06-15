@@ -24,7 +24,22 @@ var OffloadingModesControl = React.createClass({
   propTypes: {
     interface: React.PropTypes.object
   },
+  loadAttributeValues(modes) {
+    var attributes = this.props.interface.get('attributes');
+    var modeValues = attributes.offloading.modes.value;
+    _.each(modeValues, (value, name) => {
+      var mode = this.findMode(name, modes);
+      if (mode) {
+        mode.state = value;
+      }
+    });
+  },
   setModeState(mode, state) {
+    var attributes = this.props.interface.get('attributes');
+    var modeValues = attributes.offloading.modes.value;
+    modeValues[mode.name] = state;
+    this.props.interface.set({attributes});
+
     mode.state = state;
     _.each(mode.sub, (mode) => this.setModeState(mode, state));
   },
@@ -62,7 +77,7 @@ var OffloadingModesControl = React.createClass({
     return result;
   },
   onModeStateChange(name, state) {
-    var modes = _.cloneDeep(this.props.interface.get('offloading_modes') || []);
+    var modes = _.cloneDeep(this.props.interface.get('meta.offloading_modes') || []);
     var mode = this.findMode(name, modes);
 
     return () => {
@@ -73,7 +88,7 @@ var OffloadingModesControl = React.createClass({
         // handle All Modes click
         _.each(modes, (mode) => this.setModeState(mode, state));
       }
-      this.props.interface.set('offloading_modes', modes);
+      this.props.interface.set('meta.offloading_modes', modes);
     };
   },
 
@@ -108,13 +123,14 @@ var OffloadingModesControl = React.createClass({
   },
   render() {
     var modes = [];
-    var ifcModes = this.props.interface.get('offloading_modes');
+    var ifcModes = this.props.interface.get('meta.offloading_modes');
     if (ifcModes) {
       modes.push({
         name: i18n(ns + 'all_modes'),
         state: _.uniq(_.map(ifcModes, 'state')).length === 1 ? ifcModes[0].state : undefined,
         sub: ifcModes
       });
+      this.loadAttributeValues(modes);
     }
 
     return (
