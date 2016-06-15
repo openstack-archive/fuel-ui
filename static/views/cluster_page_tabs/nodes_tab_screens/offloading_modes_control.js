@@ -22,9 +22,154 @@ var ns = 'cluster_page.nodes_tab.configure_interfaces.';
 
 var OffloadingModesControl = React.createClass({
   propTypes: {
-    interface: React.PropTypes.object
+    attributes: React.PropTypes.object,
+    offloadingModesMeta: React.PropTypes.array
   },
   setModeState(mode, state) {
+    var attributes = this.props.attributes;
+    var modeValues = _.cloneDeep(attributes.get('offloading.modes.value'));
+    modeValues[mode.name] = state;
+    attributes.set('offloading.modes.value', modeValues);
+    _.each(mode.sub, (mode) => this.setModeState(mode, state));
+  },
+  checkModes(mode, sub) {
+    var values = this.props.attributes.get('offloading.modes.value');
+    var changedState = sub.reduce((state, childMode) => {
+      if (!_.isEmpty(childMode.sub)) {
+        this.checkModes(childMode, childMode.sub);
+      }
+      return (state === 0 || state === values[childMode.name]) ? values[childMode.name] : -1;
+    },
+    0
+    );
+    var oldState;
+
+    if (mode && values[mode.name] !== changedState) {
+      oldState = values[mode.name];
+      this.setModeState(mode, oldState === false ?
+        null : (changedState === false ? false : oldState));
+    }
+  },
+  findMode(name, modes) {
+    var result, mode;
+    var index = 0;
+    var modesLength = modes.length;
+    for (; index < modesLength; index++) {
+      mode = modes[index];
+      if (mode.name === name) {
+        return mode;
+      } else if (!_.isEmpty(mode.sub)) {
+        result = this.findMode(name, mode.sub);
+        if (result) {
+          break;
+        }
+      }
+    }
+    return result;
+  },
+  onModeStateChange(name, state) {
+    var modes = _.cloneDeep(this.props.offloadingModesMeta || []);
+    var mode = this.findMode(name, modes);
+
+    return () => {
+      if (mode) {
+        this.setModeState(mode, state);
+        this.checkModes(null, modes);
+      } else {
+        // handle All Modes click
+        _.each(modes, (mode) => this.setModeState(mode, state));
+      }
+    };
+  },
+  renderChildModes(modes, level) {
+    //console.log(modes, level);
+    var ifcModes = this.props.offloadingModesMeta;
+    var values = this.props.attributes.get('offloading.modes.value');
+    return modes.map((mode) => {
+      var lines = [
+        <tr key={mode.name} className={'level' + level}>
+          <td>{mode.name}</td>
+          {[true, false, null].map((modeState) => {
+            var state = values[mode.name];
+            if (mode.name === i18n(ns + 'all_modes')) {
+              state = _.uniq(_.map(ifcModes,
+                (mode) => values[mode.name])).length === 1 ? values[ifcModes[0].name] : undefined;
+            }
+            var styles = {
+              'btn-link': true,
+              active: state === modeState
+            };
+            return (
+              <td key={mode.name + modeState}>
+                <button
+                  className={utils.classNames(styles)}
+                  disabled={this.props.disabled}
+                  onClick={this.onModeStateChange(mode.name, modeState)}>
+                  <i className='glyphicon glyphicon-ok'></i>
+                </button>
+              </td>
+            );
+          })}
+        </tr>
+      ];
+      if (mode.sub) {
+        return _.union([lines, this.renderChildModes(mode.sub, level + 1)]);
+      }
+      return lines;
+    });
+  },
+  render() {
+    //console.log('render offloading props', this.props);
+    var modes = [];
+    var ifcModes = this.props.offloadingModesMeta;
+    if (ifcModes) {
+      modes.push({
+        name: i18n(ns + 'all_modes'),
+        sub: ifcModes
+      });
+    }
+
+    return (
+      <div className='offloading-modes'>
+        <table className='table'>
+          <thead>
+            <tr>
+              <th>{i18n(ns + 'offloading_mode')}</th>
+              <th>{i18n('common.enabled')}</th>
+              <th>{i18n('common.disabled')}</th>
+              <th>{i18n(ns + 'offloading_default')}</th>
+            </tr>
+          </thead>
+          <tbody>
+          {this.renderChildModes(modes, 1)}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+});
+
+/*
+var OffloadingModesControl2 = React.createClass({
+  propTypes: {
+    interface: React.PropTypes.object
+  },
+  loadAttributeValues(modes) {
+    var attributes = this.props.interface.get('attributes');
+    var modeValues = attributes.offloading.modes.value;
+    _.each(modeValues, (value, name) => {
+      var mode = this.findMode(name, modes);
+      if (mode) {
+        mode.state = value;
+      }
+    });
+  },
+  setModeState(mode, state) {
+    var attributes = this.props.interface.get('attributes');
+    var modeValues = attributes.offloading.modes.value;
+    modeValues[mode.name] = state;
+    this.props.interface.set({attributes});
+
     mode.state = state;
     _.each(mode.sub, (mode) => this.setModeState(mode, state));
   },
@@ -62,7 +207,7 @@ var OffloadingModesControl = React.createClass({
     return result;
   },
   onModeStateChange(name, state) {
-    var modes = _.cloneDeep(this.props.interface.get('offloading_modes') || []);
+    var modes = _.cloneDeep(this.props.interface.get('meta.offloading_modes') || []);
     var mode = this.findMode(name, modes);
 
     return () => {
@@ -73,7 +218,7 @@ var OffloadingModesControl = React.createClass({
         // handle All Modes click
         _.each(modes, (mode) => this.setModeState(mode, state));
       }
-      this.props.interface.set('offloading_modes', modes);
+      this.props.interface.set('meta.offloading_modes', modes);
     };
   },
 
@@ -108,13 +253,14 @@ var OffloadingModesControl = React.createClass({
   },
   render() {
     var modes = [];
-    var ifcModes = this.props.interface.get('offloading_modes');
+    var ifcModes = this.props.interface.get('meta.offloading_modes');
     if (ifcModes) {
       modes.push({
         name: i18n(ns + 'all_modes'),
         state: _.uniq(_.map(ifcModes, 'state')).length === 1 ? ifcModes[0].state : undefined,
         sub: ifcModes
       });
+      this.loadAttributeValues(modes);
     }
 
     return (
@@ -136,5 +282,6 @@ var OffloadingModesControl = React.createClass({
     );
   }
 });
+*/
 
 export default OffloadingModesControl;
