@@ -115,18 +115,17 @@ var EditNodeInterfacesScreen = React.createClass({
     this.validate();
   },
   compareInterfacesProperties(interfaces, path, iteratee = _.identity,
-    source = 'interface_properties') {
+    source = 'attributes') {
     // Checks if all the sub parameters are equal for all interfaces property
-    var ifcProperties = _.map(
+    var attributes = _.map(
       _.map(interfaces, (ifc) => {
-        var interfaceProperty = ifc.get(source);
-        return _.get(interfaceProperty, path, interfaceProperty);
+        var attribute = ifc.get(source);
+        return _.get(attribute, path, attribute);
       }),
       iteratee
     );
-    var shown = _.first(ifcProperties);
-    var equal = _.every(ifcProperties, (ifcProperty) => _.isEqual(ifcProperty, shown));
-
+    var shown = _.first(attributes);
+    var equal = _.every(attributes, (attribute) => _.isEqual(attribute, shown));
     return {equal, shown};
   },
   getInterfacesLimitations(interfaces) {
@@ -1221,13 +1220,21 @@ var NodeInterface = React.createClass({
               </div>
             }
           </div>
-          {!isCompact ?
-            <NodeInterfaceAttributes
+          {!isCompact ? [
+            <NodeInterfaceAttributesOld
+              key='1'
               {... _.pick(this.props, 'interface', 'limitations', 'locked')}
               errors={(this.props.errors || {}).interface_properties || {}}
               isMassConfiguration={!!this.props.nodes.length}
               bondingModeChanged={this.bondingModeChanged}
-            />
+            />,
+            <NodeInterfaceAttributes
+              key='2'
+              {... _.pick(this.props, 'interface', 'limitations', 'locked')}
+              errors={(this.props.errors || {}).interface_properties || {}}
+              isMassConfiguration={!!this.props.nodes.length}
+              bondingModeChanged={this.bondingModeChanged}
+            />]
             :
             <div className='clearfix'></div>
           }
@@ -1295,7 +1302,7 @@ var Network = React.createClass({
 
 var DraggableNetwork = DragSource('network', Network.source, Network.collect)(Network);
 
-var NodeInterfaceAttributes = React.createClass({
+var NodeInterfaceAttributesOld = React.createClass({
   assignConfigurationPanelEvents() {
     $(ReactDOM.findDOMNode(this.refs['configuration-panel']))
         .on('show.bs.collapse', () => this.setState({pendingToggle: false, collapsed: false}))
@@ -1325,7 +1332,7 @@ var NodeInterfaceAttributes = React.createClass({
       activeInterfaceSectionName: subTabName
     });
   },
-  getRenderableIfcProperties() {
+  getRenderableAttributes() {
     var properties = ['offloading_modes', 'mtu', 'sriov'];
     if (_.includes(app.version.get('feature_groups'), 'experimental')) {
       properties.push('dpdk');
@@ -1399,15 +1406,16 @@ var NodeInterfaceAttributes = React.createClass({
   renderConfigurableAttributes() {
     var ifc = this.props.interface;
     var {limitations, errors, isMassConfiguration} = this.props;
-    var ifcProperties = ifc.get('interface_properties');
-    var offloadingModes = ifc.get('offloading_modes') || [];
+    //console.log('limitations=', limitations);
+    var attributes = ifc.get('attributes');
+    var offloadingModes = attributes.offloading.offloading_modes.value || [];
     var {collapsed, activeInterfaceSectionName} = this.state;
     var offloadingRestricted = !limitations.offloading_modes.equal;
-    var renderableIfcProperties = this.getRenderableIfcProperties();
+    var renderableAttrbutes = this.getRenderableAttributes();
     var offloadingTabClasses = {
       forbidden: offloadingRestricted,
       'property-item-container': true,
-      active: !collapsed && activeInterfaceSectionName === renderableIfcProperties[0]
+      active: !collapsed && activeInterfaceSectionName === renderableAttrbutes[0]
     };
     var isBond = ifc.isBond();
     return (
@@ -1417,7 +1425,7 @@ var NodeInterfaceAttributes = React.createClass({
           {i18n(ns + 'offloading_modes') + ':'}
           <button
             className='btn btn-link property-item'
-            onClick={() => this.switchActiveSubtab(renderableIfcProperties[0])}
+            onClick={() => this.switchActiveSubtab(renderableAttrbutes[0])}
             disabled={offloadingRestricted}
           >
             {offloadingRestricted ?
@@ -1426,45 +1434,47 @@ var NodeInterfaceAttributes = React.createClass({
               offloadingModes.length ?
                 this.makeOffloadingModesExcerpt()
                 :
-                ifcProperties.disable_offloading ?
+                attributes.offloading.disable_offloading.value ?
                   i18n(ns + 'disable_offloading')
                   :
                   i18n(ns + 'default_offloading')
             }
           </button>
         </span>
-        {_.map(ifcProperties, (propertyValue, propertyName) => {
+        {_.map(attributes, (attibuteValue, attibuteName) => {
           var {equal, shown} = _.get(
-              limitations, propertyName,
+              limitations, attibuteName,
               {equal: true, shown: true}
           );
+          //console.log('e&s', equal, shown);
           var propertyShown = (!equal && isMassConfiguration && !isBond) || (equal && shown);
+          //console.log(attibuteValue, attibuteName, propertyShown);
 
-          if (_.isPlainObject(propertyValue) && !propertyShown) return null;
+          if (_.isPlainObject(attibuteValue) && !propertyShown) return null;
 
-          if (_.includes(renderableIfcProperties, propertyName)) {
+          if (_.includes(renderableAttrbutes, attibuteName)) {
             var classes = {
-              'text-danger': _.has(errors, propertyName),
+              'text-danger': _.has(errors, attibuteName),
               'property-item-container': true,
-              [propertyName]: true,
-              active: !collapsed && activeInterfaceSectionName === propertyName,
+              [attibuteName]: true,
+              active: !collapsed && activeInterfaceSectionName === attibuteName,
               forbidden: !equal
             };
             var commonButtonProps = {
               className: 'btn btn-link property-item',
-              onClick: () => this.switchActiveSubtab(propertyName)
+              onClick: () => this.switchActiveSubtab(attibuteName)
             };
             //@TODO (morale): create some common component out of this
-            switch (propertyName) {
+            switch (attibuteName) {
               case 'sriov':
               case 'dpdk':
                 return (
-                  <span key={propertyName} className={utils.classNames(classes)}>
-                    {!equal && this.renderLockTooltip(propertyName)}
-                    {i18n(ns + propertyName) + ':'}
+                  <span key={attibuteName} className={utils.classNames(classes)}>
+                    {!equal && this.renderLockTooltip(attibuteName)}
+                    {i18n(ns + attibuteName) + ':'}
                     <button {...commonButtonProps} disabled={!equal}>
                       {equal ?
-                        propertyValue.enabled ?
+                          attibuteValue.enabled ?
                             i18n('common.enabled')
                             :
                             i18n('common.disabled')
@@ -1476,11 +1486,11 @@ var NodeInterfaceAttributes = React.createClass({
                 );
               default:
                 return (
-                  <span key={propertyName} className={utils.classNames(classes)}>
-                    {!equal && this.renderLockTooltip(propertyName)}
-                    {i18n(ns + propertyName) + ':'}
+                  <span key={attibuteName} className={utils.classNames(classes)}>
+                    {!equal && this.renderLockTooltip(attibuteName)}
+                    {i18n(ns + attibuteName) + ':'}
                     <button {...commonButtonProps} disabled={!equal}>
-                      {propertyValue || i18n(ns + propertyName + '_placeholder')}
+                      {attibuteName || i18n(ns + attibuteName + '_placeholder')}
                     </button>
                   </span>
                 );
@@ -1629,13 +1639,13 @@ var NodeInterfaceAttributes = React.createClass({
     );
   },
   render() {
-    if (!this.props.interface.get('interface_properties')) return null;
+    if (!this.props.interface.get('attributes')) return null;
     var isConfigurationModeOn = !_.isNull(this.state.activeInterfaceSectionName);
     var toggleConfigurationPanelClasses = utils.classNames({
       'glyphicon glyphicon-menu-down': true,
       rotate: !this.state.collapsed
     });
-    var renderableIfcProperties = this.getRenderableIfcProperties();
+    var renderableIfcProperties = this.getRenderableAttributes();
     var defaultSubtab = _.find(renderableIfcProperties, (ifcProperty) => {
       var limitation = _.get(this.props.limitations, ifcProperty);
       return limitation && limitation.equal && !!limitation.shown;
@@ -1664,6 +1674,173 @@ var NodeInterfaceAttributes = React.createClass({
           </div>
         </div>
       </div>
+    );
+  }
+});
+
+var NodeInterfaceAttributes = React.createClass({
+  componentDidMount() {
+    $(ReactDOM.findDOMNode(this.refs['configuration-panel']))
+      .on('show.bs.collapse', () => this.setState({pendingToggle: false, collapsed: false}))
+      .on('hide.bs.collapse', () => this.setState({pendingToggle: false, collapsed: true}));
+  },
+  componentDidUpdate() {
+    if (this.state.pendingToggle) {
+      $(ReactDOM.findDOMNode(this.refs['configuration-panel'])).collapse('toggle');
+    }
+  },
+  getInitialState() {
+    return {
+      activeInterfaceSectionName: null,
+      pendingToggle: false,
+      collapsed: true
+    };
+  },
+  getRenderableAttributes() {
+    var ifc = this.props.interface;
+    var attributes = ifc.get('attributes');
+    var meta = ifc.get('meta');
+    var sortedAttributes = _.keys(attributes).filter((key) => {
+      if (!meta[key]) {
+        return true;
+      }
+      return meta[key].available;
+    }).sort((key1, key2) => {
+      let group1 = attributes[key1];
+      let group2 = attributes[key2];
+      return (group1.metadata.weight || 100) - (group2.metadata.weight || 100);
+    });
+    return sortedAttributes;
+  },
+  switchActiveSubtab(groupName) {
+    //alert('group:' + group);
+    var currentActiveTab = this.state.activeInterfaceSectionName;
+    this.setState({
+      pendingToggle: _.isNull(currentActiveTab) ||
+        currentActiveTab === groupName || this.state.collapsed,
+      activeInterfaceSectionName: groupName
+    });
+  },
+  renderLockTooltip(property) {
+    return <Tooltip key={property + '-unavailable'} text={i18n(ns + 'availability_tooltip')}>
+      <span className='glyphicon glyphicon-lock' aria-hidden='true'></span>
+    </Tooltip>;
+  },
+  renderConfigurableAttributes(renderableAttributes) {
+    //console.log('renderableAttributes', renderableAttributes);
+    var ifc = this.props.interface;
+    var attributes = ifc.get('attributes');
+    var offloadingRestricted = false;
+    var {activeInterfaceSectionName} = this.state;
+    return (
+      <div className='properties-list'>
+        {_.map(renderableAttributes, (key) => {
+          let group = attributes[key];
+          let metadata = group.metadata;
+          var groupClasses = {
+            forbidden: false,
+            'property-item-container': true,
+            active: key === activeInterfaceSectionName && !this.state.collapsed
+          };
+          let defaultKey = _.first(_.keys(_.omit(group, 'metadata')));
+          let defaultValue = group[defaultKey].value;
+          if (_.isNil(defaultValue)) {
+            defaultValue = 'Default';
+          } else if (_.isBoolean(defaultValue)) {
+            defaultValue = defaultValue ? 'Enabled' : 'Disabled';
+          } else if (_.isArray(defaultValue)) {
+            defaultValue = 'Array(Custom?)';
+          }
+          //console.log(`k=${key} meta=`, available);
+          return (
+            <span key={metadata.label} className={utils.classNames(groupClasses)}>
+              {key === 'offloading' && offloadingRestricted && this.renderLockTooltip('offloading')}
+              {(metadata && metadata.label) || group.label}:
+              <button
+                className='btn btn-link property-item'
+                onClick={() => this.switchActiveSubtab(key)}
+                disabled={offloadingRestricted}
+              >
+                {defaultValue}
+              </button>
+            </span>
+          );
+        })
+        }
+      </div>
+    );
+  },
+  renderInterfaceSubtab() {
+    var activeSection = this.state.activeInterfaceSectionName;
+    if (activeSection === 'offloading') {
+      // offloading uses custom component
+      return <OffloadingModesSubtab {...this.props} />;
+    }
+    var ifc = this.props.interface;
+    var attributes = ifc.get('attributes');
+    var group = attributes[activeSection];
+    var controls = _.keys(_.omit(group, 'metadata', 'nic_plugin_id'));
+    return (
+      <div>
+        {
+          _.map(controls, (controlName) => {
+            let control = group[controlName];
+            switch (control.type) {
+              case 'text':
+                return <div key={controlName}>text</div>;
+              case 'checkbox':
+                return <div key={controlName}>checkbox</div>;
+              case 'radio':
+                return <div key={controlName}>radio</div>;
+              default:
+                return null;
+            }
+          })
+        }
+      </div>
+    );
+  },
+  render() {
+    var isConfigurationModeOn = !_.isNull(this.state.activeInterfaceSectionName);
+    var toggleConfigurationPanelClasses = utils.classNames({
+      'glyphicon glyphicon-menu-down': true,
+      rotate: !this.state.collapsed
+    });
+    var renderableAttributes = this.getRenderableAttributes();
+    var defaultSubtab = _.find(renderableAttributes, (group) => {
+      var limitation = _.get(this.props.limitations, group);
+      return limitation && limitation.equal && !!limitation.shown;
+    });
+    //console.log('default subtab', defaultSubtab);
+    return (
+      <div className='ifc-properties clearfix forms-box'>
+        <div className='row'>
+          <div className='col-xs-11'>
+            {this.renderConfigurableAttributes(renderableAttributes)}
+          </div>
+          <div className='col-xs-1 toggle-configuration-control'>
+            <i
+              className={toggleConfigurationPanelClasses}
+              onClick={() => this.switchActiveSubtab(
+                isConfigurationModeOn ? this.state.activeInterfaceSectionName : defaultSubtab
+              )}
+            />
+          </div>
+        </div>
+        <div className='row configuration-panel collapse' ref='configuration-panel'>
+          <div className='col-xs-12 forms-box interface-sub-tab'>
+            {this.renderInterfaceSubtab()}
+          </div>
+        </div>
+      </div>
+    );
+  }
+});
+
+var OffloadingModesSubtab = React.createClass({
+  render() {
+    return (
+      <div>OffloadingModesSubtab</div>
     );
   }
 });
