@@ -57,7 +57,8 @@
                 "count_label": "Count",
                 "size_label": "Size",
                 "enabled": "Enabled",
-                "disabled": "Disabled"
+                "disabled": "Disabled",
+                "default": "Default"
             },
             "controls": {
                 "invalid_value": "Invalid value",
@@ -478,7 +479,6 @@
                         "several_bonds_warning": "This network interface is already bonded with other network interfaces.",
                         "interfaces_cannot_be_bonded": "Selected interfaces cannot be bonded together.",
                         "speed": "Speed",
-                        "all_modes": "All Modes",
                         "bonding_mode": "Mode",
                         "bonding_modes": {
                             "active-backup": "Active Backup",
@@ -512,33 +512,19 @@
                         },
                         "validation": {
                             "too_many_untagged_networks": "Untagged networks cannot be assigned to the same interface.",
-                            "invalid_mtu": "Invalid MTU size",
                             "dpdk_mtu_error": "For a network interface with DPDK enabled the MTU size should not exceed 1500 bytes",
                             "networks_with_the_same_vlan": "Networks with the same VLAN ID cannot be assigned to the same interface.",
                             "vlan_range_intersection": "The network VLAN ID range should not include VLAN IDs of other networks assigned to the interface.",
                             "sriov_placement_error": "No network could be placed on SRIOV enabled interface",
                             "non_default_physnet": "Only \"physnet2\" will be configured by Fuel in Neutron. Configuration of other physical networks is up to Operator or plugin. Fuel will just configure appropriate pci_passthrough_whitelist option in nova.conf for such interface and physical networks.",
-                            "invalid_virtual_functions_number": "Virtual Functions number should be a positive number",
-                            "invalid_virtual_functions_number_max": "Virtual Functions number should be not more than __max__",
-                            "invalid_physnet": "Invalid name",
-                            "empty_physnet": "Physical Network Name should not be empty",
-                            "sriov_hypervisor_alert": "Only KVM hypervisor works with SR-IOV.",
-                            "dpdk_hypervisor_alert": "Only KVM hypervisor works with DPDK.",
+                            "big_virtual_functions_number": "Virtual Functions number should be not more than __max__",
                             "dpdk_placement_error": "DPDK enabled interface requires Private network to be assigned. Other networks are not allowed."
                         },
-                        "disable_offloading": "Offloading Disabled",
-                        "default_offloading": "Default Offloading",
-                        "offloading_modes": "Offloading Modes",
-                        "offloading_mode": "Mode",
-                        "offloading_default": "Default",
-                        "mtu": "MTU",
-                        "mtu_placeholder": "Default",
-                        "sriov": "SR-IOV",
-                        "sriov_description": "Single-root I/O Virtualization (SR-IOV) is a specification that, when implemented by a physical PCIe device, enables it to appear as multiple separate PCIe devices. This enables multiple virtualized guests to share direct access to the physical device, offering improved performance over an equivalent virtual device.",
-                        "virtual_functions": "Number of Virtual Functions",
-                        "physical_network": "Physical Network Name",
-                        "dpdk": "DPDK",
-                        "dpdk_description": "The Data Plane Development Kit (DPDK) provides high-performance packet processing libraries and user space drivers.",
+                        "offloading": {
+                            "offloading_modes": "Offloading Modes",
+                            "offloading_mode": "Mode",
+                            "all_modes": "All Modes"
+                        },
                         "locked_dpdk_bond": "DPDK cannot be enabled because not all slave interfaces support it",
                         "different_availability": "<Different Availability>",
                         "availability_tooltip": "Some network interfaces do not support this feature, therefore, these properties will not change after saving.",
@@ -1741,7 +1727,6 @@
                         },
                         "validation": {
                             "too_many_untagged_networks": "无法分配未标注网络至同一接口。",
-                            "invalid_mtu": "非法MTU值",
                             "networks_with_the_same_vlan": "无法分配相同VLAN ID的网络至同一接口。",
                             "vlan_range_intersection": "网络VLAN ID范围不应包括分配给该接口的其它网络的VLAN ID。"
                         },
@@ -2642,8 +2627,7 @@
                             "load_defaults_warning": "デフォルト設定を読み込めませんでした"
                         },
                         "validation": {
-                            "too_many_untagged_networks": "タグなしのネットワークは同じインタフェースに割り当てることはできません",
-                            "invalid_mtu": "無効なMTU値です"
+                            "too_many_untagged_networks": "タグなしのネットワークは同じインタフェースに割り当てることはできません"
                         },
                         "disable_offloading": "オフロードを無効にする",
                         "mtu": "MTU"
