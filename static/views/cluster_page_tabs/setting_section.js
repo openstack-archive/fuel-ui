@@ -22,6 +22,11 @@ import {Input, RadioGroup} from 'views/controls';
 import customControls from 'views/custom_controls';
 
 var SettingSection = React.createClass({
+  getDefaultProps() {
+    return {
+      showHeader: true
+    };
+  },
   processRestrictions(setting, settingName) {
     var result = false;
     var restrictionsCheck = this.props.checkRestrictions('disable', setting);
@@ -286,21 +291,25 @@ var SettingSection = React.createClass({
 
     return (
       <div className={'setting-section setting-section-' + sectionName}>
-        <h3>
-          {metadata.toggleable ?
-            <Input
-              type='checkbox'
-              name='metadata'
-              label={groupLabel}
-              defaultChecked={metadata.enabled}
-              disabled={isGroupDisabled || processedGroupDependencies.result}
-              tooltipText={showSettingGroupWarning && groupWarning}
-              onChange={isPlugin ? _.partial(this.togglePlugin, sectionName) : this.props.onChange}
-            />
-          :
-            <span className={'subtab-group-' + sectionName}>{groupLabel}</span>
-          }
-        </h3>
+        {this.props.showHeader &&
+          <h3>
+            {metadata.toggleable ?
+              <Input
+                type='checkbox'
+                name='metadata'
+                label={groupLabel}
+                defaultChecked={metadata.enabled}
+                disabled={isGroupDisabled || processedGroupDependencies.result}
+                tooltipText={showSettingGroupWarning && groupWarning}
+                onChange={
+                  isPlugin ? _.partial(this.togglePlugin, sectionName) : this.props.onChange
+                }
+              />
+              :
+              <span className={'subtab-group-' + sectionName}>{groupLabel}</span>
+            }
+          </h3>
+        }
         <div>
           {cluster.get('status') !== 'new' &&
             isPlugin && metadata.enabled && !metadata.hot_pluggable &&
