@@ -18,31 +18,42 @@ import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
 
-var ns = 'cluster_page.nodes_tab.configure_interfaces.';
+var ns = 'cluster_page.nodes_tab.configure_interfaces.offloading.';
 
 var OffloadingModesControl = React.createClass({
   propTypes: {
-    interface: React.PropTypes.object
+    attributes: React.PropTypes.object,
+    offloadingModes: React.PropTypes.array
   },
-  setModeState(mode, state) {
-    mode.state = state;
-    _.each(mode.sub, (mode) => this.setModeState(mode, state));
+  setModeState({name, sub}, state, recursive = true) {
+    var {attributes, onChange} = this.props;
+    var offloadingModeStates = _.cloneDeep(attributes.get('offloading.modes.value'));
+    offloadingModeStates[name] = state;
+    attributes.set('offloading.modes.value', offloadingModeStates);
+    if (onChange) onChange();
+    if (recursive) _.each(sub, (mode) => this.setModeState(mode, state));
   },
   checkModes(mode, sub) {
-    var changedState = sub.reduce((state, childMode) => {
-      if (!_.isEmpty(childMode.sub)) {
-        this.checkModes(childMode, childMode.sub);
-      }
-      return (state === 0 || state === childMode.state) ? childMode.state : -1;
-    },
-    0
-    );
-    var oldState;
+    // process children first
+    var offloadingModeStates = this.props.attributes.get('offloading.modes.value');
+    _.each(sub, (childMode) => {
+      this.checkModes(childMode, childMode.sub);
+    });
 
-    if (mode && mode.state !== changedState) {
-      oldState = mode.state;
-      mode.state = oldState === false ? null : (changedState === false ? false : oldState);
+    // root node or leaf node
+    if (_.isNull(mode) || !sub.length) return;
+
+    // Case 1. all children disabled - parent go disabled
+    if (_.every(sub, ({name}) => offloadingModeStates[name] === false)) {
+      this.setModeState(mode, false, false);
     }
+
+    // Case 2. any child is default and parent is disabled - parent go default
+    var parentModeState = offloadingModeStates[mode.name];
+    if (
+      parentModeState === false &&
+      _.some(sub, ({name}) => offloadingModeStates[name] === null)
+    ) this.setModeState(mode, null, false);
   },
   findMode(name, modes) {
     var result, mode;
@@ -62,61 +73,54 @@ var OffloadingModesControl = React.createClass({
     return result;
   },
   onModeStateChange(name, state) {
-    var modes = _.cloneDeep(this.props.interface.get('offloading_modes') || []);
-    var mode = this.findMode(name, modes);
+    var {offloadingModes} = this.props;
+    var mode = this.findMode(name, offloadingModes);
 
     return () => {
       if (mode) {
         this.setModeState(mode, state);
-        this.checkModes(null, modes);
+        this.checkModes(null, offloadingModes);
       } else {
         // handle All Modes click
-        _.each(modes, (mode) => this.setModeState(mode, state));
+        _.each(offloadingModes, (mode) => this.setModeState(mode, state));
       }
-      this.props.interface.set('offloading_modes', modes);
     };
   },
-
   renderChildModes(modes, level) {
-    return modes.map((mode) => {
+    var {offloadingModes, attributes, disabled} = this.props;
+    var offloadingModeStates = attributes.get('offloading.modes.value');
+    return modes.map(({name, sub}) => {
       var lines = [
-        <tr key={mode.name} className={'level' + level}>
-          <td>{mode.name}</td>
+        <tr key={name} className={'level' + level}>
+          <td>{i18n(ns + name, {defaultValue: name})}</td>
           {[true, false, null].map((modeState) => {
-            var styles = {
-              'btn-link': true,
-              active: mode.state === modeState
-            };
+            var state = name === 'all_modes' ?
+              _.uniq(_.map(offloadingModes, ({name}) => offloadingModeStates[name])).length === 1 ?
+                offloadingModeStates[offloadingModes[0].name] : undefined
+            :
+              offloadingModeStates[name];
             return (
-              <td key={mode.name + modeState}>
+              <td key={name + modeState}>
                 <button
-                  className={utils.classNames(styles)}
-                  disabled={this.props.disabled}
-                  onClick={this.onModeStateChange(mode.name, modeState)}>
-                  <i className='glyphicon glyphicon-ok'></i>
+                  className={utils.classNames({
+                    'btn-link': true,
+                    active: state === modeState
+                  })}
+                  disabled={disabled}
+                  onClick={this.onModeStateChange(name, modeState)}>
+                  <i className='glyphicon glyphicon-ok' />
                 </button>
               </td>
             );
           })}
         </tr>
       ];
-      if (mode.sub) {
-        return _.union([lines, this.renderChildModes(mode.sub, level + 1)]);
-      }
+      if (sub) return _.union([lines, this.renderChildModes(sub, level + 1)]);
       return lines;
     });
   },
   render() {
-    var modes = [];
-    var ifcModes = this.props.interface.get('offloading_modes');
-    if (ifcModes) {
-      modes.push({
-        name: i18n(ns + 'all_modes'),
-        state: _.uniq(_.map(ifcModes, 'state')).length === 1 ? ifcModes[0].state : undefined,
-        sub: ifcModes
-      });
-    }
-
+    var offloadingModes = [{name: 'all_modes', sub: this.props.offloadingModes}];
     return (
       <div className='offloading-modes'>
         <table className='table'>
@@ -125,11 +129,11 @@ var OffloadingModesControl = React.createClass({
               <th>{i18n(ns + 'offloading_mode')}</th>
               <th>{i18n('common.enabled')}</th>
               <th>{i18n('common.disabled')}</th>
-              <th>{i18n(ns + 'offloading_default')}</th>
+              <th>{i18n('common.default')}</th>
             </tr>
           </thead>
           <tbody>
-            {this.renderChildModes(modes, 1)}
+          {this.renderChildModes(offloadingModes, 1)}
           </tbody>
         </table>
       </div>
