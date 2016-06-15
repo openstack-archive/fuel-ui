@@ -528,9 +528,7 @@
                         "default_offloading": "Default Offloading",
                         "offloading_modes": "Offloading Modes",
                         "offloading_mode": "Mode",
-                        "offloading_default": "Default",
                         "mtu": "MTU",
-                        "mtu_placeholder": "Default",
                         "sriov": "SR-IOV",
                         "sriov_description": "Single-root I/O Virtualization (SR-IOV) is a specification that, when implemented by a physical PCIe device, enables it to appear as multiple separate PCIe devices. This enables multiple virtualized guests to share direct access to the physical device, offering improved performance over an equivalent virtual device.",
                         "virtual_functions": "Number of Virtual Functions",
@@ -545,7 +543,11 @@
                         "compact_mode_tooltip": "Compact View",
                         "nodes_have_different_networks": "Interfaces of the selected nodes can not be configured in bulk. Configure them separately. The following nodes have different sets of networks:",
                         "node_networks": "__count__ node has __networks__ networks",
-                        "node_networks_plural": "__count__ nodes have __networks__ networks"
+                        "node_networks_plural": "__count__ nodes have __networks__ networks",
+                        "default_value": "Default",
+                        "disabled_value": "Disabled",
+                        "enabled_value": "Enabled",
+                        "custom_value": "Custom"
                     },
                     "configure_disks": {
                         "no_disks": "No unassigned disks available.",
