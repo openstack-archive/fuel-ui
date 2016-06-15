@@ -1004,13 +1004,13 @@ models.Interface = BaseModel
         )
       ) networkErrors.push(i18n(ns + 'vlan_range_intersection'));
 
-      var sriov = this.get('interface_properties').sriov;
+      var sriov = this.get('attributes').sriov;
       if (sriov && sriov.enabled && networks.length) {
         networkErrors.push(i18n(ns + 'sriov_placement_error'));
       }
 
       if (
-        this.get('interface_properties').dpdk.enabled &&
+        this.get('attributes').dpdk.dpdk_enabled.enabled &&
         !_.isEqual(networks.map('name'), ['private'])
       ) {
         networkErrors.push(i18n(ns + 'dpdk_placement_error'));
@@ -1021,20 +1021,20 @@ models.Interface = BaseModel
       }
       return errors;
     },
-    validateInterfaceProperties(options) {
-      var interfaceProperties = this.get('interface_properties');
-      if (!interfaceProperties) return null;
+    validateInterfaceProperties(/*options*/) {
+      var attributes = this.get('attributes');
+      if (!attributes) return null;
       var errors = {};
       var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
-      var mtuValue = parseInt(interfaceProperties.mtu, 10);
+      var mtuValue = parseInt(attributes.mtu.mtu_value.value, 10);
       if (mtuValue) {
         if (_.isNaN(mtuValue) || mtuValue < 42 || mtuValue > 65536) {
-          errors.mtu = i18n(ns + 'invalid_mtu');
-        } else if (interfaceProperties.dpdk.enabled && mtuValue > 1500) {
-          errors.mtu = i18n(ns + 'dpdk_mtu_error');
+          errors.mtu_value = i18n(ns + 'invalid_mtu');
+        } else if (attributes.dpdk.dpdk_enabled.value && mtuValue > 1500) {
+          errors.mtu_value = i18n(ns + 'dpdk_mtu_error');
         }
       }
-      _.extend(errors, this.validateSRIOV(options), this.validateDPDK(options));
+      //_.extend(errors, this.validateSRIOV(options), this.validateDPDK(options));
       return _.isEmpty(errors) ? null : {interface_properties: errors};
     },
     validateSRIOV({cluster}) {
@@ -1800,6 +1800,13 @@ models.ComponentsCollection = BaseCollection.extend({
     if (errors.length > 0) {
       this.validationError = errors;
     }
+  }
+});
+
+models.BondDefaultAttributes = BaseModel.extend({
+  constructorName: 'BondDefaultAttributes',
+  url() {
+    return '/api/v1/nodes/' + this.id + '/bonds/attributes/defaults';
   }
 });
 
