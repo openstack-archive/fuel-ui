@@ -1061,15 +1061,16 @@ models.Interface = BaseModel
         )
       ) networkErrors.push(i18n(ns + 'vlan_range_intersection'));
 
-      var sriov = this.get('interface_properties').sriov;
-      if (sriov && sriov.enabled && networks.length) {
+      var sriov = this.get('attributes').sriov;
+      if (sriov && sriov.enabled && sriov.enabled.value && networks.length) {
         networkErrors.push(i18n(ns + 'sriov_placement_error'));
       }
 
       if (
-        this.get('interface_properties').dpdk.enabled &&
+        this.get('attributes').dpdk.enabled.value &&
         !_.isEqual(networks.map('name'), ['private'])
       ) {
+        console.log(JSON.stringify(networks.map('name')));
         networkErrors.push(i18n(ns + 'dpdk_placement_error'));
       }
 
@@ -1078,20 +1079,21 @@ models.Interface = BaseModel
       }
       return errors;
     },
-    validateInterfaceProperties(options) {
-      var interfaceProperties = this.get('interface_properties');
-      if (!interfaceProperties) return null;
+    validateInterfaceProperties(/*options*/) {
+      var attributes = this.get('attributes');
+      if (!attributes) return null;
       var errors = {};
       var ns = 'cluster_page.nodes_tab.configure_interfaces.validation.';
-      var mtuValue = parseInt(interfaceProperties.mtu, 10);
+      var mtuValue = parseInt(attributes.mtu.value.value, 10);
       if (mtuValue) {
         if (_.isNaN(mtuValue) || mtuValue < 42 || mtuValue > 65536) {
-          errors.mtu = i18n(ns + 'invalid_mtu');
-        } else if (interfaceProperties.dpdk.enabled && mtuValue > 1500) {
-          errors.mtu = i18n(ns + 'dpdk_mtu_error');
+          console.log('there');
+          errors.mtu_value = i18n(ns + 'invalid_mtu');
+        } else if (attributes.dpdk.enabled.value && mtuValue > 1500) {
+          errors.mtu_value = i18n(ns + 'dpdk_mtu_error');
         }
       }
-      _.extend(errors, this.validateSRIOV(options), this.validateDPDK(options));
+      //_.extend(errors, this.validateSRIOV(options), this.validateDPDK(options));
       return _.isEmpty(errors) ? null : {interface_properties: errors};
     },
     validateSRIOV({cluster}) {
@@ -1359,7 +1361,7 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
     if (!parameters.get('base_mac').match(utils.regexes.mac)) {
       errors.base_mac = i18n('cluster_page.network_tab.validation.invalid_mac');
     }
-
+взыл
     _.extend(errors, utils.validateCidr(parameters.get('internal_cidr'), 'internal_cidr'));
 
     _.extend(
@@ -1857,6 +1859,13 @@ models.ComponentsCollection = BaseCollection.extend({
     if (errors.length > 0) {
       this.validationError = errors;
     }
+  }
+});
+
+models.BondDefaultAttributes = BaseModel.extend({
+  constructorName: 'BondDefaultAttributes',
+  url() {
+    return '/api/v1/nodes/' + this.id + '/bonds/attributes/defaults';
   }
 });
 
