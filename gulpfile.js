@@ -217,43 +217,6 @@ gulp.task('license', function(cb) {
   });
 });
 
-var jsFiles = [
-  '*.js',
-  'gulp/*.js',
-  'static/**/*.js',
-  '!static/build/**',
-  '!static/vendor/**',
-  '!static/expression/parser.js'
-];
-var styleFiles = [
-  'static/**/*.less',
-  'static/**/*.css',
-  '!static/build/**'
-];
-
-gulp.task('eslint', function() {
-  var eslint = require('gulp-eslint');
-  return gulp.src(jsFiles)
-    .pipe(eslint())
-    .pipe(eslint.format())
-    .pipe(eslint.failAfterError());
-});
-
-gulp.task('lintspaces:styles', function() {
-  var lintspaces = require('gulp-lintspaces');
-  return gulp.src(styleFiles)
-    .pipe(lintspaces({
-      showValid: true,
-      newline: true,
-      trailingspaces: true,
-      indentation: 'spaces',
-      ignores: ['js-comments'],
-      spaces: 2,
-      newlineMaximum: 2
-    }))
-    .pipe(lintspaces.reporter());
-});
-
 gulp.task('lint', 'Run lint checks.', [
   'eslint',
   'lintspaces:styles'
