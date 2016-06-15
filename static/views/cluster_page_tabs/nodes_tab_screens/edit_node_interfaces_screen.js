@@ -48,6 +48,8 @@ var EditNodeInterfacesScreen = React.createClass({
 
       var networkConfiguration = cluster.get('networkConfiguration');
       var networksMetadata = new models.ReleaseNetworkProperties();
+      var bondDefaultAttributes = new models.BondDefaultAttributes();
+      bondDefaultAttributes.id = cluster.id;
 
       return $.when(...nodes.map((node) => {
         node.interfaces = new models.Interfaces();
@@ -59,7 +61,9 @@ var EditNodeInterfacesScreen = React.createClass({
         networkConfiguration.fetch({cache: true}),
         networksMetadata.fetch({
           url: '/api/releases/' + cluster.get('release_id') + '/networks'
-        })]))
+        }),
+        bondDefaultAttributes.fetch({cache: true})
+      ]))
         .then(() => {
           var interfaces = new models.Interfaces();
           interfaces.set(_.cloneDeep(nodes.at(0).interfaces.toJSON()), {parse: true});
@@ -67,6 +71,7 @@ var EditNodeInterfacesScreen = React.createClass({
             interfaces: interfaces,
             nodes: nodes,
             bondingConfig: networksMetadata.get('bonding'),
+            bondingAttributes: bondDefaultAttributes,
             configModels: {
               version: app.version,
               cluster: cluster,
@@ -114,31 +119,29 @@ var EditNodeInterfacesScreen = React.createClass({
   componentDidMount() {
     this.validate();
   },
-  compareInterfacesProperties(interfaces, path, iteratee = _.identity,
-    source = 'interface_properties') {
+  compareAttributes(interfaces, group, field) {
     // Checks if all the sub parameters are equal for all interfaces property
-    var ifcProperties = _.map(
-      _.map(interfaces, (ifc) => {
-        var interfaceProperty = ifc.get(source);
-        return _.get(interfaceProperty, path, interfaceProperty);
-      }),
-      iteratee
-    );
-    var shown = _.first(ifcProperties);
-    var equal = _.every(ifcProperties, (ifcProperty) => _.isEqual(ifcProperty, shown));
-
+    var attributes = _.map(interfaces, (ifc) => {
+      var attrs = ifc.get('attributes');
+      return _.get(attrs, [group, field, 'value'].join('.'), null);
+    });
+    var shown = _.first(attributes);
+    var equal = _.every(attributes, (attribute) => _.isEqual(attribute, shown));
     return {equal, shown};
   },
   getInterfacesLimitations(interfaces) {
-    return {
-      offloading_modes: this.compareInterfacesProperties(
-        interfaces, '',
-        (value) => utils.deepOmit(value, ['state']), 'offloading_modes'
-      ),
-      dpdk: this.compareInterfacesProperties(interfaces, 'dpdk.available'),
-      sriov: this.compareInterfacesProperties(interfaces, 'sriov.available'),
-      mtu: {equal: true, shown: true}
-    };
+    var limitations = {};
+    var firstIfc = interfaces[0];
+    var firstIfcAttributes = firstIfc.get('attributes');
+    _.each(_.omit(firstIfcAttributes, 'metadata'), (section, sectionName) => {
+      limitations[sectionName] = limitations[sectionName] || {};
+      _.each(_.omit(section, 'metadata'), (field, fieldName) => {
+        limitations[sectionName][fieldName] =
+            this.compareAttributes(interfaces, sectionName, fieldName);
+      });
+    });
+    //console.log('limitations=', limitations);
+    return limitations;
   },
   getEditLimitations() {
     // Gets limitations for interfaces parameters editing.
@@ -183,7 +186,7 @@ var EditNodeInterfacesScreen = React.createClass({
     // Pick certain interface fields that have influence on hasChanges.
     return _.pick(json, [
       'assigned_networks', 'mode', 'type', 'slaves', 'bond_properties',
-      'interface_properties', 'offloading_modes'
+      'attributes', 'offloading_modes'
     ]);
   },
   interfacesToJSON(interfaces, remainingNodesMode) {
@@ -269,36 +272,25 @@ var EditNodeInterfacesScreen = React.createClass({
     // Interface parameters should be updated with respect to limitations:
     // restricted parameters should not be changed
     var limitations = this.state.limitations[targetInterface.id];
-    var targetInterfaceProperties = targetInterface.get('interface_properties');
-    var sourceInterfaceProperties = sourceInterface.get('interface_properties');
+    var targetAttributes = targetInterface.get('attributes');
+    var sourceAttributes = sourceInterface.get('attributes');
+    //console.log('updateWithLimitations', limitations, targetAttributes, sourceAttributes);
 
-    if (
-      targetInterface.get('offloading_modes') &&
-      _.get(limitations, 'offloading_modes.equal', false)
-    ) {
-      targetInterface.set({
-        offloading_modes: sourceInterface.get('offloading_modes')
+    _.each(sourceAttributes, (section, sectionName) => {
+      _.each(section, (control, controlName) => {
+        if (_.get(limitations, [sectionName, controlName, 'equal'].join('.'), false)) {
+          targetAttributes[sectionName][controlName] =
+              _.cloneDeep(sourceAttributes[sectionName][controlName]);
+          // console.log('copy', sectionName, controlName);
+          // console.log('sourceAttributes', sourceAttributes[sectionName]);
+        }
       });
-      // If set of offloading modes supported is the same, disable_offloading
-      // parameters updated as well (it is probably obsolete)
-      var disableOffloading = _.get(sourceInterfaceProperties, 'disable_offloading');
-      if (!_.isUndefined(disableOffloading)) {
-        _.set(targetInterfaceProperties, 'disable_offloading', disableOffloading);
-      }
-    }
+    });
 
-    _.each(sourceInterfaceProperties, (propertyValue, propertyName) => {
-      // Set all unrestricted parameters values
-      if (
-        !_.isPlainObject(propertyValue) &&
-        _.get(limitations, propertyName + '.equal', false)
-      ) {
-        _.set(targetInterfaceProperties, propertyName, propertyValue);
-      }
-    });
     targetInterface.set({
-      interface_properties: sourceInterfaceProperties
+      attributes: targetAttributes
     });
+    //console.log('targetInterface=', targetInterface);
   },
   applyChanges() {
     if (!this.isSavingPossible()) return $.Deferred().reject();
@@ -373,7 +365,7 @@ var EditNodeInterfacesScreen = React.createClass({
       .get('networking_parameters').get('configuration_template'));
   },
   getAvailableBondingTypes(ifc) {
-    if (ifc.isBond()) return [ifc.get('bond_properties').type__];
+    if (ifc.isBond()) return [ifc.get('attributes').type__.value];
 
     return _.compact(
       _.flatten(
@@ -421,36 +413,36 @@ var EditNodeInterfacesScreen = React.createClass({
 
     if (!bond) {
       // if no bond selected - create new one
+      console.log(this.props.bondingConfig, this.props.bondingAttributes);
       var bondMode = _.flatten(
         _.map(this.props.bondingConfig.properties[bondType].mode, 'values')
       )[0];
       bondName = this.props.interfaces.generateBondName('bond');
 
-      bond = new models.Interface({
+      let bondProperties = {
         type: 'bond',
         name: bondName,
         mode: bondMode,
         assigned_networks: new models.InterfaceNetworks(),
         slaves: _.invokeMap(interfaces, 'pick', 'name'),
-        bond_properties: {
-          mode: bondMode,
-          type__: bondType
-        },
-        interface_properties: {
-          mtu: null,
-          disable_offloading: true,
+        attributes: _.cloneDeep(this.props.bondingAttributes.attributes),
+        meta: {
           dpdk: {
-            enabled: _.every(interfaces,
-              (ifc) => ifc.get('interface_properties').dpdk.enabled
-            ),
             available: _.every(interfaces,
-              (ifc) => ifc.get('interface_properties').dpdk.available
+                (ifc) => ifc.get('meta').dpdk.available
             )
           }
         },
-        offloading_modes: this.getIntersectedOffloadingModes(interfaces),
         state: 'down'
-      });
+      };
+      bondProperties.attributes.type__.value = bondType;
+      bondProperties.attributes.mode.value = {value: bondMode};
+      bondProperties.attributes.dpdk.enabled.value = _.every(interfaces,
+          (ifc) => ifc.get('attributes').dpdk.enabled.value === true
+      );
+      bondProperties.attributes.offloading.value = this.getIntersectedOffloadingModes(interfaces);
+      bond = new models.Interface(bondProperties);
+      console.log('bond=', bond);
       limitations[bondName] = {};
     } else {
       // adding interfaces to existing bond
@@ -959,7 +951,7 @@ var NodeInterface = React.createClass({
   getAvailableBondingModes() {
     var {configModels, bondingProperties} = this.props;
     var ifc = this.props.interface;
-    var bondType = ifc.get('bond_properties').type__;
+    var bondType = ifc.get('attributes').type__.value;
     var modes = bondingProperties[bondType].mode;
 
     var availableModes = [];
@@ -979,35 +971,40 @@ var NodeInterface = React.createClass({
     return _.intersection(...availableModes);
   },
   getBondPropertyValues(propertyName, value) {
-    var bondType = this.props.interface.get('bond_properties').type__;
+    var bondType = this.props.interface.get('attributes').type__.value;
+    console.log(propertyName, value, _.flatten(_.map(this.props.bondingProperties[bondType][propertyName], value)));
     return _.flatten(_.map(this.props.bondingProperties[bondType][propertyName], value));
   },
-  updateBondProperties(options) {
-    var bondProperties = _.cloneDeep(this.props.interface.get('bond_properties')) || {};
-    bondProperties = _.extend(bondProperties, options);
-    if (!this.isHashPolicyNeeded()) bondProperties = _.omit(bondProperties, 'xmit_hash_policy');
-    if (!this.isLacpRateAvailable()) bondProperties = _.omit(bondProperties, 'lacp_rate');
-    this.props.interface.set('bond_properties', bondProperties);
+  updateBondProperties(section, field, value) {
+    console.log('updateBondProperties', section, field, value);
+    var attributes = _.cloneDeep(this.props.interface.get('attributes')) || {};
+    attributes[section][field].value = value;
+    if (!this.isHashPolicyNeeded()) attributes = _.omit(attributes, 'xmit_hash_policy');
+    if (!this.isLacpRateAvailable()) attributes = _.omit(attributes, 'lacp_rate');
+    this.props.interface.set('attributes', attributes);
   },
   bondingChanged(name, value) {
     this.props.interface.set({checked: value});
   },
   bondingModeChanged(name, value) {
     this.props.interface.set({mode: value});
-    this.updateBondProperties({mode: value});
+    var attributes = this.props.interface.get('attributes');
+    attributes.mode.value.value = value;
+    this.props.interface.set({attributes});
+    this.updateBondProperties('mode', 'value', value);
     if (this.isHashPolicyNeeded()) {
-      this.updateBondProperties({xmit_hash_policy: this.getBondPropertyValues('xmit_hash_policy',
-        'values')[0]});
+      this.updateBondProperties('xmit_hash_policy', 'value',
+        this.getBondPropertyValues('xmit_hash_policy', 'values')[0]);
     }
     if (this.isLacpRateAvailable()) {
-      this.updateBondProperties({lacp_rate: this.getBondPropertyValues('lacp_rate', 'values')[0]});
+      this.updateBondProperties('lacp_rate', 'value', this.getBondPropertyValues('lacp_rate', 'values')[0]);
     }
   },
   onPolicyChange(name, value) {
-    this.updateBondProperties({xmit_hash_policy: value});
+    this.updateBondProperties('xmit_hash_policy', 'value', value);
   },
   onLacpChange(name, value) {
-    this.updateBondProperties({lacp_rate: value});
+    this.updateBondProperties('lacp_rate', 'value', value);
   },
   getBondingOptions(bondingModes, attributeName) {
     return _.map(bondingModes, (mode) => {
@@ -1038,7 +1035,7 @@ var NodeInterface = React.createClass({
         'ifc-offline': isInterfaceDown
       };
     };
-    var bondProperties = ifc.get('bond_properties');
+    var attributes = ifc.get('attributes');
     var bondingPossible = !!availableBondingTypes.length && !configurationTemplateExists && !locked;
     var networkErrors = (_.flatten((errors || {}).network_errors || [])).join(', ');
     var hasPropertiesErrors = !_.isEmpty((errors || {}).interface_properties);
@@ -1092,7 +1089,7 @@ var NodeInterface = React.createClass({
                   <Input
                     key='bonding_policy'
                     type='select'
-                    value={bondProperties.xmit_hash_policy}
+                    value={attributes.xmit_hash_policy.value.value}
                     disabled={!bondingPossible}
                     onChange={this.onPolicyChange}
                     label={i18n(ns + 'bonding_policy')}
@@ -1106,7 +1103,7 @@ var NodeInterface = React.createClass({
                   <Input
                     key='lacp_rate'
                     type='select'
-                    value={bondProperties.lacp_rate}
+                    value={attributes.lacp_rate.value.value}
                     disabled={!bondingPossible}
                     onChange={this.onLacpChange}
                     label={i18n(ns + 'lacp_rate')}
@@ -1221,16 +1218,14 @@ var NodeInterface = React.createClass({
               </div>
             }
           </div>
-          {!isCompact ?
+          {!isCompact ? [
             <NodeInterfaceAttributes
-              {... _.pick(this.props,
-                'interface', 'nodesInterfaces', 'getAvailableBondingTypes', 'bondingProperties',
-                'limitations', 'locked'
-              )}
+              key='1'
+              {... _.pick(this.props, 'interface', 'limitations', 'locked')}
               errors={(this.props.errors || {}).interface_properties || {}}
               isMassConfiguration={!!this.props.nodes.length}
               bondingModeChanged={this.bondingModeChanged}
-            />
+            />]
             :
             <div className='clearfix'></div>
           }
@@ -1298,14 +1293,388 @@ var Network = React.createClass({
 
 var DraggableNetwork = DragSource('network', Network.source, Network.collect)(Network);
 
+// var NodeInterfaceAttributesOld = React.createClass({
+//   assignConfigurationPanelEvents() {
+//     $(ReactDOM.findDOMNode(this.refs['configuration-panel']))
+//         .on('show.bs.collapse', () => this.setState({pendingToggle: false, collapsed: false}))
+//         .on('hide.bs.collapse', () => this.setState({pendingToggle: false, collapsed: true}));
+//   },
+//   componentDidMount() {
+//     this.assignConfigurationPanelEvents();
+//   },
+//   componentDidUpdate() {
+//     if (this.state.pendingToggle) {
+//       $(ReactDOM.findDOMNode(this.refs['configuration-panel'])).collapse('toggle');
+//     }
+//   },
+//   getInitialState() {
+//     return {
+//       activeInterfaceSectionName: null,
+//       pendingToggle: false,
+//       collapsed: true
+//     };
+//   },
+//   switchActiveSubtab(subTabName) {
+//     var currentActiveTab = this.state.activeInterfaceSectionName;
+//     this.setState({
+//       pendingToggle: _.isNull(currentActiveTab) ||
+//       currentActiveTab === subTabName ||
+//       this.state.collapsed,
+//       activeInterfaceSectionName: subTabName
+//     });
+//   },
+//   getRenderableAttributes() {
+//     var properties = ['offloading_modes', 'mtu', 'sriov'];
+//     if (_.includes(app.version.get('feature_groups'), 'experimental')) {
+//       properties.push('dpdk');
+//     }
+//     return properties;
+//   },
+//   getInterfacePropertyError() {
+//     return this.props.errors[this.state.activeInterfaceSectionName] || null;
+//   },
+//   onInterfacePropertiesChange(name, value) {
+//     function convertToNullIfNaN(value) {
+//       var convertedValue = parseInt(value, 10);
+//       return _.isNaN(convertedValue) ? null : convertedValue;
+//     }
+//     if (_.includes(['mtu', 'sriov.sriov_numvfs'], name)) {
+//       value = convertToNullIfNaN(value);
+//     }
+//     var interfaceProperties =
+//              _.cloneDeep(this.props.interface.get('interface_properties') || {});
+//     _.set(interfaceProperties, name, value);
+//     this.props.interface.set('interface_properties', interfaceProperties);
+//   },
+//   toggleOffloading() {
+//     var interfaceProperties = this.props.interface.get('interface_properties');
+//     var name = 'disable_offloading';
+//     this.onInterfacePropertiesChange(name, !interfaceProperties[name]);
+//   },
+//   makeOffloadingModesExcerpt() {
+//     var states = {
+//       true: i18n('common.enabled'),
+//       false: i18n('common.disabled'),
+//       null: i18n('cluster_page.nodes_tab.configure_interfaces.offloading_default')
+//     };
+//     var ifcModes = this.props.interface.get('offloading_modes');
+//
+//     if (!ifcModes.length) {
+//       return states[!this.props.interface.get('interface_properties').disable_offloading];
+//     }
+//     if (_.uniq(_.map(ifcModes, 'state')).length === 1) {
+//       return states[ifcModes[0].state];
+//     }
+//
+//     var lastState;
+//     var added = 0;
+//     var excerpt = [];
+//     _.each(ifcModes,
+//         (mode) => {
+//           if (!_.isNull(mode.state) && mode.state !== lastState) {
+//             lastState = mode.state;
+//             added++;
+//             excerpt.push((added > 1 ? ',' : '') + mode.name + ' ' + states[mode.state]);
+//           }
+//           // show no more than two modes in the button
+//           if (added === 2) return false;
+//         }
+//     );
+//     if (added < ifcModes.length) excerpt.push(', ...');
+//     return excerpt;
+//   },
+//   changeBondType(newType) {
+//     this.props.interface.set('bond_properties.type__', newType);
+//     var newMode = _.flatten(
+//         _.map(this.props.bondingProperties[newType].mode, 'values')
+//     )[0];
+//     this.props.bondingModeChanged(null, newMode);
+//   },
+//   renderLockTooltip(property) {
+//     return <Tooltip key={property + '-unavailable'} text={i18n(ns + 'availability_tooltip')}>
+//       <span className='glyphicon glyphicon-lock' aria-hidden='true'></span>
+//     </Tooltip>;
+//   },
+//   renderConfigurableAttributes() {
+//     var ifc = this.props.interface;
+//     var {limitations, errors, isMassConfiguration} = this.props;
+//     //console.log('limitations=', limitations);
+//     var attributes = ifc.get('attributes');
+//     var offloadingModes = attributes.offloading.offloading_modes.value || [];
+//     var {collapsed, activeInterfaceSectionName} = this.state;
+//     var offloadingRestricted = !limitations.offloading_modes.equal;
+//     var renderableAttrbutes = this.getRenderableAttributes();
+//     var offloadingTabClasses = {
+//       forbidden: offloadingRestricted,
+//       'property-item-container': true,
+//       active: !collapsed && activeInterfaceSectionName === renderableAttrbutes[0]
+//     };
+//     var isBond = ifc.isBond();
+//     return (
+//       <div className='properties-list'>
+//         <span className={utils.classNames(offloadingTabClasses)}>
+//           {offloadingRestricted && this.renderLockTooltip('offloading')}
+//           {i18n(ns + 'offloading_modes') + ':'}
+//           <button
+//             className='btn btn-link property-item'
+//             onClick={() => this.switchActiveSubtab(renderableAttrbutes[0])}
+//             disabled={offloadingRestricted}
+//           >
+//             {offloadingRestricted ?
+//               i18n(ns + 'different_availability')
+//               :
+//               offloadingModes.length ?
+//                 this.makeOffloadingModesExcerpt()
+//                 :
+//                 attributes.offloading.disable_offloading.value ?
+//                   i18n(ns + 'disable_offloading')
+//                   :
+//                   i18n(ns + 'default_offloading')
+//             }
+//           </button>
+//         </span>
+//         {_.map(attributes, (attibuteValue, attibuteName) => {
+//           var {equal, shown} = _.get(
+//               limitations, attibuteName,
+//               {equal: true, shown: true}
+//           );
+//           //console.log('e&s', equal, shown);
+//           var propertyShown = (!equal && isMassConfiguration && !isBond) || (equal && shown);
+//           //console.log(attibuteValue, attibuteName, propertyShown);
+//
+//           if (_.isPlainObject(attibuteValue) && !propertyShown) return null;
+//
+//           if (_.includes(renderableAttrbutes, attibuteName)) {
+//             var classes = {
+//               'text-danger': _.has(errors, attibuteName),
+//               'property-item-container': true,
+//               [attibuteName]: true,
+//               active: !collapsed && activeInterfaceSectionName === attibuteName,
+//               forbidden: !equal
+//             };
+//             var commonButtonProps = {
+//               className: 'btn btn-link property-item',
+//               onClick: () => this.switchActiveSubtab(attibuteName)
+//             };
+//             //@TODO (morale): create some common component out of this
+//             switch (attibuteName) {
+//               case 'sriov':
+//               case 'dpdk':
+//                 return (
+//                   <span key={attibuteName} className={utils.classNames(classes)}>
+//                     {!equal && this.renderLockTooltip(attibuteName)}
+//                     {i18n(ns + attibuteName) + ':'}
+//                     <button {...commonButtonProps} disabled={!equal}>
+//                       {equal ?
+//                           attibuteValue.enabled ?
+//                             i18n('common.enabled')
+//                             :
+//                             i18n('common.disabled')
+//                         :
+//                         i18n(ns + 'different_availability')
+//                       }
+//                     </button>
+//                   </span>
+//                 );
+//               default:
+//                 return (
+//                   <span key={attibuteName} className={utils.classNames(classes)}>
+//                     {!equal && this.renderLockTooltip(attibuteName)}
+//                     {i18n(ns + attibuteName) + ':'}
+//                     <button {...commonButtonProps} disabled={!equal}>
+//                       {attibuteName || i18n(ns + attibuteName + '_placeholder')}
+//                     </button>
+//                   </span>
+//                 );
+//             }
+//           }
+//         })}
+//       </div>
+//     );
+//   },
+//   renderInterfaceSubtab() {
+//     var ifc = this.props.interface;
+//     var offloadingModes = ifc.get('offloading_modes') || [];
+//     var {locked} = this.props;
+//     var ifcProperties = ifc.get('interface_properties') || null;
+//     var errors = this.getInterfacePropertyError();
+//     switch (this.state.activeInterfaceSectionName) {
+//       case 'offloading_modes':
+//         return (
+//           <div>
+//             {offloadingModes.length ?
+//               <OffloadingModes interface={ifc} disabled={locked} />
+//               :
+//               <Input
+//                 type='checkbox'
+//                 label={i18n(ns + 'disable_offloading')}
+//                 checked={!!ifcProperties.disable_offloading}
+//                 name='disable_offloading'
+//                 onChange={this.toggleOffloading}
+//                 disabled={locked}
+//                 wrapperClassName='toggle-offloading'
+//               />
+//             }
+//           </div>
+//         );
+//       case 'mtu':
+//         return (
+//           <Input
+//             type='number'
+//             min={42}
+//             max={65536}
+//             label={i18n(ns + 'mtu')}
+//             value={ifcProperties.mtu || ''}
+//             placeholder={i18n(ns + 'mtu_placeholder')}
+//             name='mtu'
+//             onChange={this.onInterfacePropertiesChange}
+//             disabled={locked}
+//             wrapperClassName='pull-left mtu-control'
+//             error={errors}
+//           />
+//         );
+//       case 'sriov':
+//         return this.renderSRIOV(errors);
+//       case 'dpdk':
+//         return this.renderDPDK(errors);
+//     }
+//   },
+//   renderSRIOV(errors) {
+//     var ifc = this.props.interface;
+//     var interfaceProperties = ifc.get('interface_properties');
+//     var isSRIOVEnabled = interfaceProperties.sriov.enabled;
+//     var physnet = interfaceProperties.sriov.physnet;
+//     return (
+//       <div className='sriov-panel'>
+//         <div className='description'>{i18n(ns + 'sriov_description')}</div>
+//         <Input
+//           type='checkbox'
+//           label={i18n('common.enabled')}
+//           checked={!!isSRIOVEnabled}
+//           name='sriov.enabled'
+//           onChange={this.onInterfacePropertiesChange}
+//           disabled={this.props.locked}
+//           wrapperClassName='sriov-control'
+//           error={errors && errors.common}
+//         />
+//         {isSRIOVEnabled && [
+//           <Input
+//             key='sriov.sriov_numvfs'
+//             type='number'
+//             min={0}
+//             max={interfaceProperties.sriov.sriov_totalvfs}
+//             label={i18n(ns + 'virtual_functions')}
+//             value={interfaceProperties.sriov.sriov_numvfs}
+//             name='sriov.sriov_numvfs'
+//             onChange={this.onInterfacePropertiesChange}
+//             disabled={this.props.locked}
+//             wrapperClassName='sriov-virtual-functions'
+//             error={errors && errors.sriov_numvfs}
+//           />,
+//           <Input
+//             key='sriov.physnet'
+//             type='text'
+//             label={i18n(ns + 'physical_network')}
+//             value={physnet}
+//             name='sriov.physnet'
+//             onChange={this.onInterfacePropertiesChange}
+//             disabled={this.props.locked}
+//             wrapperClassName='physnet'
+//             error={errors && errors.physnet}
+//             tooltipText={_.trim(physnet) && _.trim(physnet) !== 'physnet2' &&
+//               i18n(ns + 'validation.non_default_physnet')
+//             }
+//           />
+//         ]}
+//       </div>
+//     );
+//   },
+//   renderDPDK(errors) {
+//     var {nodesInterfaces} = this.props;
+//     var currentInterface = this.props.interface;
+//     var isBond = currentInterface.isBond();
+//     var currentDPDKValue = currentInterface.get('interface_properties').dpdk.enabled;
+//     var newBondType = isBond ?
+//       _.first(
+//         _.without(
+//           _.intersection(...
+//             // Gathering all available bonding types from all nodes interfaces
+//             _.map(nodesInterfaces, (ifc) => {
+//               ifc.get('interface_properties').dpdk.enabled = !currentDPDKValue;
+//               var bondTypes = this.props.getAvailableBondingTypes(ifc);
+//               ifc.get('interface_properties').dpdk.enabled = currentDPDKValue;
+//               return bondTypes;
+//             })
+//               // excluding the current one
+//           ), currentInterface.get('bond_properties').type__)
+//       )
+//       :
+//       null;
+//     return (
+//       <div className='dpdk-panel'>
+//         <div className='description'>{i18n(ns + 'dpdk_description')}</div>
+//         <Input
+//           type='checkbox'
+//           label={i18n('common.enabled')}
+//           checked={!!currentDPDKValue}
+//           name='dpdk.enabled'
+//           onChange={(propertyName, propertyValue) => {
+//             this.onInterfacePropertiesChange('dpdk.enabled', propertyValue);
+//             if (isBond) this.changeBondType(newBondType);
+//           }}
+//           disabled={this.props.locked || isBond && !newBondType}
+//           tooltipText={isBond && !newBondType && i18n(ns + 'locked_dpdk_bond')}
+//           wrapperClassName='dpdk-control'
+//           error={errors && errors.common}
+//         />
+//       </div>
+//     );
+//   },
+//   render() {
+//     if (!this.props.interface.get('attributes')) return null;
+//     var isConfigurationModeOn = !_.isNull(this.state.activeInterfaceSectionName);
+//     var toggleConfigurationPanelClasses = utils.classNames({
+//       'glyphicon glyphicon-menu-down': true,
+//       rotate: !this.state.collapsed
+//     });
+//     var renderableIfcProperties = this.getRenderableAttributes();
+//     var defaultSubtab = _.find(renderableIfcProperties, (ifcProperty) => {
+//       var limitation = _.get(this.props.limitations, ifcProperty);
+//       return limitation && limitation.equal && !!limitation.shown;
+//     });
+//     return (
+//       <div className='ifc-properties clearfix forms-box'>
+//         <div className='row'>
+//           <div className='col-xs-11'>
+//             {this.renderConfigurableAttributes()}
+//           </div>
+//           <div className='col-xs-1 toggle-configuration-control'>
+//             <i
+//               className={toggleConfigurationPanelClasses}
+//               onClick={() => this.switchActiveSubtab(
+//                 isConfigurationModeOn ?
+//                   this.state.activeInterfaceSectionName
+//                 :
+//                   defaultSubtab
+//               )}
+//             />
+//           </div>
+//         </div>
+//         <div className='row configuration-panel collapse' ref='configuration-panel'>
+//           <div className='col-xs-12 forms-box interface-sub-tab'>
+//             {this.renderInterfaceSubtab()}
+//           </div>
+//         </div>
+//       </div>
+//     );
+//   }
+// });
+
 var NodeInterfaceAttributes = React.createClass({
-  assignConfigurationPanelEvents() {
-    $(ReactDOM.findDOMNode(this.refs['configuration-panel']))
-        .on('show.bs.collapse', () => this.setState({pendingToggle: false, collapsed: false}))
-        .on('hide.bs.collapse', () => this.setState({pendingToggle: false, collapsed: true}));
-  },
   componentDidMount() {
-    this.assignConfigurationPanelEvents();
+    $(ReactDOM.findDOMNode(this.refs['configuration-panel']))
+      .on('show.bs.collapse', () => this.setState({pendingToggle: false, collapsed: false}))
+      .on('hide.bs.collapse', () => this.setState({pendingToggle: false, collapsed: true}));
   },
   componentDidUpdate() {
     if (this.state.pendingToggle) {
@@ -1319,344 +1688,165 @@ var NodeInterfaceAttributes = React.createClass({
       collapsed: true
     };
   },
-  switchActiveSubtab(subTabName) {
+  getRenderableSections() {
+    var {interface: ifc, limitations} = this.props;
+    var attributes = ifc.get('attributes');
+    var meta = ifc.get('meta') || {};
+    var sortedAttributes = _.keys(attributes).filter((key) => {
+      //console.log('$$$', attributes[key]);
+      if(attributes[key].type=='hidden') {
+        return false;
+      }
+      //if(_.includes(['mode', 'lacp_rate', 'lacp_rate', 'xmit_hash_policy'], key)) {
+        //return false;
+      //}
+      if (!meta[key] && _.some(_.values(limitations.key), (field) => field.shown)) {
+        return true;
+      }
+      return _.isNil(meta[key]) || meta[key].available;
+    }).sort((key1, key2) => {
+      //console.log('$$$', key1, key2);
+      let group1 = attributes[key1];
+      let group2 = attributes[key2];
+      return (group1.metadata.weight || 100) - (group2.metadata.weight || 100);
+    });
+    return sortedAttributes;
+  },
+  switchActiveSubtab(groupName) {
+    //alert('group:' + group);
     var currentActiveTab = this.state.activeInterfaceSectionName;
     this.setState({
       pendingToggle: _.isNull(currentActiveTab) ||
-      currentActiveTab === subTabName ||
-      this.state.collapsed,
-      activeInterfaceSectionName: subTabName
+        currentActiveTab === groupName || this.state.collapsed,
+      activeInterfaceSectionName: groupName
     });
-  },
-  getRenderableIfcProperties() {
-    var properties = ['offloading_modes', 'mtu', 'sriov'];
-    if (_.includes(app.version.get('feature_groups'), 'experimental')) {
-      properties.push('dpdk');
-    }
-    return properties;
-  },
-  getInterfacePropertyError() {
-    return this.props.errors[this.state.activeInterfaceSectionName] || null;
-  },
-  onInterfacePropertiesChange(name, value) {
-    function convertToNullIfNaN(value) {
-      var convertedValue = parseInt(value, 10);
-      return _.isNaN(convertedValue) ? null : convertedValue;
-    }
-    if (_.includes(['mtu', 'sriov.sriov_numvfs'], name)) {
-      value = convertToNullIfNaN(value);
-    }
-    var interfaceProperties = _.cloneDeep(this.props.interface.get('interface_properties') || {});
-    _.set(interfaceProperties, name, value);
-    this.props.interface.set('interface_properties', interfaceProperties);
-  },
-  toggleOffloading() {
-    var interfaceProperties = this.props.interface.get('interface_properties');
-    var name = 'disable_offloading';
-    this.onInterfacePropertiesChange(name, !interfaceProperties[name]);
-  },
-  makeOffloadingModesExcerpt() {
-    var states = {
-      true: i18n('common.enabled'),
-      false: i18n('common.disabled'),
-      null: i18n('cluster_page.nodes_tab.configure_interfaces.offloading_default')
-    };
-    var ifcModes = this.props.interface.get('offloading_modes');
-
-    if (!ifcModes.length) {
-      return states[!this.props.interface.get('interface_properties').disable_offloading];
-    }
-    if (_.uniq(_.map(ifcModes, 'state')).length === 1) {
-      return states[ifcModes[0].state];
-    }
-
-    var lastState;
-    var added = 0;
-    var excerpt = [];
-    _.each(ifcModes,
-        (mode) => {
-          if (!_.isNull(mode.state) && mode.state !== lastState) {
-            lastState = mode.state;
-            added++;
-            excerpt.push((added > 1 ? ',' : '') + mode.name + ' ' + states[mode.state]);
-          }
-          // show no more than two modes in the button
-          if (added === 2) return false;
-        }
-    );
-    if (added < ifcModes.length) excerpt.push(', ...');
-    return excerpt;
-  },
-  changeBondType(newType) {
-    this.props.interface.set('bond_properties.type__', newType);
-    var newMode = _.flatten(
-        _.map(this.props.bondingProperties[newType].mode, 'values')
-    )[0];
-    this.props.bondingModeChanged(null, newMode);
   },
   renderLockTooltip(property) {
     return <Tooltip key={property + '-unavailable'} text={i18n(ns + 'availability_tooltip')}>
       <span className='glyphicon glyphicon-lock' aria-hidden='true'></span>
     </Tooltip>;
   },
-  renderConfigurableAttributes() {
+  renderConfigurableSections(renderableGroups) {
     var ifc = this.props.interface;
-    var {limitations, errors, isMassConfiguration} = this.props;
-    var ifcProperties = ifc.get('interface_properties');
-    var offloadingModes = ifc.get('offloading_modes') || [];
-    var {collapsed, activeInterfaceSectionName} = this.state;
-    var offloadingRestricted = !limitations.offloading_modes.equal;
-    var renderableIfcProperties = this.getRenderableIfcProperties();
-    var offloadingTabClasses = {
-      forbidden: offloadingRestricted,
-      'property-item-container': true,
-      active: !collapsed && activeInterfaceSectionName === renderableIfcProperties[0]
-    };
-    var isBond = ifc.isBond();
+    var attributes = ifc.get('attributes');
+    var offloadingRestricted = false;
+    var {activeInterfaceSectionName} = this.state;
     return (
       <div className='properties-list'>
-        <span className={utils.classNames(offloadingTabClasses)}>
-          {offloadingRestricted && this.renderLockTooltip('offloading')}
-          {i18n(ns + 'offloading_modes') + ':'}
-          <button
-            className='btn btn-link property-item'
-            onClick={() => this.switchActiveSubtab(renderableIfcProperties[0])}
-            disabled={offloadingRestricted}
-          >
-            {offloadingRestricted ?
-              i18n(ns + 'different_availability')
-              :
-              offloadingModes.length ?
-                this.makeOffloadingModesExcerpt()
-                :
-                ifcProperties.disable_offloading ?
-                  i18n(ns + 'disable_offloading')
-                  :
-                  i18n(ns + 'default_offloading')
-            }
-          </button>
-        </span>
-        {_.map(ifcProperties, (propertyValue, propertyName) => {
-          var {equal, shown} = _.get(
-              limitations, propertyName,
-              {equal: true, shown: true}
-          );
-          var propertyShown = (!equal && isMassConfiguration && !isBond) || (equal && shown);
-
-          if (_.isPlainObject(propertyValue) && !propertyShown) return null;
-
-          if (_.includes(renderableIfcProperties, propertyName)) {
-            var classes = {
-              'text-danger': _.has(errors, propertyName),
-              'property-item-container': true,
-              [propertyName]: true,
-              active: !collapsed && activeInterfaceSectionName === propertyName,
-              forbidden: !equal
-            };
-            var commonButtonProps = {
-              className: 'btn btn-link property-item',
-              onClick: () => this.switchActiveSubtab(propertyName)
-            };
-            //@TODO (morale): create some common component out of this
-            switch (propertyName) {
-              case 'sriov':
-              case 'dpdk':
-                return (
-                  <span key={propertyName} className={utils.classNames(classes)}>
-                    {!equal && this.renderLockTooltip(propertyName)}
-                    {i18n(ns + propertyName) + ':'}
-                    <button {...commonButtonProps} disabled={!equal}>
-                      {equal ?
-                        propertyValue.enabled ?
-                            i18n('common.enabled')
-                            :
-                            i18n('common.disabled')
-                        :
-                        i18n(ns + 'different_availability')
-                      }
-                    </button>
-                  </span>
-                );
-              default:
-                return (
-                  <span key={propertyName} className={utils.classNames(classes)}>
-                    {!equal && this.renderLockTooltip(propertyName)}
-                    {i18n(ns + propertyName) + ':'}
-                    <button {...commonButtonProps} disabled={!equal}>
-                      {propertyValue || i18n(ns + propertyName + '_placeholder')}
-                    </button>
-                  </span>
-                );
-            }
+        {_.map(renderableGroups, (key) => {
+          let group = attributes[key];
+          let metadata = group.metadata;
+          var groupClasses = {
+            forbidden: false,
+            'property-item-container': true,
+            active: key === activeInterfaceSectionName && !this.state.collapsed
+          };
+          let defaultKey = _.first(_.keys(_.omit(group, 'metadata')));
+          let defaultValue = group[defaultKey].value;
+          console.log(group, 'defaultKey', defaultKey, 'defaultValue', defaultValue);
+          if (_.isNil(defaultValue) || defaultValue==='') {
+            defaultValue = 'Default';
+          } else if (_.isBoolean(defaultValue)) {
+            defaultValue = defaultValue ? 'Enabled' : 'Disabled';
+          } else if (_.isObject(defaultValue)) {
+            defaultValue = 'Custom';
           }
-        })}
+          if(key=='offloading' && _.keys(attributes.offloading.modes.value).length) {
+            console.log('~', _.keys(attributes.offloading.modes.value))
+            defaultValue = 'Edit';
+          }
+          console.log(group, 'defaultKey', defaultKey, 'defaultValue', defaultValue);
+          //console.log(`k=${key} meta=`, available);
+          return (
+            <span key={metadata.label} className={utils.classNames(groupClasses)}>
+              {key === 'offloading' && offloadingRestricted && this.renderLockTooltip('offloading')}
+              {(metadata && metadata.label) || group.label}:
+              <button
+                className='btn btn-link property-item'
+                onClick={() => this.switchActiveSubtab(key)}
+                disabled={offloadingRestricted}
+              >
+                {defaultValue}
+              </button>
+            </span>
+          );
+        })
+        }
       </div>
     );
   },
   renderInterfaceSubtab() {
+    var activeSection = this.state.activeInterfaceSectionName;
     var ifc = this.props.interface;
-    var offloadingModes = ifc.get('offloading_modes') || [];
-    var {locked} = this.props;
-    var ifcProperties = ifc.get('interface_properties') || null;
-    var errors = this.getInterfacePropertyError();
-    switch (this.state.activeInterfaceSectionName) {
-      case 'offloading_modes':
-        return (
-          <div>
-            {offloadingModes.length ?
-              <OffloadingModes interface={ifc} disabled={locked} />
-              :
-              <Input
-                type='checkbox'
-                label={i18n(ns + 'disable_offloading')}
-                checked={!!ifcProperties.disable_offloading}
-                name='disable_offloading'
-                onChange={this.toggleOffloading}
-                disabled={locked}
-                wrapperClassName='toggle-offloading'
-              />
-            }
-          </div>
-        );
-      case 'mtu':
-        return (
-          <Input
-            type='number'
-            min={42}
-            max={65536}
-            label={i18n(ns + 'mtu')}
-            value={ifcProperties.mtu || ''}
-            placeholder={i18n(ns + 'mtu_placeholder')}
-            name='mtu'
-            onChange={this.onInterfacePropertiesChange}
-            disabled={locked}
-            wrapperClassName='pull-left mtu-control'
-            error={errors}
-          />
-        );
-      case 'sriov':
-        return this.renderSRIOV(errors);
-      case 'dpdk':
-        return this.renderDPDK(errors);
+    var attributes = ifc.get('attributes');
+    if (activeSection === 'offloading') {
+      // offloading uses custom component
+      return <OffloadingModesSubtab interface={ifc} offloadingModes={attributes.offloading} {...this.props.locked}/>;
     }
-  },
-  renderSRIOV(errors) {
-    var ifc = this.props.interface;
-    var interfaceProperties = ifc.get('interface_properties');
-    var isSRIOVEnabled = interfaceProperties.sriov.enabled;
-    var physnet = interfaceProperties.sriov.physnet;
+    var section = attributes[activeSection];
+    var controls = _.keys(_.omit(section, 'metadata', 'nic_plugin_id')).sort((key1, key2) => {
+      var control1 = section[key1];
+      var control2 = section[key2];
+      return (control1.weight || 100) - (control2.weight || 100);
+    });
+
     return (
-      <div className='sriov-panel'>
-        <div className='description'>{i18n(ns + 'sriov_description')}</div>
-        <Input
-          type='checkbox'
-          label={i18n('common.enabled')}
-          checked={!!isSRIOVEnabled}
-          name='sriov.enabled'
-          onChange={this.onInterfacePropertiesChange}
-          disabled={this.props.locked}
-          wrapperClassName='sriov-control'
-          error={errors && errors.common}
-        />
-        {isSRIOVEnabled && [
-          <Input
-            key='sriov.sriov_numvfs'
-            type='number'
-            min={0}
-            max={interfaceProperties.sriov.sriov_totalvfs}
-            label={i18n(ns + 'virtual_functions')}
-            value={interfaceProperties.sriov.sriov_numvfs}
-            name='sriov.sriov_numvfs'
-            onChange={this.onInterfacePropertiesChange}
-            disabled={this.props.locked}
-            wrapperClassName='sriov-virtual-functions'
-            error={errors && errors.sriov_numvfs}
-          />,
-          <Input
-            key='sriov.physnet'
-            type='text'
-            label={i18n(ns + 'physical_network')}
-            value={physnet}
-            name='sriov.physnet'
-            onChange={this.onInterfacePropertiesChange}
-            disabled={this.props.locked}
-            wrapperClassName='physnet'
-            error={errors && errors.physnet}
-            tooltipText={_.trim(physnet) && _.trim(physnet) !== 'physnet2' &&
-              i18n(ns + 'validation.non_default_physnet')
+      <div className='forms-box attributes'>
+        {
+          _.map(controls, (controlName) => {
+            let control = section[controlName];
+            let props = {
+              key: controlName,
+              name: controlName,
+              label: control.label,
+              description: control.description || '',
+              type: control.type,
+              error: this.props.errors[controlName],
+              onChange: (name, value) => {
+                let path = ['attributes', activeSection, name, 'value'].join('.');
+                ifc.set({[path]: value});
+              }
+            };
+            switch (control.type) {
+              case 'text':
+                props.value = control.value;
+                props.placeholder = 'Default';
+                break;
+              case 'checkbox':
+                props.checked = control.value;
+                break;
+              default:
+                break;
             }
-          />
-        ]}
-      </div>
-    );
-  },
-  renderDPDK(errors) {
-    var {nodesInterfaces} = this.props;
-    var currentInterface = this.props.interface;
-    var isBond = currentInterface.isBond();
-    var currentDPDKValue = currentInterface.get('interface_properties').dpdk.enabled;
-    var newBondType = isBond ?
-      _.first(
-        _.without(
-          _.intersection(...
-            // Gathering all available bonding types from all nodes interfaces
-            _.map(nodesInterfaces, (ifc) => {
-              ifc.get('interface_properties').dpdk.enabled = !currentDPDKValue;
-              var bondTypes = this.props.getAvailableBondingTypes(ifc);
-              ifc.get('interface_properties').dpdk.enabled = currentDPDKValue;
-              return bondTypes;
-            })
-              // excluding the current one
-          ), currentInterface.get('bond_properties').type__)
-      )
-      :
-      null;
-    return (
-      <div className='dpdk-panel'>
-        <div className='description'>{i18n(ns + 'dpdk_description')}</div>
-        <Input
-          type='checkbox'
-          label={i18n('common.enabled')}
-          checked={!!currentDPDKValue}
-          name='dpdk.enabled'
-          onChange={(propertyName, propertyValue) => {
-            this.onInterfacePropertiesChange('dpdk.enabled', propertyValue);
-            if (isBond) this.changeBondType(newBondType);
-          }}
-          disabled={this.props.locked || isBond && !newBondType}
-          tooltipText={isBond && !newBondType && i18n(ns + 'locked_dpdk_bond')}
-          wrapperClassName='dpdk-control'
-          error={errors && errors.common}
-        />
+            return (<Input {...props} />);
+          })
+        }
       </div>
     );
   },
   render() {
-    if (!this.props.interface.get('interface_properties')) return null;
     var isConfigurationModeOn = !_.isNull(this.state.activeInterfaceSectionName);
     var toggleConfigurationPanelClasses = utils.classNames({
       'glyphicon glyphicon-menu-down': true,
       rotate: !this.state.collapsed
     });
-    var renderableIfcProperties = this.getRenderableIfcProperties();
-    var defaultSubtab = _.find(renderableIfcProperties, (ifcProperty) => {
-      var limitation = _.get(this.props.limitations, ifcProperty);
-      return limitation && limitation.equal && !!limitation.shown;
+    var renderableSections = this.getRenderableSections();
+    var defaultSubtab = _.find(renderableSections, (section) => {
+      var sectionLimitations = _.get(this.props.limitations, section);
+      return _.some(sectionLimitations, (limitation) => limitation && limitation.equal);
     });
+    //console.log('defaultSubtab=', defaultSubtab);
     return (
       <div className='ifc-properties clearfix forms-box'>
         <div className='row'>
           <div className='col-xs-11'>
-            {this.renderConfigurableAttributes()}
+            {this.renderConfigurableSections(renderableSections)}
           </div>
           <div className='col-xs-1 toggle-configuration-control'>
             <i
               className={toggleConfigurationPanelClasses}
               onClick={() => this.switchActiveSubtab(
-                isConfigurationModeOn ?
-                  this.state.activeInterfaceSectionName
-                :
-                  defaultSubtab
+                isConfigurationModeOn ? this.state.activeInterfaceSectionName : defaultSubtab
               )}
             />
           </div>
@@ -1666,6 +1856,34 @@ var NodeInterfaceAttributes = React.createClass({
             {this.renderInterfaceSubtab()}
           </div>
         </div>
+      </div>
+    );
+  }
+});
+
+var OffloadingModesSubtab = React.createClass({
+  toggleOffloading() {
+    console.log('toggleOffloading');
+  },
+  render() {
+    console.log('OffloadingModesSubtab', this.props);
+    var {interface: ifc, offloadingModes, locked} = this.props;
+    var attributes = ifc.get('attributes');
+    return (
+      <div>
+        {_.keys(offloadingModes.modes.value).length ?
+          <OffloadingModes interface={ifc} disabled={locked} />
+          :
+          <Input
+            type='checkbox'
+            label={i18n(ns + 'disable_offloading')}
+            checked={!!attributes.offloading.disable.value}
+            name='disable_offloading'
+            onChange={this.toggleOffloading}
+            disabled={locked}
+            wrapperClassName='toggle-offloading'
+          />
+        }
       </div>
     );
   }
