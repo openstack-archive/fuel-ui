@@ -1049,7 +1049,7 @@ models.Interface = Backbone.DeepModel
         _.isNaN(virtualFunctionsNumber)
       ) {
         errors.sriov_numvfs = i18n(ns + 'invalid_virtual_functions_number',
-          {max: sriov.sriov_totalvfs}
+          {max: sriov.sriov_totalvfs + 1}
         );
       }
       if (sriov.physnet && !sriov.physnet.match(utils.regexes.networkName)) {
