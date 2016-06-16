@@ -3950,6 +3950,13 @@ input[type=range] {
           }
           .sriov-virtual-functions {
             margin-bottom: @common-offset;
+            &.form-group.has-error {
+              .help-block {
+                color: @red;
+                display: inline;
+                max-width: 655px;
+              }
+            }
           }
         }
         .sriov-virtual-functions,
