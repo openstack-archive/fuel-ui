@@ -1043,13 +1043,14 @@ models.Interface = Backbone.DeepModel
       if (cluster.get('settings').get('common.libvirt_type.value') !== 'kvm') {
         errors.common = i18n(ns + 'sriov_hypervisor_alert');
       }
-      var virtualFunctionsNumber = parseInt(sriov.sriov_numvfs, 10);
-      if (virtualFunctionsNumber < 0 ||
-        virtualFunctionsNumber > sriov.sriov_totalvfs ||
-        _.isNaN(virtualFunctionsNumber)
-      ) {
-        errors.sriov_numvfs = i18n(ns + 'invalid_virtual_functions_number',
-          {max: sriov.sriov_totalvfs}
+      var virtualFunctionsNumber = Number(sriov.sriov_numvfs);
+      var totalVirtualFunctionsNumber = Number(sriov.sriov_totalvfs);
+      if (_.isNaN(virtualFunctionsNumber) || virtualFunctionsNumber < 0) {
+        errors.sriov_numvfs = i18n(ns + 'invalid_virtual_functions_number');
+      } else if (!_.isNaN(totalVirtualFunctionsNumber) &&
+        virtualFunctionsNumber > totalVirtualFunctionsNumber) {
+        errors.sriov_numvfs = i18n(ns + 'invalid_virtual_functions_number_max',
+          {max: totalVirtualFunctionsNumber}
         );
       }
       if (sriov.physnet && !sriov.physnet.match(utils.regexes.networkName)) {
