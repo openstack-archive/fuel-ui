@@ -437,7 +437,7 @@
                             "vlan_range_intersection": "The network VLAN ID range should not include VLAN IDs of other networks assigned to the interface.",
                             "sriov_placement_error": "No network could be placed on SRIOV enabled interface",
                             "non_default_physnet": "Only \"physnet2\" will be configured by Fuel in Neutron. Configuration of other physical networks is up to Operator or plugin. Fuel will just configure appropriate pci_passthrough_whitelist option in nova.conf for such interface and physical networks.",
-                            "invalid_virtual_functions_number": "Virtual Functions number should be a positive number less than __max__",
+                            "invalid_virtual_functions_number": "Virtual Functions number should be a positive number not more than __max__",
                             "invalid_physnet": "Invalid name",
                             "empty_physnet": "Physical Network Name should not be empty",
                             "sriov_hypervisor_alert": "Only KVM hypervisor works with SR-IOV.",
