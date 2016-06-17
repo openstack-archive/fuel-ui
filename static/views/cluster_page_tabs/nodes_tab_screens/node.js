@@ -464,7 +464,9 @@ var Node = React.createClass({
             {this.props.nodeActionsAvailable && [
               !!node.get('cluster') &&
                 <Tooltip key='logs' text={i18n(ns + 'view_logs')}>
+                <div className="tooltip-wrapper">
                   <a className='btn-view-logs icon icon-logs' href={this.getNodeLogsLink()} />
+                </div>
                 </Tooltip>,
               renderActionButtons &&
                 (node.get('pending_addition') || node.get('pending_deletion')) &&
@@ -475,6 +477,7 @@ var Node = React.createClass({
                     (node.get('pending_deletion') ? 'discard_deletion' : 'delete_node')
                   )}
                 >
+                  <div className="tooltip-wrapper">
                   <div
                     className='icon btn-discard'
                     onClick={node.get('pending_deletion') ?
@@ -483,6 +486,7 @@ var Node = React.createClass({
                       this.showDeleteNodesDialog
                     }
                   />
+                  </div>
                 </Tooltip>
             ]}
           </div>
