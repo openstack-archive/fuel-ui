@@ -185,10 +185,9 @@ class App {
     document.title = i18n('common.title');
 
     return this.version.fetch()
-      .then(null, (response) => {
+      .catch((response) => {
         if (response.status === 401) {
           this.version.set({auth_required: true});
-          return $.Deferred().resolve();
         }
       })
       .then(() => {
@@ -204,7 +203,7 @@ class App {
         return $.Deferred().resolve();
       })
       .then(() => this.fuelSettings.fetch())
-      .then(null, () => {
+      .catch(() => {
         if (this.version.get('auth_required') && !this.user.get('authenticated')) {
           return $.Deferred().resolve();
         } else {
@@ -235,7 +234,7 @@ class App {
         if (!this.rootComponent) this.renderLayout();
         this.setPage(Page, pageOptions);
       })
-      .then(null, () => $.Deferred().resolve())
+      .catch(() => true)
       .then(() => dispatcher.trigger('pageLoadFinished'));
   }
 

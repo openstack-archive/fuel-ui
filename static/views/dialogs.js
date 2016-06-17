@@ -1111,7 +1111,7 @@ export var ShowNodeInfoDialog = React.createClass({
       this.setState({actionInProgress: true});
 
       VMsConfModel.fetch()
-        .then(null, () => $.Deferred().resolve())
+        .catch(() => true)
         .then(() => {
           this.setState({
             actionInProgress: false,
@@ -1124,7 +1124,7 @@ export var ShowNodeInfoDialog = React.createClass({
     this.setState({actionInProgress: true});
 
     nodeAttributesModel.fetch()
-      .then(null, () => $.Deferred().resolve())
+      .catch(() => true)
       .then(() => {
         var configModels = cluster && {
           settings: cluster.get('settings'),

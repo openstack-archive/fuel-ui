@@ -914,7 +914,7 @@ ManagementPanel = React.createClass({
           });
         }
       )
-      .then(null, () => $.Deferred().resolve())
+      .catch(() => true)
       .then(() => {
         if (this.props.mode === 'add') {
           dispatcher.trigger('updateNodeStats networkConfigurationUpdated ' +
@@ -1636,7 +1636,7 @@ NodeLabelsPanel = React.createClass({
           });
         }
       )
-      .then(null, () => $.Deferred().resolve())
+      .catch(() => true)
       .then(() => {
         dispatcher.trigger('labelsConfigurationUpdated');
         this.props.screenNodes.trigger('change');
