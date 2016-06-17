@@ -758,9 +758,8 @@ var CreateClusterWizard = React.createClass({
     if (this.state.actionInProgress) {
       return;
     }
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !$(e.target).hasClass('wizard-controls')) {
       e.preventDefault();
-
       if (this.getActivePane().paneName === 'Finish') {
         this.saveCluster();
       } else {
@@ -821,14 +820,17 @@ var CreateClusterWizard = React.createClass({
     return (
       <div className='wizard-footer'>
         <button
-          className={utils.classNames('btn btn-default pull-left', {disabled: actionInProgress})}
+          className={utils.classNames(
+            'btn btn-default pull-left wizard-controls',
+            {disabled: actionInProgress}
+          )}
           data-dismiss='modal'
         >
           {i18n('common.cancel_button')}
         </button>
         <button
           className={utils.classNames(
-            'btn btn-default prev-pane-btn',
+            'btn btn-default prev-pane-btn wizard-controls',
             {disabled: !this.state.previousEnabled || actionInProgress}
           )}
           onClick={this.prevPane}
