@@ -49,7 +49,7 @@ var LoginForm = React.createClass({
     var keystoneClient = app.keystoneClient;
 
     return keystoneClient.authenticate(username, password, {force: true})
-      .then(null, (xhr) => {
+      .catch((xhr) => {
         $(ReactDOM.findDOMNode(this.refs.username)).focus();
 
         var status = xhr && xhr.status;
@@ -61,6 +61,8 @@ var LoginForm = React.createClass({
           error = 'keystone_unavailable_error';
         }
         this.setState({error: i18n('login_page.' + error)});
+
+        return $.Deferred().reject();
       })
       .then(() => {
         app.user.set({
@@ -105,7 +107,7 @@ var LoginForm = React.createClass({
     this.setState({actionInProgress: true});
 
     this.login(username, password)
-      .then(null, () => {
+      .catch(() => {
         this.setState({actionInProgress: false});
       });
   },

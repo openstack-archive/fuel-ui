@@ -170,7 +170,7 @@ var ClusterPage = React.createClass({
               cluster.get('deployedSettings').fetch(),
               cluster.get('deployedNetworkConfiguration').fetch()
             )
-            .then(null, () => $.Deferred().resolve());
+            .catch(() => true);
           })
           .then(
             () => tab.fetchData ? tab.fetchData({cluster, tabOptions}) : $.Deferred().resolve()
@@ -253,7 +253,7 @@ var ClusterPage = React.createClass({
         cluster.get('deployedNetworkConfiguration').fetch(),
         cluster.get('deployedSettings').fetch()
       )
-      .then(null, () => $.Deferred().resolve());
+      .catch(() => true);
     });
   },
   componentWillMount() {
