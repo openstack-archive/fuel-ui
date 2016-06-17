@@ -108,7 +108,7 @@ Cluster = React.createClass({
     var deletionTask = this.props.cluster.task('cluster_deletion');
     if (deletionTask) {
       request = deletionTask.fetch();
-      request.then(null, (response) => {
+      request.catch((response) => {
         if (response.status === 404) {
           this.props.cluster.collection.remove(this.props.cluster);
           dispatcher.trigger('updateNodeStats');
