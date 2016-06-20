@@ -60,20 +60,20 @@ export var dialogMixin = {
     show(dialogOptions = {}, showOptions = {}) {
       var activeDialog = getActiveDialog();
       if (activeDialog) {
-        var result = $.Deferred();
         if (showOptions.preventDuplicate && activeDialog.constructor === this) {
-          result.reject();
+          return Promise.reject();
         } else {
-          $(ReactDOM.findDOMNode(activeDialog)).on('hidden.bs.modal', () => {
-            this.show(dialogOptions).then(result.resolve, result.reject);
+          return new Promise((resolve, reject) => {
+            $(ReactDOM.findDOMNode(activeDialog)).on('hidden.bs.modal', () => {
+              this.show(dialogOptions).then(resolve, reject);
+            });
           });
         }
-        return result;
       } else {
         return ReactDOM.render(
           React.createElement(this, dialogOptions),
           $('#modal-container')[0]
-        ).getResult();
+        ).result;
       }
     }
   },
@@ -87,12 +87,17 @@ export var dialogMixin = {
   },
   getInitialState() {
     return {
-      actionInProgress: false,
-      result: $.Deferred()
+      actionInProgress: false
     };
   },
-  getResult() {
-    return this.state.result;
+  componentWillMount() {
+    var resolveResult, rejectResult;
+    this.result = new Promise((resolve, reject) => {
+      resolveResult = resolve;
+      rejectResult = reject;
+    });
+    this.resolveResult = resolveResult;
+    this.rejectResult = rejectResult;
   },
   componentDidMount() {
     setActiveDialog(this);
@@ -105,9 +110,6 @@ export var dialogMixin = {
       _.pick(this.props, ['background', 'backdrop']),
       {background: true, backdrop: true}
     ));
-  },
-  rejectResult() {
-    if (this.state.result.state() === 'pending') this.state.result.reject();
   },
   componentWillUnmount() {
     Backbone.history.off(null, null, this);
@@ -143,7 +145,7 @@ export var dialogMixin = {
     return <span className='label label-danger'>{i18n('common.important')}</span>;
   },
   submitAction(options) {
-    this.state.result.resolve(options);
+    this.resolveResult(options);
     this.close();
   },
   render() {
@@ -407,7 +409,7 @@ export var DiscardClusterChangesDialog = React.createClass({
           () => {
             dispatcher
             .trigger('updateNodeStats networkConfigurationUpdated labelsConfigurationUpdated');
-            this.state.result.resolve();
+            this.resolveResult();
             this.close();
           },
           (response) => this.showError(response, i18n(ns + 'cant_discard'))
@@ -1677,7 +1679,7 @@ export var DiscardSettingsChangesDialog = React.createClass({
   proceedWith(method, action = true) {
     this.setState({actionInProgress: action});
     return $.when(method ? method() : $.Deferred().resolve())
-      .then(this.state.result.resolve)
+      .then(this.resolveResult)
       .then(
         this.close,
         _.partial(this.showError, null, i18n('dialog.dismiss_settings.saving_failed_message'))
@@ -1831,7 +1833,7 @@ export var DeleteNodesDialog = React.createClass({
         () => {
           dispatcher.trigger('updateNodeStats networkConfigurationUpdated ' +
             'labelsConfigurationUpdated');
-          this.state.result.resolve();
+          this.resolveResult();
           this.close();
         },
         (response) => this.showError(response, i18n('cluster_page.nodes_tab.node_deletion_error.' +
