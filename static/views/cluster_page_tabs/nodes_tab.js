@@ -14,12 +14,10 @@
  * under the License.
 **/
 
-import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
-import ReactDOM from 'react-dom';
-import {ProgressBar} from 'views/controls';
+import {ScreenTransitionWrapper} from 'views/controls';
 import ClusterNodesScreen from 'views/cluster_page_tabs/nodes_tab_screens/cluster_nodes_screen';
 import AddNodesScreen from 'views/cluster_page_tabs/nodes_tab_screens/add_nodes_screen';
 import EditNodesScreen from 'views/cluster_page_tabs/nodes_tab_screens/edit_nodes_screen';
@@ -144,29 +142,6 @@ var NodesTab = React.createClass({
         </ScreenTransitionWrapper>
       </ReactTransitionGroup>
     );
-  }
-});
-
-// additional screen wrapper to keep ref to screen in the tab component
-// see https://github.com/facebook/react/issues/1950 for more info
-var ScreenTransitionWrapper = React.createClass({
-  componentWillEnter(cb) {
-    $(ReactDOM.findDOMNode(this)).hide().delay('fast').fadeIn('fast', cb);
-  },
-  componentWillLeave(cb) {
-    $(ReactDOM.findDOMNode(this)).fadeOut('fast', cb);
-  },
-  render() {
-    if (this.props.loading) {
-      return (
-        <div className='row'>
-          <div className='col-xs-12' style={{paddingTop: '40px'}}>
-            <ProgressBar />
-          </div>
-        </div>
-      );
-    }
-    return <div>{this.props.children}</div>;
   }
 });
 

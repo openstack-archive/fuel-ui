@@ -326,6 +326,14 @@ var utils = {
       result[key] = this.deepOmit(object[key], keys);
       return result;
     }, _.isArray(object) ? [] : {});
+  },
+  formatTimestamp(timestamp) {
+    if (!timestamp) return '';
+    var date = new Date(timestamp);
+    var addLeadingZero = (value) => ('0' + value).substr(-2);
+    return addLeadingZero(date.getDate()) + '-' + addLeadingZero(date.getMonth() + 1) + '-' +
+      date.getFullYear() + ' ' + addLeadingZero(date.getHours()) + ':' +
+      addLeadingZero(date.getMinutes()) + ':' + addLeadingZero(date.getSeconds());
   }
 };
 
