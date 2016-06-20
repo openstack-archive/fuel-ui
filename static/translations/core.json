@@ -326,7 +326,26 @@
                     "network": "Networks",
                     "settings": "Settings",
                     "logs": "Logs",
-                    "healthcheck": "Health Check"
+                    "healthcheck": "Health Check",
+                    "deployment_history": "History"
+                },
+                "deployment_history_tab": {
+                    "title": "Deployment History",
+                    "select_deployment": "Select Deployment",
+                    "deployment_label": "#__id__ (started: __startTime__)",
+                    "no_finished_deployment_alert": "No deployment finished yet."
+                },
+                "deployment_history": {
+                    "task_name_header": "Task",
+                    "status_header": "Status",
+                    "time_start_header": "Start Time",
+                    "time_end_header": "End Time",
+                    "node_history_table_title": "Node \"__node__\"",
+                    "master_node_history_table_title": "Master Node",
+                    "filter_by": "Filter By",
+                    "filter_by_task_name": "Task Name",
+                    "filter_by_task_status": "Task Status",
+                    "task_details": "Details"
                 },
                 "nodes_tab": {
                     "roles": "Roles",
@@ -920,6 +939,15 @@
                 "loading": "Loading..."
             },
             "dialog": {
+                "task_details": {
+                    "title": "Deployment Task Details",
+                    "task": {
+                        "task_name": "Name",
+                        "status": "Status",
+                        "time_start": "Start Time",
+                        "time_end": "End Time"
+                    }
+                },
                 "nailgun_unavailability": {
                     "title": "Nailgun is Unavailable",
                     "retry_now": "Retry Now",

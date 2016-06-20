@@ -1776,6 +1776,9 @@ input[type=range] {
       &.dashboard {
         .tab-icon-sprite-index(8);
       }
+      &.deployment_history {
+        .tab-icon-sprite-index(9);
+      }
     }
   }
 }
@@ -5075,6 +5078,61 @@ input[type=range] {
     .help-block {
       margin-left: 62px;
       font-size: @base-font-size - 2;
+    }
+  }
+}
+
+.node-history-table {
+  table {
+    font-size: @base-font-size - 2;
+    line-height: @base-font-size - 2;
+    tbody tr td, thead th {
+      padding: 3px 5px;
+      &:not(:first-child) {
+        text-align: center;
+      }
+    }
+    thead th {
+      &:nth-child(2) {width: 150px;} // task status column
+      &:nth-child(3), &:nth-child(4) {width: 150px;} // task status, start and end time columns
+      &:nth-child(5) {width: 80px;} // task details button column
+    }
+  }
+  &:last-child table {
+    margin-bottom: 0;
+  }
+  .btn-link {
+    font-size: @base-font-size - 2;
+    line-height: @base-font-size - 2;
+    padding: 0;
+  }
+}
+
+.history-filters {
+  .form-group, label + div {
+    display: inline-block;
+  }
+  select {
+    width: 200px;
+    margin-left: 10px;
+  }
+  .help-block {
+    display: none;
+  }
+}
+
+.task-details-dialog {
+  .modal-body {
+    max-height: 400px;
+    overflow-y: auto;
+    div {
+      max-width: 300px;
+      .break-word();
+    }
+    label {
+      width: 150px;
+      padding-right: 5px;
+      .break-word();
     }
   }
 }
