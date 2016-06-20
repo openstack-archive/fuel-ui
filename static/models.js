@@ -331,9 +331,11 @@ models.Cluster = BaseModel.extend({
     var defaults = {
       nodes: new models.Nodes(),
       tasks: new models.Tasks(),
-      nodeNetworkGroups: new models.NodeNetworkGroups()
+      nodeNetworkGroups: new models.NodeNetworkGroups(),
+      transactions: new models.Transactions()
     };
-    defaults.nodes.cluster = defaults.tasks.cluster = defaults.nodeNetworkGroups.cluster = this;
+    defaults.nodes.cluster = defaults.tasks.cluster = defaults.nodeNetworkGroups.cluster =
+      defaults.transactions.cluster = this;
     return defaults;
   },
   validate(attrs) {
@@ -645,6 +647,39 @@ models.Tasks = BaseCollection.extend({
   },
   findTask(filters) {
     return this.filterTasks(filters)[0];
+  }
+});
+
+models.Transactions = models.Tasks
+  .extend({
+    constructorName: 'Transactions',
+    url: '/api/transactions',
+    parse(response) {
+      // FIXME(jaranovich): to be removed after #1593751 fix
+      return _.filter(response, (transaction) => transaction.name === 'deployment');
+    }
+  });
+
+models.DeploymentTask = BaseModel.extend({
+  constructorName: 'DeploymentTask'
+});
+
+models.DeploymentHistory = BaseCollection.extend({
+  constructorName: 'DeploymentHistory',
+  model: models.DeploymentTask,
+  comparator(task1, task2) {
+    var node1 = task1.get('node_id');
+    var node2 = task2.get('node_id');
+    if (node1 === node2) return utils.compare(task1, task2, {attr: 'time_start'});
+    // master node tasks should go first
+    if (node1 === 'master') return -1;
+    if (node2 === 'master') return 1;
+    return node1 - node2;
+  },
+  parse(response) {
+    // no need to show tasks of Virtual Sync Node (node_id is Null)
+    // also no need to show tasks that were not executed on any node (node_id is '-')
+    return _.filter(response, (task) => !_.isNull(task.node_id) && task.node_id !== '-');
   }
 });
 
