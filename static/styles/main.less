@@ -209,6 +209,87 @@
   height: 17px;
 }
 
+.glyphicon-ok {
+  .icon-default-styles(-12px, -1453px);
+  width: 17px;
+  height: 17px;
+}
+
+.glyphicon-remove {
+  .icon-default-styles(-12px, -1412px);
+  width: 17px;
+  height: 17px;
+}
+
+.glyphicon-remove-alt {
+  .icon-default-styles(-52px, -1410px);
+  width: 17px;
+  height: 17px;
+  &:hover {
+    background: url(@common-icons-sprite) -52px -1450px no-repeat;
+  }
+}
+
+.glyphicon-question-sign {
+  .icon-default-styles(-12px, -1211px);
+  width: 19px;
+  height: 19px;
+}
+
+.glyphicon-plus-sign {
+  .icon-default-styles(-12px, -1251px);
+  width: 19px;
+  height: 19px;
+  &:hover {
+    background: url(@common-icons-sprite) -52px -1251px no-repeat;
+  }
+}
+
+.glyphicon-minus-sign {
+  .icon-default-styles(-12px, -1291px);
+  width: 19px;
+  height: 19px;
+  &:hover {
+    background: url(@common-icons-sprite) -52px -1291px no-repeat;
+  }
+}
+
+.glyphicon-eye-open {
+  .icon-default-styles(-12px, -1332px);
+  width: 19px;
+  height: 19px;
+}
+
+.glyphicon-eye-close {
+  .icon-default-styles(-12px, -1372px);
+  width: 19px;
+  height: 19px;
+}
+
+.glyphicon-arrow-down {
+  .icon-default-styles(-10px, -1490px);
+}
+
+.glyphicon-arrow-up {
+  .icon-default-styles(-50px, -1489px);
+}
+
+.glyphicon-arrow-left {
+  .icon-default-styles(-12px, -1649px);
+}
+
+.glyphicon-arrow-left-white {
+  .icon-default-styles(-12px, -1689px);
+}
+
+.glyphicon-arrow-right {
+  .icon-default-styles(-52px, -1649px);
+}
+
+.glyphicon-arrow-right-white {
+  .icon-default-styles(-52px, -1689px);
+}
+
 .glyphicon-lock {
   .icon-default-styles(-12px, -1011px);
   width: 16px;
@@ -1713,6 +1794,9 @@ input[type=range] {
       &.workflows {
         .tab-icon-sprite-index(10);
       }
+      &.history {
+        .tab-icon-sprite-index(9);
+      }
     }
   }
 }
@@ -1723,6 +1807,23 @@ input[type=range] {
 
 .sticker label {
   width: 100%;
+}
+
+.well {
+  .well-heading {
+    margin-bottom: 5px;
+    .font-semibold;
+    .btn-link {
+      padding: 0;
+      .glyphicon-filter {
+        margin-top: 4px;
+      }
+    }
+  }
+  .sorter-control, .filter-control {
+    margin-right: 5px;
+    margin-bottom: 5px;
+  }
 }
 
 .node-management-panel {
@@ -1776,16 +1877,7 @@ input[type=range] {
 
   .well {
     margin-bottom: @management-panel-indent * 3;
-    .well-heading {
-      margin-bottom: @management-panel-indent;
-      .font-semibold;
-      .btn-link {
-        padding: 0;
-        .glyphicon-filter {
-          margin-top: 4px;
-        }
-      }
-    }
+
     .multiselect {
       &:last-child .btn-link {
         padding-left: @management-panel-indent;
@@ -1809,44 +1901,6 @@ input[type=range] {
     }
     .glyphicon-filter {
       top: 4px;
-    }
-  }
-
-  .active-sorters-filters {
-    border-radius: @management-panel-indent;
-    /* .btn-default border color from Bootstrap */
-    border: 1px solid #ccc;
-    padding: @management-panel-indent * 2;
-    margin-bottom: @management-panel-indent * 3;
-    cursor: pointer;
-    &:hover {
-      /* .btn-default:hover background color from Bootstrap */
-      background: #e6e6e6;
-    }
-    .active-sorters, .active-filters {
-      position: relative;
-      > div {
-        padding-right: 40px;
-        > div {
-          margin-right: @management-panel-indent;
-          display: inline;
-        }
-      }
-      > strong {
-        padding-right: 0;
-      }
-      button {
-        padding: 0;
-        position: absolute;
-        top: 0;
-        right: @management-panel-indent * 3;
-      }
-      .glyphicon-arrow-down {
-        top: 2px;
-      }
-    }
-    .active-filters + .active-sorters {
-      margin-top: @management-panel-indent * 2;
     }
   }
 
@@ -1987,12 +2041,54 @@ input[type=range] {
   }
 }
 
+.active-sorters-filters {
+  @base-indent: 5px;
+  border-radius: @base-indent;
+  /* .btn-default border color from Bootstrap */
+  border: 1px solid #ccc;
+  padding: @base-indent * 2;
+  margin-bottom: @base-indent * 3;
+  cursor: pointer;
+  &:hover {
+    /* .btn-default:hover background color from Bootstrap */
+    background: #e6e6e6;
+  }
+  .active-sorters, .active-filters {
+    position: relative;
+    > div {
+      padding-right: 40px;
+      > div {
+        margin-right: @base-indent;
+        display: inline;
+      }
+    }
+    > strong {
+      padding-right: 0;
+    }
+    button {
+      padding: 0;
+      position: absolute;
+      top: 0;
+      right: @base-indent * 3;
+    }
+    .glyphicon-arrow-down {
+      top: 2px;
+    }
+  }
+  .active-filters + .active-sorters {
+    margin-top: @base-indent * 2;
+  }
+}
+
 .multiselect, .number-range {
   .popover {
     display: block;
     width: 220px;
     top: 25px;
     .arrow {
+      display: none;
+    }
+    .help-block {
       display: none;
     }
   }
@@ -2044,6 +2140,11 @@ input[type=range] {
   }
 }
 
+.nodes-tab {
+  .screen-loading-bar {
+    margin-top: 40px;
+  }
+}
 
 // NODE LIST
 
@@ -4884,6 +4985,163 @@ input[type=range] {
     .help-block {
       margin-left: 62px;
       font-size: @base-font-size - 2;
+    }
+  }
+}
+
+.history-tab {
+  @base-indent: 20px;
+  @base-size: 142px;
+
+  .transaction-list {
+    padding: 0 0 @base-indent;
+    margin: 10px 0 @base-indent;
+    border-bottom: 1px solid @gray;
+    > div {
+      float: left;
+      margin-right: 4px;
+      i.glyphicon-arrow-right {
+        display: inline-block;
+        margin-left: 3px;
+      }
+    }
+    a.transaction-link, .btn.dropdown-toggle {
+      display: inline-block;
+      background: @gray + 80%;
+      width: @base-size;
+      height: 46px;
+      border-radius: 4px;
+      text-align: center;
+      padding: 12px 0 0;
+      &:hover {
+        text-decoration: none;
+        background: @gray + 60%;
+      }
+      span {
+        .font-semibold;
+        color: @base-text-color;
+      }
+      &.active {
+        background: @green;
+        &:hover {
+          background: @green - 20%;
+        }
+        &:focus {
+          text-decoration: none;
+        }
+        span {
+          color: @white;
+        }
+      }
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+    .dropdown {
+      display: inline-block;
+      .btn.dropdown-toggle {
+        width: @base-size;
+        padding: 0 10px;
+        overflow: hidden;
+        .dropdown-name {
+          display: inline-block;
+          width: @base-size - 40px;
+          overflow: hidden;
+          white-space: pre-wrap;
+          text-align: left;
+          line-height: 18px;
+          float: left;
+        }
+        &.active .dropdown-name {
+          text-align: center;
+        }
+        .caret {
+          display: inline-block;
+          position: absolute;
+          top: 22px;
+        }
+      }
+      .dropdown-menu {
+        top: 48px;
+      }
+    }
+  }
+
+  .screen-loading-bar {
+    margin: 0;
+  }
+
+  .history-table {
+    font-size: @base-font-size - 2;
+    line-height: @base-font-size - 2;
+    table {
+      margin: 0;
+      tbody tr td, thead th {
+        padding: 5px 15px;
+        text-align: left;
+        &:nth-child(2) {text-align: center;} // node id column
+      }
+      thead th {
+        border-bottom-width: 1px;
+        &:nth-child(2) {width: 90px;} // node id column
+        &:nth-child(3) {width: 150px;} // task status column
+        &:nth-child(4), &:nth-child(5) {width: 170px;} // task start and end time columns
+        &:nth-child(6) {width: 80px;} // task details button column
+      }
+      tbody tr:hover {
+        background-color: @base-light-color;
+      }
+      .btn-link {
+        font-size: @base-font-size - 2;
+        line-height: @base-font-size - 2;
+        padding: 0;
+      }
+    }
+    .alert {
+      margin-bottom: 0;
+    }
+  }
+
+  .deployment-history-toolbar {
+    margin-bottom: @base-indent;
+    .buttons {
+      height: 34px;
+      .btn-filters {
+        padding: 7px 10px 8px;
+      }
+    }
+    .filters {
+      margin-top: 17px;
+      .well {
+        margin: 0;
+      }
+    }
+  }
+  .active-sorters-filters {
+    margin-bottom: @base-indent;
+  }
+}
+
+.deployment-task-details-dialog {
+  .modal-body {
+    max-height: 400px;
+    overflow-y: auto;
+    .row {
+      margin: 0;
+      margin-bottom: 2px;
+      color: @gray;
+      padding: 5px 0 8px 0;
+      border-bottom: 1px solid @base-light-color;
+      &:last-child {
+        border-bottom: 0;
+      }
+      > strong, > span {
+        display: inline-block;
+        .break-word;
+      }
+    }
+    .main-attribute {
+      color: @base-text-color;
     }
   }
 }

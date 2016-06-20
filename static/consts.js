@@ -14,9 +14,24 @@
  * under the License.
 **/
 
+export var DEPLOYMENT_TASK_STATUSES = [
+  'pending',
+  'running',
+  'ready',
+  'error',
+  'skipped'
+];
+
+export var DEPLOYMENT_TASK_ATTRIBUTES = [
+  'task_name',
+  'node_id',
+  'status',
+  'time_start',
+  'time_end'
+];
+
 export var DEPLOYMENT_GRAPH_LEVELS = [
   'release',
   'plugin',
   'cluster'
 ];
-
