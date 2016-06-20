@@ -627,3 +627,24 @@ export var MultiSelectControl = React.createClass({
     );
   }
 });
+
+export var ScreenTransitionWrapper = React.createClass({
+  componentWillEnter(cb) {
+    $(ReactDOM.findDOMNode(this)).hide().delay('fast').fadeIn('fast', cb);
+  },
+  componentWillLeave(cb) {
+    $(ReactDOM.findDOMNode(this)).fadeOut('fast', cb);
+  },
+  render() {
+    if (this.props.loading) {
+      return (
+        <div className='row'>
+          <div className='col-xs-12'>
+            <ProgressBar wrapperClassName='screen-loading-bar' />
+          </div>
+        </div>
+      );
+    }
+    return <div>{this.props.children}</div>;
+  }
+});
