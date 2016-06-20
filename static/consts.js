@@ -63,3 +63,11 @@ export const NODE_VIEW_MODES = [
   'standard',
   'compact'
 ];
+
+export const DEPLOYMENT_TASK_STATUSES = [
+  'pending',
+  'running',
+  'ready',
+  'error',
+  'skipped'
+];
