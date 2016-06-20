@@ -2090,3 +2090,39 @@ export var RemoveNodeNetworkGroupDialog = React.createClass({
     ]);
   }
 });
+
+export var TaskDetailsDialog = React.createClass({
+  mixins: [dialogMixin],
+  getDefaultProps() {
+    return {
+      title: i18n('dialog.task_details.title'),
+      modalClass: 'task-details-dialog'
+    };
+  },
+  renderTaskAttribute(value = '') {
+    if (_.isArray(value)) return value.join(', ');
+    if (_.isPlainObject(value)) return JSON.stringify(value);
+    return value;
+  },
+  renderBody() {
+    var {taskData, preferredAttributesOrder} = this.props;
+    var labels = _.keys(taskData).sort((a, b) => {
+      var indexA = _.indexOf(preferredAttributesOrder, a);
+      var indexB = _.indexOf(preferredAttributesOrder, b);
+      if (indexA < 0 && indexB < 0) return 0;
+      if (indexA < 0) return 1;
+      if (indexB < 0) return -1;
+      return indexA - indexB;
+    });
+    return (
+      <div>
+        {_.map(labels, (label) => (
+          <div key={label}>
+            <label>{i18n('dialog.task_details.task.' + label, {defaultValue: label})}</label>
+            {this.renderTaskAttribute(taskData[label])}
+          </div>
+        ))}
+      </div>
+    );
+  }
+});

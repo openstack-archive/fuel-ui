@@ -22,6 +22,7 @@ import models from 'models';
 import dispatcher from 'dispatcher';
 import {backboneMixin, pollingMixin, dispatcherMixin} from 'component_mixins';
 import DashboardTab from 'views/cluster_page_tabs/dashboard_tab';
+import DeploymentHistoryTab from 'views/cluster_page_tabs/deployment_history_tab';
 import NodesTab from 'views/cluster_page_tabs/nodes_tab';
 import NetworkTab from 'views/cluster_page_tabs/network_tab';
 import SettingsTab from 'views/cluster_page_tabs/settings_tab';
@@ -79,6 +80,7 @@ var ClusterPage = React.createClass({
         {url: 'settings', tab: SettingsTab},
         {url: 'vmware', tab: VmWareTab},
         {url: 'logs', tab: LogsTab},
+        {url: 'deployment_history', tab: DeploymentHistoryTab},
         {url: 'healthcheck', tab: HealthCheckTab}
       ];
     },
@@ -115,6 +117,13 @@ var ClusterPage = React.createClass({
         pluginLinks.url = baseUrl + '/plugin_links';
         cluster.set({pluginLinks});
 
+        var deployments = new models.Deployments();
+        cluster.set({deployments});
+        //cluster.get('deployments').fetch = function(options) {
+        //  return this.constructor.__super__.fetch.call(this,
+        //    _.extend({data: {cluster_id: id, task_name: 'deployment'}}, options));
+        //};
+
         cluster.get('nodeNetworkGroups').fetch = function(options) {
           return this.constructor.__super__.fetch.call(this,
             _.extend({data: {cluster_id: id}}, options));
@@ -129,6 +138,7 @@ var ClusterPage = React.createClass({
             cluster.get('settings').fetch(),
             cluster.get('roles').fetch(),
             cluster.get('pluginLinks').fetch({cache: true}),
+            cluster.fetchRelated('deployments'),
             cluster.fetchRelated('nodes'),
             cluster.fetchRelated('tasks'),
             cluster.fetchRelated('nodeNetworkGroups')
@@ -289,7 +299,8 @@ var ClusterPage = React.createClass({
     var subroutes = {
       settings: this.state.activeSettingsSectionName,
       network: this.state.activeNetworkSectionName,
-      logs: utils.serializeTabOptions(this.state.selectedLogs)
+      logs: utils.serializeTabOptions(this.state.selectedLogs),
+      deployment_history: this.state.activeDeploymentHistoryId
     };
     var tab = _.find(availableTabs, {url: this.props.activeTab});
     if (!tab) return null;

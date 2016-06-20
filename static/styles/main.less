@@ -5078,3 +5078,50 @@ input[type=range] {
     }
   }
 }
+
+.node-history-table {
+  table {
+    font-size: @base-font-size - 2;
+    line-height: @base-font-size - 2;
+    tbody td, tbody th {
+      padding: 3px 5px;
+    }
+  }
+  &:last-child table {
+    margin-bottom: 0;
+  }
+  .btn-link {
+    font-size: @base-font-size - 2;
+    line-height: @base-font-size - 2;
+    padding: 0;
+  }
+}
+
+.history-filters {
+  .form-group, label + div {
+    display: inline-block;
+  }
+  select {
+    width: 200px;
+    margin-left: 10px;
+  }
+  .help-block {
+    display: none;
+  }
+}
+
+.task-details-dialog {
+  .modal-body {
+    max-height: 400px;
+    overflow-y: auto;
+    div {
+      max-width: 300px;
+      .break-word();
+    }
+    label {
+      width: 150px;
+      padding-right: 5px;
+      .break-word();
+    }
+  }
+}

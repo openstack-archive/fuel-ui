@@ -1801,4 +1801,42 @@ models.ComponentsCollection = BaseCollection.extend({
   }
 });
 
+models.Deployment = BaseModel.extend({
+  constructorName: 'Deployment',
+  parse(response) {
+    // FIXME(jaranovich): 'name' to be removed from the list after #1593751 fix
+    return _.pick(response, 'id', 'name', 'time_start', 'status');
+  },
+  isActive() {
+    return this.get('status') === 'pending' || this.get('status') === 'running';
+  }
+});
+
+models.Deployments = BaseCollection
+  .extend(cacheMixin)
+  .extend({
+    constructorName: 'Deployments',
+    model: models.Deployment,
+    url: '/api/transactions',
+    comparator: 'id',
+    cacheFor: 60 * 1000,
+    parse(response) {
+      // FIXME(jaranovich): to be removed after #1593751 fix
+      return _.filter(response, (task) => task.name === 'deployment');
+    }
+  });
+
+models.DeploymentSubtask = BaseModel.extend({
+  constructorName: 'DeploymentHistoryItem'
+});
+
+models.DeploymentHistory = BaseCollection.extend({
+  constructorName: 'DeploymentHistory',
+  model: models.DeploymentSubtask,
+  url: '/api/transactions',
+  comparator(task1, task2) {
+    return utils.multiSort(task1, task2, [{attr: 'time_start'}, {attr: 'task_name'}]);
+  }
+});
+
 export default models;
