@@ -21,6 +21,7 @@ import models from 'models';
 import dispatcher from 'dispatcher';
 import {backboneMixin, pollingMixin, dispatcherMixin} from 'component_mixins';
 import DashboardTab from 'views/cluster_page_tabs/dashboard_tab';
+import HistoryTab from 'views/cluster_page_tabs/history_tab';
 import NodesTab from 'views/cluster_page_tabs/nodes_tab';
 import NetworkTab from 'views/cluster_page_tabs/network_tab';
 import SettingsTab from 'views/cluster_page_tabs/settings_tab';
@@ -35,6 +36,9 @@ var ClusterPage = React.createClass({
     backboneMixin('cluster', 'change:name change:is_customized change:release'),
     backboneMixin({
       modelOrCollection: (props) => props.cluster.get('nodes')
+    }),
+    backboneMixin({
+      modelOrCollection: (props) => props.cluster.get('transactions')
     }),
     backboneMixin({
       modelOrCollection: (props) => props.cluster.get('tasks'),
@@ -79,6 +83,7 @@ var ClusterPage = React.createClass({
         {url: 'settings', tab: SettingsTab},
         {url: 'vmware', tab: VmWareTab},
         {url: 'logs', tab: LogsTab},
+        {url: 'history', tab: HistoryTab},
         {url: 'healthcheck', tab: HealthCheckTab}
       ];
     },
@@ -115,6 +120,11 @@ var ClusterPage = React.createClass({
         pluginLinks.url = baseUrl + '/plugin_links';
         cluster.set({pluginLinks});
 
+        cluster.get('transactions').fetch = function(options) {
+          return this.constructor.__super__.fetch.call(this,
+            _.extend({data: {cluster_id: id, task_names: 'deployment'}}, options));
+        };
+
         cluster.get('nodeNetworkGroups').fetch = function(options) {
           return this.constructor.__super__.fetch.call(this,
             _.extend({data: {cluster_id: id}}, options));
@@ -129,6 +139,7 @@ var ClusterPage = React.createClass({
           cluster.get('settings').fetch(),
           cluster.get('roles').fetch(),
           cluster.get('pluginLinks').fetch({cache: true}),
+          cluster.get('transactions').fetch(),
           cluster.fetchRelated('nodes'),
           cluster.fetchRelated('tasks'),
           cluster.fetchRelated('nodeNetworkGroups')
@@ -250,6 +261,7 @@ var ClusterPage = React.createClass({
     .then(() => {
       if (cluster.get('status') === 'new') return Promise.resolve();
       return Promise.all([
+        cluster.get('transactions').fetch(),
         cluster.get('deployedNetworkConfiguration').fetch(),
         cluster.get('deployedSettings').fetch()
       ])
@@ -289,7 +301,8 @@ var ClusterPage = React.createClass({
     var subroutes = {
       settings: this.state.activeSettingsSectionName,
       network: this.state.activeNetworkSectionName,
-      logs: utils.serializeTabOptions(this.state.selectedLogs)
+      logs: utils.serializeTabOptions(this.state.selectedLogs),
+      history: this.state.activeTransactionId
     };
     var tab = _.find(availableTabs, {url: this.props.activeTab});
     if (!tab) return null;

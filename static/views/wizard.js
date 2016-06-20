@@ -847,7 +847,7 @@ var CreateClusterWizard = React.createClass({
           >
             <span>{i18n('dialog.create_cluster_wizard.next')}</span>
             &nbsp;
-            <i className='glyphicon glyphicon-arrow-right' aria-hidden='true'></i>
+            <i className='glyphicon glyphicon-arrow-right-white' aria-hidden='true'></i>
           </button>
         }
         {this.state.createVisible &&
