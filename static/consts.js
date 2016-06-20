@@ -63,3 +63,19 @@ export const NODE_VIEW_MODES = [
   'standard',
   'compact'
 ];
+
+export const DEPLOYMENT_TASK_STATUSES = [
+  'pending',
+  'running',
+  'ready',
+  'error',
+  'skipped'
+];
+
+export const DEPLOYMENT_TASK_ATTRIBUTES = [
+  'task_name',
+  'node_id',
+  'status',
+  'time_start',
+  'time_end'
+];
