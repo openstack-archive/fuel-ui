@@ -20,7 +20,7 @@ import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Backbone from 'backbone';
-import {NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
+import {NODE_LIST_SORTERS, NODE_LIST_FILTERS, DEPLOYMENT_HISTORY_TASK_ATTRIBUTES} from 'consts';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
@@ -2088,5 +2088,47 @@ export var RemoveNodeNetworkGroupDialog = React.createClass({
         {i18n('common.delete_button')}
       </ProgressButton>
     ]);
+  }
+});
+
+export var TaskDetailsDialog = React.createClass({
+  mixins: [dialogMixin],
+  getDefaultProps() {
+    return {
+      title: i18n('dialog.task_details.title'),
+      modalClass: 'task-details-dialog'
+    };
+  },
+  renderTaskAttribute(value) {
+    if (_.isArray(value)) return _.map(value, this.renderTaskAttribute).join(', ');
+    if (_.isPlainObject(value)) return JSON.stringify(value);
+    return value;
+  },
+  renderBody() {
+    var {task} = this.props;
+    var attributes = DEPLOYMENT_HISTORY_TASK_ATTRIBUTES
+      .concat(_.difference(_.keys(task.attributes), DEPLOYMENT_HISTORY_TASK_ATTRIBUTES));
+    return (
+      <div>
+        {_.map(attributes, (attr) => (
+          <div
+            key={attr}
+            className={utils.classNames({
+              row: true,
+              'main-attribute': _.includes(DEPLOYMENT_HISTORY_TASK_ATTRIBUTES, attr)
+            })}
+          >
+            <strong className='col-xs-3'>
+              {i18n('dialog.task_details.task.' + attr, {defaultValue: attr})}
+            </strong>
+            <span className='col-xs-9'>
+              {this.renderTaskAttribute(
+                _.startsWith(attr, 'time') ? utils.formatTimestamp(task.get(attr)) : task.get(attr)
+              )}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
   }
 });
