@@ -1803,4 +1803,53 @@ models.ComponentsCollection = BaseCollection.extend({
   }
 });
 
+models.Deployment = BaseModel.extend({
+  constructorName: 'Deployment',
+  parse(response) {
+    // FIXME(jaranovich): 'name' to be removed from the list after #1593751 fix
+    return _.pick(response, 'id', 'name', 'status');
+  },
+  isActive() {
+    return this.get('status') === 'pending' || this.get('status') === 'running';
+  }
+});
+
+models.Deployments = BaseCollection
+  .extend(cacheMixin)
+  .extend({
+    constructorName: 'Deployments',
+    model: models.Deployment,
+    url: '/api/transactions',
+    comparator: 'id',
+    cacheFor: 60 * 1000,
+    parse(response) {
+      // FIXME(jaranovich): to be removed after #1593751 fix
+      return _.filter(response, (task) => task.name === 'deployment');
+    }
+  });
+
+models.DeploymentHistoryTask = BaseModel.extend({
+  constructorName: 'DeploymentHistoryTask'
+});
+
+models.DeploymentHistory = BaseCollection.extend({
+  constructorName: 'DeploymentHistory',
+  model: models.DeploymentHistoryTask,
+  url: '/api/transactions',
+  comparator(task1, task2) {
+    var node1 = task1.get('node_id');
+    var node2 = task2.get('node_id');
+    if (node1 === node2) return utils.compare(task1, task2, {attr: 'time_start'});
+    // master node tasks should go first
+    if (node1 === 'master') return -1;
+    if (node2 === 'master') return 1;
+    return node1 - node2;
+  },
+  parse(response) {
+    // no need to show tasks of Virtual Sync Node (node_id is Null)
+    // also no need to show tasks that were not executed on any node (node_id is '-')
+    return _.filter(response, (task) => !_.isNull(task.node_id) && task.node_id !== '-');
+  }
+});
+
 export default models;

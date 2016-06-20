@@ -1776,6 +1776,9 @@ input[type=range] {
       &.dashboard {
         .tab-icon-sprite-index(8);
       }
+      &.history {
+        .tab-icon-sprite-index(9);
+      }
     }
   }
 }
@@ -1786,6 +1789,23 @@ input[type=range] {
 
 .sticker label {
   width: 100%;
+}
+
+.well {
+  .well-heading {
+    margin-bottom: 5px;
+    .font-semibold;
+    .btn-link {
+      padding: 0;
+      .glyphicon-filter {
+        margin-top: 4px;
+      }
+    }
+  }
+  .sorter-control, .filter-control {
+    margin-right: 5px;
+    margin-bottom: 5px;
+  }
 }
 
 .node-management-panel {
@@ -1837,16 +1857,7 @@ input[type=range] {
 
   .well {
     margin-bottom: @management-panel-indent * 3;
-    .well-heading {
-      margin-bottom: @management-panel-indent;
-      .font-semibold;
-      .btn-link {
-        padding: 0;
-        .glyphicon-filter {
-          margin-top: 4px;
-        }
-      }
-    }
+
     .multiselect {
       &:last-child .btn-link {
         padding-left: @management-panel-indent;
@@ -1964,10 +1975,6 @@ input[type=range] {
     }
   }
 
-  .sorter-control, .filter-control {
-    margin-right: @management-panel-indent;
-    margin-bottom: 5px;
-  }
   .sorter-control {
     .glyphicon {
       padding-left: @management-panel-indent;
@@ -2122,6 +2129,11 @@ input[type=range] {
   }
 }
 
+.nodes-tab {
+  .screen-loading-bar {
+    margin-top: 40px;
+  }
+}
 
 // NODE LIST
 
@@ -5075,6 +5087,97 @@ input[type=range] {
     .help-block {
       margin-left: 62px;
       font-size: @base-font-size - 2;
+    }
+  }
+}
+
+.history-tab {
+  @base-indent: 20px;
+
+  .deployment-list {
+    padding: 0 0 @base-indent;
+    margin: 10px 0 @base-indent;
+    border-bottom: 1px solid @gray;
+    a {
+      display: block;
+      float: left;
+      background: @gray + 80%;
+      width: 144px;
+      height: 46px;
+      border-radius: 4px;
+      text-align: center;
+      padding-top: 12px;
+      margin-right: @base-indent;
+      &:hover {
+        text-decoration: none;
+        background: @gray + 60%;
+      }
+      span {
+        .font-semibold;
+        color: @base-text-color;
+      }
+      &.active {
+        background: @green;
+        &:hover {
+          background: @green - 20%;
+        }
+        span {
+          color: white;
+        }
+      }
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+
+  .history-table {
+    font-size: @base-font-size - 2;
+    line-height: @base-font-size - 2;
+    tbody tr td, thead th {
+      padding: 3px 5px;
+      text-align: center;
+    }
+    thead th {
+      &:nth-child(1) {text-align: left;} // task name column
+      &:nth-child(2) {width: 90px;} // node id column
+      &:nth-child(3) {width: 150px;} // task status column
+      &:nth-child(4), &:nth-child(5) {width: 170px;} // task start and end time columns
+      &:nth-child(6) {width: 80px;} // task details button column
+    }
+    tbody tr td {
+      &:nth-child(1) {text-align: left;} // task name column
+    }
+    .btn-link {
+      font-size: @base-font-size - 2;
+      line-height: @base-font-size - 2;
+      padding: 0;
+    }
+  }
+
+  .deployment-history-toolbar {
+    margin-bottom: 17px;
+    .btn {
+      padding: 7px 10px 8px;
+    }
+    .filters {
+      margin-top: 17px;
+    }
+  }
+}
+
+.task-details-dialog {
+  .modal-body {
+    max-height: 400px;
+    overflow-y: auto;
+    div {
+      max-width: 300px;
+      .break-word();
+    }
+    label {
+      width: 150px;
+      padding-right: 5px;
+      .break-word();
     }
   }
 }
