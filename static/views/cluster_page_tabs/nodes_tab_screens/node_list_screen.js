@@ -937,14 +937,17 @@ ManagementPanel = React.createClass({
     this.props.changeSearch.cancel();
     this.props.updateSearch('');
   },
-  activateSearch() {
-    this.setState({activeSearch: true});
+  attachSearchEvent() {
     $('html').on('click.search', (e) => {
       if (!this.props.search && this.refs.search &&
         !$(e.target).closest(ReactDOM.findDOMNode(this.refs.search)).length) {
         this.setState({activeSearch: false});
       }
     });
+  },
+  activateSearch() {
+    this.setState({activeSearch: true});
+    this.attachSearchEvent();
   },
   onSearchKeyDown(e) {
     if (e.key === 'Escape') {
@@ -954,6 +957,9 @@ ManagementPanel = React.createClass({
   },
   componentWillUnmount() {
     $('html').off('click.search');
+  },
+  componentDidMount() {
+    if (this.state.activeSearch) this.attachSearchEvent();
   },
   removeSorting(sorter) {
     this.props.removeSorting(sorter);
