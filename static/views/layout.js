@@ -295,7 +295,6 @@ var NotificationsPopover = React.createClass({
   showNodeInfo(id) {
     this.props.toggle(false);
     var node = new models.Node({id: id});
-    node.fetch();
     ShowNodeInfoDialog.show({node: node});
   },
   markAsRead() {

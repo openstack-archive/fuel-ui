@@ -1103,6 +1103,12 @@ export var ShowNodeInfoDialog = React.createClass({
     this.setDialogTitle();
 
     var {cluster, node} = this.props;
+    this.setState({actionInProgress: true});
+    node.fetch()
+      .catch(() => true)
+      .then(() => {
+        this.setState({actionInProgress: false});
+      });
 
     if (node.get('pending_addition') && node.hasRole('virt')) {
       var VMsConfModel = new models.BaseModel();
@@ -1489,9 +1495,19 @@ export var ShowNodeInfoDialog = React.createClass({
     var sortOrder = {
       disks: ['name', 'model', 'size'],
       interfaces: ['name', 'mac', 'state', 'ip', 'netmask', 'current_speed', 'max_speed',
-        'driver', 'bus_info']
+        'driver', 'bus_info', 'networks']
     };
     var groupEntries = this.props.node.get('meta')[group];
+    if (group === 'interfaces') {
+      var networkData = this.props.node.get('network_data');
+      _.each(groupEntries, (ifc) => {
+        var assignedNetworks = _.filter(networkData, ['dev', ifc.name]);
+        if (!_.isEmpty(assignedNetworks)) {
+          ifc.networks = _.map(assignedNetworks,
+            (network) => i18n('network.' + network.name)).join(', ');
+        }
+      });
+    }
     if (group === 'interfaces' || group === 'disks') {
       groupEntries = _.sortBy(groupEntries, 'name');
     }

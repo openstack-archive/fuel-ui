@@ -75,7 +75,6 @@ Notification = React.createClass({
   mixins: [backboneMixin('notification')],
   showNodeInfo(id) {
     var node = new models.Node({id: id});
-    node.fetch();
     ShowNodeInfoDialog.show({node: node});
   },
   markAsRead() {
