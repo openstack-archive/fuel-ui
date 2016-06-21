@@ -62,7 +62,8 @@ registerSuite(() => {
         .clickByCssSelector('.notifications-popover .notification.clickable p')
         .then(() => modal.waitToOpen())
         // Dialog with node information is open
-        .then(() => modal.checkTitle('Node Information'));
+        .assertElementContainsText('.modal-body .node-summary .change-hostname span', 'node',
+          'Node summary Hostname contains "node" text');
     }
   };
 });
