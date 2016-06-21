@@ -294,9 +294,7 @@ var NotificationsPopover = React.createClass({
   mixins: [backboneMixin('notifications')],
   showNodeInfo(id) {
     this.props.toggle(false);
-    var node = new models.Node({id});
-    node.fetch();
-    ShowNodeInfoDialog.show({node});
+    ShowNodeInfoDialog.show({node: new models.Node({id})});
   },
   markAsRead() {
     var notificationsToMark = new models.Notifications(
