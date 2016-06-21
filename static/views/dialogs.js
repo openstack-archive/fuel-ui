@@ -1101,10 +1101,20 @@ export var ShowNodeInfoDialog = React.createClass({
     this.assignAccordionEvents();
   },
   componentDidMount() {
-    this.assignAccordionEvents();
-    this.setDialogTitle();
-
     var {cluster, node} = this.props;
+    this.setState({loading: true});
+    node.fetch()
+      .then(
+        () => {
+          this.assignAccordionEvents();
+          this.setDialogTitle();
+          this.setState({loading: false});
+        },
+        (response) => {
+          this.showError(response, i18n('cluster_page.nodes_tab.node_management_panel.' +
+            'node_management_error.load_error'));
+        }
+      );
 
     if (node.get('pending_addition') && node.hasRole('virt')) {
       var VMsConfModel = new models.BaseModel();
@@ -1493,7 +1503,17 @@ export var ShowNodeInfoDialog = React.createClass({
       interfaces: ['name', 'mac', 'state', 'ip', 'netmask', 'current_speed', 'max_speed',
         'driver', 'bus_info']
     };
-    var groupEntries = this.props.node.get('meta')[group];
+    var groupEntries = _.deepClone(this.props.node.get('meta')[group]);
+    if (group === 'interfaces') {
+      var networkData = this.props.node.get('network_data');
+      _.each(groupEntries, (ifc) => {
+        var assignedNetworks = _.filter(networkData, ['dev', ifc.name]);
+        if (!_.isEmpty(assignedNetworks)) {
+          ifc.assigned_networks = _.map(assignedNetworks,
+            (network) => i18n('network.' + network.name)).join(', ');
+        }
+      });
+    }
     if (group === 'interfaces' || group === 'disks') {
       groupEntries = _.sortBy(groupEntries, 'name');
     }
@@ -1619,7 +1639,7 @@ export var ShowNodeInfoDialog = React.createClass({
     );
   },
   renderBody() {
-    if (!this.props.node.get('meta')) return <ProgressBar />;
+    if (this.state.loading) return <ProgressBar />;
     return (
       <div className='node-details-popup enable-selection'>
         {this.renderNodeSummary()}
