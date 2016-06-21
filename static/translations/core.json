@@ -85,6 +85,7 @@
                 "interfaces": "Interfaces",
                 "interfaces_amount": "__count__ interface",
                 "interfaces_amount_plural": "__count__ interfaces",
+                "no_ifc_networks": "None",
                 "disks_amount": "__count__ disk (__size__)",
                 "disks_amount_plural": "__count__ disks (__size__)",
                 "cpu_details": "__real__ real (__total__ total) CPU",
@@ -611,6 +612,7 @@
                         },
                         "node_management_error": {
                             "title": "Node Management Error",
+                            "load_error": "Unable to load node information.",
                             "saving_warning": "Unable to apply changes.",
                             "labels_warning": "Unable to apply labels.",
                             "disks_configuration_warning": "Selected nodes have different disk capacities.",

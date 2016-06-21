@@ -1279,7 +1279,8 @@ export var ShowNodeInfoDialog = React.createClass({
       nodeAttributesError: null,
       savingError: null,
       loadDefaultsError: null,
-      configModels: null
+      configModels: null,
+      loading: true
     };
   },
   goToConfigurationScreen(url) {
@@ -1353,47 +1354,51 @@ export var ShowNodeInfoDialog = React.createClass({
     this.assignAccordionEvents();
   },
   componentDidMount() {
-    this.assignAccordionEvents();
-    this.setDialogTitle();
-
     var {cluster, node} = this.props;
-
-    if (node.get('pending_addition') && node.hasRole('virt')) {
-      var VMsConfModel = new models.BaseModel();
-      VMsConfModel.url = _.result(node, 'url') + '/vms_conf';
-      this.updateProps({VMsConfModel: VMsConfModel});
-      this.setState({actionInProgress: true});
-
-      VMsConfModel.fetch()
-        .catch(() => true)
-        .then(() => {
-          this.setState({
-            actionInProgress: false,
-            VMsConf: JSON.stringify(VMsConfModel.get('vms_conf'))
-          });
-        });
-    }
-    var nodeAttributesModel = new models.NodeAttributes();
-    nodeAttributesModel.url = _.result(node, 'url') + '/attributes';
-    this.setState({actionInProgress: true});
-
-    nodeAttributesModel.fetch()
-      .catch(() => true)
+    node.fetch()
+      .catch((response) => {
+        this.showError(
+          response,
+          i18n('cluster_page.nodes_tab.node_management_panel.node_management_error.load_error')
+        );
+        return Promise.reject();
+      })
       .then(() => {
-        var configModels = cluster && {
-          settings: cluster.get('settings'),
-          version: app.version,
-          node_attributes: nodeAttributesModel,
-          default: nodeAttributesModel
-        };
-        nodeAttributesModel.isValid({models: configModels});
-        this.setState({
-          actionInProgress: false,
-          nodeAttributes: nodeAttributesModel,
-          initialNodeAttributes: _.cloneDeep(nodeAttributesModel.attributes),
-          nodeAttributesError: nodeAttributesModel.validationError,
-          configModels
-        });
+        this.setState({loading: false});
+        this.setDialogTitle();
+
+        if (node.get('pending_addition') && node.hasRole('virt')) {
+          var VMsConfModel = new models.BaseModel();
+          VMsConfModel.url = _.result(node, 'url') + '/vms_conf';
+          this.updateProps({VMsConfModel});
+          VMsConfModel.fetch()
+            .catch(() => true)
+            .then(() => {
+              this.setState({
+                VMsConf: JSON.stringify(VMsConfModel.get('vms_conf'))
+              });
+            });
+        }
+
+        var nodeAttributesModel = new models.NodeAttributes();
+        nodeAttributesModel.url = _.result(node, 'url') + '/attributes';
+        nodeAttributesModel.fetch()
+          .catch(() => true)
+          .then(() => {
+            var configModels = cluster && {
+              settings: cluster.get('settings'),
+              version: app.version,
+              node_attributes: nodeAttributesModel,
+              default: nodeAttributesModel
+            };
+            nodeAttributesModel.isValid({models: configModels});
+            this.setState({
+              nodeAttributes: nodeAttributesModel,
+              initialNodeAttributes: _.cloneDeep(nodeAttributesModel.attributes),
+              nodeAttributesError: nodeAttributesModel.validationError,
+              configModels
+            });
+          });
       });
   },
   onNodeAttributesChange(groupName, name, value, nestedValue) {
@@ -1797,9 +1802,19 @@ export var ShowNodeInfoDialog = React.createClass({
     var sortOrder = {
       disks: ['name', 'model', 'size'],
       interfaces: ['name', 'mac', 'state', 'ip', 'netmask', 'current_speed', 'max_speed',
-        'driver', 'bus_info']
+        'driver', 'bus_info', 'pxe', 'assigned_networks']
     };
-    var groupEntries = this.props.node.get('meta')[group];
+    var groupEntries = _.cloneDeep(this.props.node.get('meta')[group]);
+    if (group === 'interfaces') {
+      var networkData = this.props.node.get('network_data');
+      _.each(groupEntries, (ifcData) => {
+        var assignedNetworks = _.filter(networkData, {dev: ifcData.name});
+        ifcData.assigned_networks = assignedNetworks.length ?
+          _.map(assignedNetworks, (network) => i18n('network.' + network.name)).join(', ')
+        :
+          i18n('node_details.no_ifc_networks');
+      });
+    }
     if (group === 'interfaces' || group === 'disks') {
       groupEntries = _.sortBy(groupEntries, 'name');
     }
@@ -1918,7 +1933,7 @@ export var ShowNodeInfoDialog = React.createClass({
     );
   },
   renderBody() {
-    if (!this.props.node.get('meta')) return <ProgressBar />;
+    if (this.state.loading) return <ProgressBar />;
     return (
       <div className='node-details-popup enable-selection'>
         {this.renderNodeSummary()}
