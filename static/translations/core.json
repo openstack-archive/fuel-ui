@@ -593,6 +593,7 @@
                         },
                         "node_management_error": {
                             "title": "Node Management Error",
+                            "load_error": "Unable to load node information.",
                             "saving_warning": "Unable to apply changes.",
                             "labels_warning": "Unable to apply labels.",
                             "disks_configuration_warning": "Selected nodes have different disk capacities.",
