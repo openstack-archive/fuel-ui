@@ -390,6 +390,14 @@ var LogsTable = React.createClass({
   handleShowMoreClick(value) {
     return this.props.onShowMoreClick(value);
   },
+  handleRowSelect(e) {
+    // row selects by mouse triple click
+    if (e.detail === 3 && document.createRange) {
+      var range = document.createRange();
+      range.selectNodeContents($(e.target).closest('tr')[0]);
+      window.getSelection().addRange(range);
+    }
+  },
   getLevelClass(level) {
     return {
       DEBUG: 'debug',
@@ -410,7 +418,11 @@ var LogsTable = React.createClass({
     if (logsEntries && logsEntries.length) {
       tabRows = _.map(logsEntries, (entry, index) => {
         var key = logsEntries.length - index;
-        return <tr key={key} className={this.getLevelClass(entry[1])}>
+        return <tr
+          id={key}
+          key={key}
+          className={this.getLevelClass(entry[1])}
+          onClick={this.handleRowSelect}>
           <td>{entry[0]}</td>
           <td>{entry[1]}</td>
           <td>{entry[2]}</td>
