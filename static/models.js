@@ -802,7 +802,7 @@ models.Settings = Backbone.DeepModel
         // plugins installed to already deployed environment
         // are not presented in the environment deployed configuration
         var sectionToCheck = datatoCheck[sectionName];
-        if (this.isPlugin(section) && !sectionToCheck) return false;
+        if (this.isPlugin(section) && !sectionToCheck) return section.metadata.enabled;
 
         var metadata = section.metadata;
         if (metadata) {
