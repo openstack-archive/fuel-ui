@@ -163,6 +163,7 @@ class App {
     $.ajaxSetup({cache: false});
 
     this.overrideBackboneSyncMethod();
+    this.overrideBackbonePromises();
 
     this.router = new Router();
     this.version = new models.FuelVersion();
@@ -271,7 +272,7 @@ class App {
         return app.keystoneClient.authenticate()
           .catch(() => {
             app.logout();
-            return $.Deferred().reject();
+            return Promise.reject();
           })
           .then(() => {
             app.user.set('token', app.keystoneClient.token);
@@ -283,12 +284,30 @@ class App {
             if (response && response.status === 401) {
               app.logout();
             }
-            return $.Deferred().reject(response);
+            return Promise.reject(response);
           });
       }
       return originalSyncMethod.call(this, method, model, options);
     };
     Backbone.sync.patched = true;
+  }
+
+  overrideBackbonePromises() {
+    Backbone.ajax = function ajax() {
+      return Promise.resolve(Backbone.$.ajax(...arguments));
+    };
+
+    var originalSaveMethod = Backbone.Model.prototype.save;
+    Backbone.Model.prototype.save = function save() {
+      var xhr = originalSaveMethod.apply(this, arguments);
+      return (xhr !== false) ? xhr : Promise.reject(new Error('ModelError'));
+    };
+
+    var originalDestroyMethod = Backbone.Model.prototype.destroy;
+    Backbone.Model.prototype.destroy = function destroy() {
+      var xhr = originalDestroyMethod.apply(this, arguments);
+      return (xhr !== false) ? xhr : Promise.reject(new Error('ModelError'));
+    };
   }
 }
 
