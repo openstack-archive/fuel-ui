@@ -337,6 +337,18 @@ var utils = {
     return addLeadingZero(date.getHours()) + ':' + addLeadingZero(date.getMinutes()) + ':' +
       addLeadingZero(date.getSeconds()) + ' ' + addLeadingZero(date.getDate()) + '/' +
       addLeadingZero(date.getMonth() + 1) + '/' + date.getFullYear();
+  },
+  dateToSeconds(date) {
+    if (!date) return 0;
+    return new Date(date).getTime() / 1000;
+  },
+  getStringHashCode(str) {
+    var hash = 0;
+    for (var i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash = hash & hash; // convert to 32bit integer
+    }
+    return hash;
   }
 };
 
