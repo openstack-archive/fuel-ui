@@ -334,6 +334,9 @@ var utils = {
     return addLeadingZero(date.getHours()) + ':' + addLeadingZero(date.getMinutes()) + ':' +
       addLeadingZero(date.getSeconds()) + ' ' + addLeadingZero(date.getDate()) + '/' +
       addLeadingZero(date.getMonth() + 1) + '/' + date.getFullYear();
+  },
+  getSeconds(date) {
+    return Date.parse(new Date(date).toUTCString()) / 1000;
   }
 };
 
