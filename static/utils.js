@@ -334,6 +334,18 @@ var utils = {
     return addLeadingZero(date.getHours()) + ':' + addLeadingZero(date.getMinutes()) + ':' +
       addLeadingZero(date.getSeconds()) + ' ' + addLeadingZero(date.getDate()) + '/' +
       addLeadingZero(date.getMonth() + 1) + '/' + date.getFullYear();
+  },
+  getSeconds(date) {
+    return Date.parse(new Date(date).toUTCString()) / 1000;
+  },
+  getColorFromString(str) {
+    var hash = 0;
+    for (var i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash = hash & hash; // convert to 32bit integer
+    }
+    var color = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+    return '#' + ('00000'.substring(0, 6 - color.length) + color);
   }
 };
 

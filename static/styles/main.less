@@ -348,6 +348,18 @@
   height: 17px;
 }
 
+.glyphicon-timeline {
+  .icon-default-styles(-12px, -1611px);
+  width: 17px;
+  height: 17px;
+}
+
+.glyphicon-table {
+  .icon-default-styles(-12px, -1571px);
+  width: 17px;
+  height: 17px;
+}
+
 .base-btn-link-colors() {
   @base-btn-link-color: @link-color;
   color: @base-btn-link-color;
@@ -5129,6 +5141,10 @@ input[type=range] {
   @base-indent: 20px;
   @base-size: 142px;
 
+  .alert {
+    margin-bottom: 0;
+  }
+
   .transaction-list {
     padding: 0 0 @base-indent;
     margin: 10px 0 @base-indent;
@@ -5215,7 +5231,7 @@ input[type=range] {
       tbody tr td, thead th {
         padding: 5px 15px;
         text-align: left;
-        &:nth-child(2) {text-align: center;} // node id column
+        &:nth-child(2), &:nth-child(6) {text-align: center;} // node id and task details columns
       }
       thead th {
         border-bottom-width: 1px;
@@ -5242,7 +5258,10 @@ input[type=range] {
     margin-bottom: @base-indent;
     .buttons {
       height: 34px;
-      .btn-filters {
+      .view-modes {
+        margin-right: @base-indent;
+      }
+      .btn {
         padding: 7px 10px 8px;
       }
     }
@@ -5278,6 +5297,109 @@ input[type=range] {
     }
     .main-attribute {
       color: @base-text-color;
+    }
+  }
+}
+
+.deployment-timeline {
+  @row-height: 28px;
+  @border-color: @gray + 50%;
+  border: 1px solid @border-color;
+
+  .node-names {
+    width: 220px;
+    float: left;
+    > div {
+      width: 100%;
+      padding: 6px 20px 5px;
+      border-right: 1px solid @border-color;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: @base-font-size - 2;
+      height: @row-height;
+      &:nth-of-type(2n+1) {
+        background: @gray + 100%;
+      }
+    }
+  }
+
+  .node-timelines {
+    position: relative;
+    float: left;
+    overflow-x: scroll;
+    width: 908px;
+    .current-time-marker {
+      position: absolute;
+      width: 1px;
+      height: 100%;
+      top: 0;
+      border-left: 1px solid @orange;
+    }
+    .header {
+      > div {
+        border-right: 1px solid @border-color;
+        color: @gray;
+        float: left;
+        font-size: @base-font-size - 5;
+        text-align: right;
+        padding: 3px 4px;
+        height: 100%;
+        width: 75px;
+        &:last-child {
+          border: none;
+        }
+      }
+    }
+    .timelines {
+      overflow-y: auto;
+      max-height: 300px;
+      > div {
+        height: @row-height;
+        position: relative;
+        &:nth-of-type(2n+1) {
+          background: @gray + 100%;
+        }
+        .node-task {
+          overflow: visible;
+          position: absolute;
+          border: 1px solid transparent;
+          height: 8px;
+          top: 10px;
+          &:hover {
+            border-color: @blue;
+          }
+          .error-marker {
+            border: 1px solid red;
+            background: red;
+            border-radius: 50%;
+            height: 6px;
+            width: 6px;
+            position: relative;
+            top: -8px;
+          }
+          .popover {
+            display: block;
+            width: 250px;
+            font-size: @base-font-size - 2;
+            p {margin: 0;}
+            .error p.status span {
+              .font-semibold;
+              .text-danger;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .node-names, .node-timelines {
+    div.header {
+      background: none;
+      border-bottom: 1px solid @border-color;
+      height: 20px;
+    }
+    div.delimiter {
+      height: 10px;
     }
   }
 }

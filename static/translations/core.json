@@ -338,6 +338,10 @@
                     "no_finished_deployment_alert": "No deployment finished yet."
                 },
                 "deployment_history": {
+                    "timeline_mode_tooltip": "Timeline View",
+                    "table_mode_tooltip": "Table View",
+                    "zoom_in_tooltip": "Zoom In",
+                    "zoom_out_tooltip": "Zoom Out",
                     "task_name_header": "Task",
                     "node_id_header": "Node ID",
                     "status_header": "Status",
@@ -349,7 +353,11 @@
                     "filter_by_status": "Task Status",
                     "task_details": "Details",
                     "filter_tooltip": "Filter Tasks",
-                    "no_tasks_matched_filters": "No tasks matched the applied filters."
+                    "no_tasks_matched_filters": "No tasks matched the applied filters.",
+                    "seconds": "__seconds__ sec",
+                    "minutes": "__minutes__ minutes",
+                    "minutes_and_seconds": "__minutes__ min __seconds__ sec",
+                    "hours": "__hours__ hr __minutes__ min"
                 },
                 "nodes_tab": {
                     "roles": "Roles",
