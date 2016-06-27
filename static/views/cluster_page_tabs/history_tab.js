@@ -180,6 +180,9 @@ HistoryTab = React.createClass({
                     {...this.props}
                     ref='screen'
                     deploymentHistory={this.state.deploymentHistory}
+                    isRunning={
+                      cluster.get('transactions').get(activeTransactionId).match({active: true})
+                    }
                   />
                 </ScreenTransitionWrapper>
               </ReactTransitionGroup>
