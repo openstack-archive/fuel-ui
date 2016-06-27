@@ -336,6 +336,8 @@
                     "no_finished_deployment_alert": "No deployment finished yet."
                 },
                 "deployment_history": {
+                    "timeline_mode_tooltip": "Timeline View",
+                    "table_mode_tooltip": "Table View",
                     "task_name_header": "Task",
                     "status_header": "Status",
                     "time_start_header": "Start Time",
@@ -345,7 +347,9 @@
                     "filter_by": "Filter By",
                     "filter_by_task_name": "Task Name",
                     "filter_by_task_status": "Task Status",
-                    "task_details": "Details"
+                    "task_details": "Details",
+                    "minutes": "__minutes__ min",
+                    "hours": "__hours__ hr __minutes__ min"
                 },
                 "nodes_tab": {
                     "roles": "Roles",

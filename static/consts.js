@@ -71,3 +71,8 @@ export const DEPLOYMENT_TASK_STATUSES = [
   'error',
   'skipped'
 ];
+
+export const DEPLOYMENT_HISTORY_VIEW_MODES = [
+  'timeline',
+  'table'
+];

@@ -5136,3 +5136,92 @@ input[type=range] {
     }
   }
 }
+
+.deployment-timeline {
+  @border-color: @gray + 50%;
+  border: 1px solid @border-color;
+  max-height: 300px;
+  /*overflow: scroll;*/
+  overflow: visible;
+  position: static !important;
+  .timeline-header {
+    border-bottom: 1px solid @border-color;
+    .node {
+      height: 20px;
+    }
+    .timeline div {
+      border-right: 1px solid @border-color;
+      color: @gray;
+      float: left;
+      font-size: @base-font-size - 4;
+      text-align: right;
+      height: 20px;
+      padding: 2px;
+    }
+  }
+  .timeline-body {
+    position: relative;
+    .delimiter div {
+      height: 10px;
+      &.node {
+        float: none;
+      }
+    }
+    .node-timeline {
+      color: @gray - 40%;
+      font-size: @base-font-size - 2;
+      height: 30px;
+      &:nth-of-type(2n + 1) {
+        background: @gray + 100%;
+      }
+      .timeline {
+        float: left;
+        position: relative;
+        .node-task {
+          position: absolute;
+          border: 1px solid transparent;
+          height: 12px;
+          top: 9px;
+          &:hover {
+            border-color: @blue;
+          }
+          .error-marker {
+            border: 1px solid red;
+            background: red;
+            border-radius: 50%;
+            height: 6px;
+            width: 6px;
+            position: relative;
+            top: -8px;
+          }
+          .popover-container {
+            width: 100%;
+            height: 100%;
+            .popover {
+              display: block;
+              width: 200px;
+              font-size: @base-font-size - 2;
+              margin-top: 22px;
+              p {margin: 0;}
+            }
+          }
+        }
+      }
+    }
+    .current-time {
+      position: absolute;
+      width: 1px;
+      height: 100%;
+      top: 0;
+      border-left: 1px solid @orange;
+    }
+  }
+  .node {
+    width: 250px !important;
+    padding: 6px 5px 5px 25px;
+    height: 100%;
+    border-right: 1px solid @border-color;
+    overflow: hidden;
+    float: left;
+  }
+}
