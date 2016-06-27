@@ -79,3 +79,8 @@ export const DEPLOYMENT_TASK_ATTRIBUTES = [
   'time_start',
   'time_end'
 ];
+
+export const DEPLOYMENT_HISTORY_VIEW_MODES = [
+  'timeline',
+  'table'
+];

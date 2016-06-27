@@ -17,15 +17,24 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
-import {Table, Tooltip, MultiSelectControl} from 'views/controls';
+import {Table, Tooltip, Popover, MultiSelectControl} from 'views/controls';
 import {DeploymentTaskDetailsDialog} from 'views/dialogs';
-import {DEPLOYMENT_TASK_STATUSES, DEPLOYMENT_TASK_ATTRIBUTES} from 'consts';
+import {
+  DEPLOYMENT_HISTORY_VIEW_MODES, DEPLOYMENT_TASK_STATUSES, DEPLOYMENT_TASK_ATTRIBUTES
+} from 'consts';
 
 var ns = 'cluster_page.deployment_history.';
 
 var DeploymentHistory = React.createClass({
+  getDefaultProps() {
+    return {
+      timelineIntervalWidth: 75,
+      timelineWidth: 908
+    };
+  },
   getInitialState() {
     return {
+      viewMode: 'timeline',
       areFiltersVisible: false,
       openFilter: null,
       filters: [
@@ -33,13 +42,13 @@ var DeploymentHistory = React.createClass({
           name: 'task_name',
           label: i18n(ns + 'filter_by_task_name'),
           values: [],
-          options: (deploymentHistory) => _.uniq(deploymentHistory.map('task_name')).sort(),
+          options: _.uniq(this.props.deploymentHistory.map('task_name')).sort(),
           addOptionsFilter: true
         }, {
           name: 'node_id',
           label: i18n(ns + 'filter_by_node_id'),
           values: [],
-          options: (deploymentHistory) => _.uniq(deploymentHistory.map('node_id')),
+          options: _.uniq(this.props.deploymentHistory.map('node_id')),
           addOptionsFilter: true
         }, {
           name: 'status',
@@ -47,8 +56,37 @@ var DeploymentHistory = React.createClass({
           values: [],
           options: () => DEPLOYMENT_TASK_STATUSES
         }
-      ]
+      ],
+      secondsPerPixel: this.getTimelineMaxsecondsPerPixel()
     };
+  },
+  // FIXME(jaranovich): timeline start and end times should be provided from transaction
+  // time_start and time_end attributes (#1593753 bug)
+  getTimelineTimeStart() {
+    var {deploymentHistory} = this.props;
+    return _.min(
+      _.compact(deploymentHistory.map((task) => utils.dateToSeconds(task.get('time_start'))))
+    );
+  },
+  getTimelineTimeEnd() {
+    var {transaction, deploymentHistory} = this.props;
+    return transaction.match({status: 'running'}) ? (_.now() / 1000) :
+      _.max(deploymentHistory.map((task) => utils.dateToSeconds(task.get('time_end'))));
+  },
+  getTimelineMaxsecondsPerPixel() {
+    return parseFloat(
+      (this.getTimelineTimeEnd() - this.getTimelineTimeStart()) / this.props.timelineWidth
+    ).toFixed(2);
+  },
+  zoomInTimeline() {
+    this.setState({secondsPerPixel: this.state.secondsPerPixel / 2});
+  },
+  zoomOutTimeline() {
+    this.setState({secondsPerPixel: this.state.secondsPerPixel * 2});
+  },
+  changeViewMode(viewMode) {
+    if (viewMode === this.state.viewMode) return;
+    this.setState({viewMode});
   },
   toggleFilters() {
     this.setState({
@@ -77,31 +115,76 @@ var DeploymentHistory = React.createClass({
     this.setState({filters});
   },
   render() {
-    var {areFiltersVisible, openFilter, filters} = this.state;
-    var {deploymentHistory} = this.props;
+    var {viewMode, areFiltersVisible, openFilter, filters, secondsPerPixel} = this.state;
+    var {deploymentHistory, transaction, timelineIntervalWidth} = this.props;
 
     var areFiltersApplied = _.some(filters, ({values}) => values.length);
-    var deploymentTasks = deploymentHistory.filter(
-      (task) => _.every(filters,
-        ({name, values}) => !values.length || _.includes(values, task.get(name))
-      )
-    );
 
     return (
       <div className='deployment-history-table'>
         <div className='deployment-history-toolbar row'>
           <div className='col-xs-12 buttons'>
-            <Tooltip wrap key='filters-btn' text={i18n(ns + 'filter_tooltip')}>
-              <button
-                onClick={this.toggleFilters}
-                className={utils.classNames({
-                  'btn btn-default pull-left btn-filters': true,
-                  active: areFiltersVisible
+            <div className='view-modes pull-left'>
+              <div className='btn-group' data-toggle='buttons'>
+                {_.map(DEPLOYMENT_HISTORY_VIEW_MODES, (mode) => {
+                  return (
+                    <Tooltip key={mode + '-view'} text={i18n(ns + mode + '_mode_tooltip')}>
+                      <label
+                        className={utils.classNames({
+                          'btn btn-default pull-left': true,
+                          [mode + '-view']: true,
+                          active: mode === viewMode
+                        })}
+                        onClick={() => this.changeViewMode(mode)}
+                      >
+                        <input type='radio' name='view_mode' value={mode} />
+                        <i className={utils.classNames('glyphicon', 'glyphicon-' + mode)} />
+                      </label>
+                    </Tooltip>
+                  );
                 })}
-              >
-                <i className='glyphicon glyphicon-filter' />
-              </button>
-            </Tooltip>
+              </div>
+            </div>
+            {viewMode === 'timeline' &&
+              <div className='zoom-controls pull-right'>
+                <div className='btn-group' data-toggle='buttons'>
+                  <Tooltip text={i18n(ns + 'zoom_in_tooltip')}>
+                    <button
+                      className='btn btn-default btn-zoom-in pull-left'
+                      onClick={this.zoomInTimeline}
+                      disabled={
+                        // interval should be equal at least 1 second
+                        secondsPerPixel / 2 < 1 / timelineIntervalWidth
+                      }
+                    >
+                      <i className='glyphicon glyphicon-plus-dark' />
+                    </button>
+                  </Tooltip>
+                  <Tooltip text={i18n(ns + 'zoom_out_tooltip')}>
+                    <button
+                      className='btn btn-default btn-zoom-out pull-left'
+                      onClick={this.zoomOutTimeline}
+                      disabled={secondsPerPixel * 2 > this.getTimelineMaxsecondsPerPixel()}
+                    >
+                      <i className='glyphicon glyphicon-minus-dark' />
+                    </button>
+                  </Tooltip>
+                </div>
+              </div>
+            }
+            {viewMode === 'table' &&
+              <Tooltip wrap text={i18n(ns + 'filter_tooltip')}>
+                <button
+                  onClick={this.toggleFilters}
+                  className={utils.classNames({
+                    'btn btn-default pull-left btn-filters': true,
+                    active: areFiltersVisible
+                  })}
+                >
+                  <i className='glyphicon glyphicon-filter' />
+                </button>
+              </Tooltip>
+            }
           </div>
           {areFiltersVisible && (
             <div className='filters col-xs-12'>
@@ -121,16 +204,11 @@ var DeploymentHistory = React.createClass({
                   (filter) => <MultiSelectControl
                     {...filter}
                     key={filter.name}
-                    className={utils.classNames({
-                      'filter-control': true,
-                      ['filter-by-' + filter.name]: true
-                    })}
+                    className={utils.classNames('filter-control', ['filter-by-' + filter.name])}
                     onChange={_.partial(this.changeFilter, filter.name)}
                     isOpen={openFilter === filter.name}
                     toggle={_.partial(this.toggleFilter, filter.name)}
-                    options={_.map(filter.options(deploymentHistory),
-                      (value) => ({name: value, title: value})
-                    )}
+                    options={_.map(filter.options, (value) => ({name: value, title: value}))}
                   />
                 )}
               </div>
@@ -143,7 +221,7 @@ var DeploymentHistory = React.createClass({
               <strong className='col-xs-1'>{i18n(ns + 'filter_by')}</strong>
               <div className='col-xs-11'>
                 {_.map(filters, ({name, label, values}) => {
-                  if (!values.length) return;
+                  if (!values.length) return null;
                   return <div key={name}>
                     <strong>{label + ':'}</strong> <span>{values.join(', ')}</span>
                   </div>;
@@ -159,35 +237,193 @@ var DeploymentHistory = React.createClass({
           </div>
         }
         <div className='row'>
-          <div className='history-table col-xs-12'>
-            {deploymentTasks.length ?
-              <Table
-                head={
-                  DEPLOYMENT_TASK_ATTRIBUTES
-                    .map((attr) => ({label: i18n(ns + attr + '_header')}))
-                    .concat([{label: ''}])
-                }
-                body={_.map(deploymentTasks,
-                  (task) => DEPLOYMENT_TASK_ATTRIBUTES
-                    .map((attr) => _.startsWith(attr, 'time') ?
-                      utils.formatTimestamp(task.get(attr)) : task.get(attr)
-                    )
-                    .concat([
-                      <button
-                        key={task.get('task_name') + 'details'}
-                        className='btn btn-link'
-                        onClick={() => DeploymentTaskDetailsDialog.show({task})}
-                      >
-                        {i18n(ns + 'task_details')}
-                      </button>
-                    ])
-                )}
+          {viewMode === 'timeline' &&
+            <DeploymentHistoryTimeline
+              {... _.pick(this.props, 'deploymentHistory', 'timelineIntervalWidth')}
+              {... _.pick(this.state, 'secondsPerPixel')}
+              timeStart={this.getTimelineTimeStart()}
+              timeEnd={this.getTimelineTimeEnd()}
+              isRunning={transaction.match({status: 'running'})}
+            />
+          }
+          {viewMode === 'table' &&
+            <DeploymentHistoryTable
+              deploymentTasks={deploymentHistory.filter((task) =>
+                _.every(filters, ({name, values}) =>
+                  !values.length || _.includes(values, task.get(name))
+                )
+              )}
+            />
+          }
+        </div>
+      </div>
+    );
+  }
+});
+
+var DeploymentHistoryTimeline = React.createClass({
+  getIntervalLabel(index) {
+    var {timelineIntervalWidth, secondsPerPixel} = this.props;
+    var seconds = Math.floor(secondsPerPixel * timelineIntervalWidth * (index + 1));
+    var minutes = seconds < 60 ? 0 : Math.floor(seconds / 60);
+    seconds = seconds - (minutes * 60);
+    var hours = minutes < 60 ? 0 : Math.floor(minutes / 60);
+    minutes = minutes - (hours * 60);
+    if (hours) return i18n(ns + 'hours', {hours, minutes});
+    if (minutes) {
+      return i18n(
+        ns + (minutes > 5 ? 'minutes' : 'minutes_and_seconds'),
+        {minutes, seconds}
+      );
+    }
+    return i18n(ns + 'seconds', {seconds});
+  },
+  getTaskWidth(timeStart, timeEnd) {
+    return Math.floor((timeEnd - timeStart) / this.props.secondsPerPixel);
+  },
+  render() {
+    var {
+      deploymentHistory, timeStart, timeEnd, isRunning, timelineIntervalWidth, secondsPerPixel
+    } = this.props;
+    var nodeIds = _.uniq(deploymentHistory.map('node_id'));
+    var intervals = Math.ceil((timeEnd - timeStart) / (secondsPerPixel * timelineIntervalWidth));
+
+    return (
+      <div className='col-xs-12'>
+        <div className='deployment-timeline clearfix'>
+          <div className='node-names'>
+            <div className='header' />
+            <div className='delimiter' />
+            {_.map(nodeIds,
+              (nodeId) => <div key={nodeId}>{nodeId === 'master' ? nodeId : '#' + nodeId}</div>
+            )}
+          </div>
+          <div className='node-timelines'>
+            {isRunning &&
+              <div
+                className='current-time-marker'
+                style={{left: this.getTaskWidth(timeStart, timeEnd)}}
               />
-            :
-              <div className='alert alert-warning'>{i18n(ns + 'no_tasks_matched_filters')}</div>
             }
+            <div className='header clearfix' style={{width: intervals * timelineIntervalWidth}}>
+              {_.times(intervals, (n) => <div key={n}>{this.getIntervalLabel(n)}</div>)}
+            </div>
+            <div className='delimiter' />
+            <div className='timelines' style={{width: intervals * timelineIntervalWidth}}>
+              {_.map(nodeIds,
+                (nodeId) => <NodeTimeline
+                  {... _.pick(this.props, 'nodeId', 'timeStart', 'timeEnd')}
+                  {... _.pick(this, 'getTaskWidth')}
+                  key={nodeId}
+                  tasks={deploymentHistory.filter(
+                    (task) => task.get('node_id') === nodeId &&
+                      _.includes(['ready', 'error', 'running'], task.get('status'))
+                  )}
+                />
+              )}
+            </div>
           </div>
         </div>
+      </div>
+    );
+  }
+});
+
+var NodeTimeline = React.createClass({
+  getInitialState() {
+    return {openPopover: null};
+  },
+  togglePopover(openPopover) {
+    this.setState({openPopover});
+  },
+  getColorFromString(str) {
+    var color = (utils.getStringHashCode(str) & 0x00FFFFFF).toString(16).toUpperCase();
+    return '#' + ('00000'.substring(0, 6 - color.length) + color);
+  },
+  render() {
+    var {tasks, timeStart, timeEnd, getTaskWidth} = this.props;
+    return (
+      <div className='clearfix'>
+        {tasks.map((task) => {
+          var taskName = task.get('task_name');
+          var isError = task.get('status') === 'error';
+          var left = getTaskWidth(timeStart, utils.dateToSeconds(task.get('time_start')));
+          var width = getTaskWidth(
+            utils.dateToSeconds(task.get('time_start')),
+            task.get('time_end') ? utils.dateToSeconds(task.get('time_end')) : timeEnd
+          );
+          return <div
+            key={taskName}
+            className='node-task popover-container'
+            onMouseEnter={() => this.togglePopover(taskName)}
+            onMouseLeave={() => this.togglePopover(null)}
+            style={{background: this.getColorFromString(taskName), left, width}}
+          >
+            {isError &&
+              <div
+                className='error-marker'
+                style={{left: Math.floor(width / 2)}}
+              />
+            }
+            {this.state.openPopover === taskName &&
+              <Popover placement='top' className='task-popover'>
+                <div className={utils.classNames('task-data', task.get('status'))}>
+                  {DEPLOYMENT_TASK_ATTRIBUTES
+                    .map((attr) => <p key={attr} className={attr}>
+                      {i18n('dialog.deployment_task_details.task.' + attr) + ': '}
+                      <span>
+                        {_.startsWith(attr, 'time') ?
+                          utils.formatTimestamp(task.get(attr)) : task.get(attr)
+                        }
+                      </span>
+                    </p>)
+                  }
+                </div>
+                {isError && !!task.get('message') &&
+                  <div className='task-message'>
+                    <i className='glyphicon glyphicon-danger-sign' /> {task.get('message')}
+                  </div>
+                }
+              </Popover>
+            }
+          </div>;
+        })}
+      </div>
+    );
+  }
+});
+
+var DeploymentHistoryTable = React.createClass({
+  render() {
+    var {deploymentTasks} = this.props;
+    return (
+      <div className='history-table col-xs-12'>
+        {deploymentTasks.length ?
+          <Table
+            head={
+              DEPLOYMENT_TASK_ATTRIBUTES
+                .map((attr) => ({label: i18n(ns + attr + '_header')}))
+                .concat([{label: ''}])
+            }
+            body={_.map(deploymentTasks,
+              (task) => DEPLOYMENT_TASK_ATTRIBUTES
+                .map((attr) => _.startsWith(attr, 'time') ?
+                  utils.formatTimestamp(task.get(attr)) : task.get(attr)
+                )
+                .concat([
+                  <button
+                    key={task.get('task_name') + 'details'}
+                    className='btn btn-link'
+                    onClick={() => DeploymentTaskDetailsDialog.show({task})}
+                  >
+                    {i18n(ns + 'task_details')}
+                  </button>
+                ])
+            )}
+          />
+        :
+          <div className='alert alert-warning'>{i18n(ns + 'no_tasks_matched_filters')}</div>
+        }
       </div>
     );
   }
