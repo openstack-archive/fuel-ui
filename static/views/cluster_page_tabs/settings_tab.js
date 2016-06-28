@@ -193,11 +193,7 @@ var SettingsTab = React.createClass({
     var settings = this.props.cluster.get('settings');
     var name = utils.makePath(groupName, settingName, settings.getValueAttribute(settingName));
     this.state.settingsForChecks.set(name, value);
-    // FIXME: the following hacks cause we can't pass {validate: true} option to set method
-    // this form of validation isn't supported in Backbone DeepModel
-    settings.validationError = null;
-    settings.set(name, value);
-    settings.isValid({models: this.state.configModels});
+    settings.set(name, value, {validate: true, models: this.state.configModels});
   },
   checkRestrictions(action, setting) {
     return this.props.cluster.get('settings').checkRestrictions(

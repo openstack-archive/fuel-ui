@@ -1149,8 +1149,7 @@ export var ShowNodeInfoDialog = React.createClass({
     if (nestedValue) {
       name = utils.makePath(name, nestedValue);
     }
-    attributesModel.set(name, value);
-    attributesModel.isValid({models: this.state.configModels});
+    attributesModel.set(name, value, {validate: true, models: this.state.configModels});
     this.setState({
       nodeAttributes: attributesModel,
       nodeAttributesError: attributesModel.validationError,
@@ -1173,8 +1172,7 @@ export var ShowNodeInfoDialog = React.createClass({
   },
   cancelNodeAttributesChange() {
     var {nodeAttributes, initialNodeAttributes, configModels} = this.state;
-    nodeAttributes.set(initialNodeAttributes);
-    nodeAttributes.isValid({models: configModels});
+    nodeAttributes.set(initialNodeAttributes, {validate: true, models: configModels});
     this.setState({
       nodeAttributes,
       nodeAttributesError: nodeAttributes.validationError,
