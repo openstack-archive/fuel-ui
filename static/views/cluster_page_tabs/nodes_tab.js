@@ -108,10 +108,10 @@ var NodesTab = React.createClass({
     if (this.checkScreenExists() && this.state.loading) this.loadScreenData();
   },
   componentWillReceiveProps(newProps) {
-    var screen = this.getScreen(newProps);
-    var screenOptions = this.getScreenOptions(newProps);
+    var screen = this.getScreen(newProps),
+      screenOptions = this.getScreenOptions(newProps);
     if (
-      this.state.screen !== screen && this.checkScreenExists(screen) ||
+      this.state.screen != screen && this.checkScreenExists(screen) ||
       !_.isEqual(this.state.screenOptions, screenOptions)
     ) {
       var newState = {screen, screenOptions, screenData: {}};
@@ -138,7 +138,7 @@ var NodesTab = React.createClass({
           <Screen
             {...this.state.screenData}
             {..._.pick(this.props, 'cluster', 'selectedNodeIds', 'selectNodes')}
-            ref='screen'
+            ref="screen"
             screenOptions={this.state.screenOptions}
           />
         </ScreenTransitionWrapper>
