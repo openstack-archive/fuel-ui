@@ -292,8 +292,10 @@ var NodeDisk = React.createClass({
     if (size > volumeInfo.max) {
       size = volumeInfo.max;
     }
-    this.props.disk.get('volumes').find({name}).set({size})
-      .isValid({minimum: volumeInfo.min});
+    this.props.disk.get('volumes').find({name}).set(
+      {size},
+      {validate: true, minimum: volumeInfo.min}
+    );
     this.props.disk.trigger('change', this.props.disk);
   },
   toggleDisk(name) {
