@@ -18,17 +18,17 @@ import ModalWindow from 'tests/functional/pages/modal';
 import GenericLib from 'tests/functional/nightly/library/generic';
 import 'tests/functional/helpers';
 
-function EquipmentLib(remote) {
-  this.remote = remote;
-  this.modal = new ModalWindow(remote);
-  this.generic = new GenericLib(remote);
-}
-
-EquipmentLib.prototype = {
-  constructor: EquipmentLib,
-  nodeSelector: 'div.node',
-  managementIpSelector: 'div.node-summary div.management-ip',
-  publicIpSelector: 'div.node-summary div.public-ip',
+class EquipmentLib {
+  constructor(remote) {
+    this.remote = remote;
+    this.modal = new ModalWindow(remote);
+    this.generic = new GenericLib(remote);
+    this.nodeSelector = 'div.node';
+    this.managementIpSelector = 'div.node-summary div.management-ip';
+    this.publicIpSelector = 'div.node-summary div.public-ip';
+    this.txtSearchSelector = 'input[name="search"]';
+    this.groupSelector = 'div.nodes-group';
+  }
 
   checkNodesSegmentation(nodeView, nodesQuantity, isReadyCluster) {
     // Input array: Nodes quantity by groups.
@@ -58,7 +58,8 @@ EquipmentLib.prototype = {
         '"Error" nodes are observed in "' + nodeView + '" view')
       .assertElementsExist(nodeSel + tempSelector + 'offline', nodesQuantity[4],
         '"Offline" nodes are observed in "' + nodeView + '" view');
-  },
+  }
+
   renameNode(nodeSelector, newName) {
     var nodeNameSelector = 'div.name p';
     var inputSelector = 'input.node-name-input';
@@ -76,7 +77,8 @@ EquipmentLib.prototype = {
         .assertElementsAppear(nodeNameSelector, 1000, 'Node new name textlink appears')
         .assertElementTextEquals(nodeNameSelector, newName, 'Node name is changed successfully')
         .end();
-  },
+  }
+
   checkSearchPageSwitching(pageName, nodeName) {
     return this.remote
       .then(() => {
@@ -89,11 +91,11 @@ EquipmentLib.prototype = {
         'Search result saved after switching to "' + pageName + '"" page')
       .assertElementContainsText(this.nodeSelector + ' div.name p', nodeName,
         'Search result is correct after switching to "' + pageName + '"" page');
-  },
+  }
+
   checkSortingPageSwitching(pageName, nodesQuantity) {
     // Input array: Nodes quantity by groups.
     // [Total, Pending Addition, Discover]
-    var groupSelector = 'div.nodes-group';
     return this.remote
       .then(() => {
         if (pageName !== 'Equipment') {
@@ -103,21 +105,23 @@ EquipmentLib.prototype = {
       .then(() => this.generic.gotoPage('Equipment'))
       .assertElementsExist(this.nodeSelector, nodesQuantity[0],
         'Filtered nodes quantity is observed after switching to "' + pageName + '"" page')
-      .assertElementsExist(groupSelector, 1, 'Only "Discovered" node group is correctly filtered ' +
+      .assertElementsExist(this.groupSelector, 1,
+       'Only "Discovered" node group is correctly filtered ' +
         'after switching to "' + pageName + '"" page')
-      .assertElementContainsText(groupSelector + ':nth-child(1) h4', 'Discovered',
+      .assertElementContainsText(this.groupSelector + ':nth-child(1) h4', 'Discovered',
         '"Discovered" node group is correctly sorted after switching to "' + pageName + '"" page')
-      .assertElementsExist(groupSelector + ':nth-child(1) div.node.pending_addition',
+      .assertElementsExist(this.groupSelector + ':nth-child(1) div.node.pending_addition',
         nodesQuantity[1], 'Default quantity of "Pending Addition" nodes is observed after' +
         'switching to "' + pageName + '"" page')
-      .assertElementsExist(groupSelector + ':nth-child(1) div.node.discover',
+      .assertElementsExist(this.groupSelector + ':nth-child(1) div.node.discover',
         nodesQuantity[2], 'Default quantity of "Discovered" nodes is observed ' +
         'after switching to "' + pageName + '"" page');
-  },
+  }
+
   checkDefaultSorting(sortDirection, nodesQuantity) {
     // Input array: Nodes quantity by groups.
     // [Total, Pending Addition, Discover, Error, Offline]
-    var groupSelector = 'div.nodes-group:nth-child(';
+    var childGroupSelector = this.groupSelector + ':nth-child(';
     var orderName, sortOrder, sortSelector;
     if (sortDirection === 'down') {
       sortOrder = [1, 2, 3];
@@ -139,21 +143,22 @@ EquipmentLib.prototype = {
         .end()
       .assertElementsExist(this.nodeSelector, nodesQuantity[0],
         'Default nodes quantity is observed')
-      .assertElementContainsText(groupSelector + sortOrder[0] + ') h4', 'Discovered',
+      .assertElementContainsText(childGroupSelector + sortOrder[0] + ') h4', 'Discovered',
         '"Discovered" node group is correctly sorted')
-      .assertElementsExist(groupSelector + sortOrder[0] + ') div.node.pending_addition',
+      .assertElementsExist(childGroupSelector + sortOrder[0] + ') div.node.pending_addition',
         nodesQuantity[1], 'Default quantity of "Pending Addition" nodes is observed')
-      .assertElementsExist(groupSelector + sortOrder[0] + ') div.node.discover',
+      .assertElementsExist(childGroupSelector + sortOrder[0] + ') div.node.discover',
         nodesQuantity[2], 'Default quantity of "Discovered" nodes is observed')
-      .assertElementContainsText(groupSelector + sortOrder[1] + ') h4', 'Error',
+      .assertElementContainsText(childGroupSelector + sortOrder[1] + ') h4', 'Error',
         '"Error" node group is correctly sorted')
-      .assertElementsExist(groupSelector + sortOrder[1] + ') div.node.error',
+      .assertElementsExist(childGroupSelector + sortOrder[1] + ') div.node.error',
         nodesQuantity[3], 'Default quantity of "Error" nodes is observed')
-      .assertElementContainsText(groupSelector + sortOrder[2] + ') h4', 'Offline',
+      .assertElementContainsText(childGroupSelector + sortOrder[2] + ') h4', 'Offline',
         '"Offline" node group is correctly sorted')
-      .assertElementsExist(groupSelector + sortOrder[2] + ') div.node.offline',
+      .assertElementsExist(childGroupSelector + sortOrder[2] + ') div.node.offline',
         nodesQuantity[4], 'Default quantity of "Offline" nodes is observed');
-  },
+  }
+
   uncheckNodeRoles() {
     var selectedRolesSelector = '.role-panel .role-block .role i.glyphicon-selected-role';
     return this.remote
@@ -164,7 +169,8 @@ EquipmentLib.prototype = {
         });
       })
       .end();
-  },
+  }
+
   checkGenericIpValues(nodeSelector, nodeName, isReadyCluster) {
     var genericIpValue = RegExp('[\\s\\S]*(([0-9]{1,3}(\.|)){4})|(N/A)[\\s\\S]*', 'i');
     if (isReadyCluster) {
@@ -178,7 +184,8 @@ EquipmentLib.prototype = {
       .assertElementMatchesRegExp(this.publicIpSelector, genericIpValue,
         '"Public IP" field for "' + nodeName + '" node has default value')
       .then(() => this.modal.close());
-  },
+  }
+
   checkNoIpValues(nodeSelector, nodeName) {
     return this.remote
       .clickByCssSelector(nodeSelector)
@@ -188,7 +195,8 @@ EquipmentLib.prototype = {
       .assertElementNotExists(this.publicIpSelector,
         '"Public IP" field for "' + nodeName + '" node not exists')
       .then(() => this.modal.close());
-  },
+  }
+
   activateFiltering() {
     var btnFilteringSelector = '.btn-filters';
     var filterPaneSelector = 'div.filters';
@@ -196,7 +204,8 @@ EquipmentLib.prototype = {
       .assertElementsExist(btnFilteringSelector, '"Filter Nodes" button exists')
       .clickByCssSelector(btnFilteringSelector)
       .assertElementsAppear(filterPaneSelector, 500, '"Filter" pane is appears');
-  },
+  }
+
   setFilterByStatus(statusArray) {
     var filterSelector = 'div.filter-by-status ';
     var btnDefaultSelector = '.btn-default';
@@ -213,14 +222,16 @@ EquipmentLib.prototype = {
     }
     chain = chain.assertElementsAppear(filterSelector, 1000, 'Filter by status is appears');
     return chain;
-  },
+  }
+
   deactivateFiltering() {
     var btnResetFiltersSelector = '.btn-reset-filters';
     return this.remote
       .assertElementsExist(btnResetFiltersSelector, '"Reset Filters" button exists')
       .clickByCssSelector(btnResetFiltersSelector)
       .assertElementDisappears(btnResetFiltersSelector, 1000, '"Reset Filters" button disappears');
-  },
+  }
+
   activateSorting() {
     var btnSortingSelector = '.btn-sorters';
     var sortPaneSelector = 'div.sorters';
@@ -228,22 +239,22 @@ EquipmentLib.prototype = {
       .assertElementsExist(btnSortingSelector, '"Sort Nodes" button exists')
       .clickByCssSelector(btnSortingSelector)
       .assertElementsAppear(sortPaneSelector, 500, '"Sort" pane appears');
-  },
+  }
+
   activateQuickSearch() {
     var btnQuickSearchSelector = '.btn-search';
-    var txtSearchSelector = 'input[name="search"]';
     return this.remote
       .assertElementsExist(btnQuickSearchSelector, '"Quick Search" button exists')
       .clickByCssSelector(btnQuickSearchSelector)
-      .assertElementsAppear(txtSearchSelector, 500, 'Textfield for search value appears');
-  },
+      .assertElementsAppear(this.txtSearchSelector, 500, 'Textfield for search value appears');
+  }
+
   checkQuickSearch(nodeSelector, totalNodes, nameSelector, searchName, searchValue, notClean) {
     var btnClearSelector = '.btn-clear-search';
-    var txtSearchSelector = 'input[name="search"]';
     var chain = this.remote;
 
-    chain = chain.assertElementsExist(txtSearchSelector, 'Textfield for search value exists')
-    .setInputValue(txtSearchSelector, searchValue)
+    chain = chain.assertElementsExist(this.txtSearchSelector, 'Textfield for search value exists')
+    .setInputValue(this.txtSearchSelector, searchValue)
     .sleep(500)
     .assertElementsExist(nodeSelector, 1, 'Only one node with correct name "' +
       searchName + '" is observed')
@@ -253,11 +264,11 @@ EquipmentLib.prototype = {
       chain = chain.assertElementsExist(btnClearSelector, '"Clear Search" button exists')
       .clickByCssSelector(btnClearSelector)
       .assertElementsExist(nodeSelector, totalNodes, 'Default nodes quantity is observed')
-      .assertElementPropertyEquals(txtSearchSelector, 'value', '',
+      .assertElementPropertyEquals(this.txtSearchSelector, 'value', '',
         'Textfield for search value is cleared');
     }
     return chain;
   }
-};
+}
 
 export default EquipmentLib;
