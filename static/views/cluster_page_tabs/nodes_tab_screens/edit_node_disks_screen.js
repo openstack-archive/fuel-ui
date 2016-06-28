@@ -359,7 +359,7 @@ var NodeDisk = React.createClass({
                 {!disabled && volumesInfo[volumeName].min <= 0 && this.state.collapsed &&
                   <div
                     className='close-btn'
-                    onClick={_.partial(this.updateDisk, volumeName, 0)}
+                    onClick={() => this.updateDisk(volumeName, 0)}
                   >
                     &times;
                   </div>
@@ -447,14 +447,14 @@ var NodeDisk = React.createClass({
                         <Input {...props}
                           type='range'
                           ref={'range-' + volumeName}
-                          onChange={_.partialRight(this.updateDisk)}
+                          onChange={this.updateDisk}
                           value={value}
                         />
                       </div>
                       <Input {...props}
                         type='number'
                         wrapperClassName='col-xs-3 volume-group-input'
-                        onChange={_.partialRight(this.updateDisk)}
+                        onChange={this.updateDisk}
                         error={validationError && ''}
                         value={value}
                       />

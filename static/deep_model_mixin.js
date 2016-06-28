@@ -235,6 +235,22 @@ var deepModelMixin = {
   // `"change"` event.
   previousAttributes() {
     return deepClone(this._previousAttributes);
+  },
+
+  _validate(attrs, options) {
+    if (!options.validate || !this.validate) return true;
+
+    //<custom code>
+    var attrsToValidate = deepClone(this.attributes);
+    _.each(attrs, (val, attr) => {
+      _.setWith(attrsToValidate, attr, val, Object);
+    });
+    var error = this.validationError = this.validate(attrsToValidate, options) || null;
+    //</custom code>
+
+    if (!error) return true;
+    this.trigger('invalid', this, error, _.extend(options, {validationError: error}));
+    return false;
   }
 };
 
