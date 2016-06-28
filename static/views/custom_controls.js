@@ -120,9 +120,10 @@ customControls.custom_repo_configuration = React.createClass({
           repo.uri = value;
         }
     }
-    var path = utils.makePath(this.props.path, 'value');
-    this.props.settings.set(path, repos);
-    this.props.settings.isValid({models: this.props.configModels});
+    this.props.settings.set(
+      {[utils.makePath(this.props.path, 'value')]: repos},
+      {validate: true, models: this.props.configModels}
+    );
   },
   renderDeleteButton(index) {
     return (
