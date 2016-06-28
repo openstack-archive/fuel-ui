@@ -359,7 +359,7 @@ var NodeDisk = React.createClass({
                 {!disabled && volumesInfo[volumeName].min <= 0 && this.state.collapsed &&
                   <div
                     className='close-btn'
-                    onClick={_.partial(this.updateDisk, volumeName, 0)}
+                    onClick={_.partial(this.updateDisk, volumeName, 0)} 
                   >
                     &times;
                   </div>
