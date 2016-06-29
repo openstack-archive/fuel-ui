@@ -13,7 +13,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
 **/
-import $ from 'jquery';
 import _ from 'underscore';
 import React from 'react';
 import utils from 'utils';
@@ -26,7 +25,7 @@ var EditNodesScreen = React.createClass({
       var nodes = utils.getNodeListFromTabOptions(options);
 
       if (!nodes) {
-        return $.Deferred().reject();
+        return Promise.reject();
       }
 
       nodes.fetch = function(options) {
@@ -36,10 +35,10 @@ var EditNodesScreen = React.createClass({
       nodes.parse = function() {
         return this.getByIds(nodes.map('id'));
       };
-      return $.when(
+      return Promise.all([
         cluster.get('roles').fetch(),
         cluster.get('settings').fetch({cache: true})
-      ).then(() => ({nodes}));
+      ]).then(() => ({nodes}));
     }
   },
   render() {

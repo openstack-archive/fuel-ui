@@ -62,7 +62,7 @@ var LoginForm = React.createClass({
         }
         this.setState({error: i18n('login_page.' + error)});
 
-        return $.Deferred().reject();
+        return Promise.reject();
       })
       .then(() => {
         app.user.set({
@@ -75,7 +75,8 @@ var LoginForm = React.createClass({
           dispatcher.trigger('showDefaultPasswordWarning');
         }
 
-        return $.when(app.version.fetch({cache: true}), app.fuelSettings.fetch({cache: true}));
+        return Promise.all([app.version.fetch({cache: true}),
+          app.fuelSettings.fetch({cache: true})]);
       })
       .then(() => {
         var nextUrl = '';

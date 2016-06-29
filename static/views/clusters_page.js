@@ -14,7 +14,6 @@
  * under the License.
 **/
 
-import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
@@ -36,7 +35,7 @@ ClustersPage = React.createClass({
       var nodes = new models.Nodes();
       var tasks = new models.Tasks();
 
-      return $.when(clusters.fetch(), nodes.fetch(), tasks.fetch())
+      return Promise.all([clusters.fetch(), nodes.fetch(), tasks.fetch()])
         .then(() => {
           clusters.each((cluster) => {
             cluster.set('nodes', new models.Nodes(nodes.filter({cluster: cluster.id})));
@@ -127,7 +126,7 @@ Cluster = React.createClass({
       });
       requests.push(request);
     }
-    return $.when(...requests);
+    return Promise.all(requests);
   },
   render() {
     var cluster = this.props.cluster;

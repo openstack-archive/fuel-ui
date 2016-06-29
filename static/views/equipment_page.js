@@ -14,7 +14,6 @@
  * under the License.
 **/
 
-import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
@@ -38,14 +37,14 @@ EquipmentPage = React.createClass({
       var settings = new models.Settings();
       var {releases, fuelSettings} = app;
 
-      return $.when(
+      return Promise.all([
         nodes.fetch(),
         clusters.fetch(),
         nodeNetworkGroups.fetch(),
         releases.fetch({cache: true}),
         fuelSettings.fetch({cache: true}),
         plugins.fetch()
-      ).then(() => {
+      ]).then(() => {
         clusters.each(
           (cluster) => cluster.set({
             release: releases.get(cluster.get('release_id'))
@@ -71,7 +70,7 @@ EquipmentPage = React.createClass({
               return pluginLinks.fetch();
             })
         );
-        return $.when(...requests);
+        return Promise.all(requests);
       })
       .then(() => {
         var links = new models.PluginLinks();

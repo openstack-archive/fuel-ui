@@ -36,12 +36,12 @@ var EditNodeDisksScreen = React.createClass({
       var nodes = utils.getNodeListFromTabOptions(options);
 
       if (!nodes || !nodes.areDisksConfigurable()) {
-        return $.Deferred().reject();
+        return Promise.reject();
       }
 
       var volumes = new models.Volumes();
       volumes.url = _.result(nodes.at(0), 'url') + '/volumes';
-      return $.when(...nodes.map((node) => {
+      return Promise.all(nodes.map((node) => {
         node.disks = new models.Disks();
         return node.disks.fetch({url: _.result(node, 'url') + '/disks'});
       }).concat(volumes.fetch()))
@@ -113,10 +113,10 @@ var EditNodeDisksScreen = React.createClass({
     this.props.disks.reset(_.cloneDeep(this.state.initialDisks), {parse: true});
   },
   applyChanges() {
-    if (!this.isSavingPossible()) return $.Deferred().reject();
+    if (!this.isSavingPossible()) return Promise.reject();
 
     this.setState({actionInProgress: 'apply_changes'});
-    return $.when(...this.props.nodes.map((node) => {
+    return Promise.all(this.props.nodes.map((node) => {
       node.disks.each((disk, index) => {
         var nodeDisk = this.props.disks.at(index);
         disk.set({

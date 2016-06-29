@@ -14,7 +14,6 @@
  * under the License.
 **/
 
-import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import Backbone from 'backbone';
@@ -79,19 +78,19 @@ var cacheMixin = {
   fetch(options) {
     if (this.cacheFor && options && options.cache && this.lastSyncTime &&
       (this.cacheFor > (new Date() - this.lastSyncTime))) {
-      return $.Deferred().resolve();
+      return Promise.resolve();
     }
     if (options) delete options.cache;
     return this._super('fetch', arguments);
   },
   sync() {
-    var deferred = this._super('sync', arguments);
+    var result = this._super('sync', arguments);
     if (this.cacheFor) {
-      deferred.then(() => {
+      result.then(() => {
         this.lastSyncTime = new Date();
       });
     }
-    return deferred;
+    return result;
   },
   cancelThrottling() {
     delete this.lastSyncTime;

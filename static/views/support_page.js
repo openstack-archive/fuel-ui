@@ -13,7 +13,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
 **/
-import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
@@ -33,7 +32,7 @@ var SupportPage = React.createClass({
     breadcrumbsPath: [['home', '#'], 'support'],
     fetchData() {
       var tasks = new models.Tasks();
-      return $.when(app.fuelSettings.fetch({cache: true}), tasks.fetch())
+      return Promise.all([app.fuelSettings.fetch({cache: true}), tasks.fetch()])
         .then(() => ({tasks, settings: app.fuelSettings}));
     }
   },
@@ -135,7 +134,7 @@ var StatisticsSettings = React.createClass({
     );
   },
   applyChanges() {
-    return this.isSavingPossible() ? this.saveChanges() : $.Deferred().resolve();
+    return this.isSavingPossible() ? this.saveChanges() : Promise.resolve();
   },
   revertChanges() {
     _.each(this.props.renderableStatisticsFields, (settingName) => {

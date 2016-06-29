@@ -52,10 +52,10 @@ export var Navbar = React.createClass({
     return this.props.user.get('authenticated');
   },
   fetchData() {
-    return $.when(
+    return Promise.all([
       this.props.statistics.fetch(),
       this.props.notifications.fetch({limit: this.props.notificationsDisplayCount})
-    );
+    ]);
   },
   updateNodeStats() {
     return this.props.statistics.fetch();
