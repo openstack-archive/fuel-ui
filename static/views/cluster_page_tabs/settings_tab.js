@@ -102,13 +102,13 @@ var SettingsTab = React.createClass({
     );
   },
   applyChanges() {
-    if (!this.isSavingPossible()) return $.Deferred().reject();
+    if (!this.isSavingPossible()) return Promise.reject();
 
     var settings = this.props.cluster.get('settings');
-    var deferred = settings.save(null, {patch: true, wait: true, validate: false});
-    if (deferred) {
+    var result = settings.save(null, {patch: true, wait: true, validate: false});
+    if (result) {
       this.setState({actionInProgress: 'apply_changes'});
-      deferred
+      result
         .then(() => {
           this.setState({
             initialAttributes: _.cloneDeep(settings.attributes),
@@ -119,8 +119,7 @@ var SettingsTab = React.createClass({
           // so networks need to be refetched after updating cluster attributes
           this.props.cluster.get('networkConfiguration').cancelThrottling();
           this.props.cluster.fetch();
-        },
-        (response) => {
+        }, (response) => {
           this.setState({
             actionInProgress: false,
             key: _.now()
@@ -131,10 +130,9 @@ var SettingsTab = React.createClass({
             message: i18n('cluster_page.settings_tab.settings_error.saving_warning'),
             response: response
           });
-        }
-      );
+        });
     }
-    return deferred;
+    return result;
   },
   loadDefaults() {
     this.setState({actionInProgress: 'load_defaults'});

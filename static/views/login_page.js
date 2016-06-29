@@ -62,7 +62,7 @@ var LoginForm = React.createClass({
         }
         this.setState({error: i18n('login_page.' + error)});
 
-        return $.Deferred().reject();
+        return Promise.reject();
       })
       .then(() => {
         app.user.set({

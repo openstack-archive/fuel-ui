@@ -884,7 +884,7 @@ ManagementPanel = React.createClass({
     return this.props.revertChanges();
   },
   applyChanges() {
-    if (!this.isSavingPossible()) return $.Deferred().reject();
+    if (!this.isSavingPossible()) return Promise.reject();
 
     this.setState({actionInProgress: true});
     var nodes = new models.Nodes(this.props.nodes.map((node) => {
@@ -1592,7 +1592,7 @@ NodeLabelsPanel = React.createClass({
     return this.props.toggleLabelsPanel();
   },
   applyChanges() {
-    if (!this.isSavingPossible()) return $.Deferred().reject();
+    if (!this.isSavingPossible()) return Promise.reject();
 
     this.setState({actionInProgress: true});
 

@@ -201,16 +201,16 @@ class App {
               return this.version.fetch({cache: true});
             });
         }
-        return $.Deferred().resolve();
+        return Promise.resolve();
       })
       .then(() => this.fuelSettings.fetch())
       .catch(() => {
         if (this.version.get('auth_required') && !this.user.get('authenticated')) {
-          return $.Deferred().resolve();
+          return Promise.resolve();
         } else {
           this.mountNode.empty();
           NailgunUnavailabilityDialog.show({}, {preventDuplicate: true});
-          return $.Deferred().reject();
+          return Promise.reject();
         }
       })
       .then(() => Backbone.history.start());
@@ -230,7 +230,7 @@ class App {
 
   loadPage(Page, options = []) {
     dispatcher.trigger('pageLoadStarted');
-    return (Page.fetchData ? Page.fetchData(...options) : $.Deferred().resolve())
+    return (Page.fetchData ? Page.fetchData(...options) : Promise.resolve())
       .then((pageOptions) => {
         if (!this.rootComponent) this.renderLayout();
         this.setPage(Page, pageOptions);

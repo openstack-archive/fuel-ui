@@ -53,7 +53,7 @@ var HealthCheckTab = React.createClass({
         })
         .catch(() => true);
       }
-      return $.Deferred().resolve();
+      return Promise.resolve();
     }
   },
   render() {

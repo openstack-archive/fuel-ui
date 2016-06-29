@@ -700,28 +700,27 @@ var NetworkTab = React.createClass({
         this.props.cluster.get('tasks').get(task.id).set('unsaved', this.hasChanges());
         this.setState({actionInProgress: false});
         dispatcher.trigger('networkVerificationTaskStarted');
-        return $.Deferred().resolve();
+        return Promise.resolve();
       });
   },
   isDiscardingPossible() {
     return !this.props.cluster.task({group: 'network', active: true});
   },
   applyChanges() {
-    if (!this.isSavingPossible()) return $.Deferred().reject();
+    if (!this.isSavingPossible()) return Promise.reject();
     this.setState({actionInProgress: 'apply_changes'});
     this.prepareIpRanges();
 
     var requests = [];
-    var result = $.Deferred();
 
     dispatcher.trigger('networkConfigurationUpdated', () => {
-      return Backbone.sync('update', this.props.cluster.get('networkConfiguration'))
+      var result = Backbone.sync('update', this.props.cluster.get('networkConfiguration'))
         .then((response) => {
           this.updateInitialConfiguration();
-          result.resolve(response);
+          Promise.resolve(response);
           this.setState({actionInProgress: false});
         }, (response) => {
-          result.reject();
+          Promise.reject();
           return this.props.cluster.fetchRelated('tasks')
             .then(() => {
               // FIXME (morale): this hack is needed until backend response
@@ -744,15 +743,16 @@ var NetworkTab = React.createClass({
               this.setState({actionInProgress: false});
             });
         });
+      requests.push(result);
+      return result;
     });
-    requests.push(result);
 
     if (this.isNetworkSettingsChanged()) {
       var settings = this.props.cluster.get('settings');
-      var deferred = settings.save(null, {patch: true, wait: true, validate: false});
-      if (deferred) {
+      var result = settings.save(null, {patch: true, wait: true, validate: false});
+      if (result) {
         this.setState({actionInProgress: true});
-        deferred
+        result
           .then(
             () => {
               this.setState({
@@ -775,7 +775,7 @@ var NetworkTab = React.createClass({
               });
             }
           );
-        requests.push(deferred);
+        requests.push(result);
       }
     }
 

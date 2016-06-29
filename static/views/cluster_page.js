@@ -98,7 +98,7 @@ var ClusterPage = React.createClass({
         promise = (_.isUndefined(currentTab) || currentTab !== activeTab) && tab.fetchData ?
           tab.fetchData({cluster, tabOptions})
         :
-          $.Deferred().resolve();
+          Promise.resolve();
       } else {
         cluster = new models.Cluster({id: id});
         var baseUrl = _.result(cluster, 'url');
@@ -165,7 +165,7 @@ var ClusterPage = React.createClass({
 
             cluster.set({deployedSettings, deployedNetworkConfiguration});
 
-            if (cluster.get('status') === 'new') return $.Deferred().resolve();
+            if (cluster.get('status') === 'new') return Promise.resolve();
             return $.when(
               cluster.get('deployedSettings').fetch(),
               cluster.get('deployedNetworkConfiguration').fetch()
@@ -173,7 +173,7 @@ var ClusterPage = React.createClass({
             .catch(() => true);
           })
           .then(
-            () => tab.fetchData ? tab.fetchData({cluster, tabOptions}) : $.Deferred().resolve()
+            () => tab.fetchData ? tab.fetchData({cluster, tabOptions}) : Promise.resolve()
           );
       }
       return promise.then(
@@ -235,7 +235,7 @@ var ClusterPage = React.createClass({
         });
     } else {
       task = this.props.cluster.task({name: 'verify_networks', active: true});
-      return task ? task.fetch() : $.Deferred().resolve();
+      return task ? task.fetch() : Promise.resolve();
     }
   },
   refreshCluster() {
@@ -248,7 +248,7 @@ var ClusterPage = React.createClass({
       cluster.get('pluginLinks').fetch()
     )
     .then(() => {
-      if (cluster.get('status') === 'new') return $.Deferred().resolve();
+      if (cluster.get('status') === 'new') return Promise.resolve();
       return $.when(
         cluster.get('deployedNetworkConfiguration').fetch(),
         cluster.get('deployedSettings').fetch()

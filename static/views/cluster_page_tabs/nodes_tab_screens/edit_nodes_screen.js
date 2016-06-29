@@ -26,7 +26,7 @@ var EditNodesScreen = React.createClass({
       var nodes = utils.getNodeListFromTabOptions(options);
 
       if (!nodes) {
-        return $.Deferred().reject();
+        return Promise.reject();
       }
 
       nodes.fetch = function(options) {

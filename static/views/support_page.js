@@ -135,7 +135,7 @@ var StatisticsSettings = React.createClass({
     );
   },
   applyChanges() {
-    return this.isSavingPossible() ? this.saveChanges() : $.Deferred().resolve();
+    return this.isSavingPossible() ? this.saveChanges() : Promise.resolve();
   },
   revertChanges() {
     _.each(this.props.renderableStatisticsFields, (settingName) => {

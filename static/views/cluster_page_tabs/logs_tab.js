@@ -176,11 +176,11 @@ var LogFilterBar = React.createClass({
     var nodes = this.props.nodes;
     var chosenNodeId = nodeId || (nodes.length ? nodes.first().id : null);
     this.sources = new models.LogSources();
-    this.sources.deferred = (type === 'remote' && chosenNodeId) ?
+    this.sources.result = (type === 'remote' && chosenNodeId) ?
       this.sources.fetch({url: '/api/logs/sources/nodes/' + chosenNodeId})
     :
       this.sources.fetch();
-    this.sources.deferred.then(
+    this.sources.result.then(
       () => {
         var filteredSources = this.sources.filter((source) => {
           return source.get('remote') === (type !== 'local');
@@ -210,7 +210,7 @@ var LogFilterBar = React.createClass({
         });
       }
     );
-    return this.sources.deferred;
+    return this.sources.result;
   },
   componentDidMount() {
     this.fetchSources(this.state.type, this.state.node)

@@ -43,7 +43,7 @@ var EditNodeInterfacesScreen = React.createClass({
       var nodes = utils.getNodeListFromTabOptions(options);
 
       if (!nodes || !nodes.areInterfacesConfigurable()) {
-        return $.Deferred().reject();
+        return Promise.reject();
       }
 
       var networkConfiguration = cluster.get('networkConfiguration');
@@ -301,7 +301,7 @@ var EditNodeInterfacesScreen = React.createClass({
     });
   },
   applyChanges() {
-    if (!this.isSavingPossible()) return $.Deferred().reject();
+    if (!this.isSavingPossible()) return Promise.reject();
     this.setState({actionInProgress: 'apply_changes'});
 
     var nodes = this.props.nodes;
