@@ -13,7 +13,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
 **/
-import $ from 'jquery';
 import _ from 'underscore';
 import React from 'react';
 import {NODE_STATUSES, NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
@@ -22,10 +21,10 @@ import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_
 var ClusterNodesScreen = React.createClass({
   statics: {
     fetchData({cluster}) {
-      return $.Deferred().resolve().then(() => ({
+      return Promise.resolve({
         nodes: cluster.get('nodes'),
         uiSettings: cluster.get('ui_settings')
-      }));
+      });
     }
   },
   updateUISettings(name, value) {

@@ -14,7 +14,6 @@
  * under the License.
  **/
 import React from 'react';
-import $ from 'jquery';
 import i18n from 'i18n';
 import _ from 'underscore';
 import dispatcher from 'dispatcher';
@@ -313,10 +312,10 @@ var VmWareTab = React.createClass({
         defaultModel.loadDefaults = true;
         options.cluster.set({vcenter_defaults: defaultModel});
       }
-      return $.when(
+      return Promise.all([
         options.cluster.get('vcenter').fetch({cache: true}),
         options.cluster.get('vcenter_defaults').fetch({cache: true})
-      );
+      ]);
     }
   },
   onModelSync() {

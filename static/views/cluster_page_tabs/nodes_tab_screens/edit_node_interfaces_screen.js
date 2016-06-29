@@ -43,13 +43,13 @@ var EditNodeInterfacesScreen = React.createClass({
       var nodes = utils.getNodeListFromTabOptions(options);
 
       if (!nodes || !nodes.areInterfacesConfigurable()) {
-        return $.Deferred().reject();
+        return Promise.reject();
       }
 
       var networkConfiguration = cluster.get('networkConfiguration');
       var networksMetadata = new models.ReleaseNetworkProperties();
 
-      return $.when(...nodes.map((node) => {
+      return Promise.all(nodes.map((node) => {
         node.interfaces = new models.Interfaces();
         return node.interfaces.fetch({
           url: _.result(node, 'url') + '/interfaces',
@@ -244,11 +244,10 @@ var EditNodeInterfacesScreen = React.createClass({
   },
   loadDefaults() {
     this.setState({actionInProgress: 'load_defaults'});
-    $.when(this.props.interfaces.fetch({
+    this.props.interfaces.fetch({
       url: _.result(this.props.nodes.at(0), 'url') + '/interfaces/default_assignment', reset: true
-    }))
-    .then(
-      null,
+    })
+    .catch(
       (response) => {
         var errorNS = ns + 'configuration_error.';
         utils.showErrorDialog({
@@ -301,7 +300,7 @@ var EditNodeInterfacesScreen = React.createClass({
     });
   },
   applyChanges() {
-    if (!this.isSavingPossible()) return $.Deferred().reject();
+    if (!this.isSavingPossible()) return Promise.reject();
     this.setState({actionInProgress: 'apply_changes'});
 
     var nodes = this.props.nodes;
@@ -319,7 +318,7 @@ var EditNodeInterfacesScreen = React.createClass({
       (bond) => _.map(bond.get('slaves'), (slave) => interfaces.indexOf(interfaces.find(slave)))
     );
 
-    return $.when(...nodes.map((node) => {
+    return Promise.all(nodes.map((node) => {
       var oldNodeBonds, nodeBonds;
       // removing previously configured bond
       oldNodeBonds = node.interfaces.filter((ifc) => ifc.isBond());

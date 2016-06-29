@@ -1240,7 +1240,7 @@ export var ShowNodeInfoDialog = React.createClass({
       var hostname = _.trim(this.refs.hostname.getInputDOMNode().value);
       (hostname !== this.props.node.get('hostname') ?
         this.props.node.save({hostname: hostname}, {patch: true, wait: true}) :
-        $.Deferred().resolve()
+        Promise.resolve()
       )
       .then(
         this.endRenaming,
@@ -1678,7 +1678,7 @@ export var DiscardSettingsChangesDialog = React.createClass({
   },
   proceedWith(method, action = true) {
     this.setState({actionInProgress: action});
-    return $.when(method ? method() : $.Deferred().resolve())
+    return Promise.all([method ? method() : Promise.resolve()])
       .then(this.resolveResult)
       .then(
         this.close,

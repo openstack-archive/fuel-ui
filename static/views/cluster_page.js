@@ -13,7 +13,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
 **/
-import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
@@ -98,7 +97,7 @@ var ClusterPage = React.createClass({
         promise = (_.isUndefined(currentTab) || currentTab !== activeTab) && tab.fetchData ?
           tab.fetchData({cluster, tabOptions})
         :
-          $.Deferred().resolve();
+          Promise.resolve();
       } else {
         cluster = new models.Cluster({id: id});
         var baseUrl = _.result(cluster, 'url');
@@ -124,15 +123,15 @@ var ClusterPage = React.createClass({
             _.extend({data: {cluster_id: id}}, options));
         };
 
-        promise = $.when(
-            cluster.fetch(),
-            cluster.get('settings').fetch(),
-            cluster.get('roles').fetch(),
-            cluster.get('pluginLinks').fetch({cache: true}),
-            cluster.fetchRelated('nodes'),
-            cluster.fetchRelated('tasks'),
-            cluster.fetchRelated('nodeNetworkGroups')
-          )
+        promise = Promise.all([
+          cluster.fetch(),
+          cluster.get('settings').fetch(),
+          cluster.get('roles').fetch(),
+          cluster.get('pluginLinks').fetch({cache: true}),
+          cluster.fetchRelated('nodes'),
+          cluster.fetchRelated('tasks'),
+          cluster.fetchRelated('nodeNetworkGroups')
+        ])
           .then(() => {
             var networkConfiguration = new models.NetworkConfiguration();
             networkConfiguration.url = baseUrl + '/network_configuration/' +
@@ -143,10 +142,10 @@ var ClusterPage = React.createClass({
               release: new models.Release({id: cluster.get('release_id')})
             });
 
-            return $.when(
+            return Promise.all([
               cluster.get('networkConfiguration').fetch(),
               cluster.get('release').fetch()
-            );
+            ]);
           })
           .then(() => {
             if (!cluster.get('settings').get('common.use_vcenter.value')) return true;
@@ -165,15 +164,15 @@ var ClusterPage = React.createClass({
 
             cluster.set({deployedSettings, deployedNetworkConfiguration});
 
-            if (cluster.get('status') === 'new') return $.Deferred().resolve();
-            return $.when(
+            if (cluster.get('status') === 'new') return Promise.resolve();
+            return Promise.all([
               cluster.get('deployedSettings').fetch(),
               cluster.get('deployedNetworkConfiguration').fetch()
-            )
+            ])
             .catch(() => true);
           })
           .then(
-            () => tab.fetchData ? tab.fetchData({cluster, tabOptions}) : $.Deferred().resolve()
+            () => tab.fetchData ? tab.fetchData({cluster, tabOptions}) : Promise.resolve()
           );
       }
       return promise.then(
@@ -220,7 +219,7 @@ var ClusterPage = React.createClass({
         requests.push(task.destroy({silent: true}));
       }
     });
-    return $.when(...requests);
+    return Promise.all(requests);
   },
   shouldDataBeFetched() {
     return this.props.cluster.task({group: ['deployment', 'network'], active: true});
@@ -235,24 +234,24 @@ var ClusterPage = React.createClass({
         });
     } else {
       task = this.props.cluster.task({name: 'verify_networks', active: true});
-      return task ? task.fetch() : $.Deferred().resolve();
+      return task ? task.fetch() : Promise.resolve();
     }
   },
   refreshCluster() {
     var {cluster} = this.props;
-    return $.when(
+    return Promise.all([
       cluster.fetch(),
       cluster.fetchRelated('nodes'),
       cluster.fetchRelated('tasks'),
       cluster.get('networkConfiguration').fetch(),
       cluster.get('pluginLinks').fetch()
-    )
+    ])
     .then(() => {
-      if (cluster.get('status') === 'new') return $.Deferred().resolve();
-      return $.when(
+      if (cluster.get('status') === 'new') return Promise.resolve();
+      return Promise.all([
         cluster.get('deployedNetworkConfiguration').fetch(),
         cluster.get('deployedSettings').fetch()
-      )
+      ])
       .catch(() => true);
     });
   },

@@ -1185,10 +1185,10 @@ var RenameEnvironmentAction = React.createClass({
     var {cluster, endRenaming} = this.props;
     var name = _.trim(this.state.name);
     if (name !== cluster.get('name')) {
-      var deferred = cluster.save({name}, {patch: true, wait: true});
-      if (deferred) {
+      var result = cluster.save({name}, {patch: true, wait: true});
+      if (result) {
         this.setState({disabled: true});
-        deferred
+        result
           .then(
             () => {
               dispatcher.trigger('updatePageLayout');

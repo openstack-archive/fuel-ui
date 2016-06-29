@@ -884,7 +884,7 @@ ManagementPanel = React.createClass({
     return this.props.revertChanges();
   },
   applyChanges() {
-    if (!this.isSavingPossible()) return $.Deferred().reject();
+    if (!this.isSavingPossible()) return Promise.reject();
 
     this.setState({actionInProgress: true});
     var nodes = new models.Nodes(this.props.nodes.map((node) => {
@@ -901,10 +901,10 @@ ManagementPanel = React.createClass({
 
     return Backbone.sync('update', nodes)
       .then(
-        () => $.when(
+        () => Promise.all([
           this.props.cluster.fetch(),
           this.props.cluster.fetchRelated('nodes')
-        ),
+        ]),
         (response) => {
           this.setState({actionInProgress: false});
           utils.showErrorDialog({
@@ -1592,7 +1592,7 @@ NodeLabelsPanel = React.createClass({
     return this.props.toggleLabelsPanel();
   },
   applyChanges() {
-    if (!this.isSavingPossible()) return $.Deferred().reject();
+    if (!this.isSavingPossible()) return Promise.reject();
 
     this.setState({actionInProgress: true});
 

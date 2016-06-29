@@ -13,7 +13,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
 **/
-import $ from 'jquery';
 import _ from 'underscore';
 import React from 'react';
 import {NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
@@ -28,11 +27,11 @@ var AddNodesScreen = React.createClass({
         return this.constructor.__super__.fetch.call(this, _.extend({data: {cluster_id: ''}},
           options));
       };
-      return $.when(
+      return Promise.all([
         nodes.fetch(),
         cluster.get('roles').fetch(),
         cluster.get('settings').fetch({cache: true})
-      ).then(() => ({nodes}));
+      ]).then(() => ({nodes}));
     }
   },
   render() {

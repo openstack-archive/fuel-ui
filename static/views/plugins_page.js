@@ -14,7 +14,6 @@
  * under the License.
 **/
 
-import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
@@ -31,10 +30,10 @@ var PluginsPage = React.createClass({
       var releases = app.releases;
       var plugins = new models.Plugins();
       var availableVersions = {};
-      return $.when(
+      return Promise.all([
         plugins.fetch()
           .then(() => {
-            return $.when(...plugins.map((plugin) => {
+            return Promise.all(plugins.map((plugin) => {
               var links = new models.PluginLinks();
               links.url = _.result(plugin, 'url') + '/links';
               plugin.set({links: links});
@@ -49,7 +48,7 @@ var PluginsPage = React.createClass({
               ] = true;
             });
           })
-      )
+      ])
       .then(() => ({plugins, availableVersions}));
     }
   },

@@ -13,7 +13,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  **/
-import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import Backbone from 'backbone';
@@ -47,13 +46,14 @@ var HealthCheckTab = React.createClass({
         ostf.tests.url = _.result(ostf.tests, 'url') + '/' + clusterId;
         ostf.testruns = new models.TestRuns();
         ostf.testruns.url = _.result(ostf.testruns, 'url') + '/last/' + clusterId;
-        return $.when(ostf.testsets.fetch(), ostf.tests.fetch(), ostf.testruns.fetch()).then(() => {
-          options.cluster.set({ostf: ostf});
-          return {};
-        })
-        .catch(() => true);
+        return Promise.all([ostf.testsets.fetch(), ostf.tests.fetch(), ostf.testruns.fetch()])
+          .then(() => {
+            options.cluster.set({ostf: ostf});
+            return {};
+          })
+          .catch(() => true);
       }
-      return $.Deferred().resolve();
+      return Promise.resolve();
     }
   },
   render() {
@@ -185,7 +185,7 @@ var HealthcheckTabContent = React.createClass({
     if (oldTestruns.length) {
       requests.push(Backbone.sync('update', oldTestruns));
     }
-    $.when(...requests)
+    Promise.all(requests)
       .then(
         () => {
           this.startPolling(true);
