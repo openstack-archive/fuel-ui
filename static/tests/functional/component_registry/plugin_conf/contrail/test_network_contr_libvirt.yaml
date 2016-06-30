@@ -1,0 +1,16 @@
+- name: 'network:neutron:contrail'
+  label: 'Contrail'
+  description: 'Contrail SDN networking'
+  compatible:
+    - name: 'hypervisor:libvirt:*'
+  incompatible:
+    - name: 'hypervisor:vmware'
+      description: 'Contrail is not compatible with VMware for now'
+    - name: 'network:neutron:ml2:dvs'
+      description: 'Contrail is not compatible with VMware for now'
+
+- name: 'network:neutron:ml2:dvs'
+  label: 'DVS network'
+
+- name: 'hypervisor:libvirt:sun'
+  label: 'sun'
