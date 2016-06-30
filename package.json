@@ -17,7 +17,9 @@
     "test": "npm run unit-tests && npm run func-tests",
     "unit-tests": "gulp unit-tests",
     "func-tests": "./run_ui_func_tests.sh",
-    "nightly-func-tests": "./run_ui_func_tests.sh static/tests/functional/nightly/*.js"
+    "nightly-func-tests": "./run_ui_func_tests.sh static/tests/functional/nightly/*.js",
+    "prepublish": "gulp build",
+    "component-tests": "./run_component_registry_tests.sh"
   },
   "dependencies": {
     "autoprefixer": "5.2.0",
