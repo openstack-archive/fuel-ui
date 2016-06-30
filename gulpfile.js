@@ -178,6 +178,44 @@ gulp.task('functional-tests', 'Run functional tests.', function(cb) {
   }
 });
 
+function runCompIntern(params) {
+  return function() {
+    var baseDir = 'static';
+    var runner = './node_modules/.bin/intern-runner';
+    var browser = argv.browser || process.env.BROWSER || 'firefox';
+    var suiteOptions = [];
+    var options = [['config', 'tests/component_registry/config/intern-' + browser + '.js']];
+    ['suites', 'functionalSuites'].forEach(function(suiteType) {
+      if (params[suiteType]) {
+        var suiteFiles = glob.sync(path.relative(baseDir, params[suiteType]), {cwd: baseDir});
+        suiteOptions = suiteOptions.concat(suiteFiles.map(function(suiteFile) {
+          return [suiteType, suiteFile.replace(/\.js$/, '')];
+        }));
+      }
+    });
+    if (!suiteOptions.length) {
+      throw new Error('No matching suites');
+    }
+    options = options.concat(suiteOptions);
+    var command = [path.relative(baseDir, runner)].concat(options.map(function(o) {
+      return o.join('=');
+    })).join(' ');
+    gutil.log('Executing', command);
+    return shell.task(command, {cwd: baseDir})();
+  };
+}
+
+gulp.task('intern:component', runCompIntern({
+  functionalSuites: argv.suites || 'static/tests/component_registry/**/test_*.js'
+}));
+
+gulp.task('component-tests', function(cb) {
+  runSequence('selenium', 'intern:component', function(err) {
+    shutdownSelenium();
+    cb(err);
+  });
+});
+
 gulp.task('jison', function() {
   return gulp.src('static/expression/parser.jison')
     .pipe(jison({moduleType: 'js'}))
