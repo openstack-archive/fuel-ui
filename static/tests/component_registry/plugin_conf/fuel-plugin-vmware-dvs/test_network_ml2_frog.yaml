@@ -1,0 +1,26 @@
+- name: 'network:neutron:ml2:dvs'
+  label: 'DVS network'
+  description: 'DVS network type'
+  requires:
+    - name: 'network:neutron:core:ml2'
+    - name: 'hypervisor:vmware'
+- name: 'network:neutron:ml2:frog'
+  label: 'frog'
+  description: 'frog'
+  incompatible:
+    - name: 'network:neutron:ml2:tun'
+    - name: 'storage:ephemeral:ceph'
+  requires:
+    - name: 'additional_service:sahara'
+    - name: 'network:neutron:core:ml2'
+  compatible:
+    - name: 'network:neutron:ml2:dvs'
+    - name: 'storage:block:ceph'
+    - name: 'hypervisor:libvirt:kvm'
+    - name: 'hypervisor:libvirt:qemu'
+    - name: 'additional_service:murano'
+- name: 'hypervisor:xen'
+  label: 'Xen'
+  description: 'Xen hypervisor'
+  incompatible:
+    - name: 'hypervisor:vmware'
