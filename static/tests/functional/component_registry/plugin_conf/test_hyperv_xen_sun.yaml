@@ -1,0 +1,14 @@
+- name: 'hypervisor:xen'
+  label: 'xen'
+  description: 'xen'
+  requires:
+    - name: 'additional_service:murano'
+  compatible:
+    - name: 'additional_service:ceilometer'
+  incompatible:
+    - name: 'hypervisor:test:*'
+
+- name: 'hypervisor:test:sun'
+  label: 'sun'
+- name: 'hypervisor:test:rain'
+  label: 'rain'
