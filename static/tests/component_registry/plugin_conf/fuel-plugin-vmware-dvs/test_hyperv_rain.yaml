@@ -1,0 +1,8 @@
+- name: 'hypervisor:libvirt:rain'
+  label: 'rain'
+  description: 'rain hypervisor'
+  incompatible:
+    - name: 'hypervisor:xen'
+- name: 'hypervisor:xen'
+  label: 'xen'
+  description: 'xen hypervisor'

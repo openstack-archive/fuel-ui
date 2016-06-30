@@ -1,0 +1,8 @@
+- name: 'storage:block:zfs'
+  label: 'zfs'
+  description: 'zfs'
+  incompatible:
+    - name: 'storage:image:nfs'
+- name: 'storage:image:nfs'
+  label: 'nfs'
+  description: 'nfs'
