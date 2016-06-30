@@ -1,0 +1,12 @@
+- name: 'additional_service:smile'
+  label: 'smile'
+  description: 'smile'
+  incompatible:
+    - name: 'network:neutron:ml2:tun'
+    - name: 'hypervisor:vmware'
+  requires:
+    - name: 'additional_service:sahara'
+  compatible:
+    - name: 'storage:block:ceph'
+- name: 'network:neutron:ml2:dvs'
+  label: 'DVS network'
