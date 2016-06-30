@@ -1,0 +1,5 @@
+- name: 'storage:object:cat'
+  label: 'Stor ceph'
+  description: 'stor ceph'
+  incompatible:
+    - name: 'storage:block:lvm'
