@@ -1,0 +1,9 @@
+- name: 'additional_service:smile'
+  label: 'smile'
+  description: 'smile'
+  incompatible:
+    - name: 'additional_service:ceilometer'
+  requires:
+    - name: 'additional_service:murano'
+  compatible:
+    - name: 'additional_service:sahara'
