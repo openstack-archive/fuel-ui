@@ -1,0 +1,16 @@
+- name: 'additional_service:smile'
+  label: 'smile'
+  description: 'smile'
+  incompatible:
+    - name: 'network:nova_network'
+  requires:
+    - name: 'hypervisor:vmware'
+    - name: 'network:neutron:ml2:dvs'
+  compatible:
+    - name: 'additional_service:sahara'
+- name: 'network:neutron:ml2:dvs'
+  label: 'dvs'
+  description: 'dvs'
+
+- name: 'network:nova_network'
+  label: 'Nova network'
