@@ -1,0 +1,21 @@
+- name: "network:neutron:core:nsx"
+  label: "Neutron with NSXv plugin."
+  description: "NSXv plugin for Fuel allows to integrate Mirantis OpenStack with VMware NSXv network virtualization platform."
+  bind: !!pairs
+    - "cluster:net_segment_type": "tun"
+  compatible:
+    - name: "hypervisor:vmware"
+    - name: "hypervisor:qemu"
+    - name: "storage:block:lvm"
+    - name: "storage:image:ceph"
+    - name: "storage:object:ceph"
+    - name: "additional_service:ceilometer"
+  incompatible:
+    - name: "storage:block:ceph"
+    - name: "storage:ephemeral:ceph"
+    - name: "additional_service:sahara"
+    - name: "additional_service:murano"
+    - name: "additional_service:ironic"
+  requires:
+    - name: "hypervisor:vmware"
+      message: "NSXv requires use vCenter."
