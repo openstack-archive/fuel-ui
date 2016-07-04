@@ -77,14 +77,12 @@ var LogsTab = React.createClass({
     };
   },
   fetchLogs(data) {
-    return $.ajax({
-      url: '/api/logs',
-      dataType: 'json',
-      data: _.extend(_.omit(this.props.selectedLogs, 'type'), data),
-      headers: {
-        'X-Auth-Token': app.keystoneClient.token
-      }
-    });
+    var query = _.map(_.extend(_.omit(this.props.selectedLogs, 'type'), data),
+      (value, key) => {
+        return key + '=' + value;
+      }).join('&');
+    return fetch('/api/logs?' + query, {headers: {'X-Auth-Token': app.keystoneClient.token}})
+      .then((response) => response.json());
   },
   showLogs(params) {
     this.stopPolling();
@@ -96,15 +94,23 @@ var LogsTab = React.createClass({
     params = params || {};
     this.fetchLogs(params)
       .then((data) => {
-        var logsEntries = this.state.logsEntries || [];
-        this.setState({
-          showMoreLogsLink: data.has_more || false,
-          logsEntries: params.fetch_older ? logsEntries.concat(data.entries) : data.entries,
-          loading: 'done',
-          from: data.from,
-          to: data.to
-        });
-        this.startPolling();
+        if (data.errors) {
+          this.setState({
+            logsEntries: undefined,
+            loading: 'fail',
+            loadingError: data.message
+          });
+        } else {
+          var logsEntries = this.state.logsEntries || [];
+          this.setState({
+            showMoreLogsLink: data.has_more || false,
+            logsEntries: params.fetch_older ? logsEntries.concat(data.entries) : data.entries,
+            loading: 'done',
+            from: data.from,
+            to: data.to
+          });
+          this.startPolling();
+        }
       },
       (response) => {
         this.setState({
