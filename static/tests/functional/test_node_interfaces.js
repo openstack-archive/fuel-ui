@@ -127,6 +127,17 @@ registerSuite(() => {
         .assertElementContainsText('.alert.alert-warning',
           ' network interface is already bonded with other network interfaces.',
           'Warning message should appear when intended to bond bonds');
+    },
+    'Interface bonding Modes'() {
+      return this.remote
+        .then(() => interfacesPage.bondInterfaces('eth1', 'eth2'))
+        .then(() => interfacesPage.checkBondInterfaces('bond0', ['eth1', 'eth2']))
+        .then(() => interfacesPage.selectBondType('bond0', 'active-backup'))
+        .then(() => interfacesPage.selectBondType('bond0', '802.3ad'))
+        .then(() => interfacesPage.bondInterfaces('eth0', 'eth3'))
+        .then(() => interfacesPage.checkBondInterfaces('bond1', ['eth0', 'eth3']))
+        .then(() => interfacesPage.selectBondType('bond1', 'active-backup' ))
+        .then(() => interfacesPage.selectBondType('bond0', 'balance-rr' ))
     }
   };
 });
