@@ -130,6 +130,20 @@ class InterfacesPage {
             })
       );
   }
+
+  selectBondType(bondName, bondMode) {
+    return this.remote
+     .findByCssSelector('.' + bondName + ' .ifc-header')
+     .then((ifcsHeader) => {
+       if (!ifcsHeader) {
+         throw new Error('Unable to select Bonding Mode ' + bondName +
+                                         ' for Bond ' + bondName);
+       }
+       return ifcsHeader
+         .findByCssSelector('.form-group select option[value="' + bondMode + '"]')
+           .then((selectOption) => selectOption.click());
+     });
+  }
 }
 
 export default InterfacesPage;
