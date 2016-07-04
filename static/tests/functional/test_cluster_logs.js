@@ -50,10 +50,10 @@ registerSuite(() => {
         .assertElementEnabled(showLogsButtonSelector,
           '"Show" button is enabled after source change')
         .execute(() => {
-          window.fakeServer = sinon.fakeServer.create();
-          window.fakeServer.autoRespond = true;
-          window.fakeServer.autoRespondAfter = 1000;
-          window.fakeServer.respondWith(/\/api\/logs.*/, [
+          window.server = sinon.fakeServer.create();
+          window.server.autoRespond = true;
+          window.server.autoRespondAfter = 1000;
+          window.server.respondWith(/\/api\/logs\/.*/, [
             200, {'Content-Type': 'application/json'},
             JSON.stringify({
               from: 1,
@@ -66,7 +66,7 @@ registerSuite(() => {
           'Wait till Progress bar disappears')
         .assertElementsAppear('.log-entries > tbody > tr', 5000, 'Log entries are shown')
         .execute(() => {
-          window.fakeServer.restore();
+          window.server.restore();
         })
         // "Other servers" option is present in "Logs" dropdown
         .clickByCssSelector('.sticker select[name=type] > option[value=remote]')
