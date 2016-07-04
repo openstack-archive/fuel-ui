@@ -77,14 +77,19 @@ var LogsTab = React.createClass({
     };
   },
   fetchLogs(data) {
-    return $.ajax({
-      url: '/api/logs',
-      dataType: 'json',
-      data: _.extend(_.omit(this.props.selectedLogs, 'type'), data),
-      headers: {
-        'X-Auth-Token': app.keystoneClient.token
-      }
-    });
+    var query = $.param(_.extend(_.omit(this.props.selectedLogs, 'type'), data));
+    return fetch('/api/logs?' + query, {headers: {'X-Auth-Token': app.keystoneClient.token}})
+      .then((response) => {
+        var promise = response.json();
+        if (response.ok) return promise;
+
+        return promise.then((responseData) => {
+          var error = new Error(response.statusText);
+          error.response = response;
+          error.response.responseText = responseData || response.responseText;
+          throw error;
+        });
+      });
   },
   showLogs(params) {
     this.stopPolling();
@@ -95,25 +100,25 @@ var LogsTab = React.createClass({
       utils.serializeTabOptions(logOptions), {trigger: false, replace: true});
     params = params || {};
     this.fetchLogs(params)
-      .then((data) => {
+      .then((response) => {
         var logsEntries = this.state.logsEntries || [];
         this.setState({
-          showMoreLogsLink: data.has_more || false,
-          logsEntries: params.fetch_older ? logsEntries.concat(data.entries) : data.entries,
+          showMoreLogsLink: response.has_more || false,
+          logsEntries: params.fetch_older ? logsEntries.concat(response.entries) : response.entries,
           loading: 'done',
-          from: data.from,
-          to: data.to
+          from: response.from,
+          to: response.to
         });
         this.startPolling();
-      },
-      (response) => {
+      })
+      .catch((data) => {
         this.setState({
           logsEntries: undefined,
           loading: 'fail',
-          loadingError: utils.getResponseText(response, i18n('cluster_page.logs_tab.log_alert'))
+          loadingError: utils.getResponseText(data.response,
+            i18n('cluster_page.logs_tab.log_alert'))
         });
-      }
-    );
+      });
   },
   onShowButtonClick() {
     this.setState({

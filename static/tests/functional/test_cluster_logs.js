@@ -53,7 +53,7 @@ registerSuite(() => {
           window.fakeServer = sinon.fakeServer.create();
           window.fakeServer.autoRespond = true;
           window.fakeServer.autoRespondAfter = 1000;
-          window.fakeServer.respondWith(/\/api\/logs.*/, [
+          window.fakeServer.respondWith(/\/api\/logs\/.*/, [
             200, {'Content-Type': 'application/json'},
             JSON.stringify({
               from: 1,
@@ -62,6 +62,7 @@ registerSuite(() => {
           ]);
         })
         .clickByCssSelector(showLogsButtonSelector)
+        .sleep(1000)
         .assertElementDisappears('.logs-tab div.progress', 5000,
           'Wait till Progress bar disappears')
         .assertElementsAppear('.log-entries > tbody > tr', 5000, 'Log entries are shown')
