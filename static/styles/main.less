@@ -2094,6 +2094,7 @@ input[type=range] {
         }
         label {
           .font-normal;
+          .break-word;
           font-size: @base-font-size - 2;
           line-height: 22px;
         }
@@ -2101,6 +2102,15 @@ input[type=range] {
       .divider {
         border-bottom: 1px solid @gray + 80%;
         margin: 8px 0 10px;
+      }
+      .options-filter {
+        margin: 0 5px 10px;
+        padding: 0;
+        input {
+          font-size: @base-font-size - 2;
+          height: 28px;
+          padding: 3px 12px;
+        }
       }
     }
   }
