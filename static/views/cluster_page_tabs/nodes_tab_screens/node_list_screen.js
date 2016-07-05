@@ -23,12 +23,12 @@ import {NODE_VIEW_MODES, NODE_STATUSES, NODE_LIST_SORTERS, NODE_LIST_FILTERS} fr
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
-import {Input, Popover, Tooltip, ProgressButton} from 'views/controls';
+import {Input, Popover, Tooltip, ProgressButton, MultiSelectControl} from 'views/controls';
 import {DeleteNodesDialog} from 'views/dialogs';
 import {backboneMixin, pollingMixin, dispatcherMixin, unsavedChangesMixin} from 'component_mixins';
 import Node from 'views/cluster_page_tabs/nodes_tab_screens/node';
 
-var NodeListScreen, NodeListScreenContent, MultiSelectControl, NumberRangeControl, ManagementPanel,
+var NodeListScreen, NodeListScreenContent, NumberRangeControl, ManagementPanel,
   NodeLabelsPanel, RolePanel, Role, SelectAllMixin, NodeList, NodeGroup;
 
 class Sorter {
@@ -399,7 +399,7 @@ NodeListScreenContent = React.createClass({
       return values.map((value) => {
         return {
           name: value,
-          label: _.isNull(value) ? i18n(ns + 'label_value_not_specified') : value === false ?
+          title: _.isNull(value) ? i18n(ns + 'label_value_not_specified') : value === false ?
             i18n(ns + 'label_not_assigned') : value
         };
       });
@@ -413,7 +413,7 @@ NodeListScreenContent = React.createClass({
         options = this.props.statusesToFilter.map((status) => {
           return {
             name: status,
-            label: i18n('cluster_page.nodes_tab.node.status.' + status, {os: os})
+            title: i18n('cluster_page.nodes_tab.node.status.' + status, {os: os})
           };
         });
         break;
@@ -422,19 +422,21 @@ NodeListScreenContent = React.createClass({
           manufacturer = manufacturer || '';
           return {
             name: manufacturer.replace(/\s/g, '_'),
-            label: manufacturer
+            title: manufacturer
           };
         });
         break;
       case 'roles':
-        options = this.props.roles.invokeMap('pick', 'name', 'label');
+        options = this.props.roles.map(
+          (role) => ({name: role.get('name'), title: role.get('label')})
+        );
         break;
       case 'group_id':
         options = _.uniq(this.props.nodes.map('group_id')).map((groupId) => {
           var nodeNetworkGroup = this.props.nodeNetworkGroups.get(groupId);
           return {
             name: groupId,
-            label: nodeNetworkGroup ?
+            title: nodeNetworkGroup ?
                 nodeNetworkGroup.get('name') +
                 (
                   this.props.cluster ?
@@ -450,7 +452,7 @@ NodeListScreenContent = React.createClass({
         options = _.uniq(this.props.nodes.map('cluster')).map((clusterId) => {
           return {
             name: clusterId,
-            label: clusterId ? this.props.clusters.get(clusterId).get('name') :
+            title: clusterId ? this.props.clusters.get(clusterId).get('name') :
               i18n('cluster_page.nodes_tab.node.unallocated')
           };
         });
@@ -461,7 +463,7 @@ NodeListScreenContent = React.createClass({
     options.sort((option1, option2) => {
       // sort Node Network Group filter options by node network group id
       if (this.props.name === 'group_id') return option1.name - option2.name;
-      return utils.natsort(option1.label, option2.label, {insensitive: true});
+      return utils.natsort(option1.title, option2.title, {insensitive: true});
     });
 
     return options;
@@ -627,140 +629,6 @@ NodeListScreenContent = React.createClass({
           locked={this.state.isLabelsPanelOpen}
           selectNodes={this.selectNodes}
         />
-      </div>
-    );
-  }
-});
-
-MultiSelectControl = React.createClass({
-  propTypes: {
-    name: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.bool]),
-    options: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
-    values: React.PropTypes.arrayOf(React.PropTypes.oneOfType([
-      React.PropTypes.string,
-      React.PropTypes.bool
-    ])),
-    label: React.PropTypes.node.isRequired,
-    dynamicValues: React.PropTypes.bool,
-    onChange: React.PropTypes.func,
-    extraContent: React.PropTypes.node,
-    toggle: React.PropTypes.func.isRequired,
-    isOpen: React.PropTypes.bool.isRequired
-  },
-  getDefaultProps() {
-    return {
-      values: [],
-      isOpen: false
-    };
-  },
-  onChange(name, checked, isLabel) {
-    if (!this.props.dynamicValues) {
-      var values = name === 'all' ?
-          checked ? _.map(this.props.options, 'name') : []
-        :
-          checked ? _.union(this.props.values, [name]) : _.difference(this.props.values, [name]);
-      this.props.onChange(values);
-    } else {
-      this.props.onChange(_.find(this.props.options, {name: name, isLabel: isLabel}));
-    }
-  },
-  closeOnEscapeKey(e) {
-    if (e.key === 'Escape') this.props.toggle(false);
-  },
-  render() {
-    if (!this.props.options.length) return null;
-
-    var valuesAmount = this.props.values.length;
-    var label = this.props.label;
-    if (!this.props.dynamicValues && valuesAmount) {
-      label = this.props.label + ': ' + (valuesAmount > 3 ?
-          i18n(
-            'cluster_page.nodes_tab.node_management_panel.selected_options',
-            {label: this.props.label, count: valuesAmount}
-          )
-        :
-          _.map(this.props.values, (itemName) => {
-            return _.find(this.props.options, {name: itemName}).label;
-          }).join(', '));
-    }
-
-    var attributes, labels;
-    if (this.props.dynamicValues) {
-      var groupedOptions = _.groupBy(this.props.options, 'isLabel');
-      attributes = groupedOptions.false || [];
-      labels = groupedOptions.true || [];
-    }
-
-    var optionProps = (option) => {
-      return {
-        key: option.name,
-        type: 'checkbox',
-        name: option.name,
-        label: option.title
-      };
-    };
-
-    var classNames = {
-      'btn-group multiselect': true,
-      open: this.props.isOpen,
-      'more-control': this.props.dynamicValues
-    };
-    if (this.props.className) classNames[this.props.className] = true;
-
-    return (
-      <div className={utils.classNames(classNames)} tabIndex='-1' onKeyDown={this.closeOnEscapeKey}>
-        <button
-          className={'btn dropdown-toggle ' + ((this.props.dynamicValues && !this.props.isOpen) ?
-            'btn-link' : 'btn-default')
-          }
-          onClick={this.props.toggle}
-        >
-          {label} <span className='caret'></span>
-        </button>
-        {this.props.isOpen &&
-          <Popover toggle={this.props.toggle}>
-            {!this.props.dynamicValues ?
-              <div>
-                <div key='all'>
-                  <Input
-                    type='checkbox'
-                    label={i18n('cluster_page.nodes_tab.node_management_panel.select_all')}
-                    name='all'
-                    checked={valuesAmount === this.props.options.length}
-                    onChange={this.onChange}
-                  />
-                </div>
-                <div key='divider' className='divider' />
-                {_.map(this.props.options, (option) => {
-                  return <Input {...optionProps(option)}
-                    label={option.label}
-                    checked={_.includes(this.props.values, option.name)}
-                    onChange={this.onChange}
-                  />;
-                })}
-              </div>
-            :
-              <div>
-                {_.map(attributes, (option) => {
-                  return <Input {...optionProps(option)}
-                    checked={_.includes(this.props.values, option.name)}
-                    onChange={_.partialRight(this.onChange, false)}
-                  />;
-                })}
-                {!!attributes.length && !!labels.length &&
-                  <div key='divider' className='divider' />
-                }
-                {_.map(labels, (option) => {
-                  return <Input {...optionProps(option)}
-                    key={'label-' + option.name}
-                    onChange={_.partialRight(this.onChange, true)}
-                  />;
-                })}
-              </div>
-            }
-          </Popover>
-        }
-        {this.props.extraContent}
       </div>
     );
   }
@@ -1448,7 +1316,7 @@ ManagementPanel = React.createClass({
                                 :
                                   _.map(
                                     _.filter(options, ({name}) => _.includes(filter.values, name))
-                                  , 'label').join(', ')
+                                  , 'title').join(', ')
                                 }
                               </span>
                             </div>
