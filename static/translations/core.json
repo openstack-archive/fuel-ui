@@ -67,7 +67,10 @@
                 },
                 "file": {
                     "placeholder": "No file selected"
-                }
+                },
+                "selected_options": "__count__ selected",
+                "select_all": "Select All",
+                "find_options_placeholder": "type option name..."
             },
             "node_details": {
                 "cpu": "CPU",
@@ -512,8 +515,6 @@
                         "search_placeholder": "Node name, MAC or IP address",
                         "edit_roles_button": "Edit Roles",
                         "add_nodes_button": "Add Nodes",
-                        "selected_options": "__count__ selected",
-                        "select_all": "Select All",
                         "label_value_not_specified" : "Value is not specified",
                         "label_not_assigned": "Label is not assigned",
                         "labels": {
@@ -1270,7 +1271,9 @@
             "controls": {
                 "file": {
                     "placeholder": "未选择文件"
-                }
+                },
+                "selected_options": "已选择__count__项",
+                "select_all": "全选"
             },
             "node_details": {
                 "cpu": "处理器",
@@ -1676,8 +1679,6 @@
                         "search_placeholder": "节点名称,MAC地址或IP地址",
                         "edit_roles_button": "编辑角色",
                         "add_nodes_button": "添加节点",
-                        "selected_options": "已选择__count__项",
-                        "select_all": "全选",
                         "label_value_not_specified" : "没有指定值",
                         "label_not_assigned": "未分配标签",
                         "labels": {

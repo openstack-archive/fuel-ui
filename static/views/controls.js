@@ -447,3 +447,169 @@ export var Tooltip = React.createClass({
     );
   }
 });
+
+export var MultiSelectControl = React.createClass({
+  propTypes: {
+    name: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.bool]),
+    options: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
+    values: React.PropTypes.arrayOf(
+      React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.bool])
+    ),
+    label: React.PropTypes.node.isRequired,
+    dynamicValues: React.PropTypes.bool,
+    onChange: React.PropTypes.func,
+    extraContent: React.PropTypes.node,
+    toggle: React.PropTypes.func.isRequired,
+    isOpen: React.PropTypes.bool.isRequired,
+    addOptionsFilter: React.PropTypes.bool
+  },
+  getInitialState() {
+    return {
+      optionsFilter: null
+    };
+  },
+  getDefaultProps() {
+    return {
+      values: [],
+      isOpen: false,
+      addOptionsFilter: false
+    };
+  },
+  onChange(name, checked, isLabel = false) {
+    var {options, values, onChange, dynamicValues} = this.props;
+    if (!dynamicValues) {
+      onChange(
+        name === 'all' ?
+          checked ? _.map(this.getFilteredOptions(), 'name') : []
+        :
+          (checked ? _.union : _.difference)(values, [name])
+      );
+    } else {
+      onChange(_.find(options, {name, isLabel}));
+    }
+  },
+  closeOnEscapeKey(e) {
+    if (e.key === 'Escape') this.props.toggle(false);
+  },
+  setOptionsFilter(name, value) {
+    this.setState({optionsFilter: value.trim().toLowerCase() || null});
+  },
+  getFilteredOptions() {
+    var {optionsFilter} = this.state;
+    if (!_.isNull(optionsFilter)) {
+      return _.filter(this.props.options,
+        (option) => _.startsWith((option.title || '').toLowerCase(), optionsFilter)
+      );
+    }
+    return this.props.options;
+  },
+  getLabel() {
+    var {label, options, values, dynamicValues} = this.props;
+    if (!dynamicValues && values.length) {
+      return label + ': ' + (
+        values.length > 3 ?
+          i18n('controls.selected_options', {count: values.length})
+        :
+          _.map(values, (name) => _.find(options, {name}).title).join(', ')
+      );
+    }
+    return label;
+  },
+  render() {
+    var {
+      values, dynamicValues, isOpen, className, toggle, extraContent, addOptionsFilter
+    } = this.props;
+
+    if (!this.props.options.length) return null;
+
+    var options = this.getFilteredOptions();
+    var attributes, labels;
+    if (dynamicValues) {
+      var groupedOptions = _.groupBy(options, 'isLabel');
+      attributes = groupedOptions.false || [];
+      labels = groupedOptions.true || [];
+    }
+
+    var optionProps = (option) => ({
+      key: option.name,
+      ref: option.name,
+      type: 'checkbox',
+      name: option.name,
+      label: option.title,
+      checked: _.includes(values, option.name),
+      onChange: this.onChange
+    });
+
+    return (
+      <div
+        className={utils.classNames({
+          'btn-group multiselect': true,
+          [className]: true,
+          open: isOpen,
+          'more-control': dynamicValues
+        })}
+        tabIndex='-1'
+        onKeyDown={this.closeOnEscapeKey}
+      >
+        <button
+          className={utils.classNames(
+            'btn dropdown-toggle',
+            (dynamicValues && !isOpen) ? 'btn-link' : 'btn-default'
+          )}
+          onClick={toggle}
+        >
+          {this.getLabel()} <span className='caret' />
+        </button>
+        {isOpen &&
+          <Popover toggle={toggle}>
+            {addOptionsFilter &&
+              <Input
+                type='text'
+                ref='optionsFilter'
+                name='optionsFilter'
+                onChange={this.setOptionsFilter}
+                wrapperClassName='options-filter'
+                placeholder={i18n('controls.find_options_placeholder')}
+                debounce
+              />
+            }
+            {!dynamicValues ?
+              <div>
+                {!!options.length &&
+                  <div>
+                    <Input
+                      type='checkbox'
+                      ref='all'
+                      label={i18n('controls.select_all')}
+                      name='all'
+                      checked={values.length === options.length}
+                      onChange={this.onChange}
+                      wrapperClassName='select-all-options'
+                    />
+                    <div key='divider' className='divider' />
+                  </div>
+                }
+                {_.map(options, (option) => <Input {...optionProps(option)} />)}
+              </div>
+            :
+              <div>
+                {_.map(attributes, (option) => <Input {...optionProps(option)} />)}
+                {!!attributes.length && !!labels.length &&
+                  <div key='divider' className='divider' />
+                }
+                {_.map(labels,
+                  (option) => <Input
+                    {...optionProps(option)}
+                    key={'label-' + option.name}
+                    onChange={_.partialRight(this.onChange, true)}
+                  />
+                )}
+              </div>
+            }
+          </Popover>
+        }
+        {extraContent}
+      </div>
+    );
+  }
+});
