@@ -162,10 +162,12 @@ NodeListScreen = React.createClass({
     // add role panel functionality
     if (showRolePanel) {
       var roles = cluster.get('roles').pluck('name');
-      var selectedRoles = _.filter(roles, (role) => nodes.every((node) => node.hasRole(role)));
-      var indeterminateRoles = _.filter(roles,
-        (role) => !_.includes(selectedRoles, role) && nodes.some((node) => node.hasRole(role))
-      );
+      var selectedRoles = nodes.length ?
+        _.filter(roles, (role) => nodes.every((node) => node.hasRole(role))) : [];
+      var indeterminateRoles = nodes.length ?
+        _.filter(roles,
+          (role) => !_.includes(selectedRoles, role) && nodes.some((node) => node.hasRole(role))
+        ) : [];
       var configModels = {
         cluster,
         settings: cluster.get('settings'),
