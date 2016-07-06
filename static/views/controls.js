@@ -231,7 +231,7 @@ export var Input = React.createClass({
     return (
       <label key='label' htmlFor={id}>
         {children}
-        {label}
+        <span>{label}</span>
         {tooltipText &&
           <Tooltip text={tooltipText} placement={tooltipPlacement}>
             <i className={utils.classNames('glyphicon tooltip-icon', tooltipIcon)} />
