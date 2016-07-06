@@ -785,9 +785,9 @@ NetworksLib.prototype = {
       .setInputValue(ipEndSelector, editValues[2])
       .assertElementEnabled(this.btnSaveSelector, '"Save Settings" button is enabled')
       .clickByCssSelector(this.btnSaveSelector)
-      .assertElementsExist(netSelector1 + cidrErrorSelector,
+      .assertElementAppears(netSelector1 + cidrErrorSelector, 1000,
         networkNameToEdit + ' "CIDR" textfield is "red" marked')
-      .assertElementsExist(netSelector2 + cidrErrorSelector,
+      .assertElementAppears(netSelector2 + cidrErrorSelector, 500,
         networkName + ' "CIDR" textfield is "red" marked')
       .assertElementsExist(networkAlertSelector, 'Error message is observed')
       .assertElementMatchesRegExp(networkAlertSelector, networkAlertMessage,

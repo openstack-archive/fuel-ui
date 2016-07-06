@@ -285,7 +285,7 @@ class DashboardLib {
       .assertElementMatchesRegExp(btnStart, RegExp(btnStartName, 'i'),
         '"' + btnStartName + '" start button description is correct')
       .clickByCssSelector(btnStart)
-      .assertElementsAppear(this.progressSelector, 5000, paneName + ' is started')
+      .assertElementsAppear(this.progressSelector, 10000, paneName + ' is started')
       .assertElementDisappears(this.progressSelector, 45000, paneName + ' is finished')
       // PostCheck
       .assertElementsAppear(this.alertSelector, 1000, paneName + ' result pane appears')

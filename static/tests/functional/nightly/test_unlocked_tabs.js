@@ -209,7 +209,7 @@ registerSuite(() => {
         .then(() => clusterPage.goToTab('Dashboard'))
         .then(() => dashboardPage.startDeployment())
         // Stop deployment process
-        .waitForCssSelector(stopDeploymentButton, 1000)
+        .waitForCssSelector(stopDeploymentButton, 2000)
         .waitForElementDeletion('.progress', 8000)
         .then(() => dashboardPage.stopDeployment())
         // wait a bit for updating status of cluster
