@@ -68,7 +68,7 @@ registerSuite(() => {
         .execute(() => {
           window.fakeServer.restore();
         })
-        // "Other servers" option is present in "Logs" dropdown
+        //"Other servers" option is present in "Logs" dropdown
         .clickByCssSelector('.sticker select[name=type] > option[value=remote]')
         .assertElementExists('.sticker select[name=node] > option', '"Node" dropdown is present');
     }
