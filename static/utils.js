@@ -275,6 +275,7 @@ var utils = {
       if (response.status === 500) return serverErrorMessage;
       // parsing new backend response format in responseText
       response = response.responseText || response;
+      if (_.isPlainObject(response)) return response.message || serverErrorMessage;
       try {
         response = JSON.parse(response);
         return response.message || serverErrorMessage;

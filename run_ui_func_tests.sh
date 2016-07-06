@@ -86,7 +86,7 @@ function run_ui_func_tests {
 
   if [ $no_ui_build -ne 1 ]; then
     echo "Building UI..."
-    ${GULP} build --no-sourcemaps --extra-entries=sinon --static-dir=$NAILGUN_STATIC
+    ${GULP} build --no-sourcemaps --extra-entries=sinon,fetch-mock --static-dir=$NAILGUN_STATIC
   else
     echo "Using pre-built UI from $NAILGUN_STATIC"
     if [ ! -f "$NAILGUN_STATIC/index.html" ]; then

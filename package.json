@@ -81,6 +81,7 @@
     "eslint": "2.11.1",
     "eslint-config-openstack": "2.0.0",
     "eslint-plugin-react": "5.1.1",
+    "fetch-mock": "4.6.1",
     "glob": "~5.0.5",
     "gulp-babel": "6.1.2",
     "gulp-shell": "0.4.1",
