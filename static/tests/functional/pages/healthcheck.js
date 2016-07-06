@@ -31,21 +31,19 @@ class HealthcheckPage {
   createFakeServer(testRunsResponse = []) {
     return this.remote
       .execute((testsets, tests, testRunsResponse) => {
-        window.server = sinon.fakeServer.create();
-        window.server.autoRespond = true;
-        window.server.respondWith('GET', /\/ostf\/testsets\/.*/, [
-          200, {'Content-Type': 'application/json'},
-          // @FIXME(morale): multiple testsets don't seem to work as expected
-          JSON.stringify(testsets)
-        ]);
-        window.server.respondWith('GET', /\/ostf\/tests\/.*/, [
-          200, {'Content-Type': 'application/json'},
-          JSON.stringify(tests)
-        ]);
-        window.server.respondWith('GET', /\ostf\/testruns\/last.*/, [
-          200, {'Content-Type': 'application/json'},
-          JSON.stringify(testRunsResponse)
-        ]);
+        window.FetchMock
+          .mock(/\/ostf\/testsets\/.*/, {
+            status: 200,
+            headers: {'Content-Type': 'application/json'},
+            body: testsets})
+          .mock(/\/ostf\/tests\/.*/, {
+            status: 200,
+            headers: {'Content-Type': 'application/json'},
+            body: tests})
+          .mock(/\ostf\/testruns\/last.*/, {
+            status: 200,
+            headers: {'Content-Type': 'application/json'},
+            body: testRunsResponse});
       },
       [this.testsets, this.tests, testRunsResponse]
     );
@@ -66,7 +64,7 @@ class HealthcheckPage {
   restoreServer() {
     return this.remote
       .execute(() => {
-        window.server.restore();
+        window.FetchMock.restore();
       }
     );
   }

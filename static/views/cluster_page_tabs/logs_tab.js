@@ -16,6 +16,7 @@
 import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
+import Backbone from 'backbone';
 import React from 'react';
 import utils from 'utils';
 import models from 'models';
@@ -77,7 +78,8 @@ var LogsTab = React.createClass({
     };
   },
   fetchLogs(data) {
-    return $.ajax({
+    return Backbone.ajax({
+      type: 'GET',
       url: '/api/logs',
       dataType: 'json',
       data: _.extend(_.omit(this.props.selectedLogs, 'type'), data),
