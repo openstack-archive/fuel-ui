@@ -124,12 +124,14 @@ var ClusterPage = React.createClass({
           cluster.fetch(),
           cluster.get('settings').fetch(),
           cluster.get('roles').fetch(),
-          cluster.get('pluginLinks').fetch({cache: true}),
-          cluster.get('transactions').fetch(),
-          cluster.get('nodes').fetch(),
-          cluster.get('tasks').fetch(),
-          cluster.get('nodeNetworkGroups').fetch()
+          cluster.get('pluginLinks').fetch({cache: true})
         ])
+          .then(() => Promise.all([
+            cluster.get('transactions').fetch(),
+            cluster.get('nodes').fetch(),
+            cluster.get('tasks').fetch(),
+            cluster.get('nodeNetworkGroups').fetch()
+          ]))
           .then(() => {
             var networkConfiguration = new models.NetworkConfiguration();
             networkConfiguration.url = baseUrl + '/network_configuration/' +
@@ -239,11 +241,13 @@ var ClusterPage = React.createClass({
     var {cluster} = this.props;
     return Promise.all([
       cluster.fetch(),
-      cluster.get('nodes').fetch(),
+      cluster.get('nodes').fetch()
+    ])
+    .then(() => Promise.all([
       cluster.get('tasks').fetch(),
       cluster.get('networkConfiguration').fetch(),
       cluster.get('pluginLinks').fetch()
-    ])
+    ]))
     .then(() => {
       if (cluster.get('status') === 'new') return Promise.resolve();
       return Promise.all([

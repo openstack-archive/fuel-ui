@@ -50,23 +50,21 @@ registerSuite(() => {
         .assertElementEnabled(showLogsButtonSelector,
           '"Show" button is enabled after source change')
         .execute(() => {
-          window.fakeServer = sinon.fakeServer.create();
-          window.fakeServer.autoRespond = true;
-          window.fakeServer.autoRespondAfter = 1000;
-          window.fakeServer.respondWith(/\/api\/logs.*/, [
-            200, {'Content-Type': 'application/json'},
-            JSON.stringify({
+          window.FetchMock
+          .mock(/\/api\/logs.*/, {
+            headers: {'Content-Type': 'application/json'},
+            body: {
               from: 1,
               entries: [['Date', 'INFO', 'Test Log Entry']]
-            })
-          ]);
+            }
+          });
         })
         .clickByCssSelector(showLogsButtonSelector)
         .assertElementDisappears('.logs-tab div.progress', 5000,
           'Wait till Progress bar disappears')
         .assertElementsAppear('.log-entries > tbody > tr', 5000, 'Log entries are shown')
         .execute(() => {
-          window.fakeServer.restore();
+          window.FetchMock.restore();
         })
         // "Other servers" option is present in "Logs" dropdown
         .clickByCssSelector('.sticker select[name=type] > option[value=remote]')
