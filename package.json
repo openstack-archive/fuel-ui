@@ -95,6 +95,7 @@
     "react-addons-test-utils": "15.1.0",
     "selenium-standalone": "5.1.1",
     "sinon": "1.17.2",
+    "fetch-mock": "5.0.0",
     "webpack-dev-server": "1.14.0"
   }
 }
