@@ -186,11 +186,6 @@ class App {
     document.title = i18n('common.title');
 
     return this.version.fetch()
-      .catch((response) => {
-        if (response.status === 401) {
-          this.version.set({auth_required: true});
-        }
-      })
       .then(() => {
         this.user.set({authenticated: !this.version.get('auth_required')});
         if (this.version.get('auth_required')) {
@@ -293,7 +288,48 @@ class App {
   }
 
   overrideBackboneAjax() {
-    Backbone.ajax = (...args) => Promise.resolve(Backbone.$.ajax(...args));
+    var stringifyGETParams = (url, data) => {
+      url += (~url.indexOf('?') ? '&' : '?') + $.param(data);
+      return url;
+    };
+
+    Backbone.ajax = (...args) => {
+      var options = _.first(args);
+      if (options.type === 'GET' && typeof options.data === 'object') {
+        options.url = stringifyGETParams(options.url, options.data);
+        delete options.data;
+      }
+
+      _.defaults(options, {
+        method: options.type,
+        headers: _.defaults(options.headers || {}, {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-Auth-Token': app.keystoneClient.token
+        }),
+        body: options.data
+      });
+
+      return fetch(options.url, options)
+        .then((response) => {
+          var promise = response.json();
+          if (response.ok) return promise;
+          if (response.status === 401) {
+            this.version.set({auth_required: true});
+          }
+          var error = new Error();
+          return promise.then((responseData) => {
+            error = response;
+            error.responseData = responseData;
+            if (options.error) options.error(error);
+            throw error;
+          });
+        })
+        .then((responseData) => {
+          if (options.success) options.success(responseData);
+          return responseData;
+        });
+    };
   }
 }
 

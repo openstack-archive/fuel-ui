@@ -30,6 +30,7 @@ module.exports = {
       },
       {test: /\/expression\/parser\.js$/, loader: 'exports?parser'},
       {test: require.resolve('jquery'), loader: 'expose?jQuery!expose?$'},
+      {test: /fetch-mock/, loader: 'expose?FetchMock'},
       {
         test: /\/sinon\.js$/,
         loader: 'imports?this=>window,define=>false,exports=>false,module=>false,require=>false'
