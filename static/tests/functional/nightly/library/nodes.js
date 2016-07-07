@@ -19,33 +19,30 @@ import ClusterPage from 'tests/functional/pages/cluster';
 import ClustersPage from 'tests/functional/pages/clusters';
 import GenericLib from 'tests/functional/nightly/library/generic';
 
-function NodesLib(remote) {
-  this.remote = remote;
-  this.clusterPage = new ClusterPage(remote);
-  this.clustersPage = new ClustersPage(remote);
-  this.genericLib = new GenericLib(remote);
-}
+class NodesLib {
+  constructor(remote) {
+    this.remote = remote;
+    this.clusterPage = new ClusterPage(remote);
+    this.clustersPage = new ClustersPage(remote);
+    this.genericLib = new GenericLib(remote);
 
-NodesLib.prototype = {
-  constructor: NodesLib,
-  btnCancelSelector: 'button[class$="btn-default"]',
-  popupSelector: 'div.popover',
-  warningIconSelector: ' i.glyphicon-warning-sign',
+    this.popupSelector = 'div.popover';
+    this.btnCancelSelector = 'button[class$="btn-default"]';
+    this.warningIconSelector = ' i.glyphicon-warning-sign';
+  }
 
   cleanAllPopups() {
     return this.remote
-      .findByCssSelector(this.btnCancelSelector)
-        .then((element) => this.remote.moveMouseTo(element))
-        .end()
+      .then(() => this.genericLib.moveCursorTo(this.btnCancelSelector))
       .assertElementNotExists(this.popupSelector, 'All popups are disappeared');
-  },
+  }
+
   waitForPopup(roleSelector) {
     return this.remote
-      .findByCssSelector(roleSelector)
-        .then((element) => this.remote.moveMouseTo(element))
-        .end()
+      .then(() => this.genericLib.moveCursorTo(roleSelector))
       .assertElementAppears(this.popupSelector, 1500, 'Popup appears');
-  },
+  }
+
   checkRoleIntersections(roleName, intersectionNames, roleSelectors, rolePopups, warningRoles) {
     var allP = '[\\s\\S]*';
     var shouldPopup = allP + '.*should be enabled in the environment settings';
@@ -77,7 +74,8 @@ NodesLib.prototype = {
     .assertElementNotExists(roleSelector + selectedRole, roleName + ' role is not selected')
     .then(() => this.cleanAllPopups());
     return chain;
-  },
+  }
+
   checkRoleColors(roleName, roleSelector, backgroundColor, borderColor, textColor) {
     return this.remote
       .findByCssSelector(roleSelector)
@@ -100,7 +98,8 @@ NodesLib.prototype = {
           }
         })
         .end();
-  },
+  }
+
   checkDeployResults(controller1Name, controller1Status, controller2Name, controller2Status,
     computeName, computeStatus, clusterName, clusterStatus) {
     var nodeGroupSelector = 'div.nodes-group';
@@ -134,6 +133,6 @@ NodesLib.prototype = {
         'Cluster has correct status')
       .then(() => this.clustersPage.goToEnvironment(clusterName));
   }
-};
+}
 
 export default NodesLib;

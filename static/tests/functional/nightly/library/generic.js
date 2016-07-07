@@ -58,6 +58,13 @@ class GenericLib {
       .assertElementNotMatchesRegExp('.footer div', RegExp('Mirantis', 'i'),
         'No Mirantis names in footer text on page "' + tab + '" tab');
   }
+
+  moveCursorTo(selector) {
+    return this.remote
+      .findByCssSelector(selector)
+        .then((element) => this.remote.moveMouseTo(element))
+        .end();
+  }
 }
 
 export default GenericLib;
