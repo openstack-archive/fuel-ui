@@ -31,7 +31,7 @@ registerSuite(() => {
       common = new Common(this.remote);
       interfacesPage = new InterfacesPage(this.remote);
       clusterName = common.pickRandomName('Test Cluster');
-
+      this.skip('Interfaces get rid');
       return this.remote
         .then(() => common.getIn())
         .then(() => common.createCluster(clusterName))
