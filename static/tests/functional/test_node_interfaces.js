@@ -28,6 +28,7 @@ registerSuite(() => {
   return {
     name: 'Node Interfaces',
     setup() {
+      this.skip('Interfaces get rid');
       common = new Common(this.remote);
       interfacesPage = new InterfacesPage(this.remote);
       clusterName = common.pickRandomName('Test Cluster');
