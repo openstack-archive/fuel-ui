@@ -543,6 +543,26 @@ class DashboardLib {
       .then(() => this.modal.clickFooterButton('Cancel'))
       .then(() => this.modal.waitToClose());
   }
+
+  provisionVM() {
+    var paneName = '"VMs provisioning"';
+    var btnProvisionVM = 'button.btn-provision-vms';
+    var btnStartSelector = 'button.btn-success';
+    var successMsg = 'Success';
+    var resultMsg = 'Provision of';
+    var successSelector = this.alertSelector + 'strong';
+    var messageSelector = this.alertSelector + 'span';
+    return this.remote
+      .clickByCssSelector(btnProvisionVM)
+      .clickByCssSelector(btnStartSelector)
+      .assertElementsAppear(this.progressSelector, 5000, paneName + ' is started')
+      .assertElementDisappears(this.progressSelector, 45000, paneName + ' is finished')
+      .assertElementsAppear(this.alertSelector, 1000, paneName + ' result pane appears')
+      .assertElementMatchesRegExp(successSelector, RegExp(successMsg, 'i'),
+        paneName + ' result pane message is correct')
+      .assertElementMatchesRegExp(messageSelector, RegExp(resultMsg, 'i'),
+        paneName + ' result pane message is correct');
+  }
 }
 
 export default DashboardLib;

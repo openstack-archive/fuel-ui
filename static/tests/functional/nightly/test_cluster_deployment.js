@@ -18,12 +18,15 @@ import registerSuite from 'intern!object';
 import Common from 'tests/functional/pages/common';
 import ClusterPage from 'tests/functional/pages/cluster';
 import DashboardPage from 'tests/functional/pages/dashboard';
+import NodeComponent from 'tests/functional/pages/node';
+import ModalWindow from 'tests/functional/pages/modal';
 import NodesLib from 'tests/functional/nightly/library/nodes';
 import NetworksLib from 'tests/functional/nightly/library/networks';
 import DashboardLib from 'tests/functional/nightly/library/dashboard';
 
 registerSuite(() => {
-  var common, clusterPage, clusterName, networksLib, dashboardPage, dashboardLib, nodesLib;
+  var common, clusterPage, clusterName, node, modal, networksLib, dashboardPage, dashboardLib,
+    nodesLib;
   var controllerNodesAmount = 2;
   var computeNodesAmount = 1;
   var totalNodesAmount = controllerNodesAmount + computeNodesAmount;
@@ -204,6 +207,32 @@ registerSuite(() => {
         .then(() => clusterPage.goToTab('Networks'))
         .then(() => networksLib.createNetworkGroup(newGroupName))
         .then(() => networksLib.renameNetworkGroup(newGroupName, renameGroupName));
+    },
+    'Check Virt role provisioning'() {
+      this.timeout = 60000;
+      var provisionNodesAmount = 1;
+      var vmConfigPanel = '#headingconfig';
+      var vmConfigField = '.form-group [type=textarea]';
+      var vmConfigJson = '[{"id":1,"mem":2,"cpu":2}]';
+      var btnSaveSelector = '.vms-config button.btn-success';
+      node = new NodeComponent(this.remote);
+      modal = new ModalWindow(this.remote);
+      return this.remote
+        // Add node woth compute, virtual role
+        .then(() => clusterPage.goToTab('Dashboard'))
+        .then(() => clusterPage.resetEnvironment(clusterName))
+        .then(() => dashboardPage.discardChanges())
+        .then(() => common.addNodesToCluster(provisionNodesAmount, ['Compute', 'Virtual']))
+        // Config VM
+        .then(() => clusterPage.goToTab('Nodes'))
+        .then(() => node.openNodePopup(false))
+        .clickByCssSelector(vmConfigPanel)
+        .setInputValue(vmConfigField, vmConfigJson)
+        .clickByCssSelector(btnSaveSelector)
+        .then(() => modal.close())
+        .then(() => clusterPage.goToTab('Dashboard'))
+        // Provision and deploy compute, virt node
+        .then(() => dashboardLib.provisionVM());
     }
   };
 });
