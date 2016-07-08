@@ -18,12 +18,15 @@ import registerSuite from 'intern!object';
 import Common from 'tests/functional/pages/common';
 import ClusterPage from 'tests/functional/pages/cluster';
 import DashboardPage from 'tests/functional/pages/dashboard';
+import NodeComponent from 'tests/functional/pages/node';
+import ModalWindow from 'tests/functional/pages/modal';
 import NodesLib from 'tests/functional/nightly/library/nodes';
 import NetworksLib from 'tests/functional/nightly/library/networks';
 import DashboardLib from 'tests/functional/nightly/library/dashboard';
 
 registerSuite(() => {
-  var common, clusterPage, clusterName, networksLib, dashboardPage, dashboardLib, nodesLib;
+  var common, clusterPage, clusterName, networksLib, dashboardPage, dashboardLib,
+    nodesLib;
   var controllerNodesAmount = 2;
   var computeNodesAmount = 1;
   var totalNodesAmount = controllerNodesAmount + computeNodesAmount;
@@ -65,7 +68,9 @@ registerSuite(() => {
         .then(() => dashboardLib.changeDeploymentMode('Deployment'))
         .then(() => dashboardLib.checkDeploymentModeState(totalNodesAmount, offlineNodesAmount,
           errorNodesAmount, 0, 0))
-        .then(() => dashboardLib.changeDeploymentMode('Deploy'));
+        .then(() => dashboardLib.changeDeploymentMode('Deploy'))
+        .then(() => clusterPage.resetEnvironment(clusterName))
+        .then(() => dashboardPage.discardChanges());
     },
     'Check that "Regular deployment" works as expected'() {
       this.timeout = 75000;
@@ -74,8 +79,6 @@ registerSuite(() => {
       var clusterStatus = 'Operational';
       return this.remote
         // Precondition
-        .then(() => clusterPage.resetEnvironment(clusterName))
-        .then(() => dashboardPage.discardChanges())
         .then(() => common.addNodesToCluster(controllerNodesAmount, ['Controller']))
         .then(() => common.addNodesToCluster(computeNodesAmount, ['Compute']))
         .then(() => clusterPage.goToTab('Dashboard'))
@@ -93,7 +96,9 @@ registerSuite(() => {
         .then(() => dashboardLib.checkDeployModeState(totalNodesAmount, 0, 0,
           provisionNodesAmount, totalNodesAmount))
         .then(() => nodesLib.checkDeployResults(controller1Name, nodeStatus, controller2Name,
-          nodeStatus, computeName, nodeStatus, clusterName, clusterStatus));
+          nodeStatus, computeName, nodeStatus, clusterName, clusterStatus))
+        .then(() => clusterPage.resetEnvironment(clusterName))
+        .then(() => dashboardPage.discardChanges());
     },
     'Check nodes selection dialog supports Quick Search, Sorting and Filtering'() {
       this.timeout = 90000;
@@ -108,8 +113,6 @@ registerSuite(() => {
       var clusterStatus = 'Partially Deployed';
       return this.remote
         // Precondition
-        .then(() => clusterPage.resetEnvironment(clusterName))
-        .then(() => dashboardPage.discardChanges())
         .then(() => common.addNodesToCluster(controllerNodesAmount, ['Controller']))
         .then(() => common.addNodesToCluster(computeNodesAmount, ['Compute']))
         .then(() => clusterPage.goToTab('Dashboard'))
@@ -145,7 +148,9 @@ registerSuite(() => {
           provisionNodesAmount, deployNodesAmount))
         .then(() => dashboardLib.checkDeployModeState(totalNodesAmount, 0, 0, 0, totalNodesAmount))
         .then(() => nodesLib.checkDeployResults(controller1Name, nodeStatus, controller2Name,
-          nodeStatus, computeName, nodeStatus, clusterName, clusterStatus));
+          nodeStatus, computeName, nodeStatus, clusterName, clusterStatus))
+        .then(() => clusterPage.resetEnvironment(clusterName))
+        .then(() => dashboardPage.discardChanges());
     },
     'Check that "Provisioning only" works as expected'() {
       this.timeout = 60000;
@@ -156,8 +161,6 @@ registerSuite(() => {
       var renameGroupName = 'Network_Group_2';
       return this.remote
         // Precondition
-        .then(() => clusterPage.resetEnvironment(clusterName))
-        .then(() => dashboardPage.discardChanges())
         .then(() => common.addNodesToCluster(controllerNodesAmount, ['Controller']))
         .then(() => common.addNodesToCluster(computeNodesAmount, ['Compute']))
         .then(() => clusterPage.goToTab('Dashboard'))
@@ -203,7 +206,57 @@ registerSuite(() => {
         // Check that user can add and rename new node network group after "Provisioning only"
         .then(() => clusterPage.goToTab('Networks'))
         .then(() => networksLib.createNetworkGroup(newGroupName))
-        .then(() => networksLib.renameNetworkGroup(newGroupName, renameGroupName));
+        .then(() => networksLib.renameNetworkGroup(newGroupName, renameGroupName))
+        .then(() => clusterPage.goToTab('Dashboard'))
+        .then(() => clusterPage.resetEnvironment(clusterName))
+        .then(() => dashboardPage.discardChanges());
+    },
+    'Check Virt role provisioning'() {
+      this.timeout = 60000;
+      var provisionNodesAmount = 1;
+      var vmConfigPanel = '#headingconfig';
+      var vmConfigField = '.form-group [type=textarea]';
+      var vmConfigJson = '[{"id":1,"mem":2,"cpu":2}]';
+      var btnSaveSelector = '.vms-config button.btn-success';
+      var paneName = '"VMs provisioning"';
+      var btnProvisionVM = 'button.btn-provision-vms';
+      var progressSelector = 'div.dashboard-tab div.progress';
+      var alertSelector = 'div.dashboard-tab div.alert ';
+      var successSelector = alertSelector + 'strong';
+      var messageSelector = alertSelector + 'span';
+      var successMsg = 'Success';
+      var resultMsg = 'Provision of';
+      var node = new NodeComponent(this.remote);
+      var modal = new ModalWindow(this.remote);
+      return this.remote
+        // Add node with compute, virtual role
+        .then(() => common.addNodesToCluster(provisionNodesAmount, ['Compute', 'Virtual']))
+        // Config VM
+        .then(() => clusterPage.goToTab('Nodes'))
+        .then(() => node.openNodePopup(false))
+        .clickByCssSelector(vmConfigPanel)
+        .setInputValue(vmConfigField, vmConfigJson)
+        .clickByCssSelector(btnSaveSelector)
+        .then(() => modal.close())
+        .then(() => clusterPage.goToTab('Dashboard'))
+        // Provision and deploy compute, virt node
+        .clickByCssSelector(btnProvisionVM)
+        .then(() => modal.waitToOpen())
+        .then(() => modal.checkTitle('Provision VMs'))
+        .then(() => modal.clickFooterButton('Start'))
+        .then(() => modal.waitToClose())
+        .assertElementsAppear(progressSelector, 5000, paneName + ' is started')
+        .assertElementDisappears(progressSelector, 45000, paneName + ' is finished')
+        .assertElementsAppear(alertSelector, 1000, paneName + ' result pane appears')
+        .assertElementMatchesRegExp(successSelector, RegExp(successMsg, 'i'),
+          paneName + ' result pane message is correct')
+        .assertElementMatchesRegExp(messageSelector, RegExp(resultMsg, 'i'),
+          paneName + ' result pane message is correct')
+        // Discard changes
+        .then(() => clusterPage.resetEnvironment(clusterName))
+        .then(() => clusterPage.goToTab('Nodes'))
+        .then(() => node.discardNode())
+        .then(() => clusterPage.goToTab('Dashboard'));
     }
   };
 });
