@@ -43,7 +43,7 @@ HistoryTab = React.createClass({
         if (!transactionId || !_.includes(subtabs, transactionId)) {
           app.navigate(
             '/cluster/' + cluster.id + '/history' + (defaultSubtab ? '/' + defaultSubtab : ''),
-            {trigger: true, replace: true}
+            {replace: true}
           );
         }
         return {activeTransactionId: transactionId || null};
@@ -70,7 +70,7 @@ HistoryTab = React.createClass({
         () => {
           app.navigate(
             '/cluster/' + this.props.cluster.id + '/history',
-            {trigger: true, replace: true}
+            {replace: true}
           );
         }
       );
@@ -83,7 +83,7 @@ HistoryTab = React.createClass({
     if (_.isNull(this.props.activeTransactionId) && transaction) {
       app.navigate(
         '/cluster/' + cluster.id + '/history/' + transaction.id,
-        {trigger: true, replace: true}
+        {replace: true}
       );
     }
     if (this.props.activeTransactionId !== activeTransactionId) {
