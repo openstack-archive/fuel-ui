@@ -69,7 +69,7 @@ var NodesTab = React.createClass({
   },
   checkScreenExists(screen) {
     if (!this.getScreenConstructor(screen || this.state.screen)) {
-      app.navigate('/cluster/' + this.props.cluster.id + '/nodes', {trigger: true, replace: true});
+      app.setPath('/cluster/' + this.props.cluster.id + '/nodes');
       return false;
     }
     return true;
@@ -88,10 +88,7 @@ var NodesTab = React.createClass({
           });
         },
         () => {
-          app.navigate(
-            '/cluster/' + this.props.cluster.id + '/nodes',
-            {trigger: true, replace: true}
-          );
+          app.setPath('/cluster/' + this.props.cluster.id + '/nodes');
         }
       );
   },
