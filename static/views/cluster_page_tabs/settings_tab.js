@@ -62,7 +62,7 @@ var SettingsTab = React.createClass({
         var subroute = tabOptions[0];
         if (!subroute || !_.includes(subtabs, subroute)) {
           app.navigate(
-            'cluster/' + cluster.id + '/settings/' + subtabs[0],
+            '/cluster/' + cluster.id + '/settings/' + subtabs[0],
             {trigger: true, replace: true}
           );
         }
