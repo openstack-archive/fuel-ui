@@ -62,7 +62,7 @@ export var unsavedChangesMixin = {
           applyChanges: this.applyChanges,
           revertChanges: this.revertChanges
         }).then(() => {
-          app.navigate(href, {trigger: true});
+          app.navigate(href);
         });
     }
   }
