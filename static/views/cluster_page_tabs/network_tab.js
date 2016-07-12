@@ -24,7 +24,7 @@ import models from 'models';
 import dispatcher from 'dispatcher';
 import {CreateNodeNetworkGroupDialog, RemoveNodeNetworkGroupDialog} from 'views/dialogs';
 import {backboneMixin, dispatcherMixin, unsavedChangesMixin, renamingMixin} from 'component_mixins';
-import {Input, Table, Popover, Tooltip, ProgressButton} from 'views/controls';
+import {Input, Table, Popover, Tooltip, ProgressButton, Link} from 'views/controls';
 import customControls from 'views/custom_controls';
 import SettingSection from 'views/cluster_page_tabs/setting_section';
 import CSSTransitionGroup from 'react-addons-transition-group';
@@ -1443,13 +1443,13 @@ var NetworkSubtabs = React.createClass({
             [subTabClassName]: true
           })}
         >
-          <a
+          <Link
             className={'no-leave-check subtab-link-' + subTabClassName}
-            href={'#cluster/' + this.props.cluster.id + '/network/' + subtab.url}
+            to={'/cluster/' + this.props.cluster.id + '/network/' + subtab.url}
           >
             {subtab.isInvalid && <i className='subtab-icon glyphicon-danger-sign' />}
             {subtab.label}
-          </a>
+          </Link>
         </li>
       );
     });
