@@ -532,10 +532,7 @@ var NetworkTab = React.createClass({
 
         // check if current subroute is valid
         if (!subroute || !_.includes(subtabs, subroute)) {
-          app.navigate(
-            '/cluster/' + cluster.id + '/network/' + subtabs[0],
-            {trigger: true, replace: true}
-          );
+          app.setPath('/cluster/' + cluster.id + '/network/' + subtabs[0]);
         }
         return {activeNetworkSectionName: subroute, showAllNetworks};
       }
@@ -889,10 +886,7 @@ var NetworkTab = React.createClass({
             this.validateNetworkConfiguration();
             this.updateInitialConfiguration();
             var defaultSubtab = this.constructor.getSubtabs(this.props)[0];
-            app.navigate(
-              '/cluster/' + this.props.cluster.id + '/network/' + defaultSubtab,
-              {trigger: true, replace: true}
-            );
+            app.setPath('/cluster/' + this.props.cluster.id + '/network/' + defaultSubtab);
           });
       });
   },
@@ -925,9 +919,8 @@ var NetworkTab = React.createClass({
           .then(() => {
             this.updateInitialConfiguration();
             if (!this.props.showAllNetworks) {
-              app.navigate(
-                '/cluster/' + this.props.cluster.id + '/network/group/' + newNodeNetworkGroupId,
-                {trigger: true, replace: true}
+              app.setPath(
+                '/cluster/' + this.props.cluster.id + '/network/group/' + newNodeNetworkGroupId
               );
             }
           });
@@ -940,10 +933,7 @@ var NetworkTab = React.createClass({
       :
         this.props.cluster.get('nodeNetworkGroups').find({is_default: true}).id
     );
-    app.navigate(
-      navigationUrl,
-      {trigger: true, replace: true}
-    );
+    app.setPath(navigationUrl);
   },
   render() {
     var isLocked = this.isLocked();
