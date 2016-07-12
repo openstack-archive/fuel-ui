@@ -40,7 +40,7 @@ var WelcomePage = React.createClass({
     });
     this.saveSettings(this.getStatisticsSettingsToSave())
       .then(
-        () => app.navigate('', {trigger: true}),
+        () => app.navigate(''),
         (response) => {
           this.setState({actionInProgress: false});
           utils.showErrorDialog({response});
