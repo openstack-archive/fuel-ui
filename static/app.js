@@ -63,7 +63,7 @@ class Router extends Backbone.Router {
     var preventRouting = false;
     // remove trailing slash
     if (_.endsWith(currentUrl, '/')) {
-      this.navigate(currentUrl.substr(0, currentUrl.length - 1), {trigger: true, replace: true});
+      this.setPath(currentUrl.substr(0, currentUrl.length - 1));
       preventRouting = true;
     }
     // handle special routes
@@ -86,12 +86,12 @@ class Router extends Backbone.Router {
         if (route.condition(currentRouteName)) {
           if (currentRouteName !== route.name) {
             preventRouting = true;
-            this.navigate(route.name, {trigger: true, replace: true});
+            this.setPath(route.name);
           }
           return false;
         } else if (currentRouteName === route.name) {
           preventRouting = true;
-          this.navigate('', {trigger: true});
+          this.navigate('/');
           return false;
         }
       });
@@ -101,7 +101,7 @@ class Router extends Backbone.Router {
 
   // routes
   default() {
-    this.navigate('clusters', {trigger: true, replace: true});
+    this.setPath('/clusters');
   }
 
   login() {
@@ -119,7 +119,7 @@ class Router extends Backbone.Router {
   showCluster(clusterId, tab) {
     var tabs = _.map(ClusterPage.getTabs(), 'url');
     if (!tab || !_.includes(tabs, tab)) {
-      this.navigate('cluster/' + clusterId + '/' + tabs[0], {trigger: true, replace: true});
+      this.setPath('/cluster/' + clusterId + '/' + tabs[0]);
     } else {
       app.loadPage(ClusterPage, arguments).catch(() => this.default());
     }
@@ -243,8 +243,12 @@ class App {
     this.page = this.rootComponent.setPage(Page, options);
   }
 
-  navigate(url, options) {
-    return this.router.navigate(url.replace(/^\//, '#'), options);
+  navigate(url) {
+    return this.router.navigate(url.replace(/^\//, '#'), {trigger: true, replace: false});
+  }
+
+  setPath(url) {
+    return this.router.navigate(url.replace(/^\//, '#'), {trigger: true, replace: true});
   }
 
   logout() {
@@ -256,7 +260,7 @@ class App {
       this.keystoneClient.deauthenticate();
     }
 
-    _.defer(() => this.navigate('login', {trigger: true, replace: true}));
+    _.defer(() => this.setPath('/login'));
   }
 
   overrideBackboneSyncMethod() {
