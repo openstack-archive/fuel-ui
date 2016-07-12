@@ -722,7 +722,7 @@ ManagementPanel = React.createClass({
   changeScreen(url, passNodeIds) {
     url = url ? '/' + url : '';
     if (passNodeIds) url += '/' + utils.serializeTabOptions({nodes: this.props.nodes.map('id')});
-    app.navigate('#cluster/' + this.props.cluster.id + '/nodes' + url, {trigger: true});
+    app.navigate('/cluster/' + this.props.cluster.id + '/nodes' + url, {trigger: true});
   },
   goToConfigurationScreen(action, conflict) {
     if (conflict) {

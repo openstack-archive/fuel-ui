@@ -861,7 +861,7 @@ export var RemoveClusterDialog = React.createClass({
         () => {
           this.close();
           dispatcher.trigger('updateNodeStats updateNotifications');
-          app.navigate('#clusters', {trigger: true});
+          app.navigate('/clusters', {trigger: true});
         },
         this.showError
       );
@@ -1038,7 +1038,7 @@ export var ShowNodeInfoDialog = React.createClass({
   goToConfigurationScreen(url) {
     this.close();
     app.navigate(
-      '#cluster/' + this.props.node.get('cluster') + '/nodes/' + url + '/' +
+      '/cluster/' + this.props.node.get('cluster') + '/nodes/' + url + '/' +
         utils.serializeTabOptions({nodes: this.props.node.id}),
       {trigger: true}
     );

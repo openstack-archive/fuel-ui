@@ -533,7 +533,7 @@ var NetworkTab = React.createClass({
         // check if current subroute is valid
         if (!subroute || !_.includes(subtabs, subroute)) {
           app.navigate(
-            'cluster/' + cluster.id + '/network/' + subtabs[0],
+            '/cluster/' + cluster.id + '/network/' + subtabs[0],
             {trigger: true, replace: true}
           );
         }
@@ -890,7 +890,7 @@ var NetworkTab = React.createClass({
             this.updateInitialConfiguration();
             var defaultSubtab = this.constructor.getSubtabs(this.props)[0];
             app.navigate(
-              '#cluster/' + this.props.cluster.id + '/network/' + defaultSubtab,
+              '/cluster/' + this.props.cluster.id + '/network/' + defaultSubtab,
               {trigger: true, replace: true}
             );
           });
@@ -926,7 +926,7 @@ var NetworkTab = React.createClass({
             this.updateInitialConfiguration();
             if (!this.props.showAllNetworks) {
               app.navigate(
-                '#cluster/' + this.props.cluster.id + '/network/group/' + newNodeNetworkGroupId,
+                '/cluster/' + this.props.cluster.id + '/network/group/' + newNodeNetworkGroupId,
                 {trigger: true, replace: true}
               );
             }
