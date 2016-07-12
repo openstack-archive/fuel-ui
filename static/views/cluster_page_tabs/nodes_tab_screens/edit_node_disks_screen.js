@@ -22,7 +22,7 @@ import ReactDOM from 'react-dom';
 import utils from 'utils';
 import models from 'models';
 import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
-import {Input, ProgressButton} from 'views/controls';
+import {Input, ProgressButton, Link} from 'views/controls';
 
 var EditNodeDisksScreen = React.createClass({
   mixins: [
@@ -235,12 +235,12 @@ var EditNodeDisksScreen = React.createClass({
           <div className='col-xs-12 page-buttons content-elements'>
             <div className='well clearfix'>
               <div className='btn-group'>
-                <a className='btn btn-default'
-                  href={'#cluster/' + this.props.cluster.id + '/nodes'}
+                <Link className='btn btn-default'
+                  to={'/cluster/' + this.props.cluster.id + '/nodes'}
                   disabled={this.state.actionInProgress}
                 >
                   {i18n('cluster_page.nodes_tab.back_to_nodes_button')}
-                </a>
+                </Link>
               </div>
               {!locked && !!this.props.disks.length &&
                 <div className='btn-group pull-right'>

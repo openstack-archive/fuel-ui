@@ -633,3 +633,15 @@ export var MultiSelectControl = React.createClass({
     );
   }
 });
+
+export var Link = React.createClass({
+  propTypes: {
+    to: React.PropTypes.string.isRequired,
+    activeClass: React.PropTypes.string
+  },
+  render() {
+    var {to, children} = this.props;
+    to = to.replace(/^\//, '#');
+    return <a href={to} {..._.omit(this.props, ['to', 'activeClass'])}>{children}</a>;
+  }
+});

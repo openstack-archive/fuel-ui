@@ -35,7 +35,7 @@ var NodesTab = React.createClass({
       var breadcrumbs = [
         [
           i18n('cluster_page.tabs.nodes'),
-          '#cluster/' + pageOptions.cluster.id + '/nodes',
+          '/cluster/' + pageOptions.cluster.id + '/nodes',
           {active: !subroute}
         ]
       ];

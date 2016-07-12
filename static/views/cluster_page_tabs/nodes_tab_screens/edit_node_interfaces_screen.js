@@ -23,7 +23,7 @@ import models from 'models';
 import dispatcher from 'dispatcher';
 import Expression from 'expression';
 import OffloadingModes from 'views/cluster_page_tabs/nodes_tab_screens/offloading_modes_control';
-import {Input, Tooltip, ProgressButton} from 'views/controls';
+import {Input, Tooltip, ProgressButton, Link} from 'views/controls';
 import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
 import {DragSource, DropTarget} from 'react-dnd';
 import ReactDOM from 'react-dom';
@@ -813,13 +813,13 @@ var EditNodeInterfacesScreen = React.createClass({
         <div className='col-xs-12 page-buttons content-elements'>
           <div className='well clearfix'>
             <div className='btn-group'>
-              <a
+              <Link
                 className='btn btn-default'
-                href={'#cluster/' + this.props.cluster.id + '/nodes'}
+                to={'/cluster/' + this.props.cluster.id + '/nodes'}
                 disabled={this.state.actionInProgress}
               >
                 {i18n('cluster_page.nodes_tab.back_to_nodes_button')}
-              </a>
+              </Link>
             </div>
             {!locked &&
               <div className='btn-group pull-right'>
@@ -872,11 +872,11 @@ var ErrorScreen = React.createClass({
               {i18n(ns + 'nodes_have_different_networks')}
               {_.map(nodesByNetworksMap, (nodeIds, networkNames) => {
                 return (
-                  <a
+                  <Link
                     key={networkNames}
                     className='no-leave-check'
-                    href={
-                      '#cluster/' + cluster.id + '/nodes/interfaces/' +
+                    to={
+                      '/cluster/' + cluster.id + '/nodes/interfaces/' +
                       utils.serializeTabOptions({nodes: nodeIds})
                     }
                   >
@@ -885,7 +885,7 @@ var ErrorScreen = React.createClass({
                       networks: _.map(networkNames.split(','), (name) => i18n('network.' + name))
                         .join(', ')
                     })}
-                  </a>
+                  </Link>
                 );
               })}
             </div>
@@ -894,12 +894,12 @@ var ErrorScreen = React.createClass({
         <div className='col-xs-12 page-buttons content-elements'>
           <div className='well clearfix'>
             <div className='btn-group'>
-              <a
+              <Link
                 className='btn btn-default'
-                href={'#cluster/' + cluster.id + '/nodes'}
+                to={'/cluster/' + cluster.id + '/nodes'}
               >
                 {i18n('cluster_page.nodes_tab.back_to_nodes_button')}
-              </a>
+              </Link>
             </div>
           </div>
         </div>
