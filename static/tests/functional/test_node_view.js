@@ -129,6 +129,8 @@ registerSuite(() => {
         .then(() => node.openCompactNodeExtendedView())
         .then(() => node.openNodePopup(true))
         .clickByCssSelector('#headingattributes')
+        .assertElementsAppear('.setting-section-hugepages input[name=dpdk]', 2000,
+          'DPDK input is found')
         .assertElementExists('.node-attributes .btn.discard-changes:disabled',
           'Cancel changes button is disabled')
         .setInputValue('.setting-section-hugepages input[name=dpdk]', '2')
@@ -167,4 +169,3 @@ registerSuite(() => {
     }
   };
 });
-

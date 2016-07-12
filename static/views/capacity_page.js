@@ -29,7 +29,7 @@ var CapacityPage = React.createClass({
   statics: {
     title: i18n('capacity_page.title'),
     navbarActiveElement: 'support',
-    breadcrumbsPath: [['home', '#'], ['support', '#support'], 'capacity'],
+    breadcrumbsPath: [['home', '/'], ['support', '/support'], 'capacity'],
     fetchData() {
       var task = new models.Task();
       return task.save({}, {url: '/api/capacity/', method: 'PUT'})

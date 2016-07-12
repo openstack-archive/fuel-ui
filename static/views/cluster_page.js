@@ -27,6 +27,7 @@ import SettingsTab from 'views/cluster_page_tabs/settings_tab';
 import LogsTab from 'views/cluster_page_tabs/logs_tab';
 import HealthCheckTab from 'views/cluster_page_tabs/healthcheck_tab';
 import {VmWareTab, VmWareModels} from 'plugins/vmware/vmware';
+import {Link} from 'views/controls';
 
 var ClusterPage = React.createClass({
   mixins: [
@@ -59,9 +60,9 @@ var ClusterPage = React.createClass({
     breadcrumbsPath(pageOptions) {
       var {activeTab, cluster} = pageOptions;
       var breadcrumbs = [
-        ['home', '#'],
-        ['environments', '#clusters'],
-        [cluster.get('name'), '#cluster/' + cluster.get('id'), {skipTranslation: true}]
+        ['home', '/'],
+        ['environments', '/clusters'],
+        [cluster.get('name'), '/cluster/' + cluster.get('id'), {skipTranslation: true}]
       ];
       return breadcrumbs.concat(
           _.find(this.getTabs(), {url: activeTab}).tab.breadcrumbsPath(pageOptions)
@@ -309,10 +310,10 @@ var ClusterPage = React.createClass({
         <div className='tabs-box'>
           <div className='tabs'>
             {tabUrls.map((tabUrl) => {
-              var url = '#cluster/' + cluster.id + '/' + tabUrl +
+              var url = '/cluster/' + cluster.id + '/' + tabUrl +
                 (subroutes[tabUrl] ? '/' + subroutes[tabUrl] : '');
               return (
-                <a
+                <Link
                   key={tabUrl}
                   className={
                     tabUrl + ' ' + utils.classNames({
@@ -320,11 +321,11 @@ var ClusterPage = React.createClass({
                       active: this.props.activeTab === tabUrl
                     })
                   }
-                  href={url}
+                  to={url}
                 >
                   <div className='icon' />
                   <div className='label'>{i18n('cluster_page.tabs.' + tabUrl)}</div>
-                </a>
+                </Link>
               );
             })}
           </div>

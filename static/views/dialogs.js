@@ -24,7 +24,7 @@ import {NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
-import {Input, ProgressBar, ProgressButton} from 'views/controls';
+import {Input, ProgressBar, ProgressButton, Link} from 'views/controls';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 import {backboneMixin, renamingMixin} from 'component_mixins';
 import LinkedStateMixin from 'react-addons-linked-state-mixin';
@@ -352,9 +352,9 @@ export var DiscardClusterChangesDialog = React.createClass({
                 {i18n(ns + 'cant_discard_cluster_settings')}
                 {' '}
                 {i18n(ns + 'cant_discard_instruction_start')}
-                <a href={'#cluster/' + cluster.id + '/settings'}>
+                <Link to={'/cluster/' + cluster.id + '/settings'}>
                   {i18n('cluster_page.tabs.settings')}
-                </a>
+                </Link>
                 {i18n(ns + 'cant_discard_instruction_end')}
               </span>
             );
@@ -380,9 +380,9 @@ export var DiscardClusterChangesDialog = React.createClass({
                 {i18n(ns + 'cant_discard_cluster_settings')}
                 {' '}
                 {i18n(ns + 'cant_discard_instruction_start')}
-                <a href={'#cluster/' + cluster.id + '/network'}>
+                <Link to={'/cluster/' + cluster.id + '/network'}>
                   {i18n('cluster_page.tabs.network')}
-                </a>
+                </Link>
                 {i18n(ns + 'cant_discard_instruction_end')}
               </span>
             );
