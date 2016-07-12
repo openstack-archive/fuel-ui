@@ -92,7 +92,7 @@ var LogsTab = React.createClass({
       _.extend({}, this.props.selectedLogs) : _.omit(this.props.selectedLogs, 'node');
     logOptions.level = logOptions.level.toLowerCase();
     app.navigate('/cluster/' + this.props.cluster.id + '/logs/' +
-      utils.serializeTabOptions(logOptions), {trigger: false, replace: true});
+      utils.serializeTabOptions(logOptions), true);
     params = params || {};
     this.fetchLogs(params)
       .then((data) => {

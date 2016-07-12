@@ -243,8 +243,8 @@ class App {
     this.page = this.rootComponent.setPage(Page, options);
   }
 
-  navigate(url, options) {
-    return this.router.navigate(url.replace(/^\//, '#'), options);
+  navigate(url, replacePath = false) {
+    return this.router.navigate(url.replace(/^\//, '#'), {trigger: true, replace: replacePath});
   }
 
   logout() {
