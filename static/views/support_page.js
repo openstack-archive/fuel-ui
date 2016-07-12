@@ -20,7 +20,7 @@ import utils from 'utils';
 import models from 'models';
 import {backboneMixin, pollingMixin, unsavedChangesMixin} from 'component_mixins';
 import statisticsMixin from 'views/statistics_mixin';
-import {ProgressButton} from 'views/controls';
+import {ProgressButton, Link} from 'views/controls';
 
 var SupportPage = React.createClass({
   mixins: [
@@ -29,7 +29,7 @@ var SupportPage = React.createClass({
   statics: {
     title: i18n('support_page.title'),
     navbarActiveElement: 'support',
-    breadcrumbsPath: [['home', '#'], 'support'],
+    breadcrumbsPath: [['home', '/'], 'support'],
     fetchData() {
       var tasks = new models.Tasks();
       return Promise.all([app.fuelSettings.fetch({cache: true}), tasks.fetch()])
@@ -246,9 +246,9 @@ var CapacityAudit = React.createClass({
         text={i18n('support_page.capacity_audit_text')}
       >
         <p>
-          <a className='btn btn-default capacity-audit' href='#capacity'>
+          <Link className='btn btn-default capacity-audit' to='/capacity'>
             {i18n('support_page.view_capacity_audit')}
-          </a>
+          </Link>
         </p>
       </SupportPageElement>
     );

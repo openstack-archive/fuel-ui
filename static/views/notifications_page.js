@@ -28,7 +28,7 @@ NotificationsPage = React.createClass({
   statics: {
     title: i18n('notifications_page.title'),
     navbarActiveElement: null,
-    breadcrumbsPath: [['home', '#'], 'notifications'],
+    breadcrumbsPath: [['home', '/'], 'notifications'],
     fetchData() {
       var notifications = app.notifications;
       return notifications.fetch().then(() =>

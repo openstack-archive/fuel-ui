@@ -21,7 +21,7 @@ import models from 'models';
 import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
 import SettingSection from 'views/cluster_page_tabs/setting_section';
 import CSSTransitionGroup from 'react-addons-transition-group';
-import {ProgressButton} from 'views/controls';
+import {ProgressButton, Link} from 'views/controls';
 
 var SettingsTab = React.createClass({
   mixins: [
@@ -397,13 +397,13 @@ var SettingSubtabs = React.createClass({
                   active: groupName === this.props.activeSettingsSectionName
                 })}
               >
-                <a
+                <Link
                   className={'no-leave-check subtab-link-' + groupName}
-                  href={'#cluster/' + this.props.cluster.id + '/settings/' + groupName}
+                  to={'/cluster/' + this.props.cluster.id + '/settings/' + groupName}
                 >
                   {hasErrors && <i className='subtab-icon glyphicon-danger-sign' />}
                   {i18n('cluster_page.settings_tab.groups.' + groupName, {defaultValue: groupName})}
-                </a>
+                </Link>
               </li>
             );
           })
