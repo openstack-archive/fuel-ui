@@ -20,7 +20,7 @@ import React from 'react';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
-import {Input, Popover, Tooltip} from 'views/controls';
+import {Input, Popover, Tooltip, Link} from 'views/controls';
 import {DeleteNodesDialog, RemoveOfflineNodeDialog, ShowNodeInfoDialog} from 'views/dialogs';
 import {renamingMixin} from 'component_mixins';
 
@@ -57,7 +57,7 @@ var Node = React.createClass({
     ) {
       options.source = 'install/puppet';
     }
-    return '#cluster/' + this.props.node.get('cluster') + '/logs/' +
+    return '/cluster/' + this.props.node.get('cluster') + '/logs/' +
       utils.serializeTabOptions(options);
   },
   applyNewNodeName(newName) {
@@ -289,9 +289,9 @@ var Node = React.createClass({
             {this.props.nodeActionsAvailable &&
               <div className='node-buttons'>
                 {!!node.get('cluster') &&
-                  <a className='btn btn-view-logs' href={this.getNodeLogsLink()} >
+                  <Link className='btn btn-view-logs' to={this.getNodeLogsLink()} >
                     {i18n('cluster_page.nodes_tab.node.view_logs')}
-                  </a>
+                  </Link>
                 }
                 {renderActionButtons &&
                   (node.get('pending_addition') || node.get('pending_deletion')) &&

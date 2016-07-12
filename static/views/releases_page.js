@@ -27,7 +27,7 @@ var ReleasesPage = React.createClass({
   statics: {
     title: i18n('release_page.title'),
     navbarActiveElement: 'releases',
-    breadcrumbsPath: [['home', '#'], 'releases'],
+    breadcrumbsPath: [['home', '/'], 'releases'],
     fetchData() {
       var releases = app.releases;
       return releases.fetch({cache: true}).then(() => ({releases}));

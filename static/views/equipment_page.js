@@ -28,7 +28,7 @@ EquipmentPage = React.createClass({
   statics: {
     title: i18n('equipment_page.title'),
     navbarActiveElement: 'equipment',
-    breadcrumbsPath: [['home', '#'], 'equipment'],
+    breadcrumbsPath: [['home', '/'], 'equipment'],
     fetchData() {
       var nodes = new models.Nodes();
       var clusters = new models.Clusters();

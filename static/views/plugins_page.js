@@ -25,7 +25,7 @@ var PluginsPage = React.createClass({
   statics: {
     title: i18n('plugins_page.title'),
     navbarActiveElement: 'plugins',
-    breadcrumbsPath: [['home', '#'], 'plugins'],
+    breadcrumbsPath: [['home', '/'], 'plugins'],
     fetchData() {
       var releases = app.releases;
       var plugins = new models.Plugins();
