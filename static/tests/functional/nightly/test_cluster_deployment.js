@@ -25,14 +25,9 @@ import NetworksLib from 'tests/functional/nightly/library/networks';
 import DashboardLib from 'tests/functional/nightly/library/dashboard';
 
 registerSuite(() => {
-  var common, clusterPage, clusterName, networksLib, dashboardPage, dashboardLib,
-    nodesLib;
-  var controllerNodesAmount = 2;
-  var computeNodesAmount = 1;
-  var totalNodesAmount = controllerNodesAmount + computeNodesAmount;
-  var controller1Name = 'Supermicro X9DRW';
-  var controller2Name = 'Dell Inspiron';
-  var computeName = 'Supermicro X9SCD';
+  var common, clusterPage, networksLib, dashboardPage, dashboardLib, nodesLib, node, modal,
+    clusterName, controllers, computes, totalNodesAmount, nodeStatuses, clusterStatuses,
+    timeout;
 
   return {
     name: 'Cluster deployment',
@@ -43,185 +38,225 @@ registerSuite(() => {
       nodesLib = new NodesLib(this.remote);
       networksLib = new NetworksLib(this.remote);
       dashboardLib = new DashboardLib(this.remote);
+      node = new NodeComponent(this.remote);
+      modal = new ModalWindow(this.remote);
+
       clusterName = common.pickRandomName('Test Cluster');
+
+      timeout = 90000; // tests in the suite include long runnning cluster tasks
+
+      controllers = ['Supermicro X9DRW', 'Dell Inspiron'];
+      computes = ['Supermicro X9SCD'];
+      totalNodesAmount = controllers.length + computes.length;
+
+      nodeStatuses = {
+        ready: 'ready',
+        provisioned: 'provisioned',
+        new: 'pending_addition'
+      };
+
+      clusterStatuses = {
+        operational: 'Operational',
+        partially_deployed: 'Partially Deployed'
+      };
 
       return this.remote
         .then(() => common.getIn())
         .then(() => common.createCluster(clusterName));
     },
+    afterEach() {
+      // do clean-up after each test to make them independent
+      return this.remote
+        .then(() => clusterPage.goToTab('Dashboard'))
+        .then(() => clusterPage.resetEnvironment(clusterName))
+        .then(() => dashboardPage.discardChanges());
+    },
     'Check deployment/provisioning with node in "Offline"/"Error" state'() {
-      this.timeout = 45000;
+      this.timeout = timeout;
       var offlineNodesAmount = 1;
       var errorNodesAmount = 1;
+
       return this.remote
-        // Precondition
         .then(() => common.addNodesToCluster(offlineNodesAmount, ['Controller'], 'offline'))
         .then(() => common.addNodesToCluster(errorNodesAmount, ['Controller'], 'error'))
-        .then(() => common.addNodesToCluster(computeNodesAmount, ['Compute']))
+        .then(() => common.addNodesToCluster(computes.length, ['Compute']))
         .then(() => clusterPage.goToTab('Dashboard'))
         // Check deployment modes
-        .then(() => dashboardLib.checkDeployModeState(totalNodesAmount, offlineNodesAmount,
-          errorNodesAmount, 0, 0))
+        .then(() => dashboardLib.checkDeployModeState(
+          totalNodesAmount, offlineNodesAmount, errorNodesAmount, 0, 0
+        ))
         .then(() => dashboardLib.changeDeploymentMode('Provision'))
-        .then(() => dashboardLib.checkProvisionModeState(totalNodesAmount, offlineNodesAmount,
-          errorNodesAmount, 0, 0))
+        .then(() => dashboardLib.checkProvisionModeState(
+          totalNodesAmount, offlineNodesAmount, errorNodesAmount, 0, 0
+        ))
         .then(() => dashboardLib.changeDeploymentMode('Deployment'))
-        .then(() => dashboardLib.checkDeploymentModeState(totalNodesAmount, offlineNodesAmount,
-          errorNodesAmount, 0, 0))
-        .then(() => dashboardLib.changeDeploymentMode('Deploy'))
-        .then(() => clusterPage.resetEnvironment(clusterName))
-        .then(() => dashboardPage.discardChanges());
+        .then(() => dashboardLib.checkDeploymentModeState(
+          totalNodesAmount, offlineNodesAmount, errorNodesAmount, 0, 0
+        ))
+        .then(() => dashboardLib.changeDeploymentMode('Deploy'));
     },
     'Check that "Regular deployment" works as expected'() {
-      this.timeout = 75000;
-      var provisionNodesAmount = 1;
-      var nodeStatus = 'ready';
-      var clusterStatus = 'Operational';
+      this.timeout = timeout;
+      var provisionedNodesAmount = 1;
+
       return this.remote
-        // Precondition
-        .then(() => common.addNodesToCluster(controllerNodesAmount, ['Controller']))
-        .then(() => common.addNodesToCluster(computeNodesAmount, ['Compute']))
+        .then(() => common.addNodesToCluster(controllers.length, ['Controller']))
+        .then(() => common.addNodesToCluster(computes.length, ['Compute']))
         .then(() => clusterPage.goToTab('Dashboard'))
         // Provision part of nodes
         .then(() => dashboardLib.changeDeploymentMode('Provision'))
-        .then(() => dashboardLib.selectNodes('Provision', controllerNodesAmount, computeNodesAmount,
-          provisionNodesAmount, 0))
-        .then(() => dashboardLib.provisionNodes(clusterName, totalNodesAmount, 0, 0,
-          provisionNodesAmount, 0))
-        .then(() => dashboardLib.checkDeployModeState(totalNodesAmount, 0, 0,
-          provisionNodesAmount, 0))
+        .then(() => dashboardLib.selectNodes(
+          'Provision', controllers.length, computes.length, provisionedNodesAmount, 0
+        ))
+        .then(() => dashboardLib.provisionNodes(
+          clusterName, totalNodesAmount, 0, 0, provisionedNodesAmount, 0
+        ))
+        .then(() => dashboardLib.checkDeployModeState(
+          totalNodesAmount, 0, 0, provisionedNodesAmount, 0
+        ))
         // Check "Regular deployment"
-        .then(() => dashboardLib.deployNodes(clusterName, totalNodesAmount, 0, 0,
-          provisionNodesAmount, 0))
-        .then(() => dashboardLib.checkDeployModeState(totalNodesAmount, 0, 0,
-          provisionNodesAmount, totalNodesAmount))
-        .then(() => nodesLib.checkDeployResults(controller1Name, nodeStatus, controller2Name,
-          nodeStatus, computeName, nodeStatus, clusterName, clusterStatus))
-        .then(() => clusterPage.resetEnvironment(clusterName))
-        .then(() => dashboardPage.discardChanges());
+        .then(() => dashboardLib.deployNodes(
+          clusterName, totalNodesAmount, 0, 0, provisionedNodesAmount, 0
+        ))
+        .then(() => dashboardLib.checkDeployModeState(
+          totalNodesAmount, 0, 0, provisionedNodesAmount, totalNodesAmount
+        ))
+        .then(() => nodesLib.checkDeployResults(
+          controllers[0], nodeStatuses.ready, controllers[1],
+          nodeStatuses.ready, computes[0], nodeStatuses.ready,
+          clusterName, clusterStatuses.operational
+        ));
     },
-    'Check nodes selection dialog supports Quick Search, Sorting and Filtering'() {
-      this.timeout = 90000;
-      var provisionControllerAmount = 1;
-      var provisionComputeAmount = 1;
-      var provisionNodesAmount = provisionControllerAmount + provisionComputeAmount;
-      var deployControllerAmount = 1;
-      var deepCheck = [controller1Name, computeName, ['input[name="error"]']];
-      var initialStatus = 'pending_addition';
-      var provisionStatus = 'provisioned';
-      var readyStatus = 'ready';
-      var clusterStatus = 'Partially Deployed';
+    'Check node selection dialog supports Quick Search, Sorting and Filtering'() {
+      this.timeout = timeout;
+      var provisionedControllerAmount = 1;
+      var provisionedComputeAmount = 1;
+      var provisionedNodesAmount = provisionedControllerAmount + provisionedComputeAmount;
+      var deployedControllerAmount = 1;
+
       return this.remote
-        // Precondition
-        .then(() => common.addNodesToCluster(controllerNodesAmount, ['Controller']))
-        .then(() => common.addNodesToCluster(computeNodesAmount, ['Compute']))
+        .then(() => common.addNodesToCluster(controllers.length, ['Controller']))
+        .then(() => common.addNodesToCluster(computes.length, ['Compute']))
         .then(() => clusterPage.goToTab('Dashboard'))
         // Provision part of nodes
         .then(() => dashboardLib.changeDeploymentMode('Provision'))
-        .then(() => dashboardLib.selectNodes('Provision', controllerNodesAmount, computeNodesAmount,
-          provisionControllerAmount, provisionComputeAmount, deepCheck))
-        .then(() => dashboardLib.provisionNodes(clusterName, totalNodesAmount, 0, 0,
-          provisionNodesAmount, 0))
-        .then(() => dashboardLib.checkDeployModeState(totalNodesAmount, 0, 0,
-          provisionNodesAmount, 0))
-        .then(() => nodesLib.checkDeployResults(controller1Name, provisionStatus, controller2Name,
-          initialStatus, computeName, provisionStatus, clusterName, clusterStatus))
+        .then(() => dashboardLib.selectNodes(
+          'Provision', controllers.length, computes.length,
+          provisionedControllerAmount, provisionedComputeAmount,
+          [controllers[0], computes[0], ['input[name="error"]']]
+        ))
+        .then(() => dashboardLib.provisionNodes(
+          clusterName, totalNodesAmount, 0, 0, provisionedNodesAmount, 0
+        ))
+        .then(() => dashboardLib.checkDeployModeState(
+          totalNodesAmount, 0, 0, provisionedNodesAmount, 0
+        ))
+        .then(() => nodesLib.checkDeployResults(
+          controllers[0], nodeStatuses.provisioned, controllers[1],
+          nodeStatuses.new, computes[0], nodeStatuses.provisioned,
+          clusterName, clusterStatuses.partially_deployed
+        ))
         // Deploy part of nodes
         .then(() => dashboardLib.changeDeploymentMode('Deployment'))
-        .then(() => dashboardLib.selectNodes('Deployment', provisionControllerAmount,
-          provisionComputeAmount, deployControllerAmount, 0, deepCheck))
-        .then(() => dashboardLib.deployOnlyNodes(clusterName, totalNodesAmount, 0, 0,
-          provisionNodesAmount, deployControllerAmount))
-        .then(() => dashboardLib.checkDeployModeState(totalNodesAmount, 0, 0,
-          provisionControllerAmount, deployControllerAmount))
-        .then(() => nodesLib.checkDeployResults(controller1Name, readyStatus, controller2Name,
-          initialStatus, computeName, provisionStatus, clusterName, clusterStatus));
+        .then(() => dashboardLib.selectNodes(
+          'Deployment', provisionedControllerAmount,
+          provisionedComputeAmount, deployedControllerAmount, 0,
+          [controllers[0], computes[0], ['input[name="error"]']]
+        ))
+        .then(() => dashboardLib.deployOnlyNodes(
+          clusterName, totalNodesAmount, 0, 0, provisionedNodesAmount, deployedControllerAmount
+        ))
+        .then(() => dashboardLib.checkDeployModeState(
+          totalNodesAmount, 0, 0, provisionedControllerAmount, deployedControllerAmount
+        ))
+        .then(() => nodesLib.checkDeployResults(
+          controllers[0], nodeStatuses.ready, controllers[1],
+          nodeStatuses.new, computes[0], nodeStatuses.provisioned,
+          clusterName, clusterStatuses.partially_deployed
+        ));
     },
     'Check that "Regular deployment" works as expected for provisioned/deployed part of nodes'() {
-      this.timeout = 45000;
-      var provisionNodesAmount = 1;
-      var deployNodesAmount = 1;
-      var nodeStatus = 'ready';
-      var clusterStatus = 'Operational';
+      this.timeout = timeout;
+
       return this.remote
-        .then(() => dashboardLib.deployNodes(clusterName, totalNodesAmount, 0, 0,
-          provisionNodesAmount, deployNodesAmount))
-        .then(() => dashboardLib.checkDeployModeState(totalNodesAmount, 0, 0, 0, totalNodesAmount))
-        .then(() => nodesLib.checkDeployResults(controller1Name, nodeStatus, controller2Name,
-          nodeStatus, computeName, nodeStatus, clusterName, clusterStatus))
-        .then(() => clusterPage.resetEnvironment(clusterName))
-        .then(() => dashboardPage.discardChanges());
+        .then(() => dashboardLib.deployNodes(
+          clusterName, totalNodesAmount, 0, 0, 1, 1
+        ))
+        .then(() => dashboardLib.checkDeployModeState(
+          totalNodesAmount, 0, 0, 0, totalNodesAmount
+        ))
+        .then(() => nodesLib.checkDeployResults(
+          controllers[0], nodeStatuses.ready, controllers[1],
+          nodeStatuses.ready, computes[0], nodeStatuses.ready,
+          clusterName, clusterStatuses.operational
+        ));
     },
     'Check that "Provisioning only" works as expected'() {
-      this.timeout = 60000;
-      var provisionNodesAmount = 3;
-      var nodeStatus = 'provisioned';
-      var clusterStatus = 'Partially Deployed';
-      var newGroupName = 'Network_Group_1';
-      var renameGroupName = 'Network_Group_2';
+      this.timeout = timeout;
+      var provisionedNodesAmount = 3;
+
       return this.remote
-        // Precondition
-        .then(() => common.addNodesToCluster(controllerNodesAmount, ['Controller']))
-        .then(() => common.addNodesToCluster(computeNodesAmount, ['Compute']))
+        .then(() => common.addNodesToCluster(controllers.length, ['Controller']))
+        .then(() => common.addNodesToCluster(computes.length, ['Compute']))
         .then(() => clusterPage.goToTab('Dashboard'))
         // Check "Provisioning only"
         .then(() => dashboardLib.checkDeployModeState(totalNodesAmount, 0, 0, 0, 0))
         .then(() => dashboardLib.changeDeploymentMode('Provision'))
         .then(() => dashboardLib.checkProvisionModeState(totalNodesAmount, 0, 0, 0, 0))
-        .then(() => dashboardLib.provisionNodes(clusterName, totalNodesAmount, 0, 0,
-          provisionNodesAmount, 0))
-        .then(() => dashboardLib.checkDeployModeState(totalNodesAmount, 0, 0,
-          provisionNodesAmount, 0))
+        .then(() => dashboardLib.provisionNodes(
+          clusterName, totalNodesAmount, 0, 0, provisionedNodesAmount, 0
+        ))
+        .then(() => dashboardLib.checkDeployModeState(
+          totalNodesAmount, 0, 0, provisionedNodesAmount, 0
+        ))
         .then(() => dashboardLib.changeDeploymentMode('Provision'))
-        .then(() => dashboardLib.checkProvisionModeState(totalNodesAmount, 0, 0,
-          provisionNodesAmount, 0))
-        .then(() => nodesLib.checkDeployResults(controller1Name, nodeStatus, controller2Name,
-          nodeStatus, computeName, nodeStatus, clusterName, clusterStatus))
+        .then(() => dashboardLib.checkProvisionModeState(
+          totalNodesAmount, 0, 0, provisionedNodesAmount, 0
+        ))
+        .then(() => nodesLib.checkDeployResults(
+          controllers[0], nodeStatuses.provisioned, controllers[1],
+          nodeStatuses.provisioned, computes[0], nodeStatuses.provisioned,
+          clusterName, clusterStatuses.partially_deployed
+        ))
         // Check that user can add and rename new node network group after "Provisioning only"
         .then(() => clusterPage.goToTab('Networks'))
-        .then(() => networksLib.createNetworkGroup(newGroupName))
-        .then(() => networksLib.renameNetworkGroup(newGroupName, renameGroupName))
-        // Postcondition
-        .then(() => clusterPage.goToTab('Dashboard'));
+        .then(() => networksLib.createNetworkGroup('Network_Group_1'))
+        .then(() => networksLib.renameNetworkGroup('Network_Group_1', 'Network_Group_2'));
     },
     'Check that "Deployment only" works as expected'() {
-      this.timeout = 45000;
-      var provisionNodesAmount = 3;
-      var deployNodesAmount = 3;
-      var nodeStatus = 'ready';
-      var clusterStatus = 'Operational';
-      var newGroupName = 'Network_Group_1';
-      var renameGroupName = 'Network_Group_3';
+      this.timeout = timeout;
+      var provisionedNodesAmount = 3;
+      var deployedNodesAmount = 3;
+
       return this.remote
-        // Check "Deployment only"
         .then(() => dashboardLib.changeDeploymentMode('Deployment'))
-        .then(() => dashboardLib.checkDeploymentModeState(totalNodesAmount, 0, 0,
-          provisionNodesAmount, 0))
-        .then(() => dashboardLib.deployOnlyNodes(clusterName, totalNodesAmount, 0, 0,
-          provisionNodesAmount, deployNodesAmount))
-        .then(() => dashboardLib.checkDeployModeState(totalNodesAmount, 0, 0,
-          provisionNodesAmount, deployNodesAmount))
-        .then(() => nodesLib.checkDeployResults(controller1Name, nodeStatus, controller2Name,
-          nodeStatus, computeName, nodeStatus, clusterName, clusterStatus))
-        // Check that user can add and rename new node network group after "Provisioning only"
+        .then(() => dashboardLib.checkDeploymentModeState(
+          totalNodesAmount, 0, 0, provisionedNodesAmount, 0
+        ))
+        .then(() => dashboardLib.deployOnlyNodes(
+          clusterName, totalNodesAmount, 0, 0, provisionedNodesAmount, deployedNodesAmount
+        ))
+        .then(() => dashboardLib.checkDeployModeState(
+          totalNodesAmount, 0, 0, provisionedNodesAmount, deployedNodesAmount
+        ))
+        .then(() => nodesLib.checkDeployResults(
+          controllers[0], nodeStatuses.ready, controllers[1],
+          nodeStatuses.ready, computes[0], nodeStatuses.ready,
+          clusterName, clusterStatuses.operational
+        ))
+        // Check that user can add and rename new node network group after "Deployment only"
         .then(() => clusterPage.goToTab('Networks'))
-        .then(() => networksLib.createNetworkGroup(newGroupName))
-        .then(() => networksLib.renameNetworkGroup(newGroupName, renameGroupName))
-        .then(() => clusterPage.goToTab('Dashboard'))
-        .then(() => clusterPage.resetEnvironment(clusterName))
-        .then(() => dashboardPage.discardChanges());
+        .then(() => networksLib.createNetworkGroup('Network_Group_1'))
+        .then(() => networksLib.renameNetworkGroup('Network_Group_1', 'Network_Group_3'));
     },
     'Check Virt role provisioning'() {
-      this.timeout = 60000;
+      this.timeout = timeout;
       var vmConfigJson = '[{"id":1,"mem":2,"cpu":2}]';
       var paneName = '"VMs provisioning"';
-      var node = new NodeComponent(this.remote);
-      var modal = new ModalWindow(this.remote);
+
       return this.remote
-        // Add node with compute, virtual role
         .then(() => common.addNodesToCluster(1, ['Compute', 'Virtual']))
         // Config VM
-        .then(() => clusterPage.goToTab('Nodes'))
         .then(() => node.openNodePopup(false))
         .clickByCssSelector('#headingconfig')
         .setInputValue('.form-group [type=textarea]', vmConfigJson)
@@ -234,19 +269,23 @@ registerSuite(() => {
         .then(() => modal.checkTitle('Provision VMs'))
         .then(() => modal.clickFooterButton('Start'))
         .then(() => modal.waitToClose())
-        .assertElementsAppear('div.dashboard-tab div.progress', 5000, paneName + ' is started')
-        .assertElementDisappears('div.dashboard-tab div.progress', 45000, paneName + ' is finished')
-        .assertElementsAppear('div.dashboard-tab div.alert', 1000, paneName +
-                              ' result pane appears')
-        .assertElementMatchesRegExp('div.dashboard-tab div.alert strong', RegExp('Success', 'i'),
-          paneName + ' result pane message is correct')
-        .assertElementMatchesRegExp('div.dashboard-tab div.alert span', RegExp('Provision of', 'i'),
-          paneName + ' result pane message is correct')
-        // Discard changes
-        .then(() => clusterPage.resetEnvironment(clusterName))
-        .then(() => clusterPage.goToTab('Nodes'))
-        .then(() => node.discardNode())
-        .then(() => clusterPage.goToTab('Dashboard'));
+        .assertElementAppears(
+          'div.dashboard-tab div.progress', 5000, paneName + ' is started'
+        )
+        .assertElementDisappears(
+          'div.dashboard-tab div.progress', 45000, paneName + ' is finished'
+        )
+        .assertElementAppears(
+          'div.dashboard-tab div.alert', 1000, paneName + ' result pane appears'
+        )
+        .assertElementMatchesRegExp(
+          'div.dashboard-tab div.alert strong', RegExp('Success', 'i'),
+          paneName + ' result pane message is correct'
+        )
+        .assertElementMatchesRegExp(
+          'div.dashboard-tab div.alert span', RegExp('Provision of', 'i'),
+          paneName + ' result pane message is correct'
+        );
     }
   };
 });
