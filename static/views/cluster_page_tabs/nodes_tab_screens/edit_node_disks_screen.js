@@ -33,7 +33,8 @@ var EditNodeDisksScreen = React.createClass({
   ],
   statics: {
     fetchData(options) {
-      var nodes = utils.getNodeListFromTabOptions(options);
+      var {cluster} = options;
+      var nodes = utils.getNodeListFromTabOptions(options, cluster);
 
       if (!nodes || !nodes.areDisksConfigurable()) {
         return Promise.reject();
