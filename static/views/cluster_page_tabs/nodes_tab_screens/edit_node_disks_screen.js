@@ -23,6 +23,7 @@ import utils from 'utils';
 import models from 'models';
 import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
 import {Input, ProgressButton, Link} from 'views/controls';
+import Slider from 'rc-slider';
 
 var EditNodeDisksScreen = React.createClass({
   mixins: [
@@ -444,10 +445,10 @@ var NodeDisk = React.createClass({
                         {volume.get('label')}
                       </label>
                       <div className='col-xs-4 volume-group-range'>
-                        <Input {...props}
-                          type='range'
+                        <Slider {...props}
                           ref={'range-' + volumeName}
-                          onChange={_.partialRight(this.updateDisk)}
+                          tipFormatter={null}
+                          onChange={_.partial(this.updateDisk, volumeName)}
                           value={value}
                         />
                       </div>
