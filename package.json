@@ -67,6 +67,7 @@
     "react-dnd-html5-backend": "2.1.2",
     "react-dom": "15.1.0",
     "react-router": "2.4.1",
+    "react-rangeslider": "1.0.3",
     "rimraf": "2.2.8",
     "run-sequence": "1.0.2",
     "style-loader": "0.12.4",
