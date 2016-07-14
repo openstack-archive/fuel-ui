@@ -23,6 +23,7 @@ import utils from 'utils';
 import models from 'models';
 import {backboneMixin, unsavedChangesMixin} from 'component_mixins';
 import {Input, ProgressButton, Link} from 'views/controls';
+import Slider from 'react-slider';
 
 var EditNodeDisksScreen = React.createClass({
   mixins: [
@@ -286,6 +287,9 @@ var NodeDisk = React.createClass({
       .on('show.bs.collapse', () => this.setState({collapsed: true}, null))
       .on('hide.bs.collapse', () => this.setState({collapsed: false}, null));
   },
+  componentWillMount() {
+    this.updateDiskDebounced = _.debounce(this.updateDisk, 200, {leading: true});
+  },
   updateDisk(name, value) {
     var size = parseInt(value, 10) || 0;
     var volumeInfo = this.props.volumesInfo[name];
@@ -444,10 +448,10 @@ var NodeDisk = React.createClass({
                         {volume.get('label')}
                       </label>
                       <div className='col-xs-4 volume-group-range'>
-                        <Input {...props}
-                          type='range'
+                        <Slider {...props}
                           ref={'range-' + volumeName}
-                          onChange={_.partialRight(this.updateDisk)}
+                          className='horizontal-slider'
+                          onChange={_.partial(this.updateDiskDebounced, volumeName)}
                           value={value}
                         />
                       </div>
