@@ -404,7 +404,7 @@ export var DiscardClusterChangesDialog = React.createClass({
         };
       }));
       Backbone.sync('update', nodes)
-        .then(() => cluster.fetchRelated('nodes'))
+        .then(() => cluster.get('nodes').fetch())
         .then(
           () => {
             dispatcher
@@ -1831,7 +1831,7 @@ export var DeleteNodesDialog = React.createClass({
       };
     }));
     Backbone.sync('update', nodes)
-      .then(() => this.props.cluster.fetchRelated('nodes'))
+      .then(() => this.props.cluster.get('nodes').fetch())
       .then(
         () => {
           dispatcher.trigger('updateNodeStats networkConfigurationUpdated ' +
