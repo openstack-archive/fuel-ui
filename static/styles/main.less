@@ -743,42 +743,43 @@ button, .btn:not(.btn-link) {.font-semibold;}
 
 // CUSTOM RANGE INPUT
 
-input[type=range] {
-  &,
-  &:focus,
-  &:active,
-  &::-moz-focus-inner,
-  &:-moz-focusring {
-    border: 0 !important;
-    outline: none !important;
+.volume-group-range {
+  top: 11px;
+  .horizontal-slider {
+    width: 100%;
+    max-width: 500px;
+    height: 8px;
+    background-color: @tab-color - 20%;
+    border-radius: 4px;
+    .handle {
+      width: 16px;
+      height: 16px;
+      border-radius: 8px;
+      top: -4px;
+      background-color: @base-light-color;
+      border: 2px solid @link-color;
+      cursor: pointer;
+      &:hover {
+        background-color: @base-light-color - 5%;
+        border: 2px solid @link-color-hover;
+      }
+      &:focus {
+        background-color: @base-light-color - 5%;
+        border: 2px solid @link-color-hover;
+      }
+    }
   }
-  &::-ms-track {
-    border: inherit;
-    color: transparent;
-    background: transparent;
-    outline: none;
+  .disabled {
+    .handle {
+      background-color: @base-light-color;
+      border: 2px solid @tab-color - 30%;
+      cursor: not-allowed;
+      &:hover {
+        background-color: @base-light-color;
+        border: 2px solid @tab-color - 30%;
+      }
+    }
   }
-  &::-ms-fill-lower,
-  &::-ms-fill-upper {
-    background: transparent;
-    outline: none;
-  }
-  &::-ms-tooltip {
-    display: none;
-  }
-  &:disabled {
-    opacity: 0.4;
-  }
-  -webkit-appearance: none;
-  -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
-  width: 100%;
-  height: 6px;
-  margin: 0;
-  border: none;
-  border-radius: 3px;
-  background: @range-color;
-  box-shadow: inset 0 1px 0 0 @range-color - 10%, inset 0 -1px 0 0 @range-color + 10%;
-  outline: none;
 }
 
 // NAVIGATION
@@ -3759,12 +3760,6 @@ input[type=range] {
           label,
           .help-block {
             display: none;
-          }
-          input[type=range] {
-            -moz-transform: translateY(-1000em);
-            &::-moz-range-track, &::-moz-range-thumb {
-              -moz-transform: translateY(1000em);
-            }
           }
         }
         .volume-group-label {
