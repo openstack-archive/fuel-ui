@@ -675,7 +675,7 @@ var NetworkTab = React.createClass({
 
     task.save({}, options)
       .then(
-        () => this.props.cluster.fetchRelated('tasks'),
+        () => this.props.cluster.get('tasks').fetch(),
         (response) => {
           this.setState({actionInProgress: false});
           utils.showErrorDialog({
@@ -713,7 +713,7 @@ var NetworkTab = React.createClass({
           this.updateInitialConfiguration();
           this.setState({actionInProgress: false});
         }, (response) => {
-          this.props.cluster.fetchRelated('tasks')
+          this.props.cluster.get('tasks').fetch()
             .then(() => {
               // FIXME (morale): this hack is needed until backend response
               // format is unified https://bugs.launchpad.net/fuel/+bug/1521661

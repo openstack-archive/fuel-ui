@@ -854,10 +854,7 @@ var ClusterActionButton = React.createClass({
   },
   showSelectNodesDialog() {
     var {nodes, cluster, nodeStatusesToFilter} = this.props;
-    nodes.fetch = function(options) {
-      return this.constructor.__super__.fetch.call(this,
-        _.extend({data: {cluster_id: cluster.id}}, options));
-    };
+    nodes.updateFetchOptions({data: {cluster_id: cluster.id}});
     nodes.parse = function() {
       return this.getByIds(nodes.map('id'));
     };
