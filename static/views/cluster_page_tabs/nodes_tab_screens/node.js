@@ -83,7 +83,7 @@ var Node = React.createClass({
     new models.Node(this.props.node.attributes)
       .save({pending_deletion: false}, {patch: true})
       .then(
-        () => this.props.cluster.fetchRelated('nodes'),
+        () => this.props.cluster.get('nodes').fetch(),
         (response) => {
           utils.showErrorDialog({
             title: i18n('cluster_page.nodes_tab.node.cant_discard'),

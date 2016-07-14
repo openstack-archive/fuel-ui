@@ -39,8 +39,8 @@ var EditNodeInterfacesScreen = React.createClass({
   ],
   statics: {
     fetchData(options) {
-      var cluster = options.cluster;
-      var nodes = utils.getNodeListFromTabOptions(options);
+      var {cluster} = options;
+      var nodes = utils.getNodeListFromTabOptions(options, cluster);
 
       if (!nodes || !nodes.areInterfacesConfigurable()) {
         return Promise.reject();
