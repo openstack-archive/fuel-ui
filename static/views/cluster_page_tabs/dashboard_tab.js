@@ -601,17 +601,21 @@ var ClusterActionsPanel = React.createClass({
     var actionNs = ns + 'actions.' + action + '.';
 
     var {cluster, isClusterConfigurationChanged, configModels} = this.props;
+    var fetchOptions = {cluster_id: cluster.id};
     var nodes = {
       provision: new models.Nodes(
-        cluster.get('nodes').filter((node) => node.isProvisioningPossible())
+        cluster.get('nodes').filter((node) => node.isProvisioningPossible()),
+        {fetchOptions}
       ),
       deployment: new models.Nodes(
-        cluster.get('nodes').filter((node) => node.isDeploymentPossible())
+        cluster.get('nodes').filter((node) => node.isDeploymentPossible()),
+        {fetchOptions}
       ),
       spawn_vms: new models.Nodes(
         cluster.get('nodes').filter(
           (node) => node.hasRole('virt') && node.get('status') === 'discover'
-        )
+        ),
+        {fetchOptions}
       ),
       deploy: cluster.get('nodes')
     }[action];
@@ -854,10 +858,6 @@ var ClusterActionButton = React.createClass({
   },
   showSelectNodesDialog() {
     var {nodes, cluster, nodeStatusesToFilter} = this.props;
-    nodes.fetch = function(options) {
-      return this.constructor.__super__.fetch.call(this,
-        _.extend({data: {cluster_id: cluster.id}}, options));
-    };
     nodes.parse = function() {
       return this.getByIds(nodes.map('id'));
     };
