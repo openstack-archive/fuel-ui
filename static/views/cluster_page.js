@@ -120,19 +120,10 @@ var ClusterPage = React.createClass({
         pluginLinks.url = baseUrl + '/plugin_links';
         cluster.set({pluginLinks});
 
-        cluster.get('transactions').fetch = function(options) {
-          return this.constructor.__super__.fetch.call(this,
-            _.extend({data: {cluster_id: id, task_names: 'deployment'}}, options));
-        };
-
-        cluster.get('nodeNetworkGroups').fetch = function(options) {
-          return this.constructor.__super__.fetch.call(this,
-            _.extend({data: {cluster_id: id}}, options));
-        };
-        cluster.get('nodes').fetch = function(options) {
-          return this.constructor.__super__.fetch.call(this,
-            _.extend({data: {cluster_id: id}}, options));
-        };
+        cluster.get('transactions').fetch =
+          utils.fetchClusterProperties(id, {task_names: 'deployment'});
+        cluster.get('nodeNetworkGroups').fetch = utils.fetchClusterProperties(id);
+        cluster.get('nodes').fetch = utils.fetchClusterProperties(id);
 
         promise = Promise.all([
           cluster.fetch(),

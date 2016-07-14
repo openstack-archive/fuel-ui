@@ -18,15 +18,13 @@ import React from 'react';
 import {NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
 import models from 'models';
 import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import utils from 'utils';
 
 var AddNodesScreen = React.createClass({
   statics: {
     fetchData({cluster}) {
       var nodes = new models.Nodes();
-      nodes.fetch = function(options) {
-        return this.constructor.__super__.fetch.call(this, _.extend({data: {cluster_id: ''}},
-          options));
-      };
+      nodes.fetch = utils.fetchClusterProperties();
       return Promise.all([
         nodes.fetch(),
         cluster.get('roles').fetch(),

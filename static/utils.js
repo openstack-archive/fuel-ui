@@ -334,6 +334,12 @@ var utils = {
     return addLeadingZero(date.getHours()) + ':' + addLeadingZero(date.getMinutes()) + ':' +
       addLeadingZero(date.getSeconds()) + ' ' + addLeadingZero(date.getDate()) + '/' +
       addLeadingZero(date.getMonth() + 1) + '/' + date.getFullYear();
+  },
+  fetchClusterProperties(clusterId = '', otherOptions = {}) {
+    var data = _.extend(otherOptions, {cluster_id: clusterId});
+    return function(options) {
+      return this.constructor.__super__.fetch.call(this, _.extend({data}, options));
+    };
   }
 };
 
