@@ -2577,6 +2577,9 @@
     "react-slider": {
       "version": "0.6.1"
     },
+    "react-slider": {
+      "version": "0.6.1"
+    },
     "read-all-stream": {
       "version": "3.1.0",
       "dependencies": {
