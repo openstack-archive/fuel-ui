@@ -773,7 +773,7 @@ ManagementPanel = React.createClass({
       .then(
         () => Promise.all([
           this.props.cluster.fetch(),
-          this.props.cluster.fetchRelated('nodes')
+          this.props.cluster.get('nodes').fetch()
         ]),
         (response) => {
           this.setState({actionInProgress: false});
