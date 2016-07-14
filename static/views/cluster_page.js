@@ -120,29 +120,15 @@ var ClusterPage = React.createClass({
         pluginLinks.url = baseUrl + '/plugin_links';
         cluster.set({pluginLinks});
 
-        cluster.get('transactions').fetch = function(options) {
-          return this.constructor.__super__.fetch.call(this,
-            _.extend({data: {cluster_id: id, task_names: 'deployment'}}, options));
-        };
-
-        cluster.get('nodeNetworkGroups').fetch = function(options) {
-          return this.constructor.__super__.fetch.call(this,
-            _.extend({data: {cluster_id: id}}, options));
-        };
-        cluster.get('nodes').fetch = function(options) {
-          return this.constructor.__super__.fetch.call(this,
-            _.extend({data: {cluster_id: id}}, options));
-        };
-
         promise = Promise.all([
           cluster.fetch(),
           cluster.get('settings').fetch(),
           cluster.get('roles').fetch(),
           cluster.get('pluginLinks').fetch({cache: true}),
           cluster.get('transactions').fetch(),
-          cluster.fetchRelated('nodes'),
-          cluster.fetchRelated('tasks'),
-          cluster.fetchRelated('nodeNetworkGroups')
+          cluster.get('nodes').fetch(),
+          cluster.get('tasks').fetch(),
+          cluster.get('nodeNetworkGroups').fetch()
         ])
           .then(() => {
             var networkConfiguration = new models.NetworkConfiguration();
@@ -242,7 +228,7 @@ var ClusterPage = React.createClass({
       return task.fetch()
         .then(() => {
           if (task.match({active: false})) dispatcher.trigger('deploymentTaskFinished');
-          return this.props.cluster.fetchRelated('nodes');
+          return this.props.cluster.nodes.fetch();
         });
     } else {
       task = this.props.cluster.task({name: 'verify_networks', active: true});
@@ -253,8 +239,8 @@ var ClusterPage = React.createClass({
     var {cluster} = this.props;
     return Promise.all([
       cluster.fetch(),
-      cluster.fetchRelated('nodes'),
-      cluster.fetchRelated('tasks'),
+      cluster.get('nodes').fetch(),
+      cluster.get('tasks').fetch(),
       cluster.get('networkConfiguration').fetch(),
       cluster.get('pluginLinks').fetch()
     ])
