@@ -70,9 +70,25 @@ _.each(collectionMethods, (method) => {
   };
 });
 
+var fetchOptionsMixin = {
+  initialize({fetchOptions} = {fetchOptions: {}}) {
+    this._super('initialize', arguments);
+    this.updateFetchOptions(fetchOptions);
+  },
+  updateFetchOptions(options) {
+    this.fetchOptions = options;
+  },
+  fetch(options) {
+    var fetchOptions = _.result(this, 'fetchOptions', {});
+    return Backbone.Collection.prototype.fetch.call(
+      this, !_.isEmpty(fetchOptions) ? _.extend({data: fetchOptions}, options) : options
+    );
+  }
+};
+
 var BaseModel = models.BaseModel = Backbone.Model.extend(superMixin);
 var BaseCollection = models.BaseCollection =
-  Backbone.Collection.extend(collectionMixin).extend(superMixin);
+  Backbone.Collection.extend(collectionMixin).extend(superMixin).extend(fetchOptionsMixin);
 
 var cacheMixin = {
   fetch(options) {
@@ -336,6 +352,12 @@ models.Cluster = BaseModel.extend({
     };
     defaults.nodes.cluster = defaults.tasks.cluster = defaults.nodeNetworkGroups.cluster =
       defaults.transactions.cluster = this;
+    _.forEach(defaults, (collection, name) => collection.updateFetchOptions(
+      () => _.extend(
+        {cluster_id: this.id},
+        name === 'transactions' ? {task_names: 'deployment'} : {}
+      ))
+    );
     return defaults;
   },
   validate(attrs) {
@@ -359,9 +381,6 @@ models.Cluster = BaseModel.extend({
   needsRedeployment() {
     return this.get('nodes').some({pending_addition: false, status: 'error'}) &&
       this.get('status') !== 'update_error';
-  },
-  fetchRelated(related, options) {
-    return this.get(related).fetch(_.extend({data: {cluster_id: this.id}}, options));
   },
   isAvailableForSettingsChanges() {
     return !this.get('is_locked');
