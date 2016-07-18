@@ -82,22 +82,25 @@ var OffloadingModesControl = React.createClass({
       var lines = [
         <tr key={mode.name} className={'level' + level}>
           <td>{mode.name}</td>
-          {[true, false, null].map((modeState) => {
-            var styles = {
-              'btn-link': true,
-              active: mode.state === modeState
-            };
-            return (
-              <td key={mode.name + modeState}>
-                <button
-                  className={utils.classNames(styles)}
-                  disabled={this.props.disabled}
-                  onClick={this.onModeStateChange(mode.name, modeState)}>
-                  <i className='glyphicon glyphicon-ok'></i>
-                </button>
-              </td>
-            );
-          })}
+          {[[true, 'offloading_enabled'],
+            [false, 'offloading_disabled'],
+            [null, 'offloading_default']].map((modeState) => {
+              var styles = {
+                'btn-link': true,
+                active: mode.state === modeState[0]
+              };
+              styles[modeState[1]] = true;
+              return (
+                <td key={mode.name + modeState[0]}>
+                  <button
+                    className={utils.classNames(styles)}
+                    disabled={this.props.disabled}
+                    onClick={this.onModeStateChange(mode.name, modeState[0])}>
+                    <i className='glyphicon glyphicon-ok'></i>
+                  </button>
+                </td>
+              );
+            })}
         </tr>
       ];
       if (mode.sub) {
