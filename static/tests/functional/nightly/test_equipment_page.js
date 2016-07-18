@@ -22,7 +22,7 @@ import ModalWindow from 'tests/functional/pages/modal';
 import Command from 'intern/dojo/node!leadfoot/Command';
 import GenericLib from 'tests/functional/nightly/library/generic';
 import EquipmentLib from 'tests/functional/nightly/library/equipment';
-import NetworksLib from 'tests/functional/nightly/library/networks';
+import GenericNetworksLib from 'tests/functional/nightly/library/networks_generic';
 import DashboardPage from 'tests/functional/pages/dashboard';
 
 registerSuite(() => {
@@ -63,7 +63,7 @@ registerSuite(() => {
       command = new Command(this.remote);
       genericLib = new GenericLib(this.remote);
       equipmentLib = new EquipmentLib(this.remote);
-      networksLib = new NetworksLib(this.remote);
+      networksLib = new GenericNetworksLib(this.remote);
       dashboardPage = new DashboardPage(this.remote);
 
       return this.remote
@@ -72,7 +72,7 @@ registerSuite(() => {
         .then(() => common.addNodesToCluster(nodesController, ['Controller']))
         .then(() => common.addNodesToCluster(nodesCompute, ['Compute']))
         .then(() => clusterPage.goToTab('Networks'))
-        .then(() => networksLib.gotoNodeNetworkSubTab('Other'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Other'))
         .clickByCssSelector(toAllNodesSelector)
         .then(() => networksLib.saveSettings());
     },

@@ -21,7 +21,7 @@ import DashboardPage from 'tests/functional/pages/dashboard';
 import NodeComponent from 'tests/functional/pages/node';
 import ModalWindow from 'tests/functional/pages/modal';
 import NodesLib from 'tests/functional/nightly/library/nodes';
-import NetworksLib from 'tests/functional/nightly/library/networks';
+import GenericNetworksLib from 'tests/functional/nightly/library/networks_generic';
 import DashboardLib from 'tests/functional/nightly/library/dashboard';
 
 registerSuite(() => {
@@ -41,7 +41,7 @@ registerSuite(() => {
       clusterPage = new ClusterPage(this.remote);
       dashboardPage = new DashboardPage(this.remote);
       nodesLib = new NodesLib(this.remote);
-      networksLib = new NetworksLib(this.remote);
+      networksLib = new GenericNetworksLib(this.remote);
       dashboardLib = new DashboardLib(this.remote);
       clusterName = common.pickRandomName('Test Cluster');
 

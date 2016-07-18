@@ -17,12 +17,13 @@
 import registerSuite from 'intern!object';
 import Common from 'tests/functional/pages/common';
 import ClusterPage from 'tests/functional/pages/cluster';
+import GenericNetworksLib from 'tests/functional/nightly/library/networks_generic';
 import NetworksLib from 'tests/functional/nightly/library/networks';
 import SettingsLib from 'tests/functional/nightly/library/settings';
 import EquipmentLib from 'tests/functional/nightly/library/equipment';
 
 registerSuite(() => {
-  var common, clusterPage, clusterName, networksLib, settingsLib, equipmentLib;
+  var common, clusterPage, clusterName, networksLib, baremetalNetwork, settingsLib, equipmentLib;
   var networkName = 'Baremetal';
   var baremetalSelector = 'div.' + networkName.toLowerCase() + ' ';
   var ipRangesSelector = baremetalSelector + 'div.ip_ranges ';
@@ -39,7 +40,8 @@ registerSuite(() => {
       // Create cluster with additional service "Ironic"
       common = new Common(this.remote);
       clusterPage = new ClusterPage(this.remote);
-      networksLib = new NetworksLib(this.remote);
+      networksLib = new GenericNetworksLib(this.remote);
+      baremetalNetwork = new NetworksLib(this.remote, networkName);
       settingsLib = new SettingsLib(this.remote);
       equipmentLib = new EquipmentLib(this.remote);
       clusterName = common.pickRandomName('Ironic Cluster');
@@ -72,7 +74,7 @@ registerSuite(() => {
         .assertElementsExist(ironicSelector, 'Ironic checkbox is enabled and selected')
         // Check "Baremetal Network" initial state
         .then(() => clusterPage.goToTab('Networks'))
-        .then(() => networksLib.checkNetworkInitialState(networkName));
+        .then(() => baremetalNetwork.checkNetworkInitialState());
     },
     'Baremetal Network "IP Ranges" correct changing'() {
       var correctIpRange = ['192.168.3.15', '192.168.3.40'];
@@ -92,16 +94,15 @@ registerSuite(() => {
         .setInputValue(startIpSelector, correctIpRange[0])
         .setInputValue(endIpSelector, correctIpRange[1])
         // Add new IP range
-        .then(() => networksLib.addNewIpRange(networkName, newIpRange))
+        .then(() => baremetalNetwork.addNewIpRange(newIpRange))
         .then(() => networksLib.saveSettings())
         // Remove just added IP range
-        .then(() => networksLib.deleteIpRange(networkName))
+        .then(() => baremetalNetwork.deleteIpRange())
         .then(() => networksLib.saveSettings());
     },
     'Baremetal and other networks intersections'() {
       this.timeout = 45000;
-      // [Baremetal CIDR, Baremetal Start IP, Baremetal End IP, Ironic Start IP,
-      // Ironic End IP, Ironic Gateway]
+      // [Brmt CIDR, Brmt Start IP, Brmt End IP, Ironic Start IP, Ironic End IP, Ironic Gateway]
       var storageValues = ['192.168.1.0/24', '192.168.1.1', '192.168.1.50', '192.168.1.52',
         '192.168.1.254', '192.168.1.51'];
       var managementValues = ['192.168.0.0/24', '192.168.0.1', '192.168.0.50', '192.168.0.52',
@@ -109,9 +110,9 @@ registerSuite(() => {
       var publicValues = ['172.16.0.0/24', '172.16.0.1', '172.16.0.50', '172.16.0.51',
         '172.16.0.254', '172.16.0.52'];
       return this.remote
-        .then(() => networksLib.checkBaremetalIntersection('storage', storageValues))
-        .then(() => networksLib.checkBaremetalIntersection('management', managementValues))
-        .then(() => networksLib.checkBaremetalIntersection('public', publicValues));
+        .then(() => baremetalNetwork.checkBaremetalIntersection('storage', storageValues))
+        .then(() => baremetalNetwork.checkBaremetalIntersection('management', managementValues))
+        .then(() => baremetalNetwork.checkBaremetalIntersection('public', publicValues));
     },
     'Baremetal Network "Use VLAN tagging" option works'() {
       var chboxVlanSelector = baremetalSelector + 'div.vlan_start input[type="checkbox"]';
@@ -159,7 +160,7 @@ registerSuite(() => {
         .assertElementEnabled(btnSaveSelector, 'Save Settings button is enabled')
         // Cancel changes
         .then(() => networksLib.cancelChanges())
-        .then(() => networksLib.checkNetworkInitialState(networkName));
+        .then(() => baremetalNetwork.checkNetworkInitialState());
     },
     'Baremetal Network "CIDR" field validation'() {
       var cidrErrorSelector = baremetalSelector + 'div.cidr div.has-error span[class^="help"]';
@@ -192,11 +193,11 @@ registerSuite(() => {
         .then(() => networksLib.checkMultirackVerification())
         // Cancel changes
         .then(() => networksLib.cancelChanges())
-        .then(() => networksLib.checkNetworkInitialState(networkName));
+        .then(() => baremetalNetwork.checkNetworkInitialState());
     },
     'Baremetal Network "Use the whole CIDR" option works'() {
       return this.remote
-        .then(() => networksLib.checkCidrOption(networkName))
+        .then(() => baremetalNetwork.checkCidrOption())
         .then(() => networksLib.cancelChanges());
     },
     'Combinations ironic role with other roles validation'() {
@@ -212,30 +213,24 @@ registerSuite(() => {
         // Select node
         .then(() => clusterPage.checkNodes(nodesAmount))
         .then(() => clusterPage.checkNodeRoles(['Ironic']))
-        .assertElementExists(selectedIronicRoleSelector,
-          'Selected role has checkbox icon')
+        .assertElementExists(selectedIronicRoleSelector, 'Selected role has checkbox icon')
         .assertElementExists('.role-block.compute.unavailable',
           'Compute role can not be added together with selected roles')
-        .assertElementEnabled(applyButtonSelector,
-          'Apply button is enabled')
+        .assertElementEnabled(applyButtonSelector, 'Apply button is enabled')
         .then(() => equipmentLib.uncheckNodeRoles())
         // Check Ironic + Compute roles are available
         .then(() => clusterPage.checkNodeRoles(['Ironic', 'Controller']))
-        .assertElementExists(selectedIronicRoleSelector,
-          'Selected role has checkbox icon')
+        .assertElementExists(selectedIronicRoleSelector, 'Selected role has checkbox icon')
         .assertElementExists('.role-block.controller i.glyphicon-selected-role',
           'Selected role has checkbox icon')
-        .assertElementEnabled(applyButtonSelector,
-          'Apply button is enabled')
+        .assertElementEnabled(applyButtonSelector, 'Apply button is enabled')
         .then(() => equipmentLib.uncheckNodeRoles())
         // Check Ironic + Ceph roles are available
         .then(() => clusterPage.checkNodeRoles(['Ironic', 'Ceph OSD']))
-        .assertElementExists(selectedIronicRoleSelector,
-          'Selected role has checkbox icon')
+        .assertElementExists(selectedIronicRoleSelector, 'Selected role has checkbox icon')
         .assertElementExists('.role-block.ceph-osd i.glyphicon-selected-role',
           'Selected role has checkbox icon')
-        .assertElementEnabled(applyButtonSelector,
-          'Apply button is enabled')
+        .assertElementEnabled(applyButtonSelector, 'Apply button is enabled')
         .then(() => equipmentLib.uncheckNodeRoles());
     },
     'Disabling ironic service'() {
@@ -252,8 +247,7 @@ registerSuite(() => {
         .clickByCssSelector(addNodeButtonSelector)
         .waitForElementDeletion(addNodeButtonSelector, 3000)
         .assertElementsAppear('.node', 3000, 'Unallocated nodes loaded')
-        .assertElementExists('.role-block.ironic.unavailable',
-          'Ironic role is unlocked');
+        .assertElementExists('.role-block.ironic.unavailable', 'Ironic role is unlocked');
     }
   };
 });

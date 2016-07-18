@@ -20,6 +20,7 @@ import Common from 'tests/functional/pages/common';
 import ClusterPage from 'tests/functional/pages/cluster';
 import DashboardPage from 'tests/functional/pages/dashboard';
 import Command from 'intern/dojo/node!leadfoot/Command';
+import GenericNetworksLib from 'tests/functional/nightly/library/networks_generic';
 import NetworksLib from 'tests/functional/nightly/library/networks';
 
 registerSuite(() => {
@@ -30,7 +31,7 @@ registerSuite(() => {
     setup() {
       common = new Common(this.remote);
       clusterPage = new ClusterPage(this.remote);
-      networksLib = new NetworksLib(this.remote);
+      networksLib = new GenericNetworksLib(this.remote);
       clusterName = common.pickRandomName('Tunneling Cluster');
 
       return this.remote
@@ -56,22 +57,22 @@ registerSuite(() => {
         .then(() => networksLib.createNetworkGroup('Network_Group_1'))
         .then(() => networksLib.createNetworkGroup('Network_Group_2'))
         .then(() => networksLib.checkVLANs('Network_Group_2', 'VLAN'))
-        .then(() => networksLib.gotoNodeNetworkSubTab('Network_Group_1'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_1'))
         .then(() => networksLib.checkVLANs('Network_Group_1', 'VLAN'))
-        .then(() => networksLib.gotoNodeNetworkSubTab('default'))
+        .then(() => networksLib.goToNodeNetworkSubTab('default'))
         .then(() => networksLib.checkVLANs('default', 'VLAN'));
     },
     'Gateways appear for two or more node network groups'() {
       return this.remote
-        .then(() => networksLib.gotoNodeNetworkSubTab('Network_Group_2'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_2'))
         .then(() => networksLib.checkGateways('Network_Group_2', 'VLAN'))
-        .then(() => networksLib.gotoNodeNetworkSubTab('Network_Group_1'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_1'))
         .then(() => networksLib.checkGateways('Network_Group_1', 'VLAN'))
-        .then(() => networksLib.gotoNodeNetworkSubTab('default'))
+        .then(() => networksLib.goToNodeNetworkSubTab('default'))
         .then(() => networksLib.checkGateways('default', 'VLAN'))
-        .then(() => networksLib.gotoNodeNetworkSubTab('Network_Group_1'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_1'))
         .then(() => networksLib.deleteNetworkGroup('Network_Group_1'))
-        .then(() => networksLib.checkDefaultNetGroup())
+        .then(() => networksLib.checkDefaultNetworkGroup())
         .then(() => networksLib.checkGateways('default', 'VLAN'))
         .assertElementEnabled('div.public input[name="gateway"]',
           'Public "Gateway" field exists and enabled for "default" network group');
@@ -80,7 +81,8 @@ registerSuite(() => {
 });
 
 registerSuite(() => {
-  var common, command, modal, clusterPage, clusterName, networksLib, dashboardPage;
+  var common, command, modal, clusterPage, clusterName, networksLib, publicNetwork, storageNetwork,
+    managementNetwork, dashboardPage;
   var networkName = 'Public';
   var publicSelector = 'div.' + networkName.toLowerCase() + ' ';
   var ipRangesSelector = publicSelector + 'div.ip_ranges ';
@@ -102,7 +104,10 @@ registerSuite(() => {
       command = new Command(this.remote);
       modal = new ModalWindow(this.remote);
       clusterPage = new ClusterPage(this.remote);
-      networksLib = new NetworksLib(this.remote);
+      networksLib = new GenericNetworksLib(this.remote);
+      publicNetwork = new NetworksLib(this.remote, 'public');
+      storageNetwork = new NetworksLib(this.remote, 'storage');
+      managementNetwork = new NetworksLib(this.remote, 'management');
       dashboardPage = new DashboardPage(this.remote);
       clusterName = common.pickRandomName('VLAN Cluster');
 
@@ -184,7 +189,6 @@ registerSuite(() => {
       var invalidInputMessage = '.dns_nameservers .field-list .help-block.field-error';
       return this.remote
         .clickByCssSelector('.subtab-link-neutron_l3')
-        // Sleep is needed to transition for "Neutron L3" subtab
         .waitForCssSelector(addFieldButton, 500)
         .assertElementsExist(addFieldButton, 2, '"add field" buttons should exist')
         .clickByCssSelector(removeFieldButton)
@@ -211,7 +215,6 @@ registerSuite(() => {
           // Sleep is needed to wait when regex check will done.
           .sleep(300)
           .type('8')
-          // Sleep is needed to wait when regex check will done.
           .sleep(300)
           .end()
         .assertElementDisappears(fieldWithError, 500, 'The error message has dissappeared')
@@ -225,7 +228,6 @@ registerSuite(() => {
       var invalidInputMessage = fieldWithError + ' .help-block.field-error';
       return this.remote
         .clickByCssSelector('.subtab-link-network_settings')
-        // Sleep is needed to transition for "Other" subtab
         .waitForCssSelector(addFieldButton, 500)
         .assertElementsExist(addFieldButton, 2, '"add field" buttons should exist')
         .clickByCssSelector(removeFieldButton)
@@ -247,7 +249,6 @@ registerSuite(() => {
           // Sleep is needed to wait when regexp check will done.
           .sleep(300)
           .type('8')
-          // Sleep is needed to wait when regexp check will done.
           .sleep(300)
           .end()
         .assertElementDisappears(fieldWithError, 500, 'The error message has dissappeared')
@@ -257,32 +258,32 @@ registerSuite(() => {
     },
     'Node network group deletion'() {
       return this.remote
-        .then(() => networksLib.gotoNodeNetworkSubTab('default'))
+        .then(() => networksLib.goToNodeNetworkSubTab('default'))
         .assertElementNotExists('.glyphicon-remove',
           'It is not possible to delete default node network group')
         .assertElementContainsText('span.explanation',
           'This node network group uses a shared admin network and cannot be deleted',
           'Default node network group description presented')
-        .then(() => networksLib.selectAllNetworksCheckbox(true))
+        .then(() => networksLib.selectAllNetworks(true))
         .then(() => networksLib.deleteNetworkGroup('Network_Group_1'));
     },
     'Default network group the first in a list'() {
       this.timeout = 45000;
       return this.remote
         .then(() => networksLib.createNetworkGroup('test'))
-        .then(() => networksLib.checkDefaultNetGroup())
-        .then(() => networksLib.selectAllNetworksCheckbox(true))
+        .then(() => networksLib.checkDefaultNetworkGroup())
+        .then(() => networksLib.selectAllNetworks(true))
         .then(() => networksLib.checkMergedNetworksGrouping(['default', 'test']))
         .then(() => networksLib.createNetworkGroup('abc'))
         .then(() => networksLib.checkMergedNetworksGrouping(['default', 'test', 'abc']))
-        .then(() => networksLib.selectAllNetworksCheckbox(false))
-        .then(() => networksLib.checkDefaultNetGroup())
+        .then(() => networksLib.selectAllNetworks(false))
+        .then(() => networksLib.checkDefaultNetworkGroup())
         .then(() => networksLib.createNetworkGroup('1234'))
-        .then(() => networksLib.checkDefaultNetGroup())
+        .then(() => networksLib.checkDefaultNetworkGroup())
         .then(() => networksLib.createNetworkGroup('yrter'))
-        .then(() => networksLib.checkDefaultNetGroup())
+        .then(() => networksLib.checkDefaultNetworkGroup())
         .then(() => networksLib.createNetworkGroup('+-934847fdjfjdbh'))
-        .then(() => networksLib.checkDefaultNetGroup());
+        .then(() => networksLib.checkDefaultNetworkGroup());
     },
     'Check that user returns to merged "All Networks" segment'() {
       this.timeout = 45000;
@@ -290,7 +291,7 @@ registerSuite(() => {
       var allNetworksSelector = 'li[class="all"]';
       return this.remote
         .then(() => networksLib.checkNetworksGrouping(networkNames))
-        .then(() => networksLib.selectAllNetworksCheckbox(true))
+        .then(() => networksLib.selectAllNetworks(true))
         // Check after refreshing of page
         .then(() => networksLib.checkMergedNetworksGrouping(networkNames))
         .then(() => command.refresh())
@@ -313,15 +314,15 @@ registerSuite(() => {
         .then(() => clusterPage.goToTab('Networks'))
         .then(() => networksLib.checkMergedNetworksGrouping(networkNames))
         // Check after switching between "Networks" segments
-        .then(() => networksLib.gotoNodeNetworkSubTab('Neutron L2'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Neutron L2'))
         .assertElementsExist(allNetworksSelector, '"All Networks" segment exists and not selected')
-        .then(() => networksLib.gotoNodeNetworkSubTab('Neutron L3'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Neutron L3'))
         .assertElementsExist(allNetworksSelector, '"All Networks" segment exists and not selected')
-        .then(() => networksLib.gotoNodeNetworkSubTab('Other'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Other'))
         .assertElementsExist(allNetworksSelector, '"All Networks" segment exists and not selected')
-        .then(() => networksLib.gotoNodeNetworkSubTab('Connectivity Check'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Connectivity Check'))
         .assertElementsExist(allNetworksSelector, '"All Networks" segment exists and not selected')
-        .then(() => networksLib.selectAllNetworksCheckbox(false));
+        .then(() => networksLib.selectAllNetworks(false));
     },
     'Check that "Show All Networks" checkbox worked as expected'() {
       var newIpRangeStart = '172.16.0.10';
@@ -334,14 +335,14 @@ registerSuite(() => {
       var ipEndSelector = lastRangeSelector + 'input[name*="range-end"]';
       return this.remote
         // Check default values
-        .then(() => networksLib.gotoNodeNetworkSubTab('default'))
-        .then(() => networksLib.checkNetworkInitialState(networkName))
-        .then(() => networksLib.checkNetworkInitialState('Storage'))
-        .then(() => networksLib.checkNetworkInitialState('Management'))
-        .then(() => networksLib.selectAllNetworksCheckbox(true))
-        .then(() => networksLib.checkNetworkInitialState(networkName))
-        .then(() => networksLib.checkNetworkInitialState('Storage'))
-        .then(() => networksLib.checkNetworkInitialState('Management'))
+        .then(() => networksLib.goToNodeNetworkSubTab('default'))
+        .then(() => publicNetwork.checkNetworkInitialState())
+        .then(() => storageNetwork.checkNetworkInitialState())
+        .then(() => managementNetwork.checkNetworkInitialState())
+        .then(() => networksLib.selectAllNetworks(true))
+        .then(() => publicNetwork.checkNetworkInitialState())
+        .then(() => storageNetwork.checkNetworkInitialState())
+        .then(() => managementNetwork.checkNetworkInitialState())
         // Check changed settings
         .setInputValue(startIpSelector, newIpRangeStart)
         .assertElementPropertyEquals(startIpSelector, 'value', newIpRangeStart,
@@ -355,19 +356,19 @@ registerSuite(() => {
         .assertElementPropertyEquals(testGroupSelector + ipEndSelector, 'placeholder',
           defaultPlaceholder,
           '"test" group Public new "End IP Range" textfield has default placeholder at merged pane')
-        .then(() => networksLib.selectAllNetworksCheckbox(false))
+        .then(() => networksLib.selectAllNetworks(false))
         .assertElementPropertyEquals(startIpSelector, 'value', newIpRangeStart,
           '"default" group Public "End IP Range" textfield  has correct new value')
-        .then(() => networksLib.gotoNodeNetworkSubTab('test'))
+        .then(() => networksLib.goToNodeNetworkSubTab('test'))
         .assertElementsExist(rowRangeSelector, 2, 'Correct number of IP ranges exists')
         .assertElementPropertyEquals(ipStartSelector, 'placeholder', defaultPlaceholder,
           '"test" group Public new "Start IP Range" textfield has default placeholder')
         .assertElementPropertyEquals(ipEndSelector, 'placeholder', defaultPlaceholder,
           '"test" group Public new "End IP Range" textfield has default placeholder')
         .then(() => networksLib.cancelChanges())
-        .then(() => networksLib.checkNetworkInitialState(networkName))
-        .then(() => networksLib.gotoNodeNetworkSubTab('default'))
-        .then(() => networksLib.checkNetworkInitialState(networkName));
+        .then(() => publicNetwork.checkNetworkInitialState())
+        .then(() => networksLib.goToNodeNetworkSubTab('default'))
+        .then(() => publicNetwork.checkNetworkInitialState());
     },
     'Deletion of several node network groups one after another'() {
       this.timeout = 60000;
@@ -376,10 +377,10 @@ registerSuite(() => {
         .then(() => networksLib.deleteNetworkGroup('+-934847fdjfjdbh'))
         .then(() => networksLib.deleteNetworkGroup('yrter'))
         .then(() => networksLib.deleteNetworkGroup('1234'))
-        .then(() => networksLib.selectAllNetworksCheckbox(true))
+        .then(() => networksLib.selectAllNetworks(true))
         .then(() => networksLib.deleteNetworkGroup('abc'))
         .then(() => networksLib.checkMergedNetworksGrouping(['default', 'test']))
-        .then(() => networksLib.selectAllNetworksCheckbox(false))
+        .then(() => networksLib.selectAllNetworks(false))
         .then(() => command.refresh())
         .assertElementsAppear(explanationSelector, 5000, 'Page refreshed successfully')
         .then(() => networksLib.checkNetworksGrouping(['default', 'test']))
@@ -429,14 +430,14 @@ registerSuite(() => {
         .setInputValue(startIpSelector, startIpChanged)
         .assertElementEnabled(btnSaveSelector,
           '"Save Settings" button is enabled for ' + group2Name)
-        .then(() => networksLib.gotoNodeNetworkSubTab(group1Name))
+        .then(() => networksLib.goToNodeNetworkSubTab(group1Name))
         .assertElementNotExists(modalSelector, 'No new dialogs appear for ' + group1Name)
         .assertElementNotExists(errorSelector, 'No errors are observed for ' + group1Name)
         .assertElementPropertyEquals(startIpSelector, 'value', startIpDefault,
           'Public "Start IP Range" textfield  has default value for ' + group1Name)
         .assertElementEnabled(btnSaveSelector,
           '"Save Settings" button is enabled for ' + group1Name)
-        .then(() => networksLib.gotoNodeNetworkSubTab('default'))
+        .then(() => networksLib.goToNodeNetworkSubTab('default'))
         .assertElementNotExists(modalSelector,
           'No new dialogs appear for "default" node network group')
         .assertElementNotExists(errorSelector,
@@ -445,7 +446,7 @@ registerSuite(() => {
           'Public "Start IP Range" textfield  has default value for "default" node network group')
         .assertElementEnabled(btnSaveSelector,
           '"Save Settings" button is enabled for "default" node network group')
-        .then(() => networksLib.gotoNodeNetworkSubTab(group2Name))
+        .then(() => networksLib.goToNodeNetworkSubTab(group2Name))
         .assertElementNotExists(modalSelector, 'No new dialogs appear for ' + group2Name)
         .assertElementNotExists(errorSelector, 'No errors are observed for ' + group2Name)
         .assertElementPropertyEquals(startIpSelector, 'value', startIpChanged,
@@ -455,25 +456,25 @@ registerSuite(() => {
     },
     'The same VLAN for different node network groups'() {
       return this.remote
-        .then(() => networksLib.gotoNodeNetworkSubTab('Network_Group_1'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_1'))
         .then(() => networksLib.checkGateways('Network_Group_1', 'TUN'))
         .then(() => networksLib.checkVLANs('Network_Group_1', 'TUN'))
-        .then(() => networksLib.gotoNodeNetworkSubTab('Network_Group_2'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_2'))
         .then(() => networksLib.checkVLANs('Network_Group_2', 'TUN'))
-        .then(() => networksLib.gotoNodeNetworkSubTab('default'))
+        .then(() => networksLib.goToNodeNetworkSubTab('default'))
         .then(() => networksLib.checkVLANs('default', 'TUN'));
     },
     'Gateways appear for two or more node network groups'() {
       return this.remote
-        .then(() => networksLib.gotoNodeNetworkSubTab('Network_Group_2'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_2'))
         .then(() => networksLib.checkGateways('Network_Group_2', 'TUN'))
-        .then(() => networksLib.gotoNodeNetworkSubTab('Network_Group_1'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_1'))
         .then(() => networksLib.checkGateways('Network_Group_1', 'TUN'))
-        .then(() => networksLib.gotoNodeNetworkSubTab('default'))
+        .then(() => networksLib.goToNodeNetworkSubTab('default'))
         .then(() => networksLib.checkGateways('default', 'TUN'))
-        .then(() => networksLib.gotoNodeNetworkSubTab('Network_Group_1'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_1'))
         .then(() => networksLib.deleteNetworkGroup('Network_Group_1'))
-        .then(() => networksLib.checkDefaultNetGroup())
+        .then(() => networksLib.checkDefaultNetworkGroup())
         .then(() => networksLib.checkGateways('default', 'TUN'))
         .assertElementEnabled(gatewaySelector,
           'Public "Gateway" field exists and enabled for "default" network group');
@@ -485,7 +486,7 @@ registerSuite(() => {
       var ipRangeEnd = '192.168.12.254';
       var gatewayArray = '192.168.12.1';
       return this.remote
-        .then(() => networksLib.gotoNodeNetworkSubTab('default'))
+        .then(() => networksLib.goToNodeNetworkSubTab('default'))
         .assertElementEnabled('div.management  div.cidr input[type="text"]',
           'Management  "CIDR" textfield is enabled')
         .setInputValue('div.management div.cidr input[type="text"]', cidrValue)
@@ -496,7 +497,7 @@ registerSuite(() => {
         .assertElementPropertyEquals('div.management input[name="gateway"]',
           'value', gatewayArray, 'Management "Gateway" textfield has true value')
         .then(() => networksLib.saveSettings())
-        .then(() => networksLib.gotoNodeNetworkSubTab('Network_Group_2'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_2'))
         .assertElementEnabled('div.storage  div.cidr input[type="text"]',
           'Storage  "CIDR" textfield is enabled')
         .setInputValue('div.storage div.cidr input[type="text"]', cidrValue)
@@ -524,7 +525,7 @@ registerSuite(() => {
       var ipRangeEnd = ['172.16.5.126', '172.16.5.254'];
       var gatewayValue = '172.16.5.1';
       return this.remote
-        .then(() => networksLib.gotoNodeNetworkSubTab('Network_Group_2'))
+        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_2'))
         .assertElementEnabled('div.public div.cidr input[type="text"]',
           'Public "CIDR" textfield is enabled')
         .setInputValue('div.public div.cidr input[type="text"]', cidrArray[0])
@@ -563,7 +564,7 @@ registerSuite(() => {
       var newGroupSelector = 'div[data-name="' + reName + '"] ';
       var errorRenameSelector = '.has-error.node-group-renaming ';
       return this.remote
-        .then(() => networksLib.selectAllNetworksCheckbox(true))
+        .then(() => networksLib.selectAllNetworks(true))
         // Can rename "default" node network group
         .clickByCssSelector(groupDefaultSelector + pencilSelector)
         .assertElementAppears(groupDefaultSelector + renameSelector, 1000,
@@ -598,7 +599,7 @@ registerSuite(() => {
           'New "' + reName + '"" network group name is shown')
         // Postcondition check
         .then(() => networksLib.checkMergedNetworksGrouping(networkNames))
-        .then(() => networksLib.selectAllNetworksCheckbox(false))
+        .then(() => networksLib.selectAllNetworks(false))
         .then(() => networksLib.checkNetworksGrouping(networkNames));
     },
     'Correct bahaviour of long name for node network group'() {
@@ -606,7 +607,7 @@ registerSuite(() => {
       var newName = 'fgbhsjdkgbhsdjkbhsdjkbhfjkbhfbjhgjbhsfjgbhsfjgbhsg';
       var activeSelector = networkGroupsSelector + ' li.active';
       return this.remote
-        .then(() => networksLib.gotoNodeNetworkSubTab(oldName))
+        .then(() => networksLib.goToNodeNetworkSubTab(oldName))
         .assertElementTextEquals(activeSelector, oldName,
           oldName + ' node network group is selected')
         .assertElementPropertyEquals(activeSelector, 'offsetHeight', '37',
@@ -644,14 +645,14 @@ registerSuite(() => {
         .assertElementsAppear(progressSelector, 5000, 'Deployment is started')
         .assertElementDisappears(progressSelector, 45000, 'Deployment is finished')
         .then(() => clusterPage.goToTab('Networks'))
-        .then(() => networksLib.selectAllNetworksCheckbox(true))
+        .then(() => networksLib.selectAllNetworks(true))
         // Can add new node network group after deployment
         .then(() => networksLib.createNetworkGroup(newName))
         // Can rename new node network group after deployment
         .then(() => networksLib.renameNetworkGroup(newName, editName))
         // Postcondition check
         .then(() => networksLib.checkMergedNetworksGrouping(netNames))
-        .then(() => networksLib.selectAllNetworksCheckbox(false))
+        .then(() => networksLib.selectAllNetworks(false))
         .then(() => networksLib.checkNetworksGrouping(netNames));
     }
   };

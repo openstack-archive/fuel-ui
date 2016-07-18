@@ -429,6 +429,15 @@ _.defaults(Command.prototype, {
           .end();
     });
   },
+  assertElementPropertyMatchesRegExp(cssSelector, attribute, regExp, message) {
+    return new this.constructor(this, function() {
+      return this.parent
+        .findByCssSelector(cssSelector)
+          .getProperty(attribute)
+          .then((actualText) => assert.match(actualText, regExp, message))
+          .end();
+    });
+  },
   assertElementSelected(cssSelector, message) {
     return new this.constructor(this, function() {
       return this.parent

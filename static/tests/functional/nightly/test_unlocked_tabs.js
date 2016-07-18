@@ -20,19 +20,13 @@ import ClusterPage from 'tests/functional/pages/cluster';
 import DashboardLib from 'tests/functional/nightly/library/dashboard';
 import DashboardPage from 'tests/functional/pages/dashboard';
 import Modal from 'tests/functional/pages/modal';
-import NetworksLib from 'tests/functional/nightly/library/networks';
+import GenericNetworksLib from 'tests/functional/nightly/library/networks_generic';
 import 'intern/dojo/node!leadfoot/Command';
 import 'intern/dojo/node!leadfoot/Session';
 import 'intern/chai!assert';
 
 registerSuite(() => {
-  var common,
-    clusterPage,
-    dashboardPage,
-    dashboardLib,
-    modal,
-    networksLib,
-    clusterName;
+  var common, clusterPage, dashboardPage, dashboardLib, modal, networksLib, clusterName;
   var loadDeployedBtn = 'button.btn-load-deployed';
   var cancelChgsBtn = 'button.btn-revert-changes';
   var saveNetworksChangesButton = 'button.btn.apply-btn';
@@ -47,7 +41,7 @@ registerSuite(() => {
       dashboardPage = new DashboardPage(this.remote);
       dashboardLib = new DashboardLib(this.remote);
       modal = new Modal(this.remote);
-      networksLib = new NetworksLib(this.remote);
+      networksLib = new GenericNetworksLib(this.remote);
       clusterName = common.pickRandomName('Test Cluster');
 
       return this.remote
@@ -95,14 +89,14 @@ registerSuite(() => {
         // Now check warning message for "Networking" changes
         .then(() => clusterPage.goToTab('Networks'))
         .clickByCssSelector('.subtab-link-network_settings')
-        .waitForCssSelector(checkBoxToChange, 500)
+        .waitForCssSelector(checkBoxToChange, 1000)
         .clickByCssSelector(checkBoxToChange)
-        .waitForCssSelector(saveNetworksChangesButton, 500)
+        .waitForCssSelector(saveNetworksChangesButton, 1000)
         .clickByCssSelector(saveNetworksChangesButton)
         // wait a bit for updating elements on page
-        .waitForCssSelector(checkBoxToChange + '[value="true"]', 800)
+        .assertElementAppears(checkBoxToChange + ':enabled', 3000, 'Change is saved successfully')
         .assertElementPropertyEquals(checkBoxToChange, 'value', 'true',
-         'checkbox "Assign public network to all nodes" is checked')
+          '"Assign public network to all nodes" checkbox is checked')
         .then(() => clusterPage.goToTab('Dashboard'))
         // Check that, after any changes for cluster in operational state,
         // deploy button is available
@@ -114,34 +108,34 @@ registerSuite(() => {
         .then(() => dashboardLib.checkWarningContainsNote(configChangesWarning))
         .then(() => dashboardPage.discardChanges())
         // Verify that changes were discarded
-        .waitForElementDeletion('.changes-item', 500)
+        .waitForElementDeletion('.changes-item', 1000)
         .then(() => clusterPage.goToTab('Networks'))
         .clickByCssSelector('.subtab-link-network_settings')
-        .waitForCssSelector(checkBoxToChange, 500)
+        .waitForCssSelector(checkBoxToChange, 1000)
         .assertElementPropertyEquals(checkBoxToChange, 'value', 'false',
           'Networks changes were discarded')
         // Now check the same with "Settings" changes
         .then(() => clusterPage.goToTab('Settings'))
-        .waitForCssSelector('.subtab-link-openstack_services', 500)
+        .waitForCssSelector('.subtab-link-openstack_services', 1000)
         .clickByCssSelector('.subtab-link-openstack_services')
-        .waitForCssSelector('input[name="sahara"]', 500)
+        .waitForCssSelector('input[name="sahara"]', 1000)
         .clickByCssSelector('input[name="sahara"]')
         .clickByCssSelector(saveSettingsChangesButton)
         // wait a bit for updating elements on page
-        .waitForCssSelector('input[name="sahara"][value=true]', 800)
+        .assertElementAppears('input[name="sahara"]:enabled', 3000, 'Change is saved successfully')
         .assertElementPropertyEquals('input[name*="sahara"]', 'value', 'true',
-          'checkbox is enabled')
+          '"Install Sahara" checkbox is enabled')
         .then(() => clusterPage.goToTab('Dashboard'))
         .assertElementContainsText('.changes-item', 'Changed environment configuration',
           'List of changes contains message about Changes in environment configuration')
         .then(() => dashboardLib.checkWarningContainsNote(configChangesWarning))
         // Verify that changes were discarded
         .then(() => dashboardPage.discardChanges())
-        .waitForElementDeletion('.changes-item', 500)
+        .waitForElementDeletion('.changes-item', 1000)
         .then(() => clusterPage.goToTab('Settings'))
-        .waitForCssSelector('.subtab-link-openstack_services', 500)
+        .waitForCssSelector('.subtab-link-openstack_services', 1000)
         .clickByCssSelector('.subtab-link-openstack_services')
-        .waitForCssSelector('input[name="sahara"]', 500)
+        .waitForCssSelector('input[name="sahara"]', 1000)
         .assertElementPropertyEquals('input[name*="sahara"]', 'value', 'false',
           'Settings changes were discarded');
     },
@@ -149,24 +143,24 @@ registerSuite(() => {
       this.timeout = 60000;
       var publicVlanChkbox = '.public input[type*="checkbox"][name*="vlan_start"]';
       var publicVlanInput = '.public input[type="text"][name*="vlan_start"]';
-      var installIronicChkbox = 'input.form-control[label*="Install Ironic"]';
+      var chboxInstallIronic = 'input.form-control[label*="Install Ironic"]';
       return this.remote
         // For the first check button on "Networks" tab
         .then(() => clusterPage.goToTab('Networks'))
-        .then(() => networksLib.gotoNodeNetworkSubTab('default'))
+        .then(() => networksLib.goToNodeNetworkSubTab('default'))
         .assertElementEnabled(loadDeployedBtn, '"Deploy button" exists')
-        .waitForCssSelector(cancelChgsBtn, 500)
+        .waitForCssSelector(cancelChgsBtn, 1000)
         .assertElementDisabled(cancelChgsBtn, '"Cancel changes" button should be disabled')
         .assertElementDisabled(saveNetworksChangesButton,
           '"Save changes" button should be disabled')
-        .waitForCssSelector(publicVlanChkbox, 500)
-        .clickByCssSelector(publicVlanChkbox, 500)
-        .waitForCssSelector(publicVlanInput, 500)
+        .waitForCssSelector(publicVlanChkbox, 1000)
+        .clickByCssSelector(publicVlanChkbox, 1000)
+        .waitForCssSelector(publicVlanInput, 1000)
         .setInputValue(publicVlanInput, '123')
         .assertElementEnabled(saveNetworksChangesButton, '"Save changes" button should be enabled')
         .clickByCssSelector(saveNetworksChangesButton)
         // wait a bit for updating elements on page
-        .waitForCssSelector(publicVlanChkbox + '[value="123"]', 800)
+        .assertElementAppears(publicVlanChkbox + ':enabled', 3000, 'Change is saved successfully')
         .assertElementPropertyEquals(publicVlanChkbox, 'value', '123', 'changes were saved')
         // wait a bit for button would have loaded after page were updated
         .waitForElementDeletion(loadDeployedBtn + ':disabled', 1000)
@@ -178,21 +172,21 @@ registerSuite(() => {
         .then(() => networksLib.saveSettings())
         // Then check button on "Settings" tab
         .then(() => clusterPage.goToTab('Settings'))
-        .waitForCssSelector('.subtab-link-openstack_services', 500)
+        .waitForCssSelector('.subtab-link-openstack_services', 1000)
         .clickByCssSelector('.subtab-link-openstack_services')
         .assertElementDisabled(cancelChgsBtn, '"Cancel changes" button should be disabled')
         .assertElementDisabled(saveSettingsChangesButton,
           '"Save changes" button should be disabled')
-        .clickByCssSelector(installIronicChkbox)
+        .clickByCssSelector(chboxInstallIronic)
         .clickByCssSelector(saveSettingsChangesButton)
         // wait a bit for updating elements on page
-        .waitForCssSelector(installIronicChkbox + '[value="true"]', 1200)
-        .assertElementPropertyEquals(installIronicChkbox, 'value', 'true',
+        .assertElementAppears(chboxInstallIronic + ':enabled', 3000, 'Change is saved successfully')
+        .assertElementPropertyEquals(chboxInstallIronic, 'value', 'true',
           '"Settings" changes were saved')
         .clickByCssSelector(loadDeployedBtn)
         // wait a bit for updating elements on page
-        .waitForCssSelector(installIronicChkbox + '[value="false"]', 1200)
-        .assertElementPropertyEquals(installIronicChkbox, 'value', 'false',
+        .assertElementAppears(chboxInstallIronic + ':enabled', 3000, 'Change is saved successfully')
+        .assertElementPropertyEquals(chboxInstallIronic, 'value', 'false',
           '"Load defaults setting" button had discarded "Settings" changes')
         .clickByCssSelector(saveSettingsChangesButton)
         // Wait for changes apply
@@ -226,17 +220,17 @@ registerSuite(() => {
           .then((element) => this.remote.moveMouseTo(element))
           .click()
           .end()
-        .waitForCssSelector(chooseProvisionNodesSelector, 500)
+        .waitForCssSelector(chooseProvisionNodesSelector, 1000)
         .clickByCssSelector(chooseProvisionNodesSelector)
-        .waitForCssSelector('.btn-select-nodes', 500)
+        .waitForCssSelector('.btn-select-nodes', 1000)
         .clickByCssSelector('.btn-select-nodes')
         .then(() => modal.waitToOpen())
         .then(() => modal.checkTitle('Select Nodes'))
-        .waitForCssSelector('.node.selected.pending_addition', 500)
+        .waitForCssSelector('.node.selected.pending_addition', 1000)
         .clickByCssSelector('.node.selected.pending_addition')
         .then(() => modal.clickFooterButton('Select 2 Nodes'))
         .then(() => modal.waitToClose())
-        .waitForCssSelector('.btn-provision', 500)
+        .waitForCssSelector('.btn-provision', 1000)
         .clickByCssSelector('.btn-provision')
         .then(() => modal.waitToOpen())
         .then(() => modal.checkTitle('Provision Nodes'))
