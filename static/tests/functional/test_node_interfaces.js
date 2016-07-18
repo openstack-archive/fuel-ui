@@ -19,7 +19,7 @@ import pollUntil from 'intern/dojo/node!leadfoot/helpers/pollUntil';
 import InterfacesPage from 'tests/functional/pages/interfaces';
 import Common from 'tests/functional/pages/common';
 import 'tests/functional/helpers';
-
+/*
 registerSuite(() => {
   var common,
     interfacesPage,
@@ -136,6 +136,71 @@ registerSuite(() => {
         .then(() => interfacesPage.bondInterfaces('eth0', 'eth3'))
         .then(() => interfacesPage.checkBondMode('bond1', 'active-backup'))
         .then(() => interfacesPage.checkBondMode('bond0', 'balance-rr'));
+    }
+  };
+});
+*/
+registerSuite(() => {
+  var common,
+    interfacesPage,
+    clusterName;
+
+  return {
+    name: 'Offloading modes of node Interfaces',
+    setup() {
+      common = new Common(this.remote);
+      interfacesPage = new InterfacesPage(this.remote);
+      clusterName = common.pickRandomName('Test Cluster');
+
+      return this.remote
+        .then(() => common.getIn())
+        .then(() => common.createCluster(clusterName))
+        .then(() => common.addNodesToCluster(1, 'Controller', null, 'Supermicro X9DRW'))
+        .clickByCssSelector('.node.pending_addition input[type=checkbox]:not(:checked)')
+        .clickByCssSelector('button.btn-configure-interfaces')
+        .assertElementAppears('div.ifc-list', 2000, 'Node interfaces loaded')
+        .then(
+          pollUntil(
+            () => window.$('div.ifc-list').is(':visible') || null,
+            1000
+          )
+        );
+    },
+    afterEach() {
+      return this.remote
+        .clickByCssSelector('.btn-defaults')
+        .waitForCssSelector('.btn-defaults:enabled', 2000);
+    },
+    teardown() {
+      return this.remote
+        .then(() => common.removeCluster(clusterName, true));
+    },
+    'Configure common offloading properties'() {
+      return this.remote
+        .then(() => interfacesPage.findInterfaceElement('eth0'))
+        .clickByCssSelector('.property-item-container .property-item')
+        .assertElementExists(
+          '.configuration-panel .offloading-modes',
+          'Offloading control tab is shown  when navigating to Offloading'
+        )
+
+        // Enable all offloadings
+        .clickByCssSelector('div.offloading-modes .level1 .offloading-enabled')
+        .assertElementsAppear('div.offloading-modes .active.offloading-enabled', 2000)
+        .assertElementNotExists('div.offloading-modes .active.offloading-disabled')
+        .assertElementNotExists('div.offloading-modes .active.offloading-default')
+
+        // Switch offloadings to Default mode
+        .clickByCssSelector('div.offloading-modes .level1 .offloading-disabled')
+        .assertElementsAppear('div.offloading-modes .active.offloading-disabled', 2000)
+        .assertElementNotExists('div.offloading-modes .active.offloading-enabled')
+        .assertElementNotExists('div.offloading-modes .active.offloading-default')
+
+        // Disable all offloadings
+        .clickByCssSelector('div.offloading-modes .level1 .offloading-default')
+        .assertElementsAppear('div.offloading-modes .active.offloading-default')
+        .assertElementNotExists('div.offloading-modes .active.offloading-enabled')
+        .assertElementNotExists('div.offloading-modes .active.offloading-disabled');
     }
   };
 });

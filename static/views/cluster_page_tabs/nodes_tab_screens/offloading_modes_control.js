@@ -85,7 +85,10 @@ var OffloadingModesControl = React.createClass({
           {[true, false, null].map((modeState) => {
             var styles = {
               'btn-link': true,
-              active: mode.state === modeState
+              active: mode.state === modeState,
+              'offloading-enabled': modeState === true,
+              'offloading-disabled': modeState === false,
+              'offloading-default': modeState === null
             };
             return (
               <td key={mode.name + modeState}>
