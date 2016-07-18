@@ -100,7 +100,7 @@ registerSuite(() => {
         .waitForCssSelector(saveNetworksChangesButton, 500)
         .clickByCssSelector(saveNetworksChangesButton)
         // wait a bit for updating elements on page
-        .waitForCssSelector(checkBoxToChange + '[value="true"]', 800)
+        .waitForCssSelector(checkBoxToChange + '[value="true"]', 2000)
         .assertElementPropertyEquals(checkBoxToChange, 'value', 'true',
          'checkbox "Assign public network to all nodes" is checked')
         .then(() => clusterPage.goToTab('Dashboard'))

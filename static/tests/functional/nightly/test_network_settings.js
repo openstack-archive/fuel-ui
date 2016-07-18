@@ -20,7 +20,7 @@ import ClusterPage from 'tests/functional/pages/cluster';
 import NetworksLib from 'tests/functional/nightly/library/networks';
 
 registerSuite(() => {
-  var common, clusterPage, clusterName, networksLib;
+  var common, clusterPage, clusterName, networksLib, storageNetwork, managementNetwork;
 
   return {
     name: 'Neutron VLAN segmentation',
@@ -28,6 +28,8 @@ registerSuite(() => {
       common = new Common(this.remote);
       clusterPage = new ClusterPage(this.remote);
       networksLib = new NetworksLib(this.remote);
+      storageNetwork = new NetworksLib(this.remote, 'storage');
+      managementNetwork = new NetworksLib(this.remote, 'management');
       clusterName = common.pickRandomName('VLAN Cluster');
 
       return this.remote
@@ -73,17 +75,17 @@ registerSuite(() => {
     'Check "Node Network Groups" segment on "Networks" tab'() {
       return this.remote
         .then(() => networksLib.gotoNodeNetworkSubTab('default'))
-        .then(() => networksLib.checkNetworkInitialState('Public'))
-        .then(() => networksLib.checkNetworkInitialState('Storage'))
-        .then(() => networksLib.checkNetworkInitialState('Management'));
+        .then(() => networksLib.checkNetworkInitialState())
+        .then(() => storageNetwork.checkNetworkInitialState())
+        .then(() => managementNetwork.checkNetworkInitialState());
     },
     'Check "Settings" segment on "Networks" tab'() {
       return this.remote
-        .then(() => networksLib.checkNetrworkSettingsSegment('VLAN'));
+        .then(() => networksLib.checkNetworkSettingsSegment('VLAN'));
     },
     'Check "Network Verification" segment on "Networks" tab'() {
       return this.remote
-        .then(() => networksLib.checkNetrworkVerificationSegment());
+        .then(() => networksLib.checkNetworkVerificationSegment());
     },
     'Success network verification exists only on "Network Verification" segment'() {
       return this.remote
@@ -164,7 +166,8 @@ registerSuite(() => {
 });
 
 registerSuite(() => {
-  var common, clusterPage, clusterName, networksLib;
+  var common, clusterPage, clusterName, networksLib, storageNetwork, managementNetwork,
+    privateNetwork;
 
   return {
     name: 'Neutron tunneling segmentation',
@@ -173,6 +176,9 @@ registerSuite(() => {
       clusterPage = new ClusterPage(this.remote);
       clusterName = common.pickRandomName('Tunneling Cluster');
       networksLib = new NetworksLib(this.remote);
+      storageNetwork = new NetworksLib(this.remote, 'storage');
+      managementNetwork = new NetworksLib(this.remote, 'management');
+      privateNetwork = new NetworksLib(this.remote, 'private');
 
       return this.remote
         .then(() => common.getIn())
@@ -196,18 +202,18 @@ registerSuite(() => {
           'Node Network Groups', '"Node Network Groups" segment opens by default')
         .assertElementTextEquals('ul.node_network_groups li.active', 'default',
           '"default" node network group opens by default')
-        .then(() => networksLib.checkNetworkInitialState('Public'))
-        .then(() => networksLib.checkNetworkInitialState('Storage'))
-        .then(() => networksLib.checkNetworkInitialState('Management'))
-        .then(() => networksLib.checkNetworkInitialState('Private'));
+        .then(() => networksLib.checkNetworkInitialState())
+        .then(() => storageNetwork.checkNetworkInitialState())
+        .then(() => managementNetwork.checkNetworkInitialState())
+        .then(() => privateNetwork.checkNetworkInitialState());
     },
     'Check "Settings" segment on "Networks" tab'() {
       return this.remote
-        .then(() => networksLib.checkNetrworkSettingsSegment('Tunnel'));
+        .then(() => networksLib.checkNetworkSettingsSegment('Tunnel'));
     },
     'Check "Network Verification" segment on "Networks" tab'() {
       return this.remote
-        .then(() => networksLib.checkNetrworkVerificationSegment());
+        .then(() => networksLib.checkNetworkVerificationSegment());
     }
   };
 });
