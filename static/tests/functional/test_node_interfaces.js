@@ -17,6 +17,7 @@
 import registerSuite from 'intern!object';
 import pollUntil from 'intern/dojo/node!leadfoot/helpers/pollUntil';
 import InterfacesPage from 'tests/functional/pages/interfaces';
+import assert from 'intern/chai!assert';
 import Common from 'tests/functional/pages/common';
 import 'tests/functional/helpers';
 
@@ -136,6 +137,77 @@ registerSuite(() => {
         .then(() => interfacesPage.bondInterfaces('eth0', 'eth3'))
         .then(() => interfacesPage.checkBondMode('bond1', 'active-backup'))
         .then(() => interfacesPage.checkBondMode('bond0', 'balance-rr'));
+    }
+  };
+});
+
+registerSuite(() => {
+  var common,
+    clusterName;
+
+  return {
+    name: 'Offloading modes of node Interfaces',
+    setup() {
+      common = new Common(this.remote);
+      clusterName = common.pickRandomName('Test Cluster');
+
+      return this.remote
+        .then(() => common.getIn())
+        .then(() => common.createCluster(clusterName))
+        .then(() => common.addNodesToCluster(1, 'Controller', null, 'Supermicro X9DRW'))
+        .clickByCssSelector('.node.pending_addition input[type=checkbox]:not(:checked)')
+        .clickByCssSelector('button.btn-configure-interfaces')
+        .assertElementAppears('div.ifc-list', 2000, 'Node interfaces loaded')
+        .then(
+          pollUntil(
+            () => window.$('div.ifc-list').is(':visible') || null,
+            1000
+          )
+        );
+    },
+    afterEach() {
+      return this.remote
+        .clickByCssSelector('.btn-defaults')
+        .waitForCssSelector('.btn-defaults:enabled', 2000);
+    },
+    teardown() {
+      return this.remote
+        .then(() => common.removeCluster(clusterName, true));
+    },
+    'Configure common offloading properties'() {
+      return this.remote
+        .then(() => interfacesPage.findInterfaceElement('eth0'))
+        .clickByCssSelector('.property-item-container .property-item')
+        .assertElementExists(
+          '.configuration-panel .offloading-modes',
+          'Offloading control tab is shown  when navigating to Offloading'
+        )
+        .findAllByCssSelector('div.offloading-modes button')
+            .then((offloading) => {
+              // Enable properties for all types
+              offloading[0].click();
+              assert.isTrue(offloading[0].classList.contains('active'));
+              assert.isFalse(offloading[1].classList.contains('active'));
+              assert.isFalse(offloading[2].classList.contains('active'));
+              assert.isTrue(offloading[3].classList.contains('active'));
+
+              // Disable one offloading mode
+              offloading[4].click();
+              assert.isTrue(offloading[4].classList.contains('active'));
+              assert.isFalse(offloading[0].classList.contains('active'));
+              assert.isFalse(offloading[1].classList.contains('active'));
+
+              // Disable properties for all types
+              offloading[1].click();
+              assert.isTrue(offloading[1].classList.contains('active'));
+              assert.isFalse(offloading[0].classList.contains('active'));
+              assert.isFalse(offloading[2].classList.contains('active'));
+              assert.isTrue(offloading[4].classList.contains('active'));
+
+              // Deafult mode for all types
+              offloading[2].click();
+              assert.isTrue(offloading[2].classList.contains('active'));
+            });
     }
   };
 });
