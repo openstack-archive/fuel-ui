@@ -1007,6 +1007,183 @@ export var ResetEnvironmentDialog = React.createClass({
   }
 });
 
+export var DeleteGraphDialog = React.createClass({
+  mixins: [dialogMixin],
+  getInitialState() {
+    return {confirmation: false};
+  },
+  getDefaultProps() {
+    return {title: i18n('dialog.delete_graph.title')};
+  },
+  deleteGraph() {
+    this.setState({actionInProgress: true});
+    this.props.graph
+      .destroy({wait: true})
+      .then(
+        () => {
+          this.close();
+          this.setState({actionInProgress: false});
+        },
+        this.showError
+      );
+  },
+  showConfirmationForm() {
+    this.setState({confirmation: true});
+  },
+  renderBody() {
+    var {graph} = this.props;
+    var graphType = graph.getType();
+    return (
+      <div>
+        <div className='text-danger'>
+          {this.renderImportantLabel()}
+          {i18n('dialog.delete_graph.confirmation')}
+        </div>
+        {this.state.confirmation &&
+          <div className='confirm-deletion-form'>
+            {i18n('dialog.delete_graph.enter_graph_type', {type: graphType})}
+            <Input
+              type='text'
+              disabled={this.state.actionInProgress}
+              onChange={(type, value) => this.setState({confirmationError: value !== graphType})}
+              onPaste={(e) => e.preventDefault()}
+              autoFocus
+            />
+          </div>
+        }
+      </div>
+    );
+  },
+  renderFooter() {
+    var {actionInProgress, confirmationError, confirmation} = this.state;
+    return ([
+      <button
+        key='cancel'
+        className='btn btn-default'
+        onClick={this.close}
+        disabled={actionInProgress}
+      >
+        {i18n('common.cancel_button')}
+      </button>,
+      <ProgressButton
+        key='remove'
+        className='btn btn-danger remove-graph-btn'
+        disabled={actionInProgress || confirmation &&
+          _.isUndefined(confirmationError) || confirmationError}
+        onClick={confirmation ? this.deleteGraph : this.showConfirmationForm}
+        progress={actionInProgress}
+      >
+        {i18n('common.delete_button')}
+      </ProgressButton>
+    ]);
+  }
+});
+
+export var UploadGraphDialog = React.createClass({
+  mixins: [dialogMixin],
+  getInitialState() {
+    return {
+      validationError: false
+    };
+  },
+  getDefaultProps() {
+    return {title: i18n('dialog.upload_graph.title')};
+  },
+  uploadGraph() {
+    var {cluster} = this.props;
+    var {name, type, file} = this.state;
+    var deploymentGraph = new models.DeploymentGraph();
+    var clusterGraphList = cluster.get('deploymentGraphs').filter((graph) =>
+      graph.getLevel() === 'cluster');
+    deploymentGraph.set({
+      name,
+      type,
+      tasks: file ? JSON.parse(file.content) : []
+    }, {validate: true, clusterTypesList: _.invokeMap(clusterGraphList, 'getType')});
+    if (deploymentGraph.validationError) {
+      this.setState({validationError: deploymentGraph.validationError});
+    } else {
+      deploymentGraph.url = '/api/clusters/' + cluster.id + '/deployment_graphs/' + type;
+      deploymentGraph.save()
+       .then(
+        this.submitAction,
+        (response) => {
+          this.setState({savingError: utils.getResponseText(response)});
+        }
+      );
+    }
+  },
+  onChange(name, value) {
+    this.setState({
+      [name]: value,
+      savingError: false
+    });
+  },
+  renderBody() {
+    var {name, type, file, validationError, savingError} = this.state;
+    var ns = 'dialog.upload_graph.';
+    return (
+      <div className='forms-box upload-graph-form'>
+        <div>
+          <Input
+            type='text'
+            label={i18n(ns + 'name')}
+            name='name'
+            value={name}
+            onChange={this.onChange}
+          />
+        </div>
+        <div>
+          <Input
+            type='text'
+            label={i18n(ns + 'type')}
+            name='type'
+            value={type}
+            onChange={this.onChange}
+            error={validationError.type}
+          />
+        </div>
+        <div>
+          <Input
+            type='file'
+            label={i18n(ns + 'file')}
+            name='file'
+            value={file}
+            onChange={this.onChange}
+          />
+        </div>
+        {savingError &&
+          <div className='alert alert-danger'>
+            {savingError}
+          </div>
+        }
+      </div>
+    );
+  },
+  renderFooter() {
+    var {actionInProgress, error} = this.state;
+    return ([
+      <button
+        key='cancel'
+        className='btn btn-default'
+        onClick={this.close}
+        disabled={actionInProgress}
+      >
+        {i18n('common.cancel_button')}
+      </button>,
+      <ProgressButton
+        key='apply'
+        className='btn btn-success btn-upload-graph'
+        onClick={this.uploadGraph}
+        disabled={actionInProgress || error}
+        progress={actionInProgress}
+      >
+        {i18n('cluster_page.workflows_tab.upload')}
+      </ProgressButton>
+    ]);
+  }
+});
+
 export var ShowNodeInfoDialog = React.createClass({
   mixins: [
     dialogMixin,
