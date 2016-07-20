@@ -348,7 +348,8 @@ models.Cluster = BaseModel.extend({
       nodes: new models.Nodes(),
       tasks: new models.Tasks(),
       nodeNetworkGroups: new models.NodeNetworkGroups(),
-      transactions: new models.Transactions()
+      transactions: new models.Transactions(),
+      deploymentGraphs: new models.DeploymentGraphs()
     };
     _.each(defaults, (collection, key) => {
       collection.cluster = this;
@@ -705,6 +706,26 @@ models.DeploymentTasks = BaseCollection.extend({
     return _.filter(response, (task) => !_.isNull(task.node_id) && task.node_id !== '-');
   }
 });
+
+models.DeploymentGraph = BaseModel.extend({
+  constructorName: 'DeploymentGraph'
+});
+
+models.DeploymentGraphs = BaseCollection
+  //.extend(cacheMixin)
+  .extend({
+    constructorName: 'DeploymentGraphs',
+    model: models.DeploymentGraph,
+    comparator(graph1, graph2) {
+      var type1 = graph1.get('relations').type;
+      var type2 = graph2.get('relations').type;
+      if (type1 === type2) return graph1.id - graph2.id;
+      // graphs with type 'default' should go first
+      if (type1 === 'default') return -1;
+      if (type2 === 'default') return 1;
+      return utils.natsort(type1, type2);
+    }
+  });
 
 models.Notification = BaseModel.extend({
   constructorName: 'Notification',

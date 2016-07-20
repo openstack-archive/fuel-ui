@@ -330,12 +330,23 @@
                     "settings": "Settings",
                     "logs": "Logs",
                     "healthcheck": "Health Check",
-                    "history": "History"
+                    "history": "History",
+                    "workflows": "Workflows"
                 },
                 "history_tab": {
                     "title": "Deployment History",
                     "previous_deployments": "Previous Deployments",
                     "no_finished_deployment_alert": "No deployment finished yet."
+                },
+                "workflows_tab": {
+                    "title": "Deployment Graphs",
+                    "graph_name_header": "Name",
+                    "graph_type_header": "Type",
+                    "download_graph": "Download",
+                    "delete_graph": "Delete",
+                    "release_graph_level": "Release Graphs",
+                    "plugin_graph_level": "__plugin__ Graphs",
+                    "cluster_graph_level": "Cluster Graphs"
                 },
                 "deployment_history": {
                     "task_name_header": "Task",
