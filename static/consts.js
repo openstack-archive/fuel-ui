@@ -84,3 +84,10 @@ export const DEPLOYMENT_HISTORY_VIEW_MODES = [
   'timeline',
   'table'
 ];
+
+export const DEPLOYMENT_GRAPH_LEVELS = [
+  'release',
+  'plugin',
+  'cluster'
+];
+
