@@ -1807,6 +1807,9 @@ input[type=range] {
       &.history {
         .tab-icon-sprite-index(9);
       }
+      &.workflows {
+        .tab-icon-sprite-index(10);
+      }
     }
   }
 }
@@ -5433,6 +5436,52 @@ input[type=range] {
     }
     .main-attribute {
       color: @base-text-color;
+    }
+  }
+}
+
+.deployment-graphs {
+  .btn-upload-graph .glyphicon {
+    margin-right: 5px;
+  }
+  .workflows-table {
+    margin: 0;
+    tbody {
+      tr {
+        &:last-child {
+          border-bottom: 1px solid @gray + 81%;
+        }
+        td {
+          width: 40%;
+          &:nth-child(3), &:nth-child(4) { // action buttons
+            width: 10%;
+            text-align: right;
+          }
+          .btn {
+            margin: 0;
+            padding: 0;
+            .font-normal;
+          }
+        }
+        &.subheader {
+          .font-bold;
+          td:nth-child(2) { // action buttons
+            text-align: right;
+          }
+        }
+      }
+    }
+  }
+}
+
+.upload-graph-form {
+  margin-bottom: 0;
+  .form-group {
+    &:last-child {
+      margin-bottom: 0;
+    }
+    &.has-error .help-block {
+      margin-left: 200px;
     }
   }
 }
