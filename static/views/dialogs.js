@@ -1007,6 +1007,80 @@ export var ResetEnvironmentDialog = React.createClass({
   }
 });
 
+export var DeleteGraphDialog = React.createClass({
+  mixins: [dialogMixin],
+  getInitialState() {
+    return {confirmation: false};
+  },
+  getDefaultProps() {
+    return {title: i18n('dialog.delete_graph.title')};
+  },
+  deleteGraph() {
+    this.setState({actionInProgress: true});
+    var {cluster, graphId} = this.props;
+    var deploymentGraph = cluster.get('deploymentGraphs').get(graphId);
+    deploymentGraph
+      .destroy({wait: true})
+      .then(
+        () => {
+          this.close();
+          this.setState({actionInProgress: false});
+        },
+        this.showError
+      );
+  },
+  showConfirmationForm() {
+    this.setState({confirmation: true});
+  },
+  renderBody() {
+    var {cluster, graphId} = this.props;
+    var graphType = _.find(cluster.get('deploymentGraphs').get(graphId).get('relations'),
+      (relation) => relation.model_id === cluster.id).type;
+    return (
+      <div>
+        <div className='text-danger'>
+          {this.renderImportantLabel()}
+          {i18n('dialog.delete_graph.confirmation')}
+        </div>
+        {this.state.confirmation &&
+          <div className='confirm-deletion-form'>
+            {i18n('dialog.delete_graph.enter_graph_type', {type: graphType})}
+            <Input
+              type='text'
+              disabled={this.state.actionInProgress}
+              onChange={(type, value) => this.setState({confirmationError: value !== graphType})}
+              onPaste={(e) => e.preventDefault()}
+              autoFocus
+            />
+          </div>
+        }
+      </div>
+    );
+  },
+  renderFooter() {
+    return ([
+      <button
+        key='cancel'
+        className='btn btn-default'
+        onClick={this.close}
+        disabled={this.state.actionInProgress}
+      >
+        {i18n('common.cancel_button')}
+      </button>,
+      <ProgressButton
+        key='remove'
+        className='btn btn-danger remove-graph-btn'
+        disabled={this.state.actionInProgress || this.state.confirmation &&
+          _.isUndefined(this.state.confirmationError) || this.state.confirmationError}
+        onClick={this.state.confirmation ? this.deleteGraph : this.showConfirmationForm}
+        progress={this.state.actionInProgress}
+      >
+        {i18n('common.delete_button')}
+      </ProgressButton>
+    ]);
+  }
+});
+
 export var ShowNodeInfoDialog = React.createClass({
   mixins: [
     dialogMixin,
