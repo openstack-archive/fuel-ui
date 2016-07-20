@@ -22,6 +22,7 @@ import dispatcher from 'dispatcher';
 import {backboneMixin, pollingMixin, dispatcherMixin} from 'component_mixins';
 import DashboardTab from 'views/cluster_page_tabs/dashboard_tab';
 import HistoryTab from 'views/cluster_page_tabs/history_tab';
+import WorkflowsTab from 'views/cluster_page_tabs/workflows_tab';
 import NodesTab from 'views/cluster_page_tabs/nodes_tab';
 import NetworkTab from 'views/cluster_page_tabs/network_tab';
 import SettingsTab from 'views/cluster_page_tabs/settings_tab';
@@ -83,6 +84,7 @@ var ClusterPage = React.createClass({
         {url: 'settings', tab: SettingsTab},
         {url: 'vmware', tab: VmWareTab},
         {url: 'logs', tab: LogsTab},
+        {url: 'workflows', tab: WorkflowsTab},
         {url: 'history', tab: HistoryTab},
         {url: 'healthcheck', tab: HealthCheckTab}
       ];
@@ -126,6 +128,7 @@ var ClusterPage = React.createClass({
           cluster.get('roles').fetch(),
           cluster.get('pluginLinks').fetch({cache: true}),
           cluster.get('transactions').fetch(),
+          cluster.get('deploymentGraphs').fetch(),
           cluster.get('nodes').fetch(),
           cluster.get('tasks').fetch(),
           cluster.get('nodeNetworkGroups').fetch()
