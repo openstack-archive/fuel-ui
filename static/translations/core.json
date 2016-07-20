@@ -330,12 +330,22 @@
                     "settings": "Settings",
                     "logs": "Logs",
                     "healthcheck": "Health Check",
-                    "history": "History"
+                    "history": "History",
+                    "workflows": "Workflows"
                 },
                 "history_tab": {
                     "title": "Deployment History",
                     "previous_deployments": "Previous Deployments",
                     "no_finished_deployment_alert": "No deployment finished yet."
+                },
+                "workflows_tab": {
+                    "title": "Custom Workflows",
+                    "graph_name_header": "Name",
+                    "graph_level_header": "Level",
+                    "download_graph": "Download",
+                    "delete_graph": "Delete",
+                    "upload_graph": "Upload New Workflow",
+                    "upload": "Upload"
                 },
                 "deployment_history": {
                     "timeline_mode_tooltip": "Timeline View",
@@ -1232,6 +1242,15 @@
                     "title": "Remove Node Network Group",
                     "confirmation": "Are you sure, you want to delete this node network group?",
                     "unsaved_changes_alert": "You have unsaved changes on this page. They will be reset after the node network group deletion."
+                },
+                "delete_graph": {
+                    "title": "Delete Graph",
+                    "confirmation": "Are you sure you want to delete this graph?",
+                    "enter_graph_type": "Please Type the Type: \"__type__\" of the graph to confirm."
+                },
+                "upload_graph": {
+                    "title": "Upload Graph",
+                    "invalid_type": "Invalid graph type"
                 }
             }
         }

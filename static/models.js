@@ -348,7 +348,8 @@ models.Cluster = BaseModel.extend({
       nodes: new models.Nodes(),
       tasks: new models.Tasks(),
       nodeNetworkGroups: new models.NodeNetworkGroups(),
-      transactions: new models.Transactions()
+      transactions: new models.Transactions(),
+      deploymentGraphs: new models.DeploymentGraphs()
     };
     _.each(defaults, (collection, key) => {
       collection.cluster = this;
@@ -705,6 +706,53 @@ models.DeploymentTasks = BaseCollection.extend({
     return _.filter(response, (task) => !_.isNull(task.node_id) && task.node_id !== '-');
   }
 });
+
+models.DeploymentGraph = BaseModel.extend({
+  constructorName: 'DeploymentGraph',
+  urlRoot: 'api/graphs/',
+  graphRegex: '^[a-zA-Z0-9-_]+$',
+  toJSON() {
+    var attributes = this._super('toJSON', arguments);
+    return _.omit(attributes, 'type');
+  },
+  getType() {
+    return this.get('relations')[0].type;
+  },
+  getLevel() {
+    return this.get('relations')[0].model;
+  },
+  validate(attrs) {
+    var errors = {};
+    if (!attrs.type || !attrs.type.match(this.graphRegex)) {
+      errors.type = i18n('dialog.upload_graph.invalid_type');
+    }
+    return _.isEmpty(errors) ? null : errors;
+  }
+});
+
+models.DeploymentGraphs = BaseCollection
+  //.extend(cacheMixin)
+  .extend({
+    constructorName: 'DeploymentGraphs',
+    model: models.DeploymentGraph,
+    levelsPreferredOrder: ['release', 'plugin', 'cluster'],
+    comparator(graph1, graph2) {
+      // sort graphs by type then by level
+      var type1 = graph1.getType();
+      var type2 = graph2.getType();
+      if (type1 === type2) {
+        var level1 = graph1.getLevel();
+        var level2 = graph2.getLevel();
+        if (level1 === level2) return graph1.id - graph2.id;
+        return _.indexOf(this.levelsPreferredOrder, level1) -
+          _.indexOf(this.preferredOrder, level2);
+      }
+      // graphs with type 'default' should go first
+      if (type1 === 'default') return -1;
+      if (type2 === 'default') return 1;
+      return utils.natsort(type1, type2);
+    }
+  });
 
 models.Notification = BaseModel.extend({
   constructorName: 'Notification',
