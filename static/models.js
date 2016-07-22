@@ -211,28 +211,23 @@ var restrictionMixin = models.restrictionMixin = {
             {limitValue: limitValue, count: count, roleName: label})
         };
       }
+      return null;
     };
 
     // Check the overridden limit types
     messages = _.chain(overrides)
       .map((override) => {
         var exp = evaluateExpressionHelper(override.condition, models);
-
-        if (exp) {
-          return _.map(limitTypes, _.partial(checkOneLimit, override));
-        }
+        return exp ? _.map(limitTypes, _.partial(checkOneLimit, override)) : [];
       })
       .flatten()
       .compact()
       .value();
     // Now check the global, not-overridden limit types
     messages = messages.concat(_.chain(limitTypes)
-      .map((limitType) => {
-        if (checkedLimitTypes[limitType]) {
-          return null;
-        }
-        return checkOneLimit(limitValues, limitType);
-      })
+      .map(
+        (limitType) => checkedLimitTypes[limitType] ? null : checkOneLimit(limitValues, limitType)
+      )
       .flatten()
       .compact()
       .value()
@@ -248,19 +243,14 @@ var restrictionMixin = models.restrictionMixin = {
         .filter({type: limitType})
         .sortBy('value')
         .value();
-      if (limitType !== 'max') {
-        message = message.reverse();
-      }
-      if (message[0]) {
-        return message[0].message;
-      }
+      if (limitType !== 'max') message = message.reverse();
+      return (message[0] || {}).message;
     });
-    messages = _.compact(messages).join(' ');
 
     return {
-      count: count,
+      count,
       limits: limitValues,
-      message: messages,
+      message: _.compact(messages).join(' '),
       valid: !messages
     };
   }
@@ -1415,7 +1405,7 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
       (nameserver) => !utils.validateIP(nameserver) ?
         i18n('cluster_page.network_tab.validation.invalid_nameserver') : null
     );
-    if (_.compact(errors).length) return {dns_nameservers: errors};
+    return _.compact(errors).length ? {dns_nameservers: errors} : {};
   },
   validate(attrs, options = {}) {
     var networkingParameters = attrs.networking_parameters;
@@ -1627,6 +1617,7 @@ class ComponentPattern {
           return matched;
         }
       }
+      return true;
     });
     return matched;
   }

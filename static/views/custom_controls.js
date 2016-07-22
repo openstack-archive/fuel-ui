@@ -220,13 +220,13 @@ customControls.text_list = customControls.textarea_list = React.createClass({
   propTypes: {
     value: React.PropTypes.arrayOf(React.PropTypes.node).isRequired,
     type: React.PropTypes.oneOf(['text_list', 'textarea_list']).isRequired,
+    onChange: React.PropTypes.func.isRequired,
     name: React.PropTypes.node,
     label: React.PropTypes.node,
     description: React.PropTypes.node,
     error: React.PropTypes.arrayOf(React.PropTypes.node),
     disabled: React.PropTypes.bool,
     wrapperClassName: React.PropTypes.node,
-    onChange: React.PropTypes.func,
     min: React.PropTypes.number,
     max: React.PropTypes.number,
     tooltipPlacement: React.PropTypes.oneOf(['left', 'right', 'top', 'bottom']),
@@ -261,7 +261,7 @@ customControls.text_list = customControls.textarea_list = React.createClass({
         value[index] = input.value;
         break;
     }
-    if (this.props.onChange) return this.props.onChange(this.props.name, value);
+    return this.props.onChange(this.props.name, value);
   },
   debouncedFieldChange: _.debounce(function(index) {
     return this.changeField(index);

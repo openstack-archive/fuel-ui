@@ -57,6 +57,7 @@ export var Input = React.createClass({
       'text', 'password', 'textarea', 'checkbox', 'radio',
       'select', 'hidden', 'number', 'range', 'file'
     ]).isRequired,
+    onChange: React.PropTypes.func.isRequired,
     name: React.PropTypes.node,
     label: React.PropTypes.node,
     debounce: React.PropTypes.bool,
@@ -68,7 +69,6 @@ export var Input = React.createClass({
     tooltipIcon: React.PropTypes.node,
     tooltipText: React.PropTypes.node,
     toggleable: React.PropTypes.bool,
-    onChange: React.PropTypes.func,
     extraContent: React.PropTypes.node
   },
   getInitialState() {
@@ -122,12 +122,10 @@ export var Input = React.createClass({
   },
   onChange() {
     var {onChange, name, type} = this.props;
-    if (onChange) {
-      var input = this.getInputDOMNode();
-      var value = type === 'checkbox' ? input.checked : input.value;
-      if (type === 'number') value = parseInt(value, 10);
-      return onChange(name, value);
-    }
+    var input = this.getInputDOMNode();
+    var value = type === 'checkbox' ? input.checked : input.value;
+    if (type === 'number') value = parseInt(value, 10);
+    return onChange(name, value);
   },
   handleFocus(e) {
     e.target.select();

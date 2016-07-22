@@ -100,17 +100,23 @@ var SettingSection = React.createClass({
     var roles = this.props.cluster.get('roles');
     return _.compact(this.props.allocatedRoles.map((roleName) => {
       var role = roles.find({name: roleName});
-      if (_.some(role.get('restrictions'), (restriction) => {
-        restriction = utils.expandRestriction(restriction);
-        if (_.includes(restriction.condition, 'settings:' + path) &&
-          !(new Expression(
-            restriction.condition,
-            this.props.configModels,
-            restriction
-          ).evaluate())) {
-          return this.checkValues(valuesToCheck, pathToCheck, setting[valueAttribute], restriction);
-        }
-      })) return role.get('label');
+      if (
+        _.some(role.get('restrictions'), (restriction) => {
+          restriction = utils.expandRestriction(restriction);
+          if (
+            _.includes(restriction.condition, 'settings:' + path) && !(
+              new Expression(restriction.condition, this.props.configModels, restriction)
+                .evaluate()
+            )
+          ) {
+            return this.checkValues(
+              valuesToCheck, pathToCheck, setting[valueAttribute], restriction
+            );
+          }
+          return false;
+        })
+      ) return role.get('label');
+      return null;
     }));
   },
   checkDependentSettings(sectionName, settingName) {
@@ -157,9 +163,9 @@ var SettingSection = React.createClass({
         this.checkValues,
         valuesToCheck, pathToCheck, currentSetting[valueAttribute]
       );
-      return _.compact(_.map(dependentRestrictions, (restrictions, label) => {
-        if (_.some(restrictions, checkValues)) return label;
-      }));
+      return _.compact(_.map(dependentRestrictions,
+        (restrictions, label) => _.some(restrictions, checkValues) ? label : null
+      ));
     }
     return [];
   },
@@ -221,6 +227,7 @@ var SettingSection = React.createClass({
           value.tooltipText = showSettingWarning && processedValueRestrictions.message;
           return value;
         }
+        return null;
       })
       .compact()
       .value();

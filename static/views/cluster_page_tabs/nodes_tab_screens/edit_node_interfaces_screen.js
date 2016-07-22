@@ -42,7 +42,7 @@ var EditNodeInterfacesScreen = React.createClass({
       var cluster = options.cluster;
       var nodes = utils.getNodeListFromTabOptions(options);
 
-      if (!nodes || !nodes.areInterfacesConfigurable()) {
+      if (!nodes.length || !nodes.areInterfacesConfigurable()) {
         return Promise.reject();
       }
 
@@ -495,7 +495,7 @@ var EditNodeInterfacesScreen = React.createClass({
           // Both interfaces should support DPDK in order bond to support it either
           var equal = true;
           var shown = value1.shown && value2.shown;
-          return {equal: equal, shown: shown};
+          return {equal, shown};
         case 'sriov':
           return {equal: true, shown: false};
       }
@@ -780,34 +780,33 @@ var EditNodeInterfacesScreen = React.createClass({
             var ifcName = ifc.get('name');
             var limitations = this.state.limitations[ifc.isBond() ? ifcName : ifc.id];
 
-            if (!_.includes(slaveInterfaceNames, ifcName)) {
-              return (
-                <NodeInterfaceDropTarget
-                  {...this.props}
-                  key={'interface-' + ifcName}
-                  interface={ifc}
-                  limitations={limitations}
-                  nodesInterfaces={nodesInterfaces[index]}
-                  hasChanges={
-                    !_.isEqual(
-                       _.find(this.state.initialInterfaces, {name: ifcName}),
-                      _.omit(ifc.toJSON(), 'state')
-                    )
-                  }
-                  locked={locked}
-                  configurationTemplateExists={configurationTemplateExists}
-                  errors={this.state.interfacesErrors[ifcName]}
-                  validate={this.validate}
-                  removeInterfaceFromBond={this.removeInterfaceFromBond}
-                  bondingProperties={this.props.bondingConfig.properties}
-                  availableBondingTypes={availableBondingTypes[ifcName]}
-                  getAvailableBondingTypes={this.getAvailableBondingTypes}
-                  interfaceSpeeds={interfaceSpeeds[index]}
-                  interfaceNames={interfaceNames[index]}
-                  viewMode={viewMode}
-                />
-              );
-            }
+            if (_.includes(slaveInterfaceNames, ifcName)) return null;
+            return (
+              <NodeInterfaceDropTarget
+                {...this.props}
+                key={'interface-' + ifcName}
+                interface={ifc}
+                limitations={limitations}
+                nodesInterfaces={nodesInterfaces[index]}
+                hasChanges={
+                  !_.isEqual(
+                     _.find(this.state.initialInterfaces, {name: ifcName}),
+                    _.omit(ifc.toJSON(), 'state')
+                  )
+                }
+                locked={locked}
+                configurationTemplateExists={configurationTemplateExists}
+                errors={this.state.interfacesErrors[ifcName]}
+                validate={this.validate}
+                removeInterfaceFromBond={this.removeInterfaceFromBond}
+                bondingProperties={this.props.bondingConfig.properties}
+                availableBondingTypes={availableBondingTypes[ifcName]}
+                getAvailableBondingTypes={this.getAvailableBondingTypes}
+                interfaceSpeeds={interfaceSpeeds[index]}
+                interfaceNames={interfaceNames[index]}
+                viewMode={viewMode}
+              />
+            );
           })}
         </div>
         <div className='col-xs-12 page-buttons content-elements'>
@@ -1380,7 +1379,7 @@ var NodeInterfaceAttributes = React.createClass({
             excerpt.push((added > 1 ? ',' : '') + mode.name + ' ' + states[mode.state]);
           }
           // show no more than two modes in the button
-          if (added === 2) return false;
+          return added !== 2;
         }
     );
     if (added < ifcModes.length) excerpt.push(', ...');
