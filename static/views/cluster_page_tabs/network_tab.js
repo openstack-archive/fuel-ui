@@ -1575,6 +1575,7 @@ var NetworkSettings = React.createClass({
                     (section.metadata.group || setting.group === 'network') &&
                     settings.isSettingVisible(setting, settingName, this.props.configModels)
                   ) return settingName;
+                  return null;
                 }));
                 if (_.isEmpty(settingsToDisplay) && !settings.isPlugin(section)) return null;
                 return <SettingSection

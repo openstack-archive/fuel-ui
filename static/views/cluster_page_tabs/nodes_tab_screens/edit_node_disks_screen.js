@@ -35,7 +35,7 @@ var EditNodeDisksScreen = React.createClass({
     fetchData(options) {
       var nodes = utils.getNodeListFromTabOptions(options);
 
-      if (!nodes || !nodes.areDisksConfigurable()) {
+      if (!nodes.length || !nodes.areDisksConfigurable()) {
         return Promise.reject();
       }
 

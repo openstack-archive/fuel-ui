@@ -161,16 +161,14 @@ var DashboardLinks = React.createClass({
       <div className='row'>
         <div className='dashboard-block links-block clearfix'>
           <div className='col-xs-12'>
-            {links.map((link, index) => {
-              if (index % 2 === 0) {
-                return (
-                  <div className='row' key={link.url}>
-                    {this.renderLink(link)}
-                    {index + 1 < links.length && this.renderLink(links[index + 1])}
-                  </div>
-                );
-              }
-            })}
+            {links.map(
+              (link, index) => index % 2 === 0 ? (
+                <div className='row' key={link.url}>
+                  {this.renderLink(link)}
+                  {index + 1 < links.length && this.renderLink(links[index + 1])}
+                </div>
+              ) : null
+            )}
           </div>
         </div>
       </div>
@@ -397,6 +395,7 @@ var ClusterActionsPanel = React.createClass({
                 ]
               };
             }
+            return {};
           },
           // check for offline nodes
           function(cluster) {
@@ -406,6 +405,7 @@ var ClusterActionsPanel = React.createClass({
                 blocker: [i18n(ns + 'offline_nodes', {count: offlineNodes.length})]
               };
             }
+            return {};
           },
           // check if TLS settings are not configured
           function(cluster) {
@@ -423,6 +423,7 @@ var ClusterActionsPanel = React.createClass({
             if (!settings.get('public_ssl.services.value')) {
               return {warning: [i18n(ns + 'tls_for_services_not_enabled')]};
             }
+            return {};
           },
           // check if deployment failed
           function(cluster) {
@@ -451,6 +452,7 @@ var ClusterActionsPanel = React.createClass({
                 ]
               };
             }
+            return {};
           },
           // check cluster settings
           function(cluster) {
@@ -545,6 +547,7 @@ var ClusterActionsPanel = React.createClass({
             if (task.match({active: true})) {
               return makeComponent(i18n(ns + 'verification_in_progress'));
             }
+            return {};
           }
         ];
       default:
