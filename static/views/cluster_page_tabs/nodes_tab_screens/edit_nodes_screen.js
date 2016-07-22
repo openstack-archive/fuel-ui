@@ -23,10 +23,7 @@ var EditNodesScreen = React.createClass({
     fetchData(options) {
       var {cluster} = options;
       var nodes = utils.getNodeListFromTabOptions(options);
-
-      if (!nodes) {
-        return Promise.reject();
-      }
+      if (!nodes.length) return Promise.reject();
 
       nodes.parse = function() {
         return this.getByIds(nodes.map('id'));

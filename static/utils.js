@@ -39,14 +39,12 @@ var utils = {
   deserializeTabOptions(serializedOptions) {
     return _.fromPairs(_.map((serializedOptions || '').split(';'), (option) => option.split(':')));
   },
-  getNodeListFromTabOptions(options) {
-    var nodeIds = utils.deserializeTabOptions(options.screenOptions[0]).nodes;
-    var ids = nodeIds ? nodeIds.split(',').map((id) => parseInt(id, 10)) : [];
-    var nodes = new models.Nodes(
-      options.cluster.get('nodes').getByIds(ids),
-      {fetchOptions: {cluster_id: options.cluster.id}}
-    );
-    if (nodes.length === ids.length) return nodes;
+  getNodeListFromTabOptions({cluster, screenOptions}) {
+    var nodeIds = (utils.deserializeTabOptions(screenOptions[0]).nodes || '')
+      .split(',').map((id) => parseInt(id, 10));
+    var clusterNodes = cluster.get('nodes').getByIds(nodeIds);
+    return clusterNodes.length === nodeIds.length ?
+      new models.Nodes(clusterNodes, {fetchOptions: {cluster_id: cluster.id}}) : [];
   },
   renderMultilineText(text) {
     if (!text) return null;

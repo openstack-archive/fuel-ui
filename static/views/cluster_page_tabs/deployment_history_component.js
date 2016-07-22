@@ -142,12 +142,12 @@ var DeploymentHistory = React.createClass({
             <div className='active-filters row' onClick={this.toggleFilters}>
               <strong className='col-xs-1'>{i18n(ns + 'filter_by')}</strong>
               <div className='col-xs-11'>
-                {_.map(filters, ({name, label, values}) => {
-                  if (!values.length) return;
-                  return <div key={name}>
-                    <strong>{label + ':'}</strong> <span>{values.join(', ')}</span>
-                  </div>;
-                })}
+                {_.map(filters,
+                  ({name, label, values}) => values.length ?
+                    <div key={name}>
+                      <strong>{label + ':'}</strong> <span>{values.join(', ')}</span>
+                    </div> : null
+                )}
               </div>
               <button
                 className='btn btn-link btn-reset-filters'

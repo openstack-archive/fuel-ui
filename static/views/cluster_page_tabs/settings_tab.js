@@ -265,6 +265,7 @@ var SettingsTab = React.createClass({
                 settings.isSettingVisible(setting, settingName, this.state.configModels) &&
                 settings.sanitizeGroup(setting.group) === calculatedGroup
               ) return settingName;
+              return null;
             }));
             var hasErrors = _.some(pickedSettings, (settingName) => {
               return (settings.validationError || {})[utils.makePath(sectionName, settingName)];
@@ -308,6 +309,7 @@ var SettingsTab = React.createClass({
                     if (settings.isSettingVisible(setting, settingName, this.state.configModels)) {
                       return settingName;
                     }
+                    return null;
                   }));
                 return <SettingSection
                   {... _.pick(this.state, 'initialAttributes', 'settingsForChecks', 'configModels')}

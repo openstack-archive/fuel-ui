@@ -1928,11 +1928,10 @@ NodeList = React.createClass({
     var groups = _.toPairs(_.groupBy(this.props.nodes, groupingMethod));
 
     // sort nodes in a group by name, mac or ip or by id (default)
-    var formattedSorters = _.compact(_.map(this.props.activeSorters, (sorter) => {
-      if (_.includes(uniqValueSorters, sorter.name)) {
-        return {attr: sorter.name, desc: sorter.order === 'desc'};
-      }
-    }));
+    var formattedSorters = _.compact(_.map(this.props.activeSorters,
+      (sorter) => _.includes(uniqValueSorters, sorter.name) ?
+        {attr: sorter.name, desc: sorter.order === 'desc'} : null
+    ));
     _.each(groups, (group) => {
       group[1].sort((node1, node2) => utils.multiSort(
         node1, node2,

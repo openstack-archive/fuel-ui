@@ -830,12 +830,15 @@ NetworksLib.prototype = {
         .then((isSelected) => {
           if (isSelected && !toSelectBool) {
             return this.remote.clickByCssSelector(this.allNetSelector)
-            .assertElementNotSelected(this.allNetSelector,
-              '"Show All Networks" checkbox is not selected');
-          } else if (!isSelected && toSelectBool) {
+              .assertElementNotSelected(
+                this.allNetSelector, '"Show All Networks" checkbox is not selected'
+              );
+          }
+          if (!isSelected && toSelectBool) {
             return this.remote.clickByCssSelector(this.allNetSelector)
-            .assertElementSelected(this.allNetSelector,
-              '"Show All Networks" checkbox is selected');
+              .assertElementSelected(
+                this.allNetSelector, '"Show All Networks" checkbox is selected'
+              );
           }
         })
         .end();
