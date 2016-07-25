@@ -177,7 +177,6 @@ HistoryTab = React.createClass({
               >
                 <ScreenTransitionWrapper key={screen} loading={this.state.loading}>
                   <DeploymentHistoryScreen
-                    {...this.props}
                     ref='screen'
                     deploymentHistory={this.state.deploymentHistory}
                     transaction={cluster.get('transactions').get(activeTransactionId)}

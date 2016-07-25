@@ -223,15 +223,21 @@ var ClusterPage = React.createClass({
     return this.props.cluster.task({group: ['deployment', 'network'], active: true});
   },
   fetchData() {
-    var task = this.props.cluster.task({group: 'deployment', active: true});
+    var {cluster} = this.props;
+    var task = cluster.task({group: 'deployment', active: true});
     if (task) {
       return task.fetch()
         .then(() => {
-          if (task.match({active: false})) dispatcher.trigger('deploymentTaskFinished');
-          return this.props.cluster.nodes.fetch();
+          var promises = [cluster.get('nodes').fetch()];
+          if (task.match({active: false})) {
+            dispatcher.trigger('deploymentTaskFinished');
+          } else {
+            promises.push(cluster.get('transactions').fetch());
+          }
+          return Promise.all(promises);
         });
     } else {
-      task = this.props.cluster.task({name: 'verify_networks', active: true});
+      task = cluster.task({name: 'verify_networks', active: true});
       return task ? task.fetch() : Promise.resolve();
     }
   },

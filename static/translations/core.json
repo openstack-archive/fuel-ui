@@ -687,6 +687,8 @@
                         "statistics": "Node Statistics",
                         "total": "Total Nodes"
                     },
+                    "show_deployment_details": "Show Details",
+                    "hide_deployment_details": "Hide Details",
                     "mos_documentation": "Mirantis OpenStack Documentation",
                     "openstack_documentation": "OpenStack Documentation",
                     "documentation_description": "Quick access to the documentation on how to deploy and configure your OpenStack environment:",
