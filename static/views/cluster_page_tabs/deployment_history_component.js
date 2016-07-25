@@ -72,18 +72,22 @@ var DeploymentHistory = React.createClass({
     _.now() / 1000;
   },
   getTimelineTimeEnd() {
-    var {transaction, deploymentHistory} = this.props;
+    var {transaction, deploymentHistory, timelineIntervalWidth, timelineWidth} = this.props;
     if (transaction.match({status: 'running'})) return _.now() / 1000;
     return _.max(_.compact(deploymentHistory.map(
       (task) => utils.dateToSeconds(task.get('time_end'))
     ))) ||
-    // make 60min default timeline in case of transaction has 'pending' status
-    _.now() / 1000 + 60 * 60;
+    // set minimal timeline scale in case of transaction has 'pending' status
+    _.now() / 1000 + timelineWidth / timelineIntervalWidth;
   },
   getTimelineMaxSecondsPerPixel() {
-    return parseFloat(
-      (this.getTimelineTimeEnd() - this.getTimelineTimeStart()) / this.props.timelineWidth
-    ).toFixed(2);
+    var {timelineIntervalWidth, timelineWidth} = this.props;
+    return _.max([
+      parseFloat(
+        (this.getTimelineTimeEnd() - this.getTimelineTimeStart()) / timelineWidth
+      ),
+      1 / timelineIntervalWidth
+    ]);
   },
   zoomInTimeline() {
     this.setState({secondsPerPixel: this.state.secondsPerPixel / 2});
@@ -93,6 +97,7 @@ var DeploymentHistory = React.createClass({
   },
   changeViewMode(viewMode) {
     if (viewMode === this.state.viewMode) return;
+    this.toggleFilters();
     this.setState({viewMode});
   },
   toggleFilters() {
@@ -247,7 +252,9 @@ var DeploymentHistory = React.createClass({
         <div className='row'>
           {viewMode === 'timeline' &&
             <DeploymentHistoryTimeline
-              {... _.pick(this.props, 'deploymentHistory', 'timelineIntervalWidth')}
+              {... _.pick(this.props,
+                'deploymentHistory', 'timelineWidth', 'timelineIntervalWidth'
+              )}
               {... _.pick(this.state, 'secondsPerPixel')}
               timeStart={this.getTimelineTimeStart()}
               timeEnd={this.getTimelineTimeEnd()}
@@ -279,10 +286,7 @@ var DeploymentHistoryTimeline = React.createClass({
     minutes = minutes - (hours * 60);
     if (hours) return i18n(ns + 'hours', {hours, minutes});
     if (minutes) {
-      return i18n(
-        ns + (minutes > 5 ? 'minutes' : 'minutes_and_seconds'),
-        {minutes, seconds}
-      );
+      return i18n(ns + (seconds ? 'minutes_and_seconds' : 'minutes'), {minutes, seconds});
     }
     return i18n(ns + 'seconds', {seconds});
   },
@@ -295,36 +299,36 @@ var DeploymentHistoryTimeline = React.createClass({
   },
   render() {
     var {
-      deploymentHistory, timeStart, timeEnd, isRunning, timelineIntervalWidth, secondsPerPixel
+      deploymentHistory, timeStart, timeEnd, isRunning,
+      timelineWidth, timelineIntervalWidth, secondsPerPixel
     } = this.props;
     var nodeIds = _.uniq(deploymentHistory.map('node_id'));
-    var intervals = Math.ceil((timeEnd - timeStart) / (secondsPerPixel * timelineIntervalWidth));
+    var intervals = Math.ceil(_.max([
+      (timeEnd - timeStart) / (secondsPerPixel * timelineIntervalWidth),
+      timelineWidth / timelineIntervalWidth
+    ]));
+    var currentTimePixels = isRunning ? this.getTaskWidth(timeStart, timeEnd) : 0;
 
     return (
       <div className='col-xs-12'>
         <div className='deployment-timeline clearfix'>
           <div className='node-names'>
             <div className='header' />
-            <div className='delimiter' />
             {_.map(nodeIds,
               (nodeId) => <div key={nodeId}>{nodeId === 'master' ? nodeId : '#' + nodeId}</div>
             )}
           </div>
           <div className='node-timelines'>
             <div className='node-timelines-inner'>
-              {isRunning &&
-                <div
-                  className='current-time-marker'
-                  style={{left: this.getTaskWidth(timeStart, timeEnd)}}
-                />
-              }
               <div className='header clearfix' style={{width: intervals * timelineIntervalWidth}}>
                 {_.times(intervals, (n) => <div key={n}>{this.getIntervalLabel(n)}</div>)}
               </div>
-              <div className='delimiter' />
               <div className='timelines' style={{width: intervals * timelineIntervalWidth}}>
                 {_.map(nodeIds, (nodeId) =>
                   <div key={nodeId} className='clearfix'>
+                    {isRunning &&
+                      <div className='current-time-marker' style={{left: currentTimePixels}} />
+                    }
                     {deploymentHistory.map((task) => {
                       if (
                         task.get('node_id') !== nodeId ||
