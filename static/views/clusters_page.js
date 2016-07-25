@@ -93,14 +93,13 @@ Cluster = React.createClass({
       return props.cluster.get('tasks');
     }}),
     backboneMixin({modelOrCollection(props) {
-      return props.cluster.task({group: 'deployment', active: true});
+      return props.cluster.task({group: 'deployment', active: true, parent: true});
     }}),
     pollingMixin(3)
   ],
   shouldDataBeFetched() {
-    return this.props.cluster.task({group: 'deployment', active: true}) ||
-      this.props.cluster.task({name: 'cluster_deletion', active: true}) ||
-      this.props.cluster.task({name: 'cluster_deletion', status: 'ready'});
+    return !!this.props.cluster.task({group: 'deployment', active: true}) ||
+      !!this.props.cluster.task({name: 'cluster_deletion', status: ['active', 'pending', 'ready']});
   },
   fetchData() {
     var request;
@@ -116,7 +115,7 @@ Cluster = React.createClass({
       });
       requests.push(request);
     }
-    var deploymentTask = this.props.cluster.task({group: 'deployment', active: true});
+    var deploymentTask = this.props.cluster.task({group: 'deployment', active: true, parent: true});
     if (deploymentTask) {
       request = deploymentTask.fetch();
       request.then(() => {
@@ -135,7 +134,7 @@ Cluster = React.createClass({
     var nodes = cluster.get('nodes');
     var isClusterDeleting = !!cluster.task({name: 'cluster_deletion', active: true}) ||
       !!cluster.task({name: 'cluster_deletion', status: 'ready'});
-    var deploymentTask = cluster.task({group: 'deployment', active: true});
+    var deploymentTask = cluster.task({group: 'deployment', active: true, parent: true});
     var Tag = isClusterDeleting ? 'div' : Link;
     return (
       <div className='col-xs-3'>

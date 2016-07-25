@@ -36,7 +36,7 @@ var SettingsTab = React.createClass({
       return props.cluster.get('tasks');
     }}),
     backboneMixin({modelOrCollection(props) {
-      return props.cluster.task({group: 'deployment', active: true});
+      return props.cluster.task({group: 'deployment', active: true, parent: true});
     }}),
     unsavedChangesMixin
   ],

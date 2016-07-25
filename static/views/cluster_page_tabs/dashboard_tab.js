@@ -87,8 +87,8 @@ var DashboardTab = React.createClass({
     var {cluster} = this.props;
     var {configModels} = this.state;
     var release = cluster.get('release');
-    var runningDeploymentTask = cluster.task({group: 'deployment', active: true});
-    var finishedDeploymentTask = cluster.task({group: 'deployment', active: false});
+    var runningDeploymentTask = cluster.task({group: 'deployment', active: true, parent: true});
+    var finishedDeploymentTask = cluster.task({group: 'deployment', active: false, parent: true});
     var dashboardLinks = [{
       url: '/',
       title: i18n(ns + 'horizon'),
@@ -136,7 +136,10 @@ var DashboardTab = React.createClass({
               />
           ])
         }
-        <ClusterInfo cluster={cluster} />
+        <ClusterInfo
+          cluster={cluster}
+          runningDeploymentTask={runningDeploymentTask}
+        />
         <DocumentationLinks />
       </div>
     );
@@ -276,8 +279,8 @@ var DeploymentResult = React.createClass({
   },
   dismissTaskResult() {
     var {task, cluster} = this.props;
-    if (task.match({name: 'deploy'})) {
-      // deletion of 'deploy' task invokes all deployment tasks deletion in backend
+    if (cluster.tasks({parent: false}).length) {
+      // deletion of parent task invokes deletion of its children on backend
       task.destroy({silent: true})
         .then(() => cluster.get('tasks').fetch());
     } else {
@@ -1087,7 +1090,7 @@ var ClusterInfo = React.createClass({
     return result;
   },
   renderStatistics() {
-    var {cluster} = this.props;
+    var {cluster, runningDeploymentTask} = this.props;
     var roles = _.union(['total'], cluster.get('roles').map('name'));
     var statuses = _.without(NODE_STATUSES, 'discover');
     return (
@@ -1097,7 +1100,7 @@ var ClusterInfo = React.createClass({
           ([
             <div className='col-xs-6' key='roles'>
               {this.renderLegend(roles, true)}
-              {!cluster.task({group: 'deployment', active: true}) &&
+              {!runningDeploymentTask &&
                 <div className='row'>
                   <div className='col-xs-12'>
                     <Link
@@ -1123,7 +1126,7 @@ var ClusterInfo = React.createClass({
     );
   },
   render() {
-    var cluster = this.props.cluster;
+    var {cluster, runningDeploymentTask} = this.props;
     return (
       <div className='cluster-information'>
         <div className='row'>
@@ -1165,7 +1168,7 @@ var ClusterInfo = React.createClass({
               <DeleteEnvironmentAction cluster={cluster} />
               <ResetEnvironmentAction
                 cluster={cluster}
-                task={cluster.task({group: 'deployment', active: true})}
+                task={runningDeploymentTask}
               />
             </div>
           </div>

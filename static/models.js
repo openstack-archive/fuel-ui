@@ -636,6 +636,9 @@ models.Task = BaseModel.extend({
         !_.includes(this.extendStatuses(filters), this.get('status'))) {
         return false;
       }
+      if (_.isBoolean(filters.parent)) {
+        if (filters.parent === !_.isNull(this.get('parent_id'))) return false;
+      }
     }
     return true;
   },

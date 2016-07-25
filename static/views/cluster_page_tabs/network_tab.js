@@ -956,8 +956,8 @@ var NetworkTab = React.createClass({
 
     var {validationError} = networkConfiguration;
     var notEnoughNodesForVerification = cluster.get('nodes').filter({online: true}).length < 2;
-    var isVerificationInProgress = !!cluster.task({group: ['network'], active: true});
-    var isDeploymentInProgress = !!cluster.task({group: ['deployment'], active: true});
+    var isVerificationInProgress = !!cluster.task({group: 'network', active: true});
+    var isDeploymentInProgress = !!cluster.task({group: 'deployment', active: true});
     var isVerificationDisabled = validationError ||
       this.state.actionInProgress ||
       isVerificationInProgress ||
@@ -997,8 +997,7 @@ var NetworkTab = React.createClass({
                 className='btn btn-success add-nodegroup-btn pull-right'
                 onClick={_.partial(this.addNodeNetworkGroup, hasChanges)}
                 disabled={
-                  !!cluster.task({group: ['deployment', 'network'], active: true}) ||
-                  this.state.actionInProgress
+                  isDeploymentInProgress || isVerificationInProgress || this.state.actionInProgress
                 }
               >
                 <i

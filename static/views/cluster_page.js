@@ -202,36 +202,37 @@ var ClusterPage = React.createClass({
     return states;
   },
   removeFinishedNetworkTasks(callback) {
-    var request = this.removeFinishedTasks(this.props.cluster.tasks({group: 'network'}));
+    var request = this.removeFinishedTasks(
+      this.props.cluster.tasks({group: 'network', active: false})
+    );
     if (callback) request.then(callback, callback);
     return request;
   },
   removeFinishedDeploymentTasks() {
-    return this.removeFinishedTasks(this.props.cluster.tasks({group: 'deployment'}));
+    return this.removeFinishedTasks(
+      this.props.cluster.tasks({group: 'deployment', active: false})
+    );
   },
   removeFinishedTasks(tasks) {
-    var requests = [];
-    _.each(tasks, (task) => {
-      if (task.match({active: false})) {
-        this.props.cluster.get('tasks').remove(task);
-        requests.push(task.destroy({silent: true}));
-      }
+    return _.map(tasks, (task) => {
+      this.props.cluster.get('tasks').remove(task);
+      return task.destroy({silent: true});
     });
-    return Promise.all(requests);
   },
   shouldDataBeFetched() {
-    return this.props.cluster.task({group: ['deployment', 'network'], active: true});
+    return !!this.props.cluster.task({group: ['deployment', 'network'], active: true});
   },
   fetchData() {
-    var task = this.props.cluster.task({group: 'deployment', active: true});
+    var {cluster} = this.props;
+    var task = cluster.task({group: 'deployment', active: true, parent: true});
     if (task) {
       return task.fetch()
         .then(() => {
           if (task.match({active: false})) dispatcher.trigger('deploymentTaskFinished');
-          return this.props.cluster.nodes.fetch();
+          return cluster.nodes.fetch();
         });
     } else {
-      task = this.props.cluster.task({name: 'verify_networks', active: true});
+      task = cluster.task({name: 'verify_networks', active: true, parent: true});
       return task ? task.fetch() : Promise.resolve();
     }
   },
