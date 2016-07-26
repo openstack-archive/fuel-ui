@@ -65,14 +65,20 @@ var DeploymentHistory = React.createClass({
   // time_start and time_end attributes (#1593753 bug)
   getTimelineTimeStart() {
     var {deploymentHistory} = this.props;
-    return _.min(
-      _.compact(deploymentHistory.map((task) => utils.dateToSeconds(task.get('time_start'))))
-    );
+    return _.min(_.compact(deploymentHistory.map(
+      (task) => utils.dateToSeconds(task.get('time_start'))
+    ))) ||
+    // make current time a default time in case of transaction has 'pending' status
+    _.now() / 1000;
   },
   getTimelineTimeEnd() {
     var {transaction, deploymentHistory} = this.props;
-    return transaction.match({status: 'running'}) ? (_.now() / 1000) :
-      _.max(deploymentHistory.map((task) => utils.dateToSeconds(task.get('time_end'))));
+    if (transaction.match({status: 'running'})) return _.now() / 1000;
+    return _.max(_.compact(deploymentHistory.map(
+      (task) => utils.dateToSeconds(task.get('time_end'))
+    ))) ||
+    // make 60min default timeline in case of transaction has 'pending' status
+    _.now() / 1000 + 60 * 60;
   },
   getTimelineMaxSecondsPerPixel() {
     return parseFloat(
