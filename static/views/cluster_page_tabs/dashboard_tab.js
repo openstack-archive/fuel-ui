@@ -290,14 +290,14 @@ var DeploymentResult = React.createClass({
       .on('hide.bs.collapse', () => this.setState({collapsed: false}, null));
   },
   render() {
-    var {task} = this.props;
+    var {cluster, task} = this.props;
     var error = task.match({status: 'error'});
     var delimited = task.escape('message').split('\n\n');
     var summary = delimited.shift();
     var details = delimited.join('\n\n');
     var warning = task.match({name: ['reset_environment', 'stop_deployment']});
     var classes = {
-      alert: true,
+      'deployment-result alert': true,
       'alert-warning': warning,
       'alert-danger': !warning && error,
       'alert-success': !warning && !error
@@ -308,6 +308,14 @@ var DeploymentResult = React.createClass({
         <strong>{i18n('common.' + (error ? 'error' : 'success'))}</strong>
         <br />
         <span dangerouslySetInnerHTML={{__html: utils.urlify(summary)}} />
+        <p className='link-to-history-tab'>
+          {i18n(ns + 'task_details_link')}
+          <a
+            href={'#cluster/' + cluster.id + '/history/' + cluster.get('transactions').last().id}
+          >
+            {i18n(ns + 'history_tab')}.
+          </a>
+        </p>
         <div className={utils.classNames({'task-result-details': true, hidden: !details})}>
           <pre
             className='collapse result-details'

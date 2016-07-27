@@ -701,6 +701,8 @@
                     "stop": "Stop",
                     "healthcheck": "To view the OpenStack health check status go to ",
                     "healthcheck_tab": "Healthcheck tab",
+                    "task_details_link": "You can see the task details on ",
+                    "history_tab": "History tab",
                     "documentation": "Documentation",
                     "go_to_nodes": "Add Nodes",
                     "unsuccessful_deploy": "Your deployment was unsuccessful.",
