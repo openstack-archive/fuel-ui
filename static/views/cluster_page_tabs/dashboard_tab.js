@@ -360,14 +360,15 @@ var DeploymentResult = React.createClass({
       .on('hide.bs.collapse', () => this.setState({collapsed: false}, null));
   },
   render() {
-    var {task} = this.props;
+    var {cluster, task} = this.props;
+    var {collapsed} = this.state;
     var error = task.match({status: 'error'});
     var delimited = task.escape('message').split('\n\n');
     var summary = delimited.shift();
     var details = delimited.join('\n\n');
     var warning = task.match({name: ['reset_environment', 'stop_deployment']});
     var classes = {
-      alert: true,
+      'deployment-result alert': true,
       'alert-warning': warning,
       'alert-danger': !warning && error,
       'alert-success': !warning && !error
@@ -378,16 +379,31 @@ var DeploymentResult = React.createClass({
         <strong>{i18n('common.' + (error ? 'error' : 'success'))}</strong>
         <br />
         <span dangerouslySetInnerHTML={{__html: utils.urlify(summary)}} />
-        <div className={utils.classNames({'task-result-details': true, hidden: !details})}>
-          <pre
-            className='collapse result-details'
-            dangerouslySetInnerHTML={{__html: utils.urlify(details)}}
-          />
-          <button className='btn-link' data-toggle='collapse' data-target='.result-details'>
-            {this.state.collapsed ? i18n('cluster_page.hide_details_button') :
-              i18n('cluster_page.show_details_button')}
-          </button>
+        <div className='task-actions'>
+          {details &&
+            <button
+              className='btn btn-link link-to-task-details'
+              data-toggle='collapse'
+              data-target='.result-details'
+            >
+              {i18n('cluster_page.' + (collapsed ? 'hide' : 'show') + '_details_button')}
+            </button>
+          }
+          <Link
+            className='btn btn-link link-to-history-tab'
+            to={'/cluster/' + cluster.id + '/history/' + cluster.get('transactions').last().id}
+          >
+            {i18n(ns + 'task_details_link')}
+          </Link>
         </div>
+        {details &&
+          <div className='task-result-details'>
+            <pre
+              className='collapse result-details'
+              dangerouslySetInnerHTML={{__html: utils.urlify(details)}}
+            />
+          </div>
+        }
       </div>
     );
   }
