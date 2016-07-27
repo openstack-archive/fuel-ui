@@ -627,22 +627,6 @@ button, .btn:not(.btn-link) {.font-semibold;}
   p {
     margin-bottom: 0;
   }
-  .task-result-details {
-    @deployment-result-indent: 5px;
-    margin-top: @deployment-result-indent;
-    .btn-link {
-      padding: 0;
-      color: @link-color;
-      font-size: @base-font-size - 1px;
-    }
-    pre {
-      background: none;
-      border: none;
-      padding: 0;
-      margin: 0;
-      .break-word;
-    }
-  }
 }
 
 .alert-success {
@@ -4846,6 +4830,30 @@ input[type=range] {
       margin-bottom: @dashboard-offset / 2;
       .glyphicon {
         margin-right: @dashboard-offset / 2;
+      }
+    }
+  }
+
+  .deployment-result {
+    .task-actions {
+      margin-top: @dashboard-offset;
+      &:empty {
+        display: none;
+      }
+      .btn {
+        margin-right: @dashboard-offset;
+        padding: 0;
+        font-size: @base-font-size + 1;
+        border: none;
+      }
+    }
+    .task-result-details {
+      pre {
+        margin: @dashboard-offset 0 0;
+        background: none;
+        border: none;
+        padding: 0;
+        .break-word;
       }
     }
   }

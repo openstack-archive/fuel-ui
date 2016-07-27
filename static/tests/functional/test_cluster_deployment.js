@@ -145,7 +145,7 @@ registerSuite(() => {
         .then(() => modal.clickFooterButton('Provision 1 Node'))
         .then(() => modal.waitToClose())
         .assertElementAppears('div.deploy-process div.progress', 2000, 'Provisioning started')
-        .assertElementDisappears('div.deploy-process div.progress', 5000, 'Provisioning finished')
+        .assertElementDisappears('div.deploy-process div.progress', 20000, 'Provisioning finished')
         .then(() => clusterPage.goToTab('Nodes'))
         .assertElementsExist('.node.provisioned', 2, '2 of 3 nodes provisioned')
         .then(() => clusterPage.goToTab('Dashboard'));
