@@ -123,8 +123,22 @@ var DashboardTab = React.createClass({
     var {cluster} = this.props;
     var {configModels} = this.state;
     var release = cluster.get('release');
-    var runningDeploymentTask = cluster.task({group: 'deployment', active: true});
-    var finishedDeploymentTask = cluster.task({group: 'deployment', active: false});
+
+    var runningDeploymentTaskIds = _.map(
+      cluster.tasks({group: 'deployment', active: true}), 'id'
+    );
+    var runningDeploymentTask = cluster.get('tasks').get(runningDeploymentTaskIds[0]);
+    var runningTransaction = cluster.get('transactions').find(
+      (transaction) => _.includes(runningDeploymentTaskIds, transaction.id)
+    );
+    var finishedDeploymentTaskIds = _.map(
+      cluster.tasks({group: 'deployment', active: false}), 'id'
+    );
+    var finishedDeploymentTask = cluster.get('tasks').get(finishedDeploymentTaskIds[0]);
+    var finishedTransaction = cluster.get('transactions').find(
+      (transaction) => _.includes(finishedDeploymentTaskIds, transaction.id)
+    );
+
     var dashboardLinks = [{
       url: '/',
       title: i18n(ns + 'horizon'),
@@ -150,7 +164,7 @@ var DashboardTab = React.createClass({
           <RunningDeploymentControl
             cluster={cluster}
             task={runningDeploymentTask}
-            transaction={cluster.get('transactions').findTask({active: true})}
+            transaction={runningTransaction}
           />
         :
           ([
@@ -159,6 +173,7 @@ var DashboardTab = React.createClass({
                 key='task-result'
                 cluster={cluster}
                 task={finishedDeploymentTask}
+                transaction={finishedTransaction}
               />,
             clusterHasChanges && this.renderClusterActionsPanel(clusterHasChanges),
             !cluster.get('nodes').length &&
@@ -406,14 +421,15 @@ var DeploymentResult = React.createClass({
       .on('hide.bs.collapse', () => this.setState({collapsed: false}, null));
   },
   render() {
-    var {task} = this.props;
+    var {cluster, task, transaction} = this.props;
+    var {collapsed} = this.state;
     var error = task.match({status: 'error'});
     var delimited = task.escape('message').split('\n\n');
     var summary = delimited.shift();
     var details = delimited.join('\n\n');
     var warning = task.match({name: ['reset_environment', 'stop_deployment']});
     var classes = {
-      alert: true,
+      'deployment-result alert': true,
       'alert-warning': warning,
       'alert-danger': !warning && error,
       'alert-success': !warning && !error
@@ -424,16 +440,33 @@ var DeploymentResult = React.createClass({
         <strong>{i18n('common.' + (error ? 'error' : 'success'))}</strong>
         <br />
         <span dangerouslySetInnerHTML={{__html: utils.urlify(summary)}} />
-        <div className={utils.classNames({'task-result-details': true, hidden: !details})}>
-          <pre
-            className='collapse result-details'
-            dangerouslySetInnerHTML={{__html: utils.urlify(details)}}
-          />
-          <button className='btn-link' data-toggle='collapse' data-target='.result-details'>
-            {this.state.collapsed ? i18n('cluster_page.hide_details_button') :
-              i18n('cluster_page.show_details_button')}
-          </button>
+        <div className='task-actions'>
+          {details &&
+            <button
+              className='btn btn-link link-to-task-details'
+              data-toggle='collapse'
+              data-target='.result-details'
+            >
+              {i18n('cluster_page.' + (collapsed ? 'hide' : 'show') + '_details_button')}
+            </button>
+          }
+          {transaction &&
+            <Link
+              className='btn btn-link link-to-history-tab'
+              to={'/cluster/' + cluster.id + '/history/' + transaction.id}
+            >
+              {i18n(ns + 'task_details_link')}
+            </Link>
+          }
         </div>
+        {details &&
+          <div className='task-result-details'>
+            <pre
+              className='collapse result-details'
+              dangerouslySetInnerHTML={{__html: utils.urlify(details)}}
+            />
+          </div>
+        }
       </div>
     );
   }
