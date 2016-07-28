@@ -5315,48 +5315,76 @@ input[type=range] {
     margin-bottom: @base-indent;
   }
 
-  .deployment-timeline {
-    @row-height: 28px;
-    @border-color: @gray + 50%;
-    border: 1px solid @border-color;
-    overflow-y: scroll;
-    overflow-x: hidden;
-    max-height: 300px;
+}
 
-    .node-names {
-      width: 20%;
-      float: left;
-      > div {
-        width: 100%;
-        padding: 6px 20px 5px;
-        border-right: 1px solid @border-color;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-size: @base-font-size - 2;
-        height: @row-height;
-        &:nth-of-type(2n) {
-          background: @gray + 100%;
+.deployment-task-details-dialog {
+  .modal-body {
+    max-height: 400px;
+    overflow-y: auto;
+    .row {
+      margin: 0;
+      margin-bottom: 2px;
+      color: @gray;
+      padding: 5px 0 8px 0;
+      border-bottom: 1px solid @base-light-color;
+      &:last-child {
+        border-bottom: 0;
+      }
+      > strong, > span {
+        display: inline-block;
+        .break-word;
+      }
+    }
+    .main-attribute {
+      color: @base-text-color;
+    }
+  }
+}
+
+.deployment-timeline {
+  @row-height: 28px;
+  @border-color: @gray + 50%;
+  @max-height: 300px;
+  @even-background: fade(@gray, 10%);
+  border: 1px solid @border-color;
+
+  .node-names-column {
+    width: 20%;
+    float: left;
+
+    .node-names-container {
+      overflow: hidden;
+      max-height: @max-height;
+
+      .node-names {
+        position: relative;
+
+        > div {
+          width: 100%;
+          padding: 6px 20px 5px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          font-size: @base-font-size - 2;
+          height: @row-height;
+          &:nth-of-type(2n+1) {
+            background: @even-background;
+          }
         }
       }
     }
+  }
 
-    .node-timelines {
-      float: left;
-      width: 80%;
-      .node-timelines-inner {
-        overflow-x: scroll;
-        direction: rtl;
+  .timelines-column {
+    position: relative;
+    float: left;
+    width: 80%;
+
+    .header {
+      border-left: 1px solid @border-color;
+      overflow: hidden;
+
+      .scale {
         position: relative;
-      }
-      .current-time-marker {
-        position: absolute;
-        width: 1px;
-        height: 100%;
-        top: 0;
-        border-left: 1px solid @orange;
-        z-index: 100;
-      }
-      .header {
         > div {
           border-right: 1px solid @border-color;
           color: @gray;
@@ -5366,18 +5394,30 @@ input[type=range] {
           padding: 3px 4px;
           height: 100%;
           width: 75px;
-          direction: ltr;
           &:last-child {
             border: none;
           }
         }
       }
+    }
+
+    .timelines-container {
+      overflow: auto;
+      max-height: @max-height;
+      border-left: 1px solid @border-color;
+
       .timelines {
+        &.current-time-marker {
+          background: linear-gradient(to left, @orange, @orange);
+          background-size: 1px 100%;
+          background-repeat: no-repeat;
+        }
+
         > div {
           height: @row-height;
           position: relative;
           &:nth-of-type(2n+1) {
-            background: @gray + 100%;
+            background: @even-background;
           }
           .node-task {
             overflow: visible;
@@ -5402,37 +5442,16 @@ input[type=range] {
         }
       }
     }
-
-    .node-names, .node-timelines {
-      div.header {
-        background: none;
-        border-bottom: 1px solid @border-color;
-        height: 20px;
-      }
-    }
   }
-}
 
-.deployment-task-details-dialog {
-  .modal-body {
-    max-height: 400px;
-    overflow-y: auto;
-    .row {
-      margin: 0;
-      margin-bottom: 2px;
-      color: @gray;
-      padding: 5px 0 8px 0;
-      border-bottom: 1px solid @base-light-color;
-      &:last-child {
-        border-bottom: 0;
-      }
-      > strong, > span {
-        display: inline-block;
-        .break-word;
-      }
+  .node-names-column, .timelines-column {
+    div.header {
+      background: none;
+      border-bottom: 1px solid @border-color;
+      height: 20px;
     }
-    .main-attribute {
-      color: @base-text-color;
+    div.delimiter {
+      height: 10px;
     }
   }
 }
