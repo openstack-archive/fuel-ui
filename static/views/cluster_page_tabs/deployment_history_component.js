@@ -13,6 +13,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  **/
+import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
@@ -270,6 +271,12 @@ var DeploymentHistory = React.createClass({
 });
 
 var DeploymentHistoryTimeline = React.createClass({
+  componentDidMount() {
+    $('.deployment-timeline').scroll(this.stickHeader);
+  },
+  componentWillUnmount() {
+    $('.deployment-timeline').off('scroll', this.stickHeader);
+  },
   getIntervalLabel(index) {
     var {timelineIntervalWidth, secondsPerPixel} = this.props;
     var seconds = Math.floor(secondsPerPixel * timelineIntervalWidth * (index + 1));
@@ -292,6 +299,9 @@ var DeploymentHistoryTimeline = React.createClass({
   getColorFromString(str) {
     var color = (utils.getStringHashCode(str) & 0x00FFFFFF).toString(16).toUpperCase();
     return '#' + ('00000' + color).substr(-6);
+  },
+  stickHeader() {
+    $('.deployment-timeline .header').css({top: $('.deployment-timeline').scrollTop() + 'px'});
   },
   render() {
     var {
