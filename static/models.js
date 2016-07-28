@@ -713,6 +713,10 @@ models.DeploymentGraph = BaseModel.extend({
   toJSON() {
     var attributes = this._super('toJSON', arguments);
     return _.omit(attributes, 'type');
+  },
+  getType() {
+    // graph have 1 relation only for now
+    return this.get('relations')[0].type;
   }
   // validate(attrs) {
 

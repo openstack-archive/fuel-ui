@@ -671,6 +671,63 @@ export var DeployNodesDialog = React.createClass({
   }
 });
 
+export var RunCustomGraphDialog = React.createClass({
+  mixins: [dialogMixin],
+  getDefaultProps() {
+    return {title: i18n('dialog.run_custom_graph.title')};
+  },
+  ns: 'dialog.run_custom_graph.',
+  runGraph() {
+    this.setState({actionInProgress: true});
+    dispatcher.trigger('deploymentTasksUpdated');
+
+    var {cluster, nodeIds, graphType} = this.props;
+    var task = new models.Task();
+    task.save({}, {
+      url: _.result(cluster, 'url') + '/deploy?graph_type=' + graphType +
+        (nodeIds.length === cluster.get('nodes').length ? '' : '&&nodes=' + nodeIds.join(',')),
+      type: 'PUT'
+    })
+    .then(
+      () => {
+        this.close();
+        dispatcher.trigger('deploymentTaskStarted');
+      },
+      this.showError
+    );
+  },
+  renderBody() {
+    return (
+      <div className='run-graph-dialog'>
+        <div className='confirmation-question'>
+          {i18n(this.ns + 'are_you_sure_run_graph')}
+        </div>
+      </div>
+    );
+  },
+  renderFooter() {
+    return ([
+      <button
+        key='cancel'
+        className='btn btn-default'
+        onClick={this.close}
+        disabled={this.state.actionInProgress}
+      >
+        {i18n('common.cancel_button')}
+      </button>,
+      <ProgressButton
+        key='run-graph'
+        className='btn run-graph-btn btn-success'
+        disabled={this.state.actionInProgress}
+        onClick={this.runGraph}
+        progress={this.state.actionInProgress}
+      >
+        {i18n(this.ns + 'run_graph', {count: this.props.nodeIds.length})}
+      </ProgressButton>
+    ]);
+  }
+});
+
 export var SelectNodesDialog = React.createClass({
   mixins: [dialogMixin],
   getInitialState() {

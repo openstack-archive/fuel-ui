@@ -712,6 +712,7 @@
                     "stop": "Stop",
                     "healthcheck": "To view the OpenStack health check status go to ",
                     "healthcheck_tab": "Healthcheck tab",
+                    "workflows_tab": "Workflows tab",
                     "documentation": "Documentation",
                     "go_to_nodes": "Add Nodes",
                     "unsuccessful_deploy": "Your deployment was unsuccessful.",
@@ -780,6 +781,18 @@
                             "button_title_some_nodes": "Deploy __selected__ of __count__ Nodes",
                             "button_title_no_nodes": "Deploy Nodes",
                             "choose_nodes": "Choose nodes for deployment"
+                        },
+                        "customGraph": {
+                            "title": "Custom Workflow",
+                            "description": "Description",
+                            "no_nodes": "Description",
+                            "select_graph": "Select custom workflow to run:",
+                            "create_graph": "No custom workflows uploaded for the cluster. You can add new workflow on ",
+                            "button_title_all_nodes": "Run Workflow on __count__ Node",
+                            "button_title_all_nodes_plural": "Run Workflow on __count__ Nodes",
+                            "button_title_some_nodes": "Run Workflow on __selected__ of __count__ Nodes",
+                            "button_title_no_nodes": "Run Workflow",
+                            "choose_nodes": "Choose nodes"
                         },
                         "spawn_vms": {
                             "title": "VMs provisioning",
@@ -1119,6 +1132,11 @@
                     "are_you_sure_deploy": "Click Start Deployment to start the deployment or Cancel to make changes.",
                     "start_deployment": "Deploy __count__ Node",
                     "start_deployment_plural": "Deploy __count__ Nodes"
+                },
+                "run_custom_graph": {
+                    "title": "Run Custom Workflow",
+                    "run_graph": "Run Workflow",
+                    "are_you_sure_run_graph": "Click Run Workflow to execute custom deployment tasks on the selected nodes."
                 },
                 "select_nodes": {
                     "title": "Select Nodes",

@@ -26,7 +26,7 @@ import {Input, ProgressBar, Tooltip, Link} from 'views/controls';
 import {
   DiscardClusterChangesDialog, DeployClusterDialog, ProvisionVMsDialog, ProvisionNodesDialog,
   DeployNodesDialog, RemoveClusterDialog, ResetEnvironmentDialog, StopDeploymentDialog,
-  SelectNodesDialog
+  RunCustomGraphDialog, SelectNodesDialog
 } from 'views/dialogs';
 import {backboneMixin, pollingMixin, renamingMixin} from 'component_mixins';
 
@@ -358,12 +358,16 @@ var DocumentationLinks = React.createClass({
 var ClusterActionsPanel = React.createClass({
   getDefaultProps() {
     return {
-      actions: ['spawn_vms', 'deploy', 'provision', 'deployment']
+      actions: ['spawn_vms', 'deploy', 'provision', 'deployment', 'customGraph']
     };
   },
   getInitialState() {
+    var customGraph = this.props.cluster.get('deploymentGraphs').find(
+      (graph) => graph.getType() !== 'default'
+    );
     return {
-      currentAction: this.isActionAvailable('spawn_vms') ? 'spawn_vms' : 'deploy'
+      currentAction: this.isActionAvailable('spawn_vms') ? 'spawn_vms' : 'deploy',
+      customGraphType: customGraph ? customGraph.getType() : null
     };
   },
   validate(action) {
@@ -581,6 +585,8 @@ var ClusterActionsPanel = React.createClass({
         return cluster.get('nodes').some((node) => node.isProvisioningPossible());
       case 'deployment':
         return cluster.get('nodes').some((node) => node.isDeploymentPossible());
+      case 'customGraph':
+        return cluster.get('deploymentGraphs').some((graph) => graph.getType() !== 'default');
       case 'spawn_vms':
         return cluster.get('nodes').some((node) => {
           var status = node.get('status');
@@ -599,6 +605,7 @@ var ClusterActionsPanel = React.createClass({
   renderActions() {
     var action = this.state.currentAction;
     var actionNs = ns + 'actions.' + action + '.';
+    var isActionAvailable = this.isActionAvailable(action);
 
     var {cluster, isClusterConfigurationChanged, configModels} = this.props;
     var fetchOptions = {cluster_id: cluster.id};
@@ -617,11 +624,13 @@ var ClusterActionsPanel = React.createClass({
         ),
         {fetchOptions}
       ),
-      deploy: cluster.get('nodes')
+      deploy: cluster.get('nodes'),
+      customGraph: isActionAvailable ? cluster.get('nodes') : new models.Nodes()
     }[action];
     var offlineNodes = nodes.filter({online: false});
 
     var alerts = this.validate(action);
+    var hasAlerts = _.some(alerts, _.negate(_.isEmpty));
 
     var blockerDescriptions = {
       deploy: <div className='instruction invalid'>
@@ -631,7 +640,7 @@ var ClusterActionsPanel = React.createClass({
 
     var actionButtonProps = {
       ns: actionNs,
-      disabled: !this.isActionAvailable(action),
+      disabled: !isActionAvailable,
       nodes,
       cluster
     };
@@ -717,6 +726,45 @@ var ClusterActionsPanel = React.createClass({
           />
         ];
         break;
+      case 'customGraph':
+        actionControls = isActionAvailable ? [
+          <Input
+            key='select-graph'
+            name='customGraph'
+            type='select'
+            label={i18n(actionNs + 'select_graph')}
+            children={_.map(_.uniq(cluster.get('deploymentGraphs').invokeMap('getType')),
+              (graphType) => graphType === 'default' ?
+                null : <option key={graphType} value={graphType}>{graphType}</option>
+            )}
+            onChange={(name, customGraphType) => {
+              this.setState({customGraphType});
+            }}
+          />,
+          <ul key='node-changes'>
+            {!!offlineNodes.length &&
+              <li>
+                {i18n(ns + 'offline_nodes', {count: offlineNodes.length})}
+              </li>
+            }
+          </ul>
+        ] : [
+          <p key='create-graph'>
+            {i18n(actionNs + 'create_graph')}
+            <Link to={'#cluster/' + cluster.id + '/workflows'}>{i18n(ns + 'workflows_tab')}</Link>.
+          </p>
+        ];
+        actionControls.push(
+          <ClusterActionButton
+            {...actionButtonProps}
+            key='action-button'
+            className='btn-run-graph'
+            dialog={RunCustomGraphDialog}
+            dialogProps={{graphType: this.state.customGraphType}}
+            canSelectNodes
+          />
+        );
+        break;
       case 'spawn_vms':
         actionControls = [
           <ul key='node-changes'>
@@ -762,19 +810,23 @@ var ClusterActionsPanel = React.createClass({
             </div>
           </div>
           <div className='row'>
-            <div className='col-xs-4 changes-list'>
+            <div
+              className={utils.classNames(hasAlerts ? 'col-xs-4' : 'col-xs-12', 'changes-list')}
+            >
               {actionControls}
             </div>
-            <div className='col-xs-8 task-alerts'>
-              {_.map(['blocker', 'error', 'warning'],
-                (severity) => <WarningsBlock
-                  key={severity}
-                  severity={severity}
-                  blockersDescription={blockerDescriptions[action]}
-                  alerts={alerts[severity]}
-                />
-              )}
-            </div>
+            {hasAlerts &&
+              <div className='col-xs-8 task-alerts'>
+                {_.map(['blocker', 'error', 'warning'],
+                  (severity) => <WarningsBlock
+                    key={severity}
+                    severity={severity}
+                    blockersDescription={blockerDescriptions[action]}
+                    alerts={alerts[severity]}
+                  />
+                )}
+              </div>
+            }
           </div>
         </div>
         <div className='col-xs-4 action-dropdown'>
