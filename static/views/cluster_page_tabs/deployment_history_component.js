@@ -13,9 +13,11 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  **/
+import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
+import ReactDOM from 'react-dom';
 import utils from 'utils';
 import {Table, Tooltip, MultiSelectControl} from 'views/controls';
 import {DeploymentTaskDetailsDialog} from 'views/dialogs';
@@ -270,6 +272,16 @@ var DeploymentHistory = React.createClass({
 });
 
 var DeploymentHistoryTimeline = React.createClass({
+  componentDidMount() {
+    var container = $(ReactDOM.findDOMNode(this.refs.container));
+    container.scroll(
+      () => $(['header1', 'header2'].map((ref) => ReactDOM.findDOMNode(this.refs[ref])))
+      .css({top: container.scrollTop() + 'px'})
+    );
+  },
+  componentWillUnmount() {
+    $(ReactDOM.findDOMNode(this.refs.container)).off('scroll', this.stickHeader);
+  },
   getIntervalLabel(index) {
     var {timelineIntervalWidth, secondsPerPixel} = this.props;
     var seconds = Math.floor(secondsPerPixel * timelineIntervalWidth * (index + 1));
@@ -302,9 +314,9 @@ var DeploymentHistoryTimeline = React.createClass({
 
     return (
       <div className='col-xs-12'>
-        <div className='deployment-timeline clearfix'>
+        <div className='deployment-timeline clearfix' ref='container'>
           <div className='node-names'>
-            <div className='header' />
+            <div className='header' ref='header1' />
             <div className='delimiter' />
             {_.map(nodeIds,
               (nodeId) => <div key={nodeId}>{nodeId === 'master' ? nodeId : '#' + nodeId}</div>
@@ -318,7 +330,8 @@ var DeploymentHistoryTimeline = React.createClass({
                   style={{left: this.getTaskWidth(timeStart, timeEnd)}}
                 />
               }
-              <div className='header clearfix' style={{width: intervals * timelineIntervalWidth}}>
+              <div className='header clearfix' ref='header2'
+                style={{width: intervals * timelineIntervalWidth}}>
                 {_.times(intervals, (n) => <div key={n}>{this.getIntervalLabel(n)}</div>)}
               </div>
               <div className='delimiter' />
