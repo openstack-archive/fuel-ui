@@ -25,7 +25,7 @@ import {Input, ProgressBar, Tooltip} from 'views/controls';
 import {
   DiscardClusterChangesDialog, DeployClusterDialog, ProvisionVMsDialog, ProvisionNodesDialog,
   DeployNodesDialog, RemoveClusterDialog, ResetEnvironmentDialog, StopDeploymentDialog,
-  SelectNodesDialog
+  RunCustomGraphDialog, SelectNodesDialog
 } from 'views/dialogs';
 import {backboneMixin, pollingMixin, renamingMixin} from 'component_mixins';
 import DeploymentHistory from 'views/cluster_page_tabs/deployment_history_component';
@@ -87,6 +87,37 @@ var DashboardTab = React.createClass({
   fetchData() {
     return this.props.cluster.get('nodes').fetch();
   },
+  renderClusterActionsPanel(clusterHasChanges) {
+    var {cluster} = this.props;
+    if (!cluster.get('nodes').length) return null;
+
+    var {configModels} = this.state;
+    var customDeploymentGraphs = _.without(
+      _.uniq(cluster.get('deploymentGraphs').invoke('getType')),
+      'default'
+    );
+    var virtNodes = cluster.get('nodes').filter(
+      (node) => node.hasRole('virt') && node.get('status') === 'discover'
+    );
+
+    var actions = [];
+    if (virtNodes.length) actions.push('spawn_vms');
+    if (clusterHasChanges) actions.push('deploy', 'provision', 'deployment');
+    if (customDeploymentGraphs.length) actions.push('custom_graph');
+    if (!actions.length) return null;
+
+    return (
+      <ClusterActionsPanel
+        key='actions-panel'
+        cluster={cluster}
+        isClusterConfigurationChanged={cluster.isConfigurationChanged({configModels})}
+        configModels={configModels}
+        actions={actions}
+        deploymentGraphs={customDeploymentGraphs}
+        virtNodes={virtNodes}
+      />
+    );
+  },
   render() {
     var {cluster} = this.props;
     var {configModels} = this.state;
@@ -100,6 +131,7 @@ var DashboardTab = React.createClass({
     }].concat(
       cluster.get('pluginLinks').invoke('pick', 'url', 'title', 'description')
     );
+    var clusterHasChanges = cluster.hasChanges({configModels});
 
     return (
       <div className='wrapper'>
@@ -127,18 +159,32 @@ var DashboardTab = React.createClass({
                 cluster={cluster}
                 task={finishedDeploymentTask}
               />,
-            <ClusterActionsPanel
-              key='actions-panel'
-              cluster={cluster}
-              isClusterConfigurationChanged={cluster.isConfigurationChanged({configModels})}
-              configModels={configModels}
-            />,
+            clusterHasChanges && this.renderClusterActionsPanel(clusterHasChanges),
+            !cluster.get('nodes').length &&
+              <div className='row'>
+                <div className='dashboard-block clearfix'>
+                  <div className='col-xs-12'>
+                    <h4>{i18n(ns + 'new_environment_welcome')}</h4>
+                    <div className='instruction'>
+                      {i18n(ns + 'no_nodes_instruction')}
+                    </div>
+                    <a
+                      className='btn btn-success btn-add-nodes'
+                      href={'#cluster/' + cluster.id + '/nodes/add'}
+                    >
+                      <i className='glyphicon glyphicon-plus-white' />
+                      {i18n(ns + 'go_to_nodes')}
+                    </a>
+                  </div>
+                </div>
+              </div>,
             cluster.get('status') === 'operational' &&
               <DashboardLinks
                 key='plugin-links'
                 cluster={cluster}
                 links={dashboardLinks}
-              />
+              />,
+            !clusterHasChanges && this.renderClusterActionsPanel(clusterHasChanges)
           ]
         }
         <ClusterInfo
@@ -425,14 +471,10 @@ var DocumentationLinks = React.createClass({
 });
 
 var ClusterActionsPanel = React.createClass({
-  getDefaultProps() {
-    return {
-      actions: ['spawn_vms', 'deploy', 'provision', 'deployment']
-    };
-  },
   getInitialState() {
     return {
-      currentAction: this.isActionAvailable('spawn_vms') ? 'spawn_vms' : 'deploy'
+      currentAction: this.props.actions[0],
+      deploymentGraph: this.props.deploymentGraphs[0]
     };
   },
   validate(action) {
@@ -447,21 +489,18 @@ var ClusterActionsPanel = React.createClass({
     );
   },
   validations(action) {
-    var {configModels} = this.props;
+    var {virtNodes, configModels} = this.props;
     switch (action) {
       case 'deploy':
         return [
           // check for unprovisioned virt nodes
           function(cluster) {
-            var unprovisionedVirtNodes = cluster.get('nodes').filter(
-              (node) => node.hasRole('virt') && node.get('status') === 'discover'
-            );
-            if (unprovisionedVirtNodes.length) {
+            if (virtNodes.length) {
               return {
                 blocker: [
                   i18n(ns + 'unprovisioned_virt_nodes', {
                     role: cluster.get('roles').find({name: 'virt'}).get('label'),
-                    count: unprovisionedVirtNodes.length
+                    count: virtNodes.length
                   })
                 ]
               };
@@ -616,36 +655,41 @@ var ClusterActionsPanel = React.createClass({
       </li>
     );
   },
-  isActionAvailable(action) {
-    var {cluster, configModels} = this.props;
-    if (this.validate(action).blocker.length) return false;
-    switch (action) {
-      case 'deploy':
-        return cluster.isDeploymentPossible({configModels});
-      case 'provision':
-        return cluster.get('nodes').any((node) => node.isProvisioningPossible());
-      case 'deployment':
-        return cluster.get('nodes').any((node) => node.isDeploymentPossible());
-      case 'spawn_vms':
-        return cluster.get('nodes').any((node) => {
-          var status = node.get('status');
-          return node.hasRole('virt') && (
-            status === 'discover' ||
-            status === 'error' && this.get('error_type') === 'provision'
-          );
-        });
-      default:
-        return true;
-    }
-  },
   toggleAction(action) {
     this.setState({currentAction: action});
   },
-  renderActions() {
+  renderActionsDropdown() {
+    var {currentAction} = this.state;
+    return (
+      <div className='dropdown'>
+        <span className='deployment-modes-label'>
+          {i18n(ns + 'deployment_mode')}:
+        </span>
+        <button className='btn btn-link dropdown-toggle' data-toggle='dropdown'>
+          {i18n(ns + 'actions.' + currentAction + '.title')} <span className='caret' />
+        </button>
+        <ul className='dropdown-menu'>
+          {_.map(_.without(this.props.actions, currentAction),
+            (action) => <li key={action} className={action}>
+              <button
+                className='btn btn-link'
+                onClick={() => this.toggleAction(action)}
+              >
+                {i18n(ns + 'actions.' + action + '.title')}
+              </button>
+            </li>
+          )}
+        </ul>
+      </div>
+    );
+  },
+  render() {
+    var {actions, virtNodes} = this.props;
     var action = this.state.currentAction;
     var actionNs = ns + 'actions.' + action + '.';
 
-    var {cluster, isClusterConfigurationChanged, configModels} = this.props;
+    var {cluster, deploymentGraphs, isClusterConfigurationChanged} = this.props;
+
     var fetchOptions = {cluster_id: cluster.id};
     var nodes = {
       provision: new models.Nodes(
@@ -656,17 +700,13 @@ var ClusterActionsPanel = React.createClass({
         cluster.get('nodes').filter((node) => node.isDeploymentPossible()),
         {fetchOptions}
       ),
-      spawn_vms: new models.Nodes(
-        cluster.get('nodes').filter(
-          (node) => node.hasRole('virt') && node.get('status') === 'discover'
-        ),
-        {fetchOptions}
-      ),
-      deploy: cluster.get('nodes')
-    }[action];
+      spawn_vms: new models.Nodes(virtNodes, {fetchOptions})
+    }[action] || cluster.get('nodes');
+
     var offlineNodes = nodes.where({online: false});
 
     var alerts = this.validate(action);
+    var hasAlerts = _.some(alerts, _.negate(_.isEmpty));
 
     var blockerDescriptions = {
       deploy: <div className='instruction invalid'>
@@ -676,7 +716,7 @@ var ClusterActionsPanel = React.createClass({
 
     var actionButtonProps = {
       ns: actionNs,
-      disabled: !this.isActionAvailable(action),
+      disabled: !!alerts.blocker.length || !nodes.length,
       nodes,
       cluster
     };
@@ -685,26 +725,24 @@ var ClusterActionsPanel = React.createClass({
     switch (action) {
       case 'deploy':
         actionControls = [
-          cluster.hasChanges({configModels}) &&
-            <ul key='cluster-changes'>
-              {this.renderClusterChangeItem('added_node', nodes.where({pending_addition: true}))}
-              {this.renderClusterChangeItem(
-                'provisioned_node',
-                nodes.where({pending_deletion: false, status: 'provisioned'}),
-                false
-              )}
-              {this.renderClusterChangeItem(
-                'stopped_node',
-                nodes.where({status: 'stopped'}),
-                false
-              )}
-              {this.renderClusterChangeItem('deleted_node', nodes.where({pending_deletion: true}))}
-              {this.renderClusterChangeItem('changed_configuration')}
-            </ul>,
+          <ul key='cluster-changes'>
+            {this.renderClusterChangeItem('added_node', nodes.where({pending_addition: true}))}
+            {this.renderClusterChangeItem(
+              'provisioned_node',
+              nodes.where({pending_deletion: false, status: 'provisioned'}),
+              false
+            )}
+            {this.renderClusterChangeItem(
+              'stopped_node',
+              nodes.where({status: 'stopped'}),
+              false
+            )}
+            {this.renderClusterChangeItem('deleted_node', nodes.where({pending_deletion: true}))}
+            {this.renderClusterChangeItem('changed_configuration')}
+          </ul>,
           <ClusterActionButton
             {...actionButtonProps}
-            key='action-button'
-            nodes={nodes}
+            key={action}
             className='deploy-btn'
             iconClassName='glyphicon glyphicon-deploy'
             warning={
@@ -731,7 +769,7 @@ var ClusterActionsPanel = React.createClass({
             </ul>,
           <ClusterActionButton
             {...actionButtonProps}
-            key='action-button'
+            key={action}
             className='btn-provision'
             dialog={ProvisionNodesDialog}
             canSelectNodes
@@ -754,11 +792,40 @@ var ClusterActionsPanel = React.createClass({
             </ul>,
           <ClusterActionButton
             {...actionButtonProps}
-            key='action-button'
+            key={action}
             className='btn-deploy-nodes'
             dialog={DeployNodesDialog}
             canSelectNodes
             nodeStatusesToFilter={['provisioned', 'stopped', 'error']}
+          />
+        ];
+        break;
+      case 'custom_graph':
+        actionControls = [
+          <Input
+            key='select-graph'
+            name='customGraph'
+            type='select'
+            label={i18n(actionNs + 'select_graph')}
+            children={_.map(deploymentGraphs,
+              (graphType) => <option key={graphType} value={graphType}>{graphType}</option>
+            )}
+            onChange={(name, deploymentGraph) => this.setState({deploymentGraph})}
+          />,
+          <ul key='node-changes'>
+            {!!offlineNodes.length &&
+              <li>
+                {i18n(ns + 'offline_nodes', {count: offlineNodes.length})}
+              </li>
+            }
+          </ul>,
+          <ClusterActionButton
+            {...actionButtonProps}
+            key={action}
+            className='btn-run-graph'
+            dialog={RunCustomGraphDialog}
+            dialogProps={{graphType: this.state.deploymentGraph}}
+            canSelectNodes
           />
         ];
         break;
@@ -782,7 +849,7 @@ var ClusterActionsPanel = React.createClass({
           </ul>,
           <ClusterActionButton
             {...actionButtonProps}
-            key='action-button'
+            key={action}
             className='btn-provision-vms'
             dialog={ProvisionVMsDialog}
             nodeStatusesToFilter={['pending_addition', 'error']}
@@ -792,9 +859,10 @@ var ClusterActionsPanel = React.createClass({
       default:
         actionControls = null;
     }
+
     return (
       <div className='dashboard-block actions-panel row'>
-        <div className='col-xs-8' key={action}>
+        <div className={actions.length > 1 ? 'col-xs-8' : 'col-xs-12'}>
           <div className='row'>
             <div className='col-xs-12 action-description'>
               {utils.renderMultilineText(i18n(
@@ -807,77 +875,32 @@ var ClusterActionsPanel = React.createClass({
             </div>
           </div>
           <div className='row'>
-            <div className='col-xs-4 changes-list'>
+            <div
+              className={utils.classNames(hasAlerts ? 'col-xs-4' : 'col-xs-12', 'changes-list')}
+            >
               {actionControls}
             </div>
-            <div className='col-xs-8 task-alerts'>
-              {_.map(['blocker', 'error', 'warning'],
-                (severity) => <WarningsBlock
-                  key={severity}
-                  severity={severity}
-                  blockersDescription={blockerDescriptions[action]}
-                  alerts={alerts[severity]}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-        <div className='col-xs-4 action-dropdown'>
-          {this.renderActionsDropdown()}
-        </div>
-      </div>
-    );
-  },
-  renderActionsDropdown() {
-    var actions = _.without(this.props.actions, this.state.currentAction);
-    if (!this.isActionAvailable('spawn_vms')) actions = _.without(actions, 'spawn_vms');
-
-    return (
-      <div className='dropdown'>
-        <span className='deployment-modes-label'>
-          {i18n(ns + 'deployment_mode')}:
-        </span>
-        <button className='btn btn-link dropdown-toggle' data-toggle='dropdown'>
-          {i18n(
-            ns + 'actions.' + this.state.currentAction + '.title'
-          )} <span className='caret'></span>
-        </button>
-        <ul className='dropdown-menu'>
-          {_.map(actions,
-            (action) => <li key={action} className={action}>
-              <button
-                className='btn btn-link'
-                onClick={() => this.toggleAction(action)}
-              >
-                {i18n(ns + 'actions.' + action + '.title')}
-              </button>
-            </li>
-          )}
-        </ul>
-      </div>
-    );
-  },
-  render() {
-    var {cluster, configModels} = this.props;
-
-    if (!cluster.get('nodes').length) {
-      return (
-        <div className='row'>
-          <div className='dashboard-block clearfix'>
-            <div className='col-xs-12'>
-              <h4>{i18n(ns + 'new_environment_welcome')}</h4>
-              <div className='instruction'>
-                {i18n(ns + 'no_nodes_instruction')}
+            {hasAlerts &&
+              <div className='col-xs-8 task-alerts'>
+                {_.map(['blocker', 'error', 'warning'],
+                  (severity) => <WarningsBlock
+                    key={severity}
+                    severity={severity}
+                    blockersDescription={blockerDescriptions[action]}
+                    alerts={alerts[severity]}
+                  />
+                )}
               </div>
-              <AddNodesButton cluster={cluster} />
-            </div>
+            }
           </div>
         </div>
-      );
-    }
-
-    if (!cluster.isDeploymentPossible({configModels})) return null;
-    return <div>{this.renderActions()}</div>;
+        {actions.length > 1 &&
+          <div className='col-xs-4 action-dropdown'>
+            {this.renderActionsDropdown()}
+          </div>
+        }
+      </div>
+    );
   }
 });
 

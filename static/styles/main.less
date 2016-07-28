@@ -4955,9 +4955,6 @@ input[type=range] {
       margin-right: 0;
       .action-description {
         padding-right: 0;
-        p:last-child {
-          padding-bottom: @dashboard-offset;
-        }
       }
       .dropdown {
         margin-right: 0;
@@ -4976,6 +4973,21 @@ input[type=range] {
           right: 0;
           left: auto;
           min-width: auto;
+        }
+      }
+      .form-group {
+        label {
+          .font-normal;
+          float: left;
+          margin-right: @dashboard-offset;
+          position: relative;
+          top: 8px;
+        }
+        select {
+          width: 400px;
+        }
+        .help-block {
+          display: none;
         }
       }
     }
