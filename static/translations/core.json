@@ -790,6 +790,16 @@
                             "button_title_no_nodes": "Deploy Nodes",
                             "choose_nodes": "Choose nodes for deployment"
                         },
+                        "custom_graph": {
+                            "title": "Custom Workflow",
+                            "description": "\"Custom workflow\" is a set of arbitrary deployment actions such maintenance of environment, security updates and even upgrades.",
+                            "select_graph": "Select custom workflow to run",
+                            "button_title_all_nodes": "Run Workflow on __count__ Node",
+                            "button_title_all_nodes_plural": "Run Workflow on __count__ Nodes",
+                            "button_title_some_nodes": "Run Workflow on __selected__ of __count__ Nodes",
+                            "button_title_no_nodes": "Run Workflow",
+                            "choose_nodes": "Choose nodes"
+                        },
                         "spawn_vms": {
                             "title": "VMs provisioning",
                             "nodes_to_provision": "__count__ __role__ node is discovered.",
@@ -1128,6 +1138,11 @@
                     "are_you_sure_deploy": "Click Start Deployment to start the deployment or Cancel to make changes.",
                     "start_deployment": "Deploy __count__ Node",
                     "start_deployment_plural": "Deploy __count__ Nodes"
+                },
+                "run_custom_graph": {
+                    "title": "Run Custom Workflow",
+                    "run_graph": "Run Workflow",
+                    "are_you_sure_run_graph": "Click Run Workflow to execute custom deployment tasks on the selected nodes."
                 },
                 "select_nodes": {
                     "title": "Select Nodes",
@@ -1888,7 +1903,7 @@
                     "new_environment_welcome": "欢迎来到新的OpenStack环境!",
                     "add_nodes": "为OpenStack环境添加节点",
                     "not_deployed_instruction": "在继续前，请重新检查环境配置包括节点磁盘分区和网络配置，在Fuel部署完该OpenStack环境后这些设置均无法更改",
-                    "deployment_cannot_be_started": "由于非法环境配置部署无法启动，请检查并解决下方的warnings",
+                    "deployment_of_environment_cannot_be_started": "由于非法环境配置部署无法启动，请检查并解决下方的warnings",
                     "stop": "停止",
                     "healthcheck": "查看OpenStack健康检查状态",
                     "healthcheck_tab": "健康检查选项卡",
