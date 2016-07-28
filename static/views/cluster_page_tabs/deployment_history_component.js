@@ -16,6 +16,7 @@
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
+import ReactDOM from 'react-dom';
 import utils from 'utils';
 import {Table, Tooltip, MultiSelectControl} from 'views/controls';
 import {DeploymentTaskDetailsDialog} from 'views/dialogs';
@@ -301,6 +302,10 @@ var DeploymentHistoryTimeline = React.createClass({
     var color = (utils.getStringHashCode(str) & 0x00FFFFFF).toString(16).toUpperCase();
     return '#' + ('00000' + color).substr(-6);
   },
+  adjustOffsets(e) {
+    ReactDOM.findDOMNode(this.refs.scale).style.left = -e.target.scrollLeft + 'px';
+    ReactDOM.findDOMNode(this.refs.names).style.top = -e.target.scrollTop + 'px';
+  },
   render() {
     var {
       deploymentHistory, timeStart, timeEnd, isRunning,
@@ -318,16 +323,31 @@ var DeploymentHistoryTimeline = React.createClass({
         <div className='deployment-timeline clearfix'>
           <div className='node-names'>
             <div className='header' />
-            {_.map(nodeIds,
-              (nodeId) => <div key={nodeId}>{nodeId === 'master' ? nodeId : '#' + nodeId}</div>
-            )}
+            <div className='names-container'>
+              <div id='names' ref='names'>
+                {_.map(nodeIds,
+                  (nodeId) => <div key={nodeId}>{nodeId === 'master' ? nodeId : '#' + nodeId}</div>
+                )}
+              </div>
+            </div>
           </div>
           <div className='node-timelines'>
-            <div className='node-timelines-inner'>
-              <div className='header clearfix' style={{width: intervals * timelineIntervalWidth}}>
+            <div className='header'>
+              <div id='scale' ref='scale' style={{width: intervals * timelineIntervalWidth}}>
                 {_.times(intervals, (n) => <div key={n}>{this.getIntervalLabel(n)}</div>)}
               </div>
-              <div className='timelines' style={{width: intervals * timelineIntervalWidth}}>
+            </div>
+            <div id='timeline' ref='scrollee' onScroll={this.adjustOffsets}>
+              <div
+                className={utils.classNames({
+                  timelines: true,
+                  'current-time-marker': isRunning
+                })}
+                style={{
+                  width: intervals * timelineIntervalWidth,
+                  backgroundPosition: this.getTaskWidth(timeStart, timeEnd)
+                }}
+              >
                 {_.map(nodeIds, (nodeId) =>
                   <div key={nodeId} className='clearfix'>
                     {isRunning &&
