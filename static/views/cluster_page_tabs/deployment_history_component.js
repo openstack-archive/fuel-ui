@@ -13,9 +13,11 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  **/
+import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
+import ReactDOM from 'react-dom';
 import utils from 'utils';
 import {Table, Tooltip, MultiSelectControl} from 'views/controls';
 import {DeploymentTaskDetailsDialog} from 'views/dialogs';
@@ -281,6 +283,16 @@ var DeploymentHistory = React.createClass({
 });
 
 var DeploymentHistoryTimeline = React.createClass({
+  componentDidMount() {
+    var scrollee = ReactDOM.findDOMNode(this.refs.scrollee);
+    scrollee.onscroll = () => {
+      ReactDOM.findDOMNode(this.refs.scale).style.left = -scrollee.scrollLeft + 'px';
+      ReactDOM.findDOMNode(this.refs.names).style.top = -scrollee.scrollTop + 'px';
+    };
+  },
+  componentWillUnmount() {
+    ReactDOM.findDOMNode(this.refs.scrollee).onscroll = null;
+  },
   getIntervalLabel(index) {
     var {timelineIntervalWidth, secondsPerPixel} = this.props;
     var seconds = Math.floor(secondsPerPixel * timelineIntervalWidth * (index + 1));
@@ -318,16 +330,31 @@ var DeploymentHistoryTimeline = React.createClass({
         <div className='deployment-timeline clearfix'>
           <div className='node-names'>
             <div className='header' />
-            {_.map(nodeIds,
-              (nodeId) => <div key={nodeId}>{nodeId === 'master' ? nodeId : '#' + nodeId}</div>
-            )}
+            <div className='names-container'>
+              <div id='names' ref='names'>
+                {_.map(nodeIds,
+                  (nodeId) => <div key={nodeId}>{nodeId === 'master' ? nodeId : '#' + nodeId}</div>
+                )}
+              </div>
+            </div>
           </div>
           <div className='node-timelines'>
-            <div className='node-timelines-inner'>
-              <div className='header clearfix' style={{width: intervals * timelineIntervalWidth}}>
+            <div className='header'>
+              <div id='scale' ref='scale' style={{width: intervals * timelineIntervalWidth}}>
                 {_.times(intervals, (n) => <div key={n}>{this.getIntervalLabel(n)}</div>)}
               </div>
-              <div className='timelines' style={{width: intervals * timelineIntervalWidth}}>
+            </div>
+            <div id='timeline' ref='scrollee'>
+              <div
+                className={utils.classNames({
+                  timelines: true,
+                  'current-time-marker': isRunning
+                })}
+                style={{
+                  width: intervals * timelineIntervalWidth,
+                  backgroundPosition: this.getTaskWidth(timeStart, timeEnd)
+                }}
+              >
                 {_.map(nodeIds, (nodeId) =>
                   <div key={nodeId} className='clearfix'>
                     {isRunning &&
