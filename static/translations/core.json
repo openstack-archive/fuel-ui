@@ -339,7 +339,12 @@
                     "graph_type": "Type \"__graphType__\"",
                     "download_graph": "Download",
                     "delete_graph": "Delete",
-                    "upload_graph": "Upload New Workflow"
+                    "upload_graph": "Upload New Workflow",
+                    "filter_by": "Filter By",
+                    "filter_tooltip": "Filter Workflows",
+                    "filter_by_graph_type": "Type",
+                    "filter_by_graph_level": "Level",
+                    "no_graphs_matched_filters": "No workflows matched applied filters."
                 },
                 "nodes_tab": {
                     "roles": "Roles",
