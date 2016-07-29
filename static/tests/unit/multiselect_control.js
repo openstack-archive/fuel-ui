@@ -20,6 +20,7 @@ import ReactTestUtils from 'react-addons-test-utils';
 import {MultiSelectControl} from 'views/controls';
 
 var renderControl;
+const OPTIONS_NUMBER = 10;
 
 suite('Multiselect Control', () => {
   setup(() => {
@@ -28,7 +29,7 @@ suite('Multiselect Control', () => {
         {...props}
         name='multiselect'
         label='Label For Multiselect'
-        options={_.times(5, (n) => ({name: 'option' + n, title: 'option' + n}))}
+        options={_.times(OPTIONS_NUMBER, (n) => ({name: 'option' + n, title: 'option' + n}))}
         onChange={sinon.spy()}
         toggle={sinon.spy()}
       />
@@ -83,7 +84,8 @@ suite('Multiselect Control', () => {
     control.refs.all.refs.input.checked = true;
     ReactTestUtils.Simulate.change(control.refs.all.refs.input);
     assert.deepEqual(
-      control.props.onChange.args[2][0], _.times(5, (n) => 'option' + n), 'all values are chosen'
+      control.props.onChange.args[2][0],
+      _.times(OPTIONS_NUMBER, (n) => 'option' + n), 'all values are chosen'
     );
     control.refs.all.refs.input.checked = false;
     ReactTestUtils.Simulate.change(control.refs.all.refs.input);
@@ -96,7 +98,7 @@ suite('Multiselect Control', () => {
     var control = renderControl({isOpen: true, addOptionsFilter: true});
     assert.equal(
       ReactTestUtils.scryRenderedDOMComponentsWithClass(control, 'checkbox-group').length,
-      6,
+      OPTIONS_NUMBER + 1, // additional checkbox is options filter
       'All options presented by default'
     );
     var optionsFilter = control.refs.optionsFilter.refs.input;

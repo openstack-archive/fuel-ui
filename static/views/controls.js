@@ -492,7 +492,8 @@ export var MultiSelectControl = React.createClass({
     return {
       values: [],
       isOpen: false,
-      addOptionsFilter: false
+      addOptionsFilter: false,
+      optionsNumberToShowFilter: 10
     };
   },
   onChange(name, checked, isLabel = false) {
@@ -537,7 +538,8 @@ export var MultiSelectControl = React.createClass({
   },
   render() {
     var {
-      values, dynamicValues, isOpen, className, toggle, extraContent, addOptionsFilter
+      values, dynamicValues, isOpen, className, toggle, extraContent,
+      addOptionsFilter, optionsNumberToShowFilter
     } = this.props;
 
     if (!this.props.options.length) return null;
@@ -582,7 +584,7 @@ export var MultiSelectControl = React.createClass({
         </button>
         {isOpen &&
           <Popover toggle={toggle}>
-            {addOptionsFilter &&
+            {addOptionsFilter && options.length >= optionsNumberToShowFilter &&
               <Input
                 type='text'
                 ref='optionsFilter'
