@@ -28,7 +28,7 @@ suite('Multiselect Control', () => {
         {...props}
         name='multiselect'
         label='Label For Multiselect'
-        options={_.times(5, (n) => ({name: 'option' + n, title: 'option' + n}))}
+        options={_.times(11, (n) => ({name: 'option' + n, title: 'option' + n}))}
         onChange={sinon.spy()}
         toggle={sinon.spy()}
       />
@@ -83,7 +83,7 @@ suite('Multiselect Control', () => {
     control.refs.all.refs.input.checked = true;
     ReactTestUtils.Simulate.change(control.refs.all.refs.input);
     assert.deepEqual(
-      control.props.onChange.args[2][0], _.times(5, (n) => 'option' + n), 'all values are chosen'
+      control.props.onChange.args[2][0], _.times(11, (n) => 'option' + n), 'all values are chosen'
     );
     control.refs.all.refs.input.checked = false;
     ReactTestUtils.Simulate.change(control.refs.all.refs.input);
@@ -96,7 +96,7 @@ suite('Multiselect Control', () => {
     var control = renderControl({isOpen: true, addOptionsFilter: true});
     assert.equal(
       ReactTestUtils.scryRenderedDOMComponentsWithClass(control, 'checkbox-group').length,
-      6,
+      12,
       'All options presented by default'
     );
     var optionsFilter = control.refs.optionsFilter.refs.input;

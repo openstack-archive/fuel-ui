@@ -582,7 +582,7 @@ export var MultiSelectControl = React.createClass({
         </button>
         {isOpen &&
           <Popover toggle={toggle}>
-            {addOptionsFilter &&
+            {addOptionsFilter && options.length > 10 &&
               <Input
                 type='text'
                 ref='optionsFilter'

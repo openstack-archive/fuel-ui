@@ -5439,7 +5439,7 @@ input[type=range] {
 
 .deployment-graphs {
   .table {
-    margin-top: 8px;
+    margin: 0;
   }
   .subheader {
     .font-bold;
@@ -5454,6 +5454,21 @@ input[type=range] {
   }
   .level:first-letter {
     text-transform: capitalize;
+  }
+  .alert {
+    margin-bottom: 0;
+  }
+
+  .deployment-graphs-toolbar {
+    .buttons {
+      margin-bottom: 15px;
+      .btn-filters {
+        padding: 7px 10px 8px;
+      }
+    }
+    .filters well, .active-sorters-filters {
+      margin-bottom: 20px;
+    }
   }
 }
 

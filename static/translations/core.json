@@ -345,7 +345,12 @@
                     "download_graph": "Download",
                     "delete_graph": "Delete",
                     "upload_graph": "Upload New Workflow",
-                    "upload": "Upload"
+                    "upload": "Upload",
+                    "filter_by": "Filter By",
+                    "filter_tooltip": "Filter Workflows",
+                    "filter_by_graph_type": "Type",
+                    "filter_by_graph_level": "Level",
+                    "no_graphs_matched_filters": "No workflows matched applied filters."
                 },
                 "deployment_history": {
                     "timeline_mode_tooltip": "Timeline View",

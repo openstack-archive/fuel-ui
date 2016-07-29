@@ -750,7 +750,7 @@ models.DeploymentGraphs = BaseCollection
         var level2 = graph2.getLevel();
         if (level1 === level2) return graph1.id - graph2.id;
         return _.indexOf(DEPLOYMENT_GRAPH_LEVELS, level1) -
-          _.indexOf(this.preferredOrder, level2);
+          _.indexOf(DEPLOYMENT_GRAPH_LEVELS, level2);
       }
       // graphs with type 'default' should go first
       if (type1 === 'default') return -1;
