@@ -19,4 +19,3 @@ export var DEPLOYMENT_GRAPH_LEVELS = [
   'plugin',
   'cluster'
 ];
-

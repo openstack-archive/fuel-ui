@@ -484,6 +484,10 @@ button, .btn:not(.btn-link) {.font-semibold;}
   max-width: 300px;
 }
 
+.tooltip-wrapper {
+  display: inline-block;
+}
+
 // ALERTS
 
 .alert {
@@ -1723,6 +1727,23 @@ input[type=range] {
 
 .sticker label {
   width: 100%;
+}
+
+.well {
+  .well-heading {
+    margin-bottom: 5px;
+    .font-semibold;
+    .btn-link {
+      padding: 0;
+      .glyphicon-filter {
+        margin-top: 4px;
+      }
+    }
+  }
+  .sorter-control, .filter-control {
+    margin-right: 5px;
+    margin-bottom: 5px;
+  }
 }
 
 .node-management-panel {
@@ -4918,6 +4939,21 @@ input[type=range] {
           }
         }
       }
+    }
+  }
+  .alert {
+    margin-bottom: 0;
+  }
+
+  .deployment-graphs-toolbar {
+    .buttons {
+      margin-bottom: 15px;
+      .btn-filters {
+        padding: 7px 10px 8px;
+      }
+    }
+    .filters well, .active-sorters-filters {
+      margin-bottom: 20px;
     }
   }
 }
