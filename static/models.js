@@ -20,6 +20,7 @@ import Backbone from 'backbone';
 import Cookies from 'js-cookie';
 import Expression from 'expression';
 import {ModelPath} from 'expression/objects';
+import {DEPLOYMENT_GRAPH_LEVELS} from 'consts';
 import utils from 'utils';
 import customControls from 'views/custom_controls';
 import {Input} from 'views/controls';
@@ -741,7 +742,6 @@ models.DeploymentGraphs = BaseCollection
     url: '/api/graphs',
     constructorName: 'DeploymentGraphs',
     model: models.DeploymentGraph,
-    graphLevelsPreferredOrder: ['release', 'plugin', 'cluster'],
     comparator(graph1, graph2) {
       // sort graphs by type then by level
       var type1 = graph1.getType();
@@ -750,8 +750,8 @@ models.DeploymentGraphs = BaseCollection
         var level1 = graph1.getLevel();
         var level2 = graph2.getLevel();
         if (level1 === level2) return graph1.id - graph2.id;
-        return _.indexOf(this.graphLevelsPreferredOrder, level1) -
-          _.indexOf(this.preferredOrder, level2);
+        return _.indexOf(DEPLOYMENT_GRAPH_LEVELS, level1) -
+          _.indexOf(DEPLOYMENT_GRAPH_LEVELS, level2);
       }
       // graphs with type 'default' should go first
       if (type1 === 'default') return -1;
