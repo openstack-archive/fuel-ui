@@ -13,10 +13,14 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  **/
+import $ from 'jquery';
 import _ from 'underscore';
+import FileSaver from 'file-saver';
 import i18n from 'i18n';
 import React from 'react';
+import dispatcher from 'dispatcher';
 import models from 'models';
+import utils from 'utils';
 import {backboneMixin} from 'component_mixins';
 import {UploadGraphDialog, DeleteGraphDialog} from 'views/dialogs';
 
@@ -48,8 +52,38 @@ WorkflowsTab = React.createClass({
         .then(() => ({plugins}));
     }
   },
-  downloadMergedGraph() {},
-  downloadSingleGraph() {},
+  downloadMergedGraph(graphType) {
+    dispatcher.trigger('pageLoadStarted');
+    $.ajax({
+      url: '/api/clusters/' + this.props.cluster.id + '/deployment_tasks/?graph_type=' + graphType,
+      dataType: 'json',
+      headers: {
+        'X-Auth-Token': app.keystoneClient.token
+      }
+    }).then(
+      (response) => {
+        var blob = new Blob(
+          [JSON.stringify(response, null, 2)],
+          {type: 'application/json'}
+        );
+        FileSaver.saveAs(blob, graphType + '.json');
+        dispatcher.trigger('pageLoadFinished');
+      },
+      (response) => {
+        utils.showErrorDialog({
+          title: i18n('cluster_page.workflows_tab.downloading_tasks_error.title'),
+          response
+        });
+      }
+    );
+  },
+  downloadSingleGraph(graph) {
+    var blob = new Blob(
+      [JSON.stringify(graph.get('tasks'), null, 2)],
+      {type: 'application/json'}
+    );
+    FileSaver.saveAs(blob, graph.getType() + '-' + graph.getLevel() + '.json');
+  },
   uploadGraph() {
     var {cluster} = this.props;
     UploadGraphDialog.show({cluster})
