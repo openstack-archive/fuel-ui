@@ -344,7 +344,10 @@
                     "graph_level_header": "Level",
                     "download_graph": "Download",
                     "delete_graph": "Delete",
-                    "upload_graph": "Upload New Workflow"
+                    "upload_graph": "Upload New Workflow",
+                    "downloading_tasks_error": {
+                        "title": "Download Deployment Tasks Error"
+                    }
                 },
                 "deployment_history": {
                     "timeline_mode_tooltip": "Timeline View",
