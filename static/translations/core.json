@@ -344,7 +344,10 @@
                     "filter_tooltip": "Filter Workflows",
                     "filter_by_graph_type": "Type",
                     "filter_by_graph_level": "Level",
-                    "no_graphs_matched_filters": "No workflows matched applied filters."
+                    "no_graphs_matched_filters": "No workflows matched applied filters.",
+                    "downloading_tasks_error": {
+                        "title": "Download Deployment Tasks Error"
+                    }
                 },
                 "nodes_tab": {
                     "roles": "Roles",
