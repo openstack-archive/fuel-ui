@@ -357,7 +357,8 @@
                     "seconds": "__seconds__ sec",
                     "minutes": "__minutes__ minutes",
                     "minutes_and_seconds": "__minutes__ min __seconds__ sec",
-                    "hours": "__hours__ hr __minutes__ min"
+                    "hours": "__hours__ hr __minutes__ min",
+                    "export_csv_error": "Export Deployment History CSV Error"
                 },
                 "nodes_tab": {
                     "roles": "Roles",
