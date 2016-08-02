@@ -231,7 +231,7 @@ var DeploymentHistory = React.createClass({
                   (filter) => <MultiSelectControl
                     {...filter}
                     key={filter.name}
-                    className={utils.classNames('filter-control', ['filter-by-' + filter.name])}
+                    className={utils.classNames('filter-control', 'filter-by-' + filter.name)}
                     onChange={_.partial(this.changeFilter, filter.name)}
                     isOpen={openFilter === filter.name}
                     toggle={_.partial(this.toggleFilter, filter.name)}
