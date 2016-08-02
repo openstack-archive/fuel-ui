@@ -13,15 +13,12 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  **/
-import $ from 'jquery';
 import _ from 'underscore';
-import FileSaver from 'file-saver';
 import i18n from 'i18n';
 import React from 'react';
 import {DEPLOYMENT_GRAPH_LEVELS} from 'consts';
 import utils from 'utils';
-import {Tooltip, MultiSelectControl} from 'views/controls';
-import dispatcher from 'dispatcher';
+import {Tooltip, MultiSelectControl, DownloadFileButton} from 'views/controls';
 import models from 'models';
 import {backboneMixin} from 'component_mixins';
 import {UploadGraphDialog, DeleteGraphDialog} from 'views/dialogs';
@@ -115,41 +112,6 @@ var WorkflowsTab = React.createClass({
   deleteGraph(graph) {
     DeleteGraphDialog.show({graph})
       .then(this.normalizeAppliedFilters);
-  },
-  downloadMergedGraph(graphType) {
-    dispatcher.trigger('pageLoadStarted');
-    $.ajax({
-      url: '/api/clusters/' + this.props.cluster.id + '/deployment_tasks/?graph_type=' + graphType,
-      dataType: 'json',
-      headers: {
-        'X-Auth-Token': app.keystoneClient.token
-      }
-    })
-    .then(
-      (response) => {
-        var blob = new Blob(
-          [JSON.stringify(response, null, 2)],
-          {type: 'application/json'}
-        );
-        FileSaver.saveAs(blob, graphType + '.json');
-      },
-      (response) => {
-        utils.showErrorDialog({
-          title: i18n('cluster_page.workflows_tab.downloading_tasks_error.title'),
-          response
-        });
-      }
-    )
-    .then(() => {
-      dispatcher.trigger('pageLoadFinished');
-    });
-  },
-  downloadSingleGraph(graph) {
-    var blob = new Blob(
-      [JSON.stringify(graph.get('tasks'), null, 2)],
-      {type: 'application/json'}
-    );
-    FileSaver.saveAs(blob, graph.getType() + '-' + graph.getLevel() + '.json');
   },
   uploadGraph() {
     var {cluster} = this.props;
@@ -272,12 +234,14 @@ var WorkflowsTab = React.createClass({
                           {i18n(ns + 'graph_type', {graphType})}
                         </td>
                         <td>
-                          <button
+                          <DownloadFileButton
+                            label={i18n(ns + 'download_graph')}
+                            fileName={graphType + '.json'}
+                            url={'/api/clusters/' + cluster.id + '/deployment_tasks/'}
+                            fetchOptions={{graph_type: graphType}}
                             className='btn btn-link btn-download-merged-graph'
-                            onClick={() => this.downloadMergedGraph(graphType)}
-                          >
-                            {i18n(ns + 'download_graph')}
-                          </button>
+                            showProgressBar='global'
+                          />
                         </td>
                       </tr>
                     ].concat(
@@ -307,12 +271,12 @@ var WorkflowsTab = React.createClass({
                             }
                           </td>
                           <td>
-                            <button
-                              className='btn btn-link  btn-download-graph'
-                              onClick={() => this.downloadSingleGraph(graph)}
-                            >
-                              {i18n(ns + 'download_graph')}
-                            </button>
+                            <DownloadFileButton
+                              label={i18n(ns + 'download_graph')}
+                              fileName={graphType + '-' + level + '.json'}
+                              fileContent={() => JSON.stringify(graph.get('tasks'), null, 2)}
+                              className='btn btn-link btn-download-graph'
+                            />
                           </td>
                         </tr>;
                       })

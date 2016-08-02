@@ -25,6 +25,8 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import FileSaver from 'file-saver';
+import dispatcher from 'dispatcher';
 import utils from 'utils';
 import {outerClickMixin} from 'component_mixins';
 
@@ -665,5 +667,69 @@ export var ScreenTransitionWrapper = React.createClass({
       );
     }
     return <div>{this.props.children}</div>;
+  }
+});
+
+export var DownloadFileButton = React.createClass({
+  propTypes: {
+    label: React.PropTypes.string.isRequired,
+    className: React.PropTypes.string.isRequired,
+    fileName: React.PropTypes.string.isRequired,
+    fileContent: React.PropTypes.oneOf([React.PropTypes.func, React.PropTypes.string]),
+    url: React.PropTypes.string,
+    fetchOptions: React.PropTypes.object,
+    headers: React.PropTypes.object,
+    showProgressBar: React.PropTypes.oneOf(['global', 'inline'])
+  },
+  getInitialState() {
+    return {
+      disabled: false
+    };
+  },
+  downloadFile() {
+    var {url, fetchOptions, headers, showProgressBar} = this.props;
+    if (url) {
+      this.setState({disabled: true});
+      if (showProgressBar === 'global') dispatcher.trigger('pageLoadStarted');
+      $.ajax({
+        url,
+        data: fetchOptions,
+        dataType: 'text',
+        headers: _.extend({'X-Auth-Token': app.keystoneClient.token}, headers)
+      })
+      .then(
+        (response) => this.saveFile(response),
+        (response) => utils.showErrorDialog({
+          title: i18n('dialog.file_download_error.title'),
+          response
+        })
+      )
+      .then(() => {
+        if (showProgressBar === 'global') dispatcher.trigger('pageLoadFinished');
+        this.setState({disabled: false});
+      });
+    } else {
+      this.saveFile(_.result(this.props, 'fileContent'));
+    }
+  },
+  saveFile(data) {
+    FileSaver.saveAs(
+      new Blob([data], {type: 'application/octet-stream'}),
+      this.props.fileName
+    );
+  },
+  render() {
+    var {label, className, showProgressBar} = this.props;
+    var {disabled} = this.state;
+    return (
+      <ProgressButton
+        className={className}
+        onClick={this.downloadFile}
+        disabled={disabled}
+        progress={showProgressBar === 'inline' && disabled}
+      >
+        {label}
+      </ProgressButton>
+    );
   }
 });
