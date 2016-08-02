@@ -13,6 +13,8 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  **/
+import $ from 'jquery';
+import FileSaver from 'file-saver';
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
@@ -130,6 +132,27 @@ var DeploymentHistory = React.createClass({
     });
     this.setState({filters});
   },
+  exportHistoryCSV() {
+    var {deploymentHistory, transaction} = this.props;
+    $.ajax({
+      url: deploymentHistory.url,
+      dataType: 'text',
+      headers: {
+        'X-Auth-Token': app.keystoneClient.token
+      }
+    }).then(
+      (response) => {
+        var blob = new Blob([response], {type: 'text/csv'});
+        FileSaver.saveAs(blob, 'deployment#' + transaction.id + '.csv');
+      },
+      (response) => {
+        utils.showErrorDialog({
+          title: i18n(ns + 'export_csv_error'),
+          response
+        });
+      }
+    );
+  },
   render() {
     var {viewMode, areFiltersVisible, openFilter, filters, secondsPerPixel} = this.state;
     var {deploymentHistory, transaction, timelineIntervalWidth} = this.props;
@@ -190,17 +213,25 @@ var DeploymentHistory = React.createClass({
               </div>
             }
             {viewMode === 'table' &&
-              <Tooltip wrap text={i18n(ns + 'filter_tooltip')}>
+              <div>
+                <Tooltip wrap text={i18n(ns + 'filter_tooltip')}>
+                  <button
+                    onClick={this.toggleFilters}
+                    className={utils.classNames({
+                      'btn btn-default pull-left btn-filters': true,
+                      active: areFiltersVisible
+                    })}
+                  >
+                    <i className='glyphicon glyphicon-filter' />
+                  </button>
+                </Tooltip>
                 <button
-                  onClick={this.toggleFilters}
-                  className={utils.classNames({
-                    'btn btn-default pull-left btn-filters': true,
-                    active: areFiltersVisible
-                  })}
+                  onClick={this.exportHistoryCSV}
+                  className='btn btn-default pull-right btn-export-history-csv'
                 >
-                  <i className='glyphicon glyphicon-filter' />
+                  Export CSV
                 </button>
-              </Tooltip>
+              </div>
             }
           </div>
           {viewMode === 'table' && areFiltersVisible && (
