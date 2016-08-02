@@ -17,7 +17,7 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
-import {Table, Tooltip, MultiSelectControl} from 'views/controls';
+import {Table, Tooltip, MultiSelectControl, DownloadFileButton} from 'views/controls';
 import {DeploymentTaskDetailsDialog} from 'views/dialogs';
 import {
   DEPLOYMENT_HISTORY_VIEW_MODES, DEPLOYMENT_TASK_STATUSES, DEPLOYMENT_TASK_ATTRIBUTES
@@ -190,17 +190,26 @@ var DeploymentHistory = React.createClass({
               </div>
             }
             {viewMode === 'table' &&
-              <Tooltip wrap text={i18n(ns + 'filter_tooltip')}>
-                <button
-                  onClick={this.toggleFilters}
-                  className={utils.classNames({
-                    'btn btn-default pull-left btn-filters': true,
-                    active: areFiltersVisible
-                  })}
-                >
-                  <i className='glyphicon glyphicon-filter' />
-                </button>
-              </Tooltip>
+              <div>
+                <Tooltip wrap text={i18n(ns + 'filter_tooltip')}>
+                  <button
+                    onClick={this.toggleFilters}
+                    className={utils.classNames({
+                      'btn btn-default pull-left btn-filters': true,
+                      active: areFiltersVisible
+                    })}
+                  >
+                    <i className='glyphicon glyphicon-filter' />
+                  </button>
+                </Tooltip>
+                <DownloadFileButton
+                  label={i18n(ns + 'export_csv')}
+                  fileType='csv'
+                  fileName={'deployment#' + transaction.id + '.csv'}
+                  url={deploymentHistory.url}
+                  className='pull-right btn-export-history-csv'
+                />
+              </div>
             }
           </div>
           {viewMode === 'table' && areFiltersVisible && (
