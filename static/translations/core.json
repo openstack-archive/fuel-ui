@@ -350,10 +350,7 @@
                     "filter_tooltip": "Filter Workflows",
                     "filter_by_graph_type": "Type",
                     "filter_by_graph_level": "Level",
-                    "no_graphs_matched_filters": "No workflows matched applied filters.",
-                    "downloading_tasks_error": {
-                        "title": "Download Deployment Tasks Error"
-                    }
+                    "no_graphs_matched_filters": "No workflows matched applied filters."
                 },
                 "deployment_history": {
                     "timeline_mode_tooltip": "Timeline View",
@@ -976,6 +973,9 @@
                 "loading": "Loading..."
             },
             "dialog": {
+                "file_download_error": {
+                    "title": "File Download Error"
+                },
                 "deployment_task_details": {
                     "title": "Deployment Task Details",
                     "task": {
