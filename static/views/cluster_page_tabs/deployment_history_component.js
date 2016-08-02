@@ -66,7 +66,8 @@ var DeploymentHistory = React.createClass({
   getTimelineTimeStart() {
     var {deploymentHistory} = this.props;
     return _.min(_.compact(deploymentHistory.map(
-      (task) => utils.dateToSeconds(task.get('time_start'))
+      (task) => utils.dateToSeconds(task.get('time_start') ?
+        task.get('time_start').split('.')[0] + '+00:00' : null)
     ))) ||
     // make current time a default time in case of transaction has 'pending' status
     _.now() / 1000;
@@ -231,7 +232,7 @@ var DeploymentHistory = React.createClass({
                   (filter) => <MultiSelectControl
                     {...filter}
                     key={filter.name}
-                    className={utils.classNames('filter-control', ['filter-by-' + filter.name])}
+                    className={utils.classNames('filter-control', 'filter-by-' + filter.name)}
                     onChange={_.partial(this.changeFilter, filter.name)}
                     isOpen={openFilter === filter.name}
                     toggle={_.partial(this.toggleFilter, filter.name)}
