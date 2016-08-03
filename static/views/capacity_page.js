@@ -19,7 +19,7 @@ import i18n from 'i18n';
 import React from 'react';
 import models from 'models';
 import {backboneMixin, pollingMixin} from 'component_mixins';
-import {ProgressBar, Table} from 'views/controls';
+import {ProgressBar, Table, DownloadFileButton} from 'views/controls';
 
 var CapacityPage = React.createClass({
   mixins: [
@@ -95,11 +95,19 @@ var LicenseUsage = React.createClass({
             _.values(capacityReport.roles_stat))}
           tableClassName={tableClassName}
         />
-        <a href='/api/capacity/csv' target='_blank' className='btn btn-info'>
-          <i className='glyphicon glyphicon-download-alt' />
-          &nbsp;
-          {i18n('capacity_page.download_report')}
-        </a>
+        <DownloadFileButton
+          url='/api/capacity/csv'
+          headers={{Accept: 'text/csv'}}
+          className='btn btn-info btn-download-capacity'
+          fileName='fuel-capacity-audit.csv'
+          showProgressBar='global'
+          label={
+            <span>
+              <i className='glyphicon glyphicon-download-alt' />
+              {i18n('capacity_page.download_report')}
+            </span>
+          }
+        />
       </div>
     );
   }

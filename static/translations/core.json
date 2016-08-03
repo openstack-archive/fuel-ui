@@ -969,7 +969,7 @@
                 "total_number_unalloc_nodes": "Total number of unallocated nodes",
                 "node_role": "Node role(s)",
                 "nodes_with_config": "Number of nodes with this configuration",
-                "download_report": "Download a report",
+                "download_report": "Download Report",
                 "loading": "Loading..."
             },
             "dialog": {
