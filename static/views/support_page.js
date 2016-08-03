@@ -20,7 +20,7 @@ import utils from 'utils';
 import models from 'models';
 import {backboneMixin, pollingMixin, unsavedChangesMixin} from 'component_mixins';
 import statisticsMixin from 'views/statistics_mixin';
-import {ProgressButton, Link} from 'views/controls';
+import {ProgressButton, Link, DownloadFileButton} from 'views/controls';
 
 var SupportPage = React.createClass({
   mixins: [
@@ -195,7 +195,7 @@ var DiagnosticSnapshot = React.createClass({
   isDumpTaskActive() {
     return this.props.task && this.props.task.match({active: true});
   },
-  downloadLogs() {
+  generateShapshot() {
     this.setState({generating: true});
     (new models.LogsPackage()).save({}, {method: 'PUT'}).then(
       () => this.props.tasks.fetch(),
@@ -206,8 +206,8 @@ var DiagnosticSnapshot = React.createClass({
     this.startPolling();
   },
   render() {
-    var task = this.props.task;
-    var generating = this.state.generating;
+    var {task} = this.props;
+    var {generating} = this.state;
     return (
       <SupportPageElement
         className='img-download-logs'
@@ -215,18 +215,25 @@ var DiagnosticSnapshot = React.createClass({
         text={i18n('support_page.log_text')}
       >
         <p className='snapshot'>
-          <button className='btn btn-default' disabled={generating} onClick={this.downloadLogs}>
-            {generating ? i18n('support_page.gen_logs_snapshot_text') :
-              i18n('support_page.gen_diagnostic_snapshot_text')}
-          </button>
+          <ProgressButton
+            className='btn btn-default'
+            disabled={generating}
+            progress={generating}
+            onClick={this.generateShapshot}
+          >
+            {i18n('support_page.gen_diagnostic_snapshot_text')}
+          </ProgressButton>
           {' '}
           {!generating && task &&
             <span className={task.get('status')}>
               {task.match({status: 'ready'}) &&
-                <a href={task.get('message')} target='_blank'>
-                  <i className='icon-install'></i>
-                  <span>{i18n('support_page.diagnostic_snapshot')}</span>
-                </a>
+                <DownloadFileButton
+                  label={i18n('support_page.diagnostic_snapshot')}
+                  fileName='snapshot'
+                  className='btn btn-link'
+                  url={task.get('message')}
+                  showProgressBar='global'
+                />
               }
               {task.match({status: 'error'}) && task.get('message')}
             </span>
