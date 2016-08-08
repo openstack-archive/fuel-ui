@@ -17,7 +17,7 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
-import {Table, Tooltip, MultiSelectControl, DownloadFileButton} from 'views/controls';
+import {Table, Tooltip, Popover, MultiSelectControl, DownloadFileButton} from 'views/controls';
 import {DeploymentTaskDetailsDialog} from 'views/dialogs';
 import {
   DEPLOYMENT_HISTORY_VIEW_MODES, DEPLOYMENT_TASK_STATUSES, DEPLOYMENT_TASK_ATTRIBUTES
@@ -291,6 +291,12 @@ var DeploymentHistory = React.createClass({
 });
 
 var DeploymentHistoryTask = React.createClass({
+  getInitialState() {
+    return {isPopoverVisible: false};
+  },
+  togglePopover(isPopoverVisible) {
+    this.setState({isPopoverVisible});
+  },
   getColorFromString(str) {
     var color = (utils.getStringHashCode(str) & 0x00FFFFFF).toString(16).toUpperCase();
     return '#' + ('00000' + color).substr(-6);
@@ -299,16 +305,38 @@ var DeploymentHistoryTask = React.createClass({
     var {task, left, width} = this.props;
 
     var taskName = task.get('task_name');
-    return <Tooltip text={taskName}>
-      <div
-        className='node-task'
-        style={{background: this.getColorFromString(taskName), left, width}}
-      >
-        {task.get('status') === 'error' &&
-          <div className='error-marker' style={{left: Math.floor(width / 2)}} />
-        }
-      </div>
-    </Tooltip>;
+    return <div
+      onMouseEnter={() => this.togglePopover(true)}
+      onMouseLeave={() => this.togglePopover(false)}
+      className='node-task'
+      style={{background: this.getColorFromString(taskName), left, width}}
+    >
+      {task.get('status') === 'error' &&
+        <div className='error-marker' style={{left: Math.floor(width / 2)}} />
+      }
+      {this.state.isPopoverVisible &&
+        <Popover
+          placement='top'
+          container='body'
+          className='deployment-task-info'
+        >
+          <div>
+            {DEPLOYMENT_TASK_ATTRIBUTES
+              .map((attr) => <p key={attr} className={attr}>
+                <span>
+                  {i18n('dialog.deployment_task_details.task.' + attr) + ': '}
+                </span>
+                <span>
+                  {_.startsWith(attr, 'time') ?
+                    utils.formatTimestamp(task.get(attr)) : task.get(attr)
+                  }
+                </span>
+              </p>)
+            }
+          </div>
+        </Popover>
+      }
+    </div>;
   }
 });
 

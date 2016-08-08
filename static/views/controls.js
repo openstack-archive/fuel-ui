@@ -400,21 +400,61 @@ export var Popover = React.createClass({
   mixins: [outerClickMixin],
   propTypes: {
     className: React.PropTypes.node,
-    placement: React.PropTypes.node
+    container: React.PropTypes.node,
+    placement: React.PropTypes.node,
+    trigger: React.PropTypes.node
   },
   getDefaultProps() {
-    return {placement: 'bottom'};
+    return {
+      placement: 'bottom',
+      trigger: 'manual'
+    };
   },
-  render() {
+  componentDidMount() {
+    if (this.props.container) {
+      var popoverContentId = _.uniqueId('popover');
+      this.popoverMountNode = ReactDOM.findDOMNode(this).parentNode;
+      $(this.popoverMountNode).popover({
+        container: this.props.container,
+        placement: this.props.placement,
+        trigger: this.props.trigger,
+        html: true,
+        content: '<span id=' + popoverContentId + '></span>'
+      })
+        .on('inserted.bs.popover', () => {
+          this.popoverContentMountNode = $('#' + popoverContentId)[0].parentNode;
+          if (this.props.className) {
+            $(this.popoverContentMountNode.parentNode).addClass(this.props.className);
+          }
+          ReactDOM.render(
+            React.cloneElement(React.Children.only(this.props.children)),
+            this.popoverContentMountNode
+          );
+        })
+        .on('hidden.bs.popover', () => {
+          ReactDOM.unmountComponentAtNode(this.popoverContentMountNode);
+        })
+        .popover('show');
+    }
+  },
+  componentWillUnmount() {
+    if (this.props.container) {
+      $(this.popoverMountNode).popover('destroy');
+    }
+  },
+  renderPopover() {
     var classes = {'popover in': true};
     classes[this.props.placement] = true;
-    classes[this.props.className] = true;
+    if (this.props.className) classes[this.props.className] = true;
     return (
       <div className={utils.classNames(classes)}>
         <div className='arrow' />
         <div className='popover-content'>{this.props.children}</div>
       </div>
     );
+  },
+  render() {
+    return this.props.container ? <noscript /> : this.renderPopover();
   }
 });
 
