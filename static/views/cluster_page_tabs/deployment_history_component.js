@@ -66,7 +66,10 @@ var DeploymentHistory = React.createClass({
   getTimelineTimeStart() {
     var {deploymentHistory} = this.props;
     return _.min(_.compact(deploymentHistory.map(
-      (task) => utils.dateToSeconds(task.get('time_start'))
+      // Date-parsing algorithms in Chrome and Mozilla are different, therefore to prevent
+      // the divergence - we append '.000Z' to get correct UTC datetime string
+      (task) => utils.dateToSeconds(task.get('time_start') ?
+        task.get('time_start').split('.')[0] + '.000Z' : null)
     ))) ||
     // make current time a default time in case of transaction has 'pending' status
     _.now() / 1000;
