@@ -19,15 +19,17 @@ import Common from 'tests/functional/pages/common';
 import ClusterPage from 'tests/functional/pages/cluster';
 import DashboardLib from 'tests/functional/nightly/library/dashboard';
 import DashboardPage from 'tests/functional/pages/dashboard';
+/*
+FIXME: Uncomment after bugfix.
+Bug: https://bugs.launchpad.net/fuel/+bug/1611365
+
 import Modal from 'tests/functional/pages/modal';
 import GenericLib from 'tests/functional/nightly/library/generic';
+*/
 import GenericNetworksLib from 'tests/functional/nightly/library/networks_generic';
-import 'intern/dojo/node!leadfoot/Command';
-import 'intern/dojo/node!leadfoot/Session';
-import 'intern/chai!assert';
 
 registerSuite(() => {
-  var common, clusterPage, dashboardPage, dashboardLib, modal, generic, networksLib, clusterName;
+  var common, clusterPage, dashboardPage, dashboardLib, networksLib, clusterName;
   var loadDeployedBtn = 'button.btn-load-deployed';
   var cancelChgsBtn = 'button.btn-revert-changes';
   var saveNetworksChangesButton = 'button.btn.apply-btn';
@@ -35,7 +37,7 @@ registerSuite(() => {
   var deployButton = '.deploy-btn';
   var clusterStatus = '.cluster-info-value.status';
   var dashboardTabSelector = 'div.dashboard-tab ';
-  var progressSelector = dashboardTabSelector + 'div.progress';
+  var progressSelector = dashboardTabSelector + 'div.progress ';
   return {
     name: 'Unlock "Settings" and "Networks" tabs',
     setup() {
@@ -43,8 +45,13 @@ registerSuite(() => {
       clusterPage = new ClusterPage(this.remote);
       dashboardPage = new DashboardPage(this.remote);
       dashboardLib = new DashboardLib(this.remote);
+      /*
+      FIXME: Uncomment after bugfix.
+      Bug: https://bugs.launchpad.net/fuel/+bug/1611365
+
       modal = new Modal(this.remote);
       generic = new GenericLib(this.remote);
+      */
       networksLib = new GenericNetworksLib(this.remote);
       clusterName = common.pickRandomName('Test Cluster');
 
@@ -198,25 +205,34 @@ registerSuite(() => {
     },
     'Check "deploy changes" button avaialability'() {
       this.timeout = 150000;
+      /*
+      FIXME: Uncomment after bugfix.
+      Bug: https://bugs.launchpad.net/fuel/+bug/1611365
+
       var deploymentMethodToggle = '.dropdown-toggle';
       var chooseProvisionNodesSelector = '.btn-group .dropdown-toggle';
-      var stopDeploymentButton = '.stop-deployment-btn';
       var provisionButton = '.provision button';
+      */
+      var stopDeploymentButton = '.stop-deployment-btn';
+      var deploymentDoneSelector = progressSelector + 'div.progress-bar[style="width: 89%;"]';
       return this.remote
         // For the first check for cluster in "stopped" state
         .then(() => common.addNodesToCluster(1, ['Compute']))
         .then(() => clusterPage.goToTab('Dashboard'))
         .then(() => dashboardPage.startDeployment())
         // Stop deployment process
-        .waitForCssSelector(stopDeploymentButton, 2000)
-        .waitForElementDeletion(progressSelector, 8000)
+        .waitForCssSelector(deploymentDoneSelector, 30000)
+        .assertElementEnabled(stopDeploymentButton, '"Stop deployment" button is enabled')
         .then(() => dashboardPage.stopDeployment())
         // wait a bit for updating status of cluster
         .waitForCssSelector(deployButton, 15000)
-        .assertElementContainsText(clusterStatus, 'Stopped',
-          'Cluster should be in "Stopped" state')
+        .assertElementContainsText(clusterStatus, 'Stopped', 'Cluster should be in "Stopped" state')
         .assertElementExists(deployButton, '"Deploy Changes" button exists')
-        .assertElementEnabled(deployButton, '"Deploy changes" button is enabled')
+        .assertElementEnabled(deployButton, '"Deploy changes" button is enabled');
+        /*
+        FIXME: Uncomment after bugfix.
+        Bug: https://bugs.launchpad.net/fuel/+bug/1611365
+
         // Then check for cluster in "Partial deployed" state
         .then(() => clusterPage.resetEnvironment(clusterName))
         .waitForCssSelector(deployButton, 10000)
@@ -247,6 +263,7 @@ registerSuite(() => {
           'Cluster should be in "Partially Deployed" status');
         // Then check for cluster in "Errored" state
         // TBD. How to simulate cluster in "Errored" state..?
+        */
     }
   };
 });

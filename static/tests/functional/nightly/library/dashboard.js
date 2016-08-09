@@ -109,13 +109,14 @@ class DashboardLib {
     .assertElementsExist(this.actionDescriptionSelector,
       '"' + deployMode + ' Action description" message exists')
     .assertElementMatchesRegExp(this.actionDescriptionSelector, RegExp(actionDescription, 'i'),
-      '"' + deployMode + ' Action description" message is correct')
-    .assertElementsExist(this.taskAlertsSelector,
-      '"' + deployMode + ' Task alerts" message exists')
-    .assertElementMatchesRegExp(this.taskAlertsSelector, RegExp(taskAlerts, 'i'),
-      '"' + deployMode + ' Task alerts" message is correct')
-    .assertElementsExist(btnSelector,
-      '"' + deployMode + '" button exists')
+      '"' + deployMode + ' Action description" message is correct');
+    if (deployMode.toLowerCase() === 'deploy') {
+      chain = chain.assertElementsExist(this.taskAlertsSelector,
+        '"' + deployMode + ' Task alerts" message exists')
+      .assertElementMatchesRegExp(this.taskAlertsSelector, RegExp(taskAlerts, 'i'),
+        '"' + deployMode + ' Task alerts" message is correct');
+    }
+    chain = chain.assertElementsExist(btnSelector, '"' + deployMode + '" button exists')
     .assertElementMatchesRegExp(btnSelector, RegExp(btnName, 'i'),
       '"' + deployMode + '" button name is correct');
     if (changesList !== '') {

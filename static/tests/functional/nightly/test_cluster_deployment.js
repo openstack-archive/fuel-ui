@@ -236,8 +236,7 @@ registerSuite(() => {
         .then(() => modal.waitToClose())
         .assertElementsAppear('div.dashboard-tab div.progress', 5000, paneName + ' is started')
         .assertElementDisappears('div.dashboard-tab div.progress', 45000, paneName + ' is finished')
-        .assertElementsAppear('div.dashboard-tab div.alert', 1000, paneName +
-                              ' result pane appears')
+        .assertElementsAppear('div.dashboard-tab div.alert', 1000, paneName + 'result pane appears')
         .assertElementMatchesRegExp('div.dashboard-tab div.alert strong', RegExp('Success', 'i'),
           paneName + ' result pane message is correct')
         .assertElementMatchesRegExp('div.dashboard-tab div.alert span', RegExp('Provision of', 'i'),
