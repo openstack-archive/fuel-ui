@@ -206,13 +206,13 @@
       "version": "6.8.0"
     },
     "babel-plugin-syntax-async-functions": {
-      "version": "6.8.0"
+      "version": "6.13.0"
     },
     "babel-plugin-syntax-flow": {
-      "version": "6.8.0"
+      "version": "6.13.0"
     },
     "babel-plugin-syntax-jsx": {
-      "version": "6.8.0"
+      "version": "6.13.0"
     },
     "babel-plugin-transform-es2015-arrow-functions": {
       "version": "6.8.0"
@@ -244,11 +244,25 @@
     "babel-plugin-transform-es2015-literals": {
       "version": "6.8.0"
     },
+    "babel-plugin-transform-es2015-modules-amd": {
+      "version": "6.8.0"
+    },
     "babel-plugin-transform-es2015-modules-commonjs": {
       "version": "6.8.0"
     },
     "babel-plugin-transform-es2015-modules-simple-amd": {
       "version": "0.3.0"
+    },
+    "babel-plugin-transform-es2015-modules-systemjs": {
+      "version": "6.12.0",
+      "dependencies": {
+        "babel-runtime": {
+          "version": "6.11.6"
+        }
+      }
+    },
+    "babel-plugin-transform-es2015-modules-umd": {
+      "version": "6.12.0"
     },
     "babel-plugin-transform-es2015-object-super": {
       "version": "6.8.0"
@@ -290,7 +304,7 @@
       "version": "6.11.4",
       "dependencies": {
         "babel-core": {
-          "version": "6.11.4",
+          "version": "6.13.2",
           "dependencies": {
             "babel-runtime": {
               "version": "6.11.6"
@@ -298,7 +312,7 @@
           }
         },
         "minimatch": {
-          "version": "3.0.2"
+          "version": "3.0.3"
         },
         "source-map": {
           "version": "0.5.6"
@@ -312,7 +326,7 @@
       "version": "6.11.3"
     },
     "babel-preset-es2015": {
-      "version": "6.9.0"
+      "version": "6.13.2"
     },
     "babel-preset-es2015-webpack": {
       "version": "6.4.1"
@@ -335,10 +349,10 @@
       "version": "6.9.0"
     },
     "babel-traverse": {
-      "version": "6.12.0"
+      "version": "6.13.0"
     },
     "babel-types": {
-      "version": "6.11.1",
+      "version": "6.13.0",
       "dependencies": {
         "babel-runtime": {
           "version": "6.11.6"
@@ -489,7 +503,7 @@
       "version": "2.1.0"
     },
     "caniuse-db": {
-      "version": "1.0.30000512"
+      "version": "1.0.30000519"
     },
     "caseless": {
       "version": "0.11.0"
@@ -510,7 +524,7 @@
       "version": "1.6.0"
     },
     "circular-json": {
-      "version": "0.3.0"
+      "version": "0.3.1"
     },
     "cjson": {
       "version": "0.3.0"
@@ -894,6 +908,9 @@
     "dojo": {
       "version": "2.0.0-alpha.7"
     },
+    "dom-helpers": {
+      "version": "2.4.0"
+    },
     "dom-serialize": {
       "version": "2.2.1"
     },
@@ -1044,7 +1061,7 @@
           "version": "9.9.0"
         },
         "minimatch": {
-          "version": "3.0.2"
+          "version": "3.0.3"
         },
         "user-home": {
           "version": "2.0.0"
@@ -1350,7 +1367,7 @@
           "version": "7.0.5"
         },
         "minimatch": {
-          "version": "3.0.2"
+          "version": "3.0.3"
         }
       }
     },
@@ -1622,7 +1639,7 @@
       "version": "1.0.1"
     },
     "is-buffer": {
-      "version": "1.1.3"
+      "version": "1.1.4"
     },
     "is-builtin-module": {
       "version": "1.0.0"
@@ -1718,7 +1735,7 @@
       "version": "0.0.1"
     },
     "isbinaryfile": {
-      "version": "3.0.0"
+      "version": "3.0.1"
     },
     "isexe": {
       "version": "1.1.2"
@@ -1898,7 +1915,7 @@
           "version": "3.10.1"
         },
         "minimatch": {
-          "version": "3.0.2"
+          "version": "3.0.3"
         },
         "rimraf": {
           "version": "2.5.4"
@@ -2011,7 +2028,7 @@
       "version": "4.13.1"
     },
     "lodash-es": {
-      "version": "4.14.1"
+      "version": "4.14.2"
     },
     "lodash._basecopy": {
       "version": "3.0.1"
@@ -2222,6 +2239,9 @@
         }
       }
     },
+    "moment": {
+      "version": "2.14.1"
+    },
     "ms": {
       "version": "0.7.1"
     },
@@ -2229,7 +2249,7 @@
       "version": "2.1.0",
       "dependencies": {
         "minimatch": {
-          "version": "3.0.2"
+          "version": "3.0.3"
         }
       }
     },
@@ -2257,7 +2277,7 @@
       "version": "0.0.14"
     },
     "node-fetch": {
-      "version": "1.5.3"
+      "version": "1.6.0"
     },
     "node-int64": {
       "version": "0.3.3"
@@ -2428,6 +2448,9 @@
     "pend": {
       "version": "1.2.0"
     },
+    "performance-now": {
+      "version": "0.2.0"
+    },
     "pify": {
       "version": "2.3.0"
     },
@@ -2558,7 +2581,7 @@
       "version": "0.1.6"
     },
     "process": {
-      "version": "0.11.6"
+      "version": "0.11.8"
     },
     "process-nextick-args": {
       "version": "1.0.7"
@@ -2599,6 +2622,9 @@
     "querystringify": {
       "version": "0.0.3"
     },
+    "raf": {
+      "version": "3.2.0"
+    },
     "randomatic": {
       "version": "1.1.5"
     },
@@ -2634,6 +2660,9 @@
     "react-addons-pure-render-mixin": {
       "version": "15.3.0"
     },
+    "react-addons-shallow-compare": {
+      "version": "15.3.0"
+    },
     "react-addons-test-utils": {
       "version": "15.3.0"
     },
@@ -2654,6 +2683,14 @@
     },
     "react-slider": {
       "version": "0.6.1"
+    },
+    "react-virtualized": {
+      "version": "7.19.0",
+      "dependencies": {
+        "classnames": {
+          "version": "2.2.5"
+        }
+      }
     },
     "read-all-stream": {
       "version": "3.1.0",
@@ -2715,7 +2752,7 @@
           "version": "1.0.0"
         },
         "minimatch": {
-          "version": "3.0.2"
+          "version": "3.0.3"
         },
         "readable-stream": {
           "version": "2.1.4"
@@ -2974,7 +3011,7 @@
       "version": "1.0.0"
     },
     "shelljs": {
-      "version": "0.6.0"
+      "version": "0.6.1"
     },
     "sigmund": {
       "version": "1.0.1"
