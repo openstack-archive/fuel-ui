@@ -22,6 +22,7 @@ import naturalSort from 'javascript-natural-sort';
 import IP from 'ip';
 import {ErrorDialog} from 'views/dialogs';
 import models from 'models';
+import moment from 'moment';
 
 var utils = {
   /*eslint-disable max-len*/
@@ -338,9 +339,13 @@ var utils = {
       addLeadingZero(date.getSeconds()) + ' ' + addLeadingZero(date.getDate()) + '/' +
       addLeadingZero(date.getMonth() + 1) + '/' + date.getFullYear();
   },
-  dateToSeconds(date) {
+  dateToSeconds(date, timezone) {
     if (!date) return 0;
-    return new Date(date).getTime() / 1000;
+    var compensationHours = timezone ? parseInt(timezone, 10) : 0;
+    if (_.first(timezone) === '-') {
+      compensationHours = '-' + compensationHours;
+    }
+    return moment(date).add(compensationHours, 'hours').unix();
   },
   getStringHashCode(str) {
     var hash = 0;

@@ -17,6 +17,7 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
+import moment from 'moment';
 import {Table, Tooltip, MultiSelectControl, DownloadFileButton} from 'views/controls';
 import {DeploymentTaskDetailsDialog} from 'views/dialogs';
 import {
@@ -29,7 +30,8 @@ var DeploymentHistory = React.createClass({
   getDefaultProps() {
     return {
       timelineIntervalWidth: 75,
-      timelineWidth: 893
+      timelineWidth: 893,
+      timezone: moment().format('Z')
     };
   },
   getInitialState() {
@@ -66,22 +68,20 @@ var DeploymentHistory = React.createClass({
   getTimelineTimeStart() {
     var {deploymentHistory} = this.props;
     return _.min(_.compact(deploymentHistory.map(
-      // Date-parsing algorithms in Chrome and Firefox are different, therefore to prevent
-      // the divergence - we append 'Z' to get correct UTC datetime string
-      (task) => utils.dateToSeconds(task.get('time_start') ?
-        task.get('time_start') + 'Z' : null)
+      (task) => utils.dateToSeconds(task.get('time_start'), this.props.timezone)
     ))) ||
     // make current time a default time in case of transaction has 'pending' status
-    _.now() / 1000;
+    moment().unix();
   },
   getTimelineTimeEnd() {
-    var {transaction, deploymentHistory, timelineIntervalWidth, timelineWidth} = this.props;
-    if (transaction.match({status: 'running'})) return _.now() / 1000;
+    var {transaction, deploymentHistory, timelineIntervalWidth, timelineWidth,
+      timezone} = this.props;
+    if (transaction.match({status: 'running'})) return moment().unix();
     return _.max(_.compact(deploymentHistory.map(
-      (task) => utils.dateToSeconds(task.get('time_end'))
+      (task) => utils.dateToSeconds(task.get('time_end'), timezone)
     ))) ||
     // set minimal timeline scale in case of transaction has 'pending' status
-    _.now() / 1000 + timelineWidth / timelineIntervalWidth;
+    moment().unix() + timelineWidth / timelineIntervalWidth;
   },
   getTimelineMaxSecondsPerPixel() {
     var {timelineIntervalWidth, timelineWidth} = this.props;
@@ -270,7 +270,7 @@ var DeploymentHistory = React.createClass({
           {viewMode === 'timeline' &&
             <DeploymentHistoryTimeline
               {... _.pick(this.props,
-                'deploymentHistory', 'timelineWidth', 'timelineIntervalWidth'
+                'deploymentHistory', 'timelineWidth', 'timelineIntervalWidth', 'timezone'
               )}
               {... _.pick(this.state, 'secondsPerPixel')}
               timeStart={this.getTimelineTimeStart()}
@@ -339,7 +339,7 @@ var DeploymentHistoryTimeline = React.createClass({
   render() {
     var {
       deploymentHistory, timeStart, timeEnd, isRunning,
-      timelineWidth, timelineIntervalWidth, secondsPerPixel
+      timelineWidth, timelineIntervalWidth, secondsPerPixel, timezone
     } = this.props;
     var nodeIds = _.uniq(deploymentHistory.map('node_id'));
     var intervals = Math.ceil(_.max([
@@ -385,9 +385,9 @@ var DeploymentHistoryTimeline = React.createClass({
                         !_.includes(['ready', 'error', 'running'], task.get('status'))
                       ) return null;
 
-                      var taskTimeStart = utils.dateToSeconds(task.get('time_start'));
+                      var taskTimeStart = utils.dateToSeconds(task.get('time_start'), timezone);
                       var taskTimeEnd = task.get('time_end') ?
-                        utils.dateToSeconds(task.get('time_end')) : timeEnd;
+                        utils.dateToSeconds(task.get('time_end'), timezone) : timeEnd;
                       var left = this.getTimeIntervalWidth(timeStart, taskTimeStart);
                       var width = this.getTimeIntervalWidth(taskTimeStart, taskTimeEnd);
                       return <DeploymentHistoryTask
