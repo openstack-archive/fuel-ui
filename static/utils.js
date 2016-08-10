@@ -22,6 +22,7 @@ import naturalSort from 'javascript-natural-sort';
 import IP from 'ip';
 import {ErrorDialog} from 'views/dialogs';
 import models from 'models';
+import moment from 'moment';
 
 var utils = {
   /*eslint-disable max-len*/
@@ -340,7 +341,7 @@ var utils = {
   },
   dateToSeconds(date) {
     if (!date) return 0;
-    return new Date(date).getTime() / 1000;
+    return moment.utc(date).unix();
   },
   getStringHashCode(str) {
     var hash = 0;
