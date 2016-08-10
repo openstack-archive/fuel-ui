@@ -5366,6 +5366,12 @@ input[type=range] {
   @border-color: @gray + 50%;
   @max-height: 300px;
   @even-background: fade(@gray, 10%);
+  .striped-background() {
+    background-color: fade(@gray, 10%);
+    background-image: linear-gradient(transparent 50%, @white 0%);
+    background-size: @row-height * 2 @row-height * 2;
+  }
+
   border: 1px solid @border-color;
 
   .node-names-column {
@@ -5375,6 +5381,7 @@ input[type=range] {
     .node-names-container {
       overflow: hidden;
       max-height: @max-height;
+      .striped-background;
 
       .node-names {
         position: relative;
@@ -5386,9 +5393,6 @@ input[type=range] {
           text-overflow: ellipsis;
           font-size: @base-font-size - 2;
           height: @row-height;
-          &:nth-of-type(2n+1) {
-            background: @even-background;
-          }
         }
       }
     }
@@ -5425,6 +5429,7 @@ input[type=range] {
       overflow: auto;
       max-height: @max-height;
       border-left: 1px solid @border-color;
+      .striped-background;
 
       .timelines {
         &.current-time-marker {
@@ -5432,32 +5437,26 @@ input[type=range] {
           background-size: 1px 100%;
           background-repeat: no-repeat;
         }
+        position: relative;
 
-        > div {
-          height: @row-height;
-          position: relative;
-          &:nth-of-type(2n+1) {
-            background: @even-background;
+        .node-task {
+          overflow: visible;
+          position: absolute;
+          border: 1px solid transparent;
+          height: 8px;
+          margin-top: 10px;
+          &:hover {
+            border-color: @blue;
           }
-          .node-task {
-            overflow: visible;
-            position: absolute;
-            border: 1px solid transparent;
-            height: 8px;
-            top: 10px;
-            &:hover {
-              border-color: @blue;
-            }
-            .error-marker {
-              border: 1px solid red;
-              background: red;
-              border-radius: 50%;
-              height: 6px;
-              width: 6px;
-              position: relative;
-              top: -8px;
-              margin-left: -4px;
-            }
+          .error-marker {
+            border: 1px solid red;
+            background: red;
+            border-radius: 50%;
+            height: 6px;
+            width: 6px;
+            position: relative;
+            top: -8px;
+            margin-left: -4px;
           }
         }
       }
