@@ -701,6 +701,14 @@ models.DeploymentTasks = BaseCollection.extend({
     // no need to show tasks of Virtual Sync Node (node_id is Null)
     // also no need to show tasks that were not executed on any node (node_id is '-')
     return _.filter(response, (task) => !_.isNull(task.node_id) && task.node_id !== '-');
+  },
+  fetch(options) {
+    options = _.extend({}, options, {beforeSend: (xhr) => {
+      xhr.then(() => {
+        this.lastFetchDate = xhr.getResponseHeader('Date');
+      });
+    }});
+    return this._super('fetch', [options]);
   }
 });
 
