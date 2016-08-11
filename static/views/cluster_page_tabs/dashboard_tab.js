@@ -557,7 +557,10 @@ var ClusterActionsPanel = React.createClass({
           function(cluster) {
             if (cluster.get('settings').get('common.use_vcenter.value')) {
               var vcenter = cluster.get('vcenter');
-              vcenter.setModels(configModels);
+              vcenter.setModels(_.extend({
+                  current_vcenter: vcenter.get('availability_zones').at(0),
+                  glance: vcenter.get('glance')
+              }, configModels));
               return !vcenter.isValid() && {
                 blocker: [
                   <span key='vcenter'>{i18n('vmware.has_errors') + ' '}
