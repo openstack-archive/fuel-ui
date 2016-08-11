@@ -68,19 +68,19 @@ var DeploymentHistory = React.createClass({
   getTimelineTimeStart() {
     var {deploymentHistory} = this.props;
     return _.min(_.compact(deploymentHistory.map(
-      (task) => task.get('time_start') ? moment.utc(task.get('time_start')).unix() : 0
+      (task) => task.get('time_start') ? moment.utc(task.get('time_start')) / 1000 : 0
     ))) ||
     // make current time a default time in case of transaction has 'pending' status
-    moment.utc().unix();
+    moment.utc() / 1000;
   },
   getTimelineTimeEnd() {
     var {transaction, deploymentHistory, timelineIntervalWidth, timelineWidth} = this.props;
-    if (transaction.match({status: 'running'})) return moment.utc().unix();
+    if (transaction.match({status: 'running'})) return moment.utc() / 1000;
     return _.max(_.compact(deploymentHistory.map(
-      (task) => task.get('time_end') ? moment.utc(task.get('time_end')).unix() : 0
+      (task) => task.get('time_end') ? moment.utc(task.get('time_end')) / 1000 : 0
     ))) ||
     // set minimal timeline scale in case of transaction has 'pending' status
-    moment.utc().unix() + timelineWidth / timelineIntervalWidth;
+    moment.utc() / 1000 + timelineWidth / timelineIntervalWidth;
   },
   getTimelineMaxSecondsPerPixel() {
     var {timelineIntervalWidth, timelineWidth} = this.props;
@@ -416,9 +416,9 @@ var DeploymentHistoryTimeline = React.createClass({
                   if (!_.includes(['ready', 'error', 'running'], task.get('status'))) return null;
 
                   var taskTimeStart = task.get('time_start') ?
-                    moment.utc(task.get('time_start')).unix() : 0;
+                    moment.utc(task.get('time_start')) / 1000 : 0;
                   var taskTimeEnd = task.get('time_end') ?
-                    moment.utc(task.get('time_end')).unix() : timeEnd;
+                    moment.utc(task.get('time_end')) / 1000 : timeEnd;
                   var top = timelineRowHeight * nodeOffsets[task.get('node_id')];
                   var left = this.getTimeIntervalWidth(timeStart, taskTimeStart);
                   var width = this.getTimeIntervalWidth(taskTimeStart, taskTimeEnd);
