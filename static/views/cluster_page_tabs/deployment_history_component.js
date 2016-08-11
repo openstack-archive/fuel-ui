@@ -65,31 +65,36 @@ var DeploymentHistory = React.createClass({
       millisecondsPerPixel: this.getTimelineMaxMillisecondsPerPixel()
     };
   },
+  getCurrentTime() {
+    return Number(moment.utc(
+      this.props.deploymentHistory.lastFetchDate,
+      'ddd, D MMM YYYY H:mm:ss [GMT]' // RFC 2822 date format used in HTTP headers
+    )) + 1000; // we don't get milliseconds from server, so add 1 second so that tasks end time
+               // won't be greater than current time
+  },
   // FIXME(jaranovich): timeline start and end times should be provided from transaction
   // time_start and time_end attributes (#1593753 bug)
-  getTimelineTimeStart() {
-    var {deploymentHistory} = this.props;
-    return _.min(_.compact(deploymentHistory.map(
-      (task) => task.get('time_start') ? parseTime(task.get('time_start')) : 0
-    ))) ||
-    // make current time a default time in case of transaction has 'pending' status
-    moment.utc();
+  getTimelineTimeInterval() {
+    var {deploymentHistory, timelineIntervalWidth, timelineWidth} = this.props;
+    var timeStart = deploymentHistory.reduce((result, task) => {
+      return task.get('time_start') ? _.min([result, parseTime(task.get('time_start'))]) : result;
+    }, this.getCurrentTime());
+    var timeEnd = deploymentHistory.reduce((result, task) => {
+      return task.get('time_end') ?
+        _.max([result, parseTime(task.get('time_end'))]) :
+        task.get('time_start') ?
+        _.max([result, parseTime(task.get('time_start'))]) :
+        result;
+    },
+      // set minimal timeline scale in case of transaction has 'pending' status
+      timeStart + timelineWidth / timelineIntervalWidth * 1000
+    );
+    return [timeStart, timeEnd];
   },
-  getTimelineTimeEnd() {
-    var {transaction, deploymentHistory, timelineIntervalWidth, timelineWidth} = this.props;
-    if (transaction.match({status: 'running'})) return moment.utc();
-    return _.max(_.compact(deploymentHistory.map(
-      (task) => task.get('time_end') ? parseTime(task.get('time_end')) : 0
-    ))) ||
-    // set minimal timeline scale in case of transaction has 'pending' status
-    moment.utc() + timelineWidth / timelineIntervalWidth * 1000;
-  },
-  getTimelineMaxMillisecondsPerPixel() {
+  getTimelineMaxMillisecondsPerPixel(timelineTimeStart, timelineTimeEnd) {
     var {timelineIntervalWidth, timelineWidth} = this.props;
     return _.max([
-      parseFloat(
-        (this.getTimelineTimeEnd() - this.getTimelineTimeStart()) / timelineWidth / 1000
-      ),
+      (timelineTimeEnd - timelineTimeStart) / timelineWidth,
       1000 / timelineIntervalWidth
     ]);
   },
@@ -137,13 +142,14 @@ var DeploymentHistory = React.createClass({
   render() {
     var {viewMode, areFiltersVisible, openFilter, filters, millisecondsPerPixel} = this.state;
     var {deploymentHistory, transaction, timelineIntervalWidth} = this.props;
-
     var areFiltersApplied = _.some(filters, ({values}) => values.length);
+    var [timelineTimeStart, timelineTimeEnd] = this.getTimelineTimeInterval();
 
     // interval should be equal at least 1 second
     var canTimelineBeZoommedIn = millisecondsPerPixel / 2 >= 1000 / timelineIntervalWidth;
     var canTimelineBeZoommedOut =
-      millisecondsPerPixel * 2 <= this.getTimelineMaxMillisecondsPerPixel();
+      millisecondsPerPixel * 2 <=
+      this.getTimelineMaxMillisecondsPerPixel(timelineTimeStart, timelineTimeEnd);
 
     return (
       <div className='deployment-history-table'>
@@ -275,8 +281,8 @@ var DeploymentHistory = React.createClass({
                 'deploymentHistory', 'timelineWidth', 'timelineIntervalWidth', 'timelineRowHeight'
               )}
               {... _.pick(this.state, 'millisecondsPerPixel')}
-              timeStart={this.getTimelineTimeStart()}
-              timeEnd={this.getTimelineTimeEnd()}
+              timeStart={timelineTimeStart}
+              timeEnd={timelineTimeEnd}
               isRunning={transaction.match({status: 'running'})}
             />
           }
