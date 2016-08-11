@@ -63,6 +63,12 @@ var DeploymentHistory = React.createClass({
       secondsPerPixel: this.getTimelineMaxSecondsPerPixel()
     };
   },
+  getCurrentTime() {
+    return moment.utc(
+      this.props.deploymentHistory.lastFetchDate,
+      'ddd, D MMM YYYY H:mm:ss [GMT]' // RFC 2822 date format
+    ).unix();
+  },
   // FIXME(jaranovich): timeline start and end times should be provided from transaction
   // time_start and time_end attributes (#1593753 bug)
   getTimelineTimeStart() {
@@ -71,7 +77,7 @@ var DeploymentHistory = React.createClass({
       (task) => task.get('time_start') ? moment.utc(task.get('time_start')).unix() : 0
     ))) ||
     // make current time a default time in case of transaction has 'pending' status
-    moment.utc().unix();
+    this.getCurrentTime();
   },
   getTimelineTimeEnd() {
     var {transaction, deploymentHistory, timelineIntervalWidth, timelineWidth} = this.props;
@@ -80,7 +86,7 @@ var DeploymentHistory = React.createClass({
       (task) => task.get('time_end') ? moment.utc(task.get('time_end')).unix() : 0
     ))) ||
     // set minimal timeline scale in case of transaction has 'pending' status
-    moment.utc().unix() + timelineWidth / timelineIntervalWidth;
+    this.getCurrentTime() + timelineWidth / timelineIntervalWidth;
   },
   getTimelineMaxSecondsPerPixel() {
     var {timelineIntervalWidth, timelineWidth} = this.props;
