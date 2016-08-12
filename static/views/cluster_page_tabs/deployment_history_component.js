@@ -415,9 +415,12 @@ var DeploymentHistoryTimeline = React.createClass({
                     moment.utc(task.get('time_start')).unix() : 0;
                   var taskTimeEnd = task.get('time_end') ?
                     moment.utc(task.get('time_end')).unix() : timeEnd;
+
+                  var width = this.getTimeIntervalWidth(taskTimeStart, taskTimeEnd);
+                  if (!width) return null;
+
                   var top = timelineRowHeight * nodeOffsets[task.get('node_id')];
                   var left = this.getTimeIntervalWidth(timeStart, taskTimeStart);
-                  var width = this.getTimeIntervalWidth(taskTimeStart, taskTimeEnd);
 
                   return <DeploymentHistoryTask
                     key={task.get('node_id') + ' ' + task.get('task_name')}
