@@ -5384,7 +5384,7 @@ input[type=range] {
 .deployment-timeline {
   @row-height: 28px;
   @border-color: @gray + 50%;
-  @max-height: 300px;
+  @max-height: 280px;
   .striped-background() {
     background-color: fade(@gray, 10%);
     background-image: linear-gradient(transparent 50%, @white 0%);
@@ -5445,12 +5445,9 @@ input[type=range] {
     }
 
     .timelines-container {
-      overflow: auto;
-      max-height: @max-height;
       border-left: 1px solid @border-color;
 
       .timelines {
-        position: relative;
         .striped-background;
 
         .current-time-marker {
@@ -5461,7 +5458,6 @@ input[type=range] {
 
         .node-task {
           overflow: visible;
-          position: absolute;
           border: 1px solid transparent;
           height: 8px;
           margin-top: 10px;

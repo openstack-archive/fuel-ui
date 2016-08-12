@@ -18,6 +18,8 @@ import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
 import moment from 'moment';
+import {Collection} from 'react-virtualized';
+import 'react-virtualized/styles.css';
 import {Table, Tooltip, Popover, MultiSelectControl, DownloadFileButton} from 'views/controls';
 import {DeploymentTaskDetailsDialog} from 'views/dialogs';
 import {
@@ -304,17 +306,17 @@ var DeploymentHistoryTask = React.createClass({
     return '#' + ('00000' + color).substr(-6);
   },
   render() {
-    var {task, top, left, width} = this.props;
+    var {task} = this.props;
 
     var taskName = task.get('task_name');
     return <div
       onMouseEnter={() => this.togglePopover(true)}
       onMouseLeave={() => this.togglePopover(false)}
       className='node-task'
-      style={{background: this.getColorFromString(taskName), top, left, width}}
+      style={{background: this.getColorFromString(taskName)}}
     >
       {task.get('status') === 'error' &&
-        <div className='error-marker' style={{left: Math.floor(width / 2)}} />
+        <div className='error-marker' />
       }
       {this.state.isPopoverVisible &&
         <Popover
@@ -359,9 +361,18 @@ var DeploymentHistoryTimeline = React.createClass({
   getTimeIntervalWidth(timeStart, timeEnd) {
     return Math.floor((timeEnd - timeStart) / this.props.secondsPerPixel);
   },
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.secondsPerPixel !== this.props.secondsPerPixel) {
+      this.refs.taskCollection.recomputeCellSizesAndPositions();
+    }
+  },
   adjustOffsets(e) {
     this.refs.scale.style.left = -e.target.scrollLeft + 'px';
     this.refs.names.style.top = -e.target.scrollTop + 'px';
+  },
+  renderTask({index}) {
+    var task = this.props.deploymentHistory.at(index);
+    return <DeploymentHistoryTask task={task} />;
   },
   render() {
     var {
@@ -397,10 +408,10 @@ var DeploymentHistoryTimeline = React.createClass({
           <div className='timelines-column'>
             <div className='header'>
               <div className='scale' ref='scale' style={{width: intervals * timelineIntervalWidth}}>
-                {_.times(intervals, (n) => <div key={n}>{this.getIntervalLabel(n)}</div>)}
+                {/*_.times(intervals, (n) => <div key={n}>{this.getIntervalLabel(n)}</div>)*/}
               </div>
             </div>
-            <div className='timelines-container' onScroll={this.adjustOffsets}>
+            <div className='timelines-container'>
               <div
                 className='timelines'
                 style={{
@@ -408,7 +419,30 @@ var DeploymentHistoryTimeline = React.createClass({
                   height: nodeIds.length * timelineRowHeight
                 }}
               >
-                {deploymentHistory.map((task) => {
+                <Collection
+                  ref='taskCollection'
+                  cellCount={deploymentHistory.length}
+                  cellRenderer={({index}) => {
+                    var task = deploymentHistory.at(index);
+                    if (!_.includes(['ready', 'error', 'running'], task.get('status'))) return null;
+                    return <DeploymentHistoryTask task={task} />;
+                  }}
+                  cellSizeAndPositionGetter={({index}) => {
+                    var task = deploymentHistory.at(index);
+                    var taskTimeStart = task.get('time_start') ?
+                      moment.utc(task.get('time_start')).unix() : 0;
+                    var taskTimeEnd = task.get('time_end') ?
+                      moment.utc(task.get('time_end')).unix() : timeEnd;
+                    var height = 18;
+                    var width = this.getTimeIntervalWidth(taskTimeStart, taskTimeEnd);
+                    var x = this.getTimeIntervalWidth(timeStart, taskTimeStart);
+                    var y = timelineRowHeight * nodeOffsets[task.get('node_id')];
+                    return {height, width, x, y};
+                  }}
+                  height={_.min([nodeIds.length, 10]) * timelineRowHeight}
+                  width={timelineWidth}
+                />
+                {/*deploymentHistory.map((task) => {
                   if (!_.includes(['ready', 'error', 'running'], task.get('status'))) return null;
 
                   var taskTimeStart = task.get('time_start') ?
@@ -429,7 +463,7 @@ var DeploymentHistoryTimeline = React.createClass({
                     left={left}
                     width={width}
                   />;
-                })}
+                })*/}
                 {isRunning &&
                   <div
                     key='current-time-marker'
