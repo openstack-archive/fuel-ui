@@ -47,7 +47,7 @@ class ClusterPage {
       .clickByCssSelector('button.delete-environment-btn')
       .then(() => this.modal.waitToOpen())
       .then(() => this.modal.clickFooterButton('Delete'))
-      .findAllByCssSelector('div.confirm-deletion-form input[type=text]')
+      .findAllByCssSelector('.confirmation-form input[type=text]')
         .then((confirmInputs) => {
           if (confirmInputs.length) {
             return confirmInputs[0]
@@ -108,7 +108,7 @@ class ClusterPage {
       .then(() => this.modal.waitToOpen())
       .then(() => this.modal.checkTitle('Reset Environment'))
       .then(() => this.modal.clickFooterButton('Reset'))
-      .findAllByCssSelector('div.confirm-reset-form input[type=text]')
+      .findAllByCssSelector('.confirmation-form input[type=text]')
         .then((confirmationInputs) => {
           if (confirmationInputs.length) {
             return confirmationInputs[0]

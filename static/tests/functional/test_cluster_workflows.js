@@ -192,15 +192,12 @@ registerSuite(() => {
           'Warning message is shown to prevent accidental graph removing'
         )
         .then(() => modal.clickFooterButton('Delete'))
-        .assertElementExists(
-          '.confirm-deletion-form',
-          'Confirmation form for graph removingis is shown'
-        )
+        .assertElementExists('.confirmation-form', 'Confirmation form for graph removing is shown')
         .assertElementDisabled(
           '.modal-footer .remove-graph-btn',
           'Delete button is disabled, until requested confirmation text will be entered'
         )
-        .setInputValue('.confirm-deletion-form input[type=text]', 'loremipsum')
+        .setInputValue('.confirmation-form input[type=text]', 'loremipsum')
         .assertElementEnabled(
           '.modal-footer .remove-graph-btn',
           'Delete button is enabled after requested confirmation text entered'
