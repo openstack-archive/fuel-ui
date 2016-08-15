@@ -949,16 +949,15 @@ export var RemoveClusterDialog = React.createClass({
           {this.getText()}
         </div>
         {this.state.confirmation &&
-          <div className='confirm-deletion-form'>
-            {i18n('dialog.remove_cluster.enter_environment_name', {name: clusterName})}
-            <Input
-              type='text'
-              disabled={this.state.actionInProgress}
-              onChange={(name, value) => this.setState({confirmationError: value !== clusterName})}
-              onPaste={(e) => e.preventDefault()}
-              autoFocus
-            />
-          </div>
+          <Input
+            type='text'
+            label={i18n('dialog.remove_cluster.enter_environment_name', {name: clusterName})}
+            disabled={this.state.actionInProgress}
+            onChange={(name, value) => this.setState({confirmationError: value !== clusterName})}
+            onPaste={(e) => e.preventDefault()}
+            autoFocus
+            wrapperClassName='confirmation-form'
+          />
         }
       </div>
     );
@@ -1020,19 +1019,18 @@ export var ResetEnvironmentDialog = React.createClass({
           {i18n('dialog.reset_environment.text')}
         </div>
         {this.state.confirmation &&
-          <div className='confirm-reset-form'>
-            {i18n('dialog.reset_environment.enter_environment_name', {name: clusterName})}
-            <Input
-              type='text'
-              name='name'
-              disabled={this.state.actionInProgress}
-              onChange={(name, value) => {
-                this.setState({confirmationError: value !== clusterName});
-              }}
-              onPaste={(e) => e.preventDefault()}
-              autoFocus
-            />
-          </div>
+          <Input
+            type='text'
+            label={i18n('dialog.reset_environment.enter_environment_name', {name: clusterName})}
+            name='name'
+            disabled={this.state.actionInProgress}
+            onChange={(name, value) => {
+              this.setState({confirmationError: value !== clusterName});
+            }}
+            onPaste={(e) => e.preventDefault()}
+            autoFocus
+            wrapperClassName='confirmation-form'
+          />
         }
       </div>
     );
@@ -1093,16 +1091,15 @@ export var DeleteGraphDialog = React.createClass({
           {i18n('dialog.delete_graph.confirmation')}
         </div>
         {this.state.confirmation &&
-          <div className='confirm-deletion-form'>
-            {i18n('dialog.delete_graph.enter_graph_type', {type: graphType})}
-            <Input
-              type='text'
-              disabled={this.state.actionInProgress}
-              onChange={(type, value) => this.setState({confirmationError: value !== graphType})}
-              onPaste={(e) => e.preventDefault()}
-              autoFocus
-            />
-          </div>
+          <Input
+            type='text'
+            label={i18n('dialog.delete_graph.enter_graph_type', {type: graphType})}
+            disabled={this.state.actionInProgress}
+            onChange={(type, value) => this.setState({confirmationError: value !== graphType})}
+            onPaste={(e) => e.preventDefault()}
+            autoFocus
+            wrapperClassName='confirmation-form'
+          />
         }
       </div>
     );
