@@ -327,16 +327,19 @@ var DeploymentHistoryTask = React.createClass({
         >
           <div>
             {DEPLOYMENT_TASK_ATTRIBUTES
-              .map((attr) => <p key={attr} className={attr}>
-                <span>
-                  {i18n('dialog.deployment_task_details.task.' + attr) + ': '}
+              .map((attr) => <div
+                key={attr}
+                className={utils.classNames('row', attr, task.get('status'))}
+              >
+                <span className='col-xs-3'>
+                  {i18n('dialog.deployment_task_details.task.' + attr)}
                 </span>
-                <span>
+                <span className='col-xs-9'>
                   {_.startsWith(attr, 'time') ?
                     utils.formatTimestamp(task.get(attr)) : task.get(attr)
                   }
                 </span>
-              </p>)
+              </div>)
             }
           </div>
         </Popover>
