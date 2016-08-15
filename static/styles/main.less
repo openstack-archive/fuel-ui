@@ -3455,14 +3455,13 @@ input[type=range] {
   &.deployment-task-info {
     width: 250px;
     font-size: @base-font-size - 2;
-    p {
-      margin: 0;
-      span:first-child {
-        display: inline-block;
-        min-width: 60px;
+    span {
+      .break-word;
+      &:first-child {
+        padding-right: 0;
       }
     }
-    &.error p.status span:last-child {
+    div.error.status span:last-child {
       .font-semibold;
       .text-danger;
     }
