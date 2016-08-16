@@ -1,0 +1,10 @@
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Code-Review+2: Vitaly Kramskikh <vkramskikh@mirantis.com>
+Workflow+1: Vitaly Kramskikh <vkramskikh@mirantis.com>
+Code-Review+1: Andriy Popovych <apopovych@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 16 Aug 2016 17:37:50 +0000
+Reviewed-on: https://review.openstack.org/355927
+Project: openstack/fuel-ui
+Branch: refs/heads/stable/mitaka
