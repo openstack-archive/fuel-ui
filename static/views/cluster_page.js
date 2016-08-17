@@ -119,10 +119,6 @@ var ClusterPage = React.createClass({
         pluginLinks.url = baseUrl + '/plugin_links';
         cluster.set({pluginLinks});
 
-        // FIXME(kpimenova): get cluster-level graphs only for now
-        // update graph collection url to get all cluster related graphs after #1606931 fix
-        cluster.get('deploymentGraphs').url = '/api/clusters/' + cluster.id + '/deployment_graphs/';
-
         promise = $.when(
             cluster.fetch(),
             cluster.get('settings').fetch(),
