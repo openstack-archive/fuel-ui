@@ -25,6 +25,7 @@ import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import ReactDOMServer from 'react-dom/server';
 import FileSaver from 'file-saver';
 import dispatcher from 'dispatcher';
 import utils from 'utils';
@@ -393,27 +394,16 @@ export var Popover = React.createClass({
   },
   componentDidMount() {
     if (this.props.container) {
-      var popoverContentId = _.uniqueId('popover');
       this.popoverMountNode = ReactDOM.findDOMNode(this).parentNode;
-      $(this.popoverMountNode).popover({
-        container: this.props.container,
-        placement: this.props.placement,
-        trigger: this.props.trigger,
-        html: true,
-        content: '<span id=' + popoverContentId + '></span>'
-      })
-        .on('inserted.bs.popover', () => {
-          this.popoverContentMountNode = $('#' + popoverContentId)[0].parentNode;
-          if (this.props.className) {
-            $(this.popoverContentMountNode.parentNode).addClass(this.props.className);
-          }
-          ReactDOM.render(
-            React.cloneElement(React.Children.only(this.props.children)),
-            this.popoverContentMountNode
-          );
-        })
-        .on('hidden.bs.popover', () => {
-          ReactDOM.unmountComponentAtNode(this.popoverContentMountNode);
+      $(this.popoverMountNode)
+        .popover({
+          container: this.props.container,
+          placement: this.props.placement,
+          trigger: this.props.trigger,
+          html: true,
+          content: ReactDOMServer.renderToString(
+            <div className={this.props.className}>{this.props.children}</div>
+          )
         })
         .popover('show');
     }
