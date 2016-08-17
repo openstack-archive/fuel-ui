@@ -69,6 +69,13 @@ var DashboardTab = React.createClass({
       return [
         [i18n('cluster_page.tabs.dashboard'), null, {active: true}]
       ];
+    },
+    fetchData({cluster}) {
+      var deploymentGraphs = cluster.get('deploymentGraphs');
+      return (
+        deploymentGraphs.some((graph) => graph.getType() !== 'default') ?
+          deploymentGraphs.fetch({cache: true}) : Promise.resolve()
+      ).then(() => ({}));
     }
   },
   getInitialState() {

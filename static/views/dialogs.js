@@ -340,7 +340,10 @@ export var DiscardClusterChangesDialog = React.createClass({
       settings.updateAttributes(cluster.get('deployedSettings'), this.state.configModels);
       return settings.save(null, {patch: true, wait: true, validate: false})
         .then(
-          () => cluster.get('networkConfiguration').fetch(),
+          () => Promise.all([
+            cluster.get('networkConfiguration').fetch(),
+            cluster.get('deploymentGraphs').fetch()
+          ]),
           () => {
             settings.updateAttributes(
               new models.Settings(currentSettings),
