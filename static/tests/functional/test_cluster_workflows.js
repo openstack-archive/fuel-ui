@@ -53,15 +53,13 @@ registerSuite(() => {
     'Test Workflows tab view and filters'() {
       return this.remote
         .then(() => clusterPage.goToTab('Workflows'))
-        // FIXME(kpimenova): after #1606931 fix we'll fetch graphs of all levels,
-        // so there shoul be more graphs in the list
         .assertElementsExist(
           '.workflows-table tbody tr',
-          2,
-          'Check if workflow table is presented and there are two rows in the table'
+          3,
+          'Workflows table includes release- and cluster-level default workflows'
         )
         .assertElementContainsText(
-          '.workflows-table tbody tr:first-child td:first-child',
+          '.workflows-table tbody tr.subheader td:first-child',
             'Type "default"',
             'The first row is default resulting graph for the cluster'
         )
@@ -70,7 +68,7 @@ registerSuite(() => {
           'There is a possibility to delete default cluster graph'
         )
         .assertElementNotExists(
-          '.workflows-table tbody tr:first-child .btn-remove-graph',
+          '.workflows-table tbody tr.subheader .btn-remove-graph',
           'There is no possibility to delete resulting graph for the cluster'
         )
         .assertElementExists(
@@ -98,7 +96,7 @@ registerSuite(() => {
         .clickByCssSelector('.btn-reset-filters')
         .assertElementsExist(
           '.workflows-table tbody tr',
-          2,
+          3,
           'Workflow table is presented again after filters reset'
         );
     },
@@ -107,10 +105,6 @@ registerSuite(() => {
         .clickByCssSelector('.btn-upload-graph')
         .then(() => modal.waitToOpen())
         .then(() => modal.checkTitle('Upload New Workflow'))
-        .assertElementsExist(
-          '.upload-graph-form',
-          'Upload graph form is presented in the dialog window'
-        )
         // Form validation check
         .then(() => modal.clickFooterButton('Upload'))
         .assertElementExists(
@@ -204,7 +198,6 @@ registerSuite(() => {
         )
         .then(() => modal.clickFooterButton('Delete'))
         .then(() => modal.waitToClose())
-        // FIXME: It seems that after #1606931 fix custom graph will be not the last in the list
         .assertElementNotContainsText(
           '.workflows-table tbody tr:last-child td:first-child',
           'loremipsum', 'The graph was successfully deleted'
