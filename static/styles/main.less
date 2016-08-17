@@ -5384,10 +5384,12 @@ input[type=range] {
 }
 
 .deployment-timeline {
-  @row-height: 28px;
+  @header-row-height: 20px;
   @border-color: @gray + 50%;
   @max-height: 300px;
+
   .striped-background() {
+    @row-height: 28px;
     background-color: fade(@gray, 10%);
     background-image: linear-gradient(transparent 50%, @white 0%);
     background-size: @row-height * 2 @row-height * 2;
@@ -5396,7 +5398,6 @@ input[type=range] {
   border: 1px solid @border-color;
 
   .node-names-column {
-    width: 20%;
     float: left;
 
     .node-names-container {
@@ -5413,7 +5414,6 @@ input[type=range] {
           overflow: hidden;
           text-overflow: ellipsis;
           font-size: @base-font-size - 2;
-          height: @row-height;
         }
       }
     }
@@ -5422,7 +5422,6 @@ input[type=range] {
   .timelines-column {
     position: relative;
     float: left;
-    width: 80%;
 
     .header {
       border-left: 1px solid @border-color;
@@ -5430,24 +5429,22 @@ input[type=range] {
 
       .scale {
         position: relative;
+        height: @header-row-height;
         > div {
+          position: absolute;
+          top: 0;
           border-right: 1px solid @border-color;
           color: @gray;
-          float: left;
           font-size: @base-font-size - 5;
           text-align: right;
-          padding: 3px 4px;
+          padding: 3px 2px 3px 4px;
           height: 100%;
-          width: 75px;
-          &:last-child {
-            border: none;
-          }
         }
       }
     }
 
     .timelines-container {
-      overflow: auto;
+      overflow: scroll;
       max-height: @max-height;
       border-left: 1px solid @border-color;
 
@@ -5489,10 +5486,7 @@ input[type=range] {
     div.header {
       background: none;
       border-bottom: 1px solid @border-color;
-      height: 20px;
-    }
-    div.delimiter {
-      height: 10px;
+      height: @header-row-height;
     }
   }
 }
