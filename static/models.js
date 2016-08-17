@@ -358,6 +358,7 @@ models.Cluster = BaseModel.extend({
     _.each(defaults, (collection, key) => {
       collection.cluster = this;
       collection.updateFetchOptions(() => {
+        if (key === 'deploymentGraphs') return {clusters_ids: this.id, fetch_related: 1};
         var fetchOptions = {cluster_id: this.id};
         if (key === 'transactions') fetchOptions.transaction_types = 'deployment';
         return fetchOptions;
