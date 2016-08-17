@@ -376,7 +376,10 @@ var DeploymentHistoryWrapper = React.createClass({
       <div className='dashboard-block clearfix'>
         <div className='col-xs-12 history-wrapper'>
           {this.props.deploymentHistory.length ?
-            <DeploymentHistory {...this.props} />
+            <DeploymentHistory
+              {...this.props}
+              timelineContainerWidth={853}
+            />
           :
             <ProgressBar />
           }

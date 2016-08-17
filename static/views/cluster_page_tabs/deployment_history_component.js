@@ -34,7 +34,7 @@ var DeploymentHistory = React.createClass({
     return {
       timelineIntervalWidth: 75,
       timelineRowHeight: 28,
-      timelineWidth: 893
+      timelineContainerWidth: 886
     };
   },
   getInitialState() {
@@ -96,9 +96,9 @@ var DeploymentHistory = React.createClass({
     return [timelineTimeStart, timelineTimeEnd];
   },
   getTimelineMaxMillisecondsPerPixel(timelineTimeStart, timelineTimeEnd) {
-    var {timelineIntervalWidth, timelineWidth} = this.props;
+    var {timelineIntervalWidth, timelineContainerWidth} = this.props;
     return _.max([
-      (timelineTimeEnd - timelineTimeStart) / timelineWidth,
+      (timelineTimeEnd - timelineTimeStart) / timelineContainerWidth,
       1000 / timelineIntervalWidth
     ]);
   },
@@ -282,7 +282,8 @@ var DeploymentHistory = React.createClass({
           {viewMode === 'timeline' &&
             <DeploymentHistoryTimeline
               {... _.pick(this.props,
-                'deploymentHistory', 'timelineWidth', 'timelineIntervalWidth', 'timelineRowHeight'
+                'deploymentHistory', 'timelineContainerWidth', 'timelineIntervalWidth',
+                'timelineRowHeight'
               )}
               {... _.pick(this.state, 'millisecondsPerPixel')}
               timeStart={timelineTimeStart}
@@ -382,8 +383,9 @@ var DeploymentHistoryTimeline = React.createClass({
   render() {
     var {
       deploymentHistory, timeStart, timeEnd, isRunning,
-      timelineWidth, timelineIntervalWidth, timelineRowHeight, millisecondsPerPixel
+      timelineContainerWidth, timelineIntervalWidth, timelineRowHeight
     } = this.props;
+
     var nodeIds = [];
     var nodeOffsets = {};
     deploymentHistory.each((task) => {
@@ -392,10 +394,12 @@ var DeploymentHistoryTimeline = React.createClass({
       nodeOffsets[nodeId] = nodeIds.length;
       nodeIds.push(nodeId);
     });
-    var intervals = Math.ceil(_.max([
-      (timeEnd - timeStart) / (millisecondsPerPixel * timelineIntervalWidth),
-      timelineWidth / timelineIntervalWidth
-    ]));
+
+    var timelineWidth = _.max([
+      this.getTimeIntervalWidth(timeStart, timeEnd),
+      timelineContainerWidth
+    ]);
+    var intervals = Math.ceil(timelineWidth / timelineIntervalWidth);
 
     return (
       <div className='col-xs-12'>
@@ -412,15 +416,19 @@ var DeploymentHistoryTimeline = React.createClass({
           </div>
           <div className='timelines-column'>
             <div className='header'>
-              <div className='scale' ref='scale' style={{width: intervals * timelineIntervalWidth}}>
-                {_.times(intervals, (n) => <div key={n}>{this.getIntervalLabel(n)}</div>)}
+              <div className='scale' ref='scale' style={{width: timelineWidth}}>
+                {_.times(intervals, (n) =>
+                  <div key={n} style={{right: (intervals - (n + 1)) * timelineIntervalWidth}}>
+                    {this.getIntervalLabel(n)}
+                  </div>
+                )}
               </div>
             </div>
             <div className='timelines-container' onScroll={this.adjustOffsets}>
               <div
                 className='timelines'
                 style={{
-                  width: intervals * timelineIntervalWidth,
+                  width: timelineWidth,
                   height: nodeIds.length * timelineRowHeight
                 }}
               >
