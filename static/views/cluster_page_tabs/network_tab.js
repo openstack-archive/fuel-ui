@@ -831,35 +831,36 @@ var NetworkTab = React.createClass({
     this.setState({actionInProgress: true});
     this.prepareIpRanges();
 
+    var {cluster} = this.props;
     var requests = [];
     var result = $.Deferred();
 
     dispatcher.trigger('networkConfigurationUpdated', () => {
-      return Backbone.sync('update', this.props.cluster.get('networkConfiguration'))
+      return Backbone.sync('update', cluster.get('networkConfiguration'))
         .then((response) => {
           this.updateInitialConfiguration();
           result.resolve(response);
         }, (response) => {
           result.reject();
-          return this.props.cluster.get('tasks').fetch()
+          return cluster.get('tasks').fetch()
             .done(() => {
               // FIXME (morale): this hack is needed until backend response
               // format is unified https://bugs.launchpad.net/fuel/+bug/1521661
-              var checkNetworksTask = this.props.cluster.task('check_networks');
+              var checkNetworksTask = cluster.task('check_networks');
               if (!(checkNetworksTask && checkNetworksTask.get('message'))) {
                 var fakeTask = new models.Task({
-                  cluster: this.props.cluster.id,
+                  cluster: cluster.id,
                   message: utils.getResponseText(response),
                   status: 'error',
                   name: 'check_networks',
                   result: {}
                 });
-                this.props.cluster.get('tasks').remove(checkNetworksTask);
-                this.props.cluster.get('tasks').add(fakeTask);
+                cluster.get('tasks').remove(checkNetworksTask);
+                cluster.get('tasks').add(fakeTask);
               }
               // FIXME(vkramskikh): the same hack for check_networks task:
               // remove failed tasks immediately, so they won't be taken into account
-              this.props.cluster.task('check_networks').set('unsaved', true);
+              cluster.task('check_networks').set('unsaved', true);
             });
         })
         .always(() => {
@@ -869,24 +870,30 @@ var NetworkTab = React.createClass({
     requests.push(result);
 
     if (this.isNetworkSettingsChanged()) {
-      var settings = this.props.cluster.get('settings');
+      var settings = cluster.get('settings');
       var deferred = settings.save(null, {patch: true, wait: true, validate: false});
       if (deferred) {
         this.setState({actionInProgress: true});
         deferred
-          .done(() => this.setState({initialSettingsAttributes: _.cloneDeep(settings.attributes)}))
+          .done(() => {
+            // cluster workflows collection includes graphs of enabled plugins only
+            // so graphs need to be refetched after updating network plugins
+            cluster.get('deploymentGraphs').cancelThrottling();
+
+            this.setState({initialSettingsAttributes: _.cloneDeep(settings.attributes)});
+          })
           .always(() => {
             this.setState({
               actionInProgress: false,
               key: _.now()
             });
-            this.props.cluster.fetch();
+            cluster.fetch();
           })
           .fail((response) => {
             utils.showErrorDialog({
               title: i18n('cluster_page.settings_tab.settings_error.title'),
               message: i18n('cluster_page.settings_tab.settings_error.saving_warning'),
-              response: response
+              response
             });
           });
 
