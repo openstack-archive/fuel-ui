@@ -39,7 +39,8 @@ var ClusterPage = React.createClass({
       modelOrCollection: (props) => props.cluster.get('nodes')
     }),
     backboneMixin({
-      modelOrCollection: (props) => props.cluster.get('transactions')
+      modelOrCollection: (props) => props.cluster.get('transactions'),
+      renderOn: 'update change'
     }),
     backboneMixin({
       modelOrCollection: (props) => props.cluster.get('tasks'),
