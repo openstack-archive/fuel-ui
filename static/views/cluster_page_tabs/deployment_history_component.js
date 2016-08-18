@@ -384,6 +384,18 @@ var DeploymentHistoryTimeline = React.createClass({
     this.refs.scale.style.left = -e.target.scrollLeft + 'px';
     this.refs.names.style.top = -e.target.scrollTop + 'px';
   },
+  componentWillUpdate() {
+    var {scrollLeftMax, scrollLeft} = this.refs.timelines;
+    if (scrollLeftMax && scrollLeft === scrollLeftMax) {
+      this.scrollToRight = true;
+    }
+  },
+  componentDidUpdate() {
+    if (this.scrollToRight) {
+      this.refs.timelines.scrollLeft = this.refs.timelines.scrollLeftMax;
+      delete this.scrollToRight;
+    }
+  },
   render() {
     var {
       deploymentHistory, timeStart, timeEnd, isRunning,
@@ -436,7 +448,7 @@ var DeploymentHistoryTimeline = React.createClass({
                 )}
               </div>
             </div>
-            <div className='timelines-container' onScroll={this.adjustOffsets}>
+            <div className='timelines-container' ref='timelines' onScroll={this.adjustOffsets}>
               <div
                 className='timelines'
                 style={{
