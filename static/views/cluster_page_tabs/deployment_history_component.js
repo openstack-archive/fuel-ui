@@ -36,13 +36,21 @@ var DeploymentHistory = React.createClass({
   getDefaultProps() {
     return {
       timelineIntervalWidth: 75,
-      timelineRowHeight: 28
+      timelineRowHeight: 28,
+      defaultSorters: ['node_id', 'time_start']
     };
   },
   getInitialState() {
-    var {deploymentHistory} = this.props;
+    var {deploymentHistory, defaultSorters} = this.props;
     return {
       viewMode: 'timeline',
+      areSortersVisible: false,
+      isMoreSorterControlVisible: false,
+      sorters: _.map(DEPLOYMENT_TASK_ATTRIBUTES, (attr) => ({
+        name: attr,
+        label: i18n(ns + 'sort_by_' + attr),
+        order: _.includes(defaultSorters, attr) ? 'asc' : null
+      })),
       areFiltersVisible: false,
       openFilter: null,
       filters: [
@@ -118,13 +126,19 @@ var DeploymentHistory = React.createClass({
       viewMode,
       //close filters panel
       areFiltersVisible: false,
-      openFilter: null
+      openFilter: null,
+      //close sorters panel
+      areSortersVisible: false,
+      isMoreSorterControlVisible: false
     });
   },
   toggleFilters() {
     this.setState({
       areFiltersVisible: !this.state.areFiltersVisible,
-      openFilter: null
+      openFilter: null,
+      //close sorters panel
+      areSortersVisible: false,
+      isMoreSorterControlVisible: false
     });
   },
   toggleFilter(filterName, visible) {
@@ -147,12 +161,66 @@ var DeploymentHistory = React.createClass({
     });
     this.setState({filters});
   },
+  toggleSorters() {
+    this.setState({
+      areSortersVisible: !this.state.areSortersVisible,
+      isMoreSorterControlVisible: false,
+      //close filters panel
+      areFiltersVisible: false,
+      openFilter: null
+    });
+  },
+  toggleMoreSorterControl(isMoreSorterControlVisible) {
+    this.setState({isMoreSorterControlVisible});
+  },
+  addSorter(sorterName) {
+    var {sorters} = this.state;
+    _.find(sorters, {name: sorterName}).order = 'asc';
+    this.setState({sorters});
+  },
+  removeSorter(sorterName) {
+    var {sorters} = this.state;
+    _.find(sorters, {name: sorterName}).order = null;
+    this.setState({sorters});
+  },
+  changeSortingOrder(sorterName) {
+    var {sorters} = this.state;
+    var sorter = _.find(sorters, {name: sorterName});
+    sorter.order = sorter.order === 'asc' ? 'desc' : 'asc';
+    this.setState({sorters});
+  },
+  resetSorters() {
+    var {sorters} = this.state;
+    _.each(sorters, (sorter) => {
+      sorter.order = _.includes(this.props.defaultSorters, sorter.name) ? 'asc' : null;
+    });
+    this.setState({sorters});
+  },
   render() {
-    var {viewMode, areFiltersVisible, openFilter, filters, millisecondsPerPixel} = this.state;
-    var {deploymentHistory, transaction, timelineIntervalWidth} = this.props;
-    var areFiltersApplied = _.some(filters, ({values}) => values.length);
-    var [timelineTimeStart, timelineTimeEnd] = this.getTimelineTimeInterval();
+    var {
+      viewMode,
+      areFiltersVisible, openFilter, filters,
+      areSortersVisible, isMoreSorterControlVisible, sorters,
+      millisecondsPerPixel
+    } = this.state;
+    var {
+      deploymentHistory, transaction,
+      timelineIntervalWidth,
+      defaultSorters
+    } = this.props;
 
+    var areFiltersApplied = _.some(filters, ({values}) => values.length);
+    var isDefaultSorting = _.isEqual(
+      _.map(
+        _.filter(sorters, ({name, order}) => _.includes(defaultSorters, name) && order === 'asc'),
+        'name'
+      ),
+      defaultSorters
+    );
+    var activeSorters = _.filter(sorters, ({order}) => !_.isNull(order));
+    var inactiveSorters = _.filter(sorters, ({order}) => _.isNull(order));
+
+    var [timelineTimeStart, timelineTimeEnd] = this.getTimelineTimeInterval();
     // interval should be equal at least 1 second
     var canTimelineBeZoommedIn = millisecondsPerPixel / 2 >= 1000 / timelineIntervalWidth;
     var canTimelineBeZoommedOut =
@@ -221,6 +289,17 @@ var DeploymentHistory = React.createClass({
                     <i className='glyphicon glyphicon-filter' />
                   </button>
                 </Tooltip>
+                <Tooltip wrap text={i18n(ns + 'sort_tooltip')}>
+                  <button
+                    onClick={this.toggleSorters}
+                    className={utils.classNames({
+                      'btn btn-default pull-left btn-sorters': true,
+                      active: areSortersVisible
+                    })}
+                  >
+                    <i className='glyphicon glyphicon-sort' />
+                  </button>
+                </Tooltip>
                 <DownloadFileButton
                   label={i18n(ns + 'export_csv')}
                   fileName={'deployment#' + transaction.id + '.csv'}
@@ -260,26 +339,116 @@ var DeploymentHistory = React.createClass({
               </div>
             </div>
           )}
-        </div>
-        {viewMode === 'table' && !areFiltersVisible && areFiltersApplied &&
-          <div className='active-sorters-filters'>
-            <div className='active-filters row' onClick={this.toggleFilters}>
-              <strong className='col-xs-1'>{i18n(ns + 'filter_by')}</strong>
-              <div className='col-xs-11'>
-                {_.map(filters, ({name, label, values}) => {
-                  if (!values.length) return null;
-                  return <div key={name}>
-                    <strong>{label + ':'}</strong> <span>{values.join(', ')}</span>
-                  </div>;
+          {viewMode === 'table' && areSortersVisible && (
+            <div className='sorters col-xs-12'>
+              <div className='well clearfix'>
+                <div className='well-heading'>
+                  <i className='glyphicon glyphicon-sort' /> {i18n(ns + 'sort_by')}
+                  {!isDefaultSorting &&
+                    <button
+                      className='btn btn-link pull-right btn-reset-sorters'
+                      onClick={this.resetSorters}
+                    >
+                      <i className='glyphicon discard-changes-icon' /> {i18n('common.reset_button')}
+                    </button>
+                  }
+                </div>
+                {_.map(activeSorters, ({name, label, order}) => {
+                  var asc = order === 'asc';
+                  return (
+                    <div
+                      key={'sort_by-' + name}
+                      className={utils.classNames(
+                        'sorter-control', 'pull-left', 'sort-by-' + name + '-' + order
+                      )}
+                    >
+                      <button
+                        className='btn btn-default'
+                        onClick={() => this.changeSortingOrder(name)}
+                      >
+                        {label}
+                        <i
+                          className={utils.classNames({
+                            glyphicon: true,
+                            'glyphicon-arrow-down': asc,
+                            'glyphicon-arrow-up': !asc
+                          })}
+                        />
+                      </button>
+                      {activeSorters.length > 1 &&
+                        <i
+                          className='btn btn-link glyphicon glyphicon-minus-sign btn-remove-sorter'
+                          onClick={() => this.removeSorter(name)}
+                        />
+                      }
+                    </div>
+                  );
                 })}
+                <MultiSelectControl
+                  name='sorter-more'
+                  label={i18n(ns + 'add_sorter')}
+                  options={inactiveSorters}
+                  onChange={this.addSorter}
+                  dynamicValues
+                  isOpen={isMoreSorterControlVisible}
+                  toggle={this.toggleMoreSorterControl}
+                />
               </div>
-              <button
-                className='btn btn-link btn-reset-filters'
-                onClick={this.resetFilters}
-              >
-                <i className='glyphicon discard-changes-icon' />
-              </button>
             </div>
+          )}
+        </div>
+        {viewMode === 'table' && (!areSortersVisible || !areFiltersVisible && areFiltersApplied) &&
+          <div className='active-sorters-filters'>
+            {!areFiltersVisible && areFiltersApplied &&
+              <div className='active-filters row' onClick={this.toggleFilters}>
+                <strong className='col-xs-1'>{i18n(ns + 'filter_by')}</strong>
+                <div className='col-xs-11'>
+                  {_.map(filters, ({name, label, values}) => {
+                    if (!values.length) return null;
+                    return <div key={name}>
+                      <strong>{label + ':'}</strong> <span>{values.join(', ')}</span>
+                    </div>;
+                  })}
+                </div>
+                <button
+                  className='btn btn-link btn-reset-filters'
+                  onClick={this.resetFilters}
+                >
+                  <i className='glyphicon discard-changes-icon' />
+                </button>
+              </div>
+            }
+            {!areSortersVisible &&
+              <div className='active-sorters row' onClick={this.toggleSorters}>
+                <strong className='col-xs-1'>{i18n(ns + 'sort_by')}</strong>
+                <div className='col-xs-11'>
+                  {activeSorters.map(({name, label, order}, index) => {
+                    var asc = order === 'asc';
+                    return (
+                      <span key={name}>
+                        {label}
+                        <i
+                          className={utils.classNames({
+                            glyphicon: true,
+                            'glyphicon-arrow-down': asc,
+                            'glyphicon-arrow-up': !asc
+                          })}
+                        />
+                        {!!activeSorters[index + 1] && ' + '}
+                      </span>
+                    );
+                  })}
+                </div>
+                {!isDefaultSorting &&
+                  <button
+                    className='btn btn-reset-sorters'
+                    onClick={this.resetSorters}
+                  >
+                    <i className='glyphicon discard-changes-icon' />
+                  </button>
+                }
+              </div>
+            }
           </div>
         }
         <div className='row'>
