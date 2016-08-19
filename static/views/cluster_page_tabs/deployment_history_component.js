@@ -18,6 +18,8 @@ import i18n from 'i18n';
 import React from 'react';
 import utils from 'utils';
 import moment from 'moment';
+import {Collection} from 'react-virtualized';
+import 'react-virtualized/styles.css';
 import {Table, Tooltip, Popover, MultiSelectControl, DownloadFileButton} from 'views/controls';
 import {DeploymentTaskDetailsDialog} from 'views/dialogs';
 import {
@@ -329,7 +331,7 @@ var DeploymentHistoryTask = React.createClass({
       onMouseEnter={() => this.togglePopover(true)}
       onMouseLeave={() => this.togglePopover(false)}
       className='node-task'
-      style={{background: this.getColorFromString(taskName), top, left, width}}
+      style={{background: this.getColorFromString(taskName), width: '100%'}}
     >
       {task.get('status') === 'error' &&
         <div className='error-marker' style={{left: Math.floor(width / 2)}} />
@@ -384,6 +386,11 @@ var DeploymentHistoryTimeline = React.createClass({
     this.refs.scale.style.left = -e.target.scrollLeft + 'px';
     this.refs.names.style.top = -e.target.scrollTop + 'px';
   },
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.millisecondsPerPixel !== this.props.millisecondsPerPixel) {
+      this.refs.taskCollection.recomputeCellSizesAndPositions();
+    }
+  },
   render() {
     var {
       deploymentHistory, timeStart, timeEnd, isRunning,
@@ -423,7 +430,7 @@ var DeploymentHistoryTimeline = React.createClass({
           <div className='timelines-column' style={{width: nodeTimelineContainerWidth}}>
             <div className='header'>
               <div className='scale' ref='scale' style={{width: nodeTimelineWidth}}>
-                {_.times(intervals, (n) =>
+                {/*_.times(intervals, (n) =>
                   <div
                     key={n}
                     style={{
@@ -433,18 +440,35 @@ var DeploymentHistoryTimeline = React.createClass({
                   >
                     {this.getIntervalLabel(n)}
                   </div>
-                )}
+                )*/}
               </div>
             </div>
             <div className='timelines-container' onScroll={this.adjustOffsets}>
-              <div
+              <Collection
+                ref='taskCollection'
                 className='timelines'
-                style={{
-                  width: nodeTimelineWidth,
-                  height: nodeIds.length * timelineRowHeight
+                cellCount={deploymentHistory.length}
+                cellRenderer={({index}) => {
+                  var task = deploymentHistory.at(index);
+                  if (!_.includes(['ready', 'error', 'running'], task.get('status'))) return null;
+                  return <DeploymentHistoryTask task={task} />;
                 }}
-              >
-                {deploymentHistory.map((task) => {
+                cellSizeAndPositionGetter={({index}) => {
+                  var task = deploymentHistory.at(index);
+                  var taskTimeStart = task.get('time_start') ?
+                    parseISO8601Date(task.get('time_start')) : 0;
+                  var taskTimeEnd = task.get('time_end') ?
+                    parseISO8601Date(task.get('time_end')) : timeEnd;
+                  var height = 18;
+                  var width = this.getTimeIntervalWidth(taskTimeStart, taskTimeEnd);
+                  var x = this.getTimeIntervalWidth(timeStart, taskTimeStart);
+                  var y = timelineRowHeight * nodeOffsets[task.get('node_id')];
+                  return {height, width, x, y};
+                }}
+                width={nodeTimelineWidth}
+                height={_.min([nodeIds.length, 10]) * timelineRowHeight}
+              />
+                {/*deploymentHistory.map((task) => {
                   if (!_.includes(['ready', 'error', 'running'], task.get('status'))) return null;
 
                   var taskTimeStart = task.get('time_start') ?
@@ -475,8 +499,7 @@ var DeploymentHistoryTimeline = React.createClass({
                       left: this.getTimeIntervalWidth(timeStart, timeEnd)
                     }}
                   />
-                }
-              </div>
+                */}
             </div>
           </div>
         </div>
