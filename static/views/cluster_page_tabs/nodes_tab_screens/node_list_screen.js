@@ -26,76 +26,13 @@ import dispatcher from 'dispatcher';
 import {Input, Popover, Tooltip, ProgressButton, MultiSelectControl} from 'views/controls';
 import {DeleteNodesDialog} from 'views/dialogs';
 import {backboneMixin, pollingMixin, dispatcherMixin, unsavedChangesMixin} from 'component_mixins';
+import {Sorter, Filter} from 'views/cluster_page_tabs/nodes_tab_screens/sorter_and_filter';
 import Node from 'views/cluster_page_tabs/nodes_tab_screens/node';
 
 var NodeListScreen, NodeListScreenContent, NumberRangeControl, ManagementPanel,
   NodeLabelsPanel, RolePanel, Role, SelectAllMixin, NodeList, NodeGroup;
 
-class Sorter {
-  constructor(name, order = 'asc', isLabel = false) {
-    this.name = name;
-    this.order = order;
-    this.isLabel = isLabel;
-    this.title = isLabel ?
-      name
-    :
-      i18n('cluster_page.nodes_tab.sorters.' + name, {defaultValue: name});
-    return this;
-  }
-
-  static fromObject(sorterObject, isLabel = false) {
-    var name = _.keys(sorterObject)[0];
-    return new Sorter(name, sorterObject[name], isLabel);
-  }
-
-  static toObject({name, order}) {
-    return {[name]: order};
-  }
-}
-
-class Filter {
-  constructor(name, values, isLabel = false) {
-    this.name = name;
-    this.values = values;
-    this.isLabel = isLabel;
-    this.title = isLabel ?
-      name
-    :
-      i18n('cluster_page.nodes_tab.filters.' + name, {defaultValue: name});
-    this.isNumberRange = !isLabel &&
-        !_.includes(['roles', 'status', 'manufacturer', 'group_id', 'cluster'], name);
-    return this;
-  }
-
-  static fromObject(filters, isLabel = false) {
-    return _.map(filters, (values, name) => new Filter(name, values, isLabel));
-  }
-
-  static toObject(filters) {
-    return _.reduce(filters, (result, {name, values}) => {
-      result[name] = values;
-      return result;
-    }, {});
-  }
-
-  updateLimits(nodes, updateValues) {
-    if (this.isNumberRange) {
-      var limits = [0, 0];
-      if (nodes.length) {
-        var resources = nodes.invokeMap('resource', this.name);
-        limits = [_.min(resources), _.max(resources)];
-        if (this.name === 'hdd' || this.name === 'ram') {
-          limits = [
-            Math.floor(limits[0] / Math.pow(1024, 3)),
-            Math.ceil(limits[1] / Math.pow(1024, 3))
-          ];
-        }
-      }
-      this.limits = limits;
-      if (updateValues) this.values = _.clone(limits);
-    }
-  }
-}
+var sorterNs = 'cluster_page.nodes_tab.sorters.';
 
 NodeListScreen = React.createClass({
   propTypes: {
@@ -133,14 +70,14 @@ NodeListScreen = React.createClass({
         Filter.fromObject(filterByLabels, true)
       );
       activeSorters = _.union(
-        _.map(sort, _.partial(Sorter.fromObject, _, false)),
-        _.map(sortByLabels, _.partial(Sorter.fromObject, _, true))
+        _.map(sort, _.partial(Sorter.fromObject, _, sorterNs, false)),
+        _.map(sortByLabels, _.partial(Sorter.fromObject, _, sorterNs, true))
       );
       search = uiSettings.search;
       viewMode = uiSettings.view_mode;
     } else {
       activeFilters = Filter.fromObject(defaultFilters, false);
-      activeSorters = _.map(defaultSorting, _.partial(Sorter.fromObject, _, false));
+      activeSorters = _.map(defaultSorting, _.partial(Sorter.fromObject, _, sorterNs, false));
       search = '';
       viewMode = this.props.viewMode || _.first(NODE_VIEW_MODES);
     }
@@ -152,7 +89,7 @@ NodeListScreen = React.createClass({
       return filter;
     });
     var availableSorters = _.map(this.props.availableSorters,
-      (name) => new Sorter(name, 'asc', false)
+      (name) => new Sorter(name, 'asc', sorterNs, false)
     );
 
     var states = {
@@ -380,7 +317,7 @@ NodeListScreenContent = React.createClass({
   },
   resetSorters() {
     this.props.updateSorting(
-      _.map(this.props.defaultSorting, _.partial(Sorter.fromObject, _, false))
+      _.map(this.props.defaultSorting, _.partial(Sorter.fromObject, _, sorterNs, false))
     );
   },
   changeSortingOrder(sorterToChange) {
@@ -388,7 +325,7 @@ NodeListScreenContent = React.createClass({
       this.props.activeSorters.map((sorter) => {
         var {name, order, isLabel} = sorter;
         if (name === sorterToChange.name && isLabel === sorterToChange.isLabel) {
-          return new Sorter(name, order === 'asc' ? 'desc' : 'asc', isLabel);
+          return new Sorter(name, order === 'asc' ? 'desc' : 'asc', sorterNs, isLabel);
         }
         return sorter;
       })
@@ -593,7 +530,7 @@ NodeListScreenContent = React.createClass({
             'toggleLabelsPanel'
           )}
           isLabelsPanelOpen={this.state.isLabelsPanelOpen}
-          labelSorters={screenNodesLabels.map((name) => new Sorter(name, 'asc', true))}
+          labelSorters={screenNodesLabels.map((name) => new Sorter(name, 'asc', sorterNs, true))}
           labelFilters={screenNodesLabels.map((name) => new Filter(name, [], true))}
           nodes={selectedNodes}
           screenNodes={nodes}
