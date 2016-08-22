@@ -5239,7 +5239,7 @@ input[type=range] {
       height: 46px;
       border-radius: 4px;
       text-align: center;
-      padding: 12px 0 0;
+      padding: 13px 10px 10px;
       &:hover {
         text-decoration: none;
         background: @gray + 60%;
@@ -5247,6 +5247,7 @@ input[type=range] {
       span {
         .font-semibold;
         color: @base-text-color;
+        font-size: @base-font-size - 2;
       }
       &.error span {
         .text-danger;
@@ -5279,24 +5280,24 @@ input[type=range] {
       display: inline-block;
       .btn.dropdown-toggle {
         width: @base-size;
-        padding: 0 10px;
+        padding: 8px 10px;
         overflow: hidden;
-        .dropdown-name {
+        span {
           display: inline-block;
-          width: @base-size - 40px;
-          overflow: hidden;
-          white-space: pre-wrap;
-          text-align: left;
-          line-height: 18px;
-          float: left;
-        }
-        &.active .dropdown-name {
-          text-align: center;
-        }
-        .caret {
-          display: inline-block;
-          position: absolute;
-          top: 22px;
+          &:not(.caret) {
+            width: @base-size - 40px;
+            white-space: pre-wrap;
+            float: left;
+          }
+          &.caret {
+            position: absolute;
+            top: 22px;
+          }
+          &.previous-deployments {
+            font-size: @base-font-size;
+            text-align: left;
+            line-height: 1;
+          }
         }
       }
       .dropdown-menu {

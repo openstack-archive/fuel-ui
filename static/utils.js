@@ -330,13 +330,23 @@ var utils = {
       return result;
     }, _.isArray(object) ? [] : {});
   },
-  formatTimestamp(timestamp) {
+  formatTimestamp(timestamp, showSeconds = true) {
     if (!timestamp) return '';
     var date = new Date(timestamp);
     var addLeadingZero = (value) => ('0' + value).substr(-2);
-    return addLeadingZero(date.getHours()) + ':' + addLeadingZero(date.getMinutes()) + ':' +
-      addLeadingZero(date.getSeconds()) + ' ' + addLeadingZero(date.getDate()) + '/' +
-      addLeadingZero(date.getMonth() + 1) + '/' + date.getFullYear();
+
+    var timeArray = [
+      addLeadingZero(date.getHours()),
+      addLeadingZero(date.getMinutes())
+    ];
+    if (showSeconds) timeArray.push(addLeadingZero(date.getSeconds()));
+
+    var dateArray = [
+      addLeadingZero(date.getDate()),
+      addLeadingZero(date.getMonth() + 1),
+      date.getFullYear()
+    ];
+    return timeArray.join(':') + ' ' + dateArray.join('/');
   },
   getStringHashCode(str) {
     var hash = 0;
