@@ -53,7 +53,7 @@ var NodesTab = React.createClass({
     var screen = this.getScreen();
     return {
       loading: this.shouldScreenDataBeLoaded(screen),
-      screen: screen,
+      screen,
       screenOptions: this.getScreenOptions(),
       screenData: {}
     };
@@ -122,7 +122,8 @@ var NodesTab = React.createClass({
     }
   },
   render() {
-    var Screen = this.getScreenConstructor(this.state.screen) || {};
+    var {screen, loading, screenData, screenOptions} = this.state;
+    var Screen = this.getScreenConstructor(screen) || {};
     return (
       <ReactTransitionGroup
         component='div'
@@ -130,14 +131,14 @@ var NodesTab = React.createClass({
         transitionName='screen'
       >
         <ScreenTransitionWrapper
-          key={this.state.screen}
-          loading={this.state.loading}
+          key={screen}
+          loading={loading}
         >
           <Screen
-            {...this.state.screenData}
+            {...screenData}
             {..._.pick(this.props, 'cluster', 'selectedNodeIds', 'selectNodes')}
             ref='screen'
-            screenOptions={this.state.screenOptions}
+            screenOptions={screenOptions}
           />
         </ScreenTransitionWrapper>
       </ReactTransitionGroup>

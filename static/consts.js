@@ -14,6 +14,56 @@
  * under the License.
 **/
 
+export var NODE_STATUSES = [
+  'ready',
+  'pending_addition',
+  'pending_deletion',
+  'provisioned',
+  'provisioning',
+  'deploying',
+  'stopped',
+  'discover',
+  'error',
+  'offline',
+  'removing'
+];
+
+export var NODE_LIST_SORTERS = [
+  'cluster',
+  'roles',
+  'status',
+  'name',
+  'mac',
+  'ip',
+  'manufacturer',
+  'cores',
+  'ht_cores',
+  'hdd',
+  'disks',
+  'ram',
+  'interfaces',
+  'group_id'
+];
+
+export var NODE_LIST_FILTERS = [
+  'cluster',
+  'roles',
+  'status',
+  'manufacturer',
+  'cores',
+  'ht_cores',
+  'hdd',
+  'disks_amount',
+  'ram',
+  'interfaces',
+  'group_id'
+];
+
+export var NODE_VIEW_MODES = [
+  'standard',
+  'compact'
+];
+
 export var DEPLOYMENT_TASK_STATUSES = [
   'pending',
   'running',

@@ -164,8 +164,7 @@ define([
           })
           .clickLinkByText('Compute')
           .clickByCssSelector('input[type=radio][name=libvirt_type]:not(:checked)')
-          .waitForCssSelector('.btn-apply-changes:not(:disabled)', 200)
-          .clickByCssSelector('.btn-apply-changes')
+          .clickByCssSelector('.btn-apply-changes:not(:disabled)')
           .then(function() {
             return settingsPage.waitForRequestCompleted();
           })
@@ -202,6 +201,7 @@ define([
           .clickByCssSelector('.btn-add-nodes')
           .waitForElementDeletion('.btn-add-nodes', 3000)
           .assertElementsAppear('.node', 3000, 'Unallocated nodes loaded')
+          .clickByCssSelector('label.compact')
           .then(function() {
             return node.openCompactNodeExtendedView();
           })

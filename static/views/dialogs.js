@@ -20,7 +20,7 @@ import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Backbone from 'backbone';
-import {DEPLOYMENT_TASK_ATTRIBUTES} from 'consts';
+import {NODE_LIST_SORTERS, NODE_LIST_FILTERS, DEPLOYMENT_TASK_ATTRIBUTES} from 'consts';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
@@ -735,38 +735,25 @@ export var SelectNodesDialog = React.createClass({
     };
   },
   ns: 'dialog.select_nodes.',
-  selectNodes(ids = [], checked) {
-    if (ids.length) {
-      var nodeSelection = this.state.selectedNodeIds;
-      _.each(ids, (id) => {
-        if (checked) {
-          nodeSelection[id] = true;
-        } else {
-          delete nodeSelection[id];
-        }
-      });
-      this.setState({selectedNodeIds: nodeSelection});
-    } else {
-      this.setState({selectedNodeIds: {}});
-    }
+  selectNodes(selectedNodeIds) {
+    this.setState({selectedNodeIds});
   },
   renderBody() {
     return <NodeListScreen
-      statusesToFilter={models.Node.prototype.statuses}
       {...this.props}
       ref='screen'
       mode='list'
       selectedNodeIds={this.state.selectedNodeIds}
       selectNodes={this.selectNodes}
-      sorters={_.without(models.Nodes.prototype.sorters, 'cluster')}
-      defaultSorting={[{roles: 'asc'}]}
-      filters={_.without(models.Nodes.prototype.filters, 'cluster')}
-      defaultFilters={{roles: [], status: []}}
       showBatchActionButtons={false}
-      showLabeManagementButton={false}
-      showViewModeButtons={false}
+      showLabelManagementButton={false}
       nodeActionsAvailable={false}
+      showViewModeButtons={false}
       viewMode='compact'
+      defaultFilters={{roles: [], status: []}}
+      availableFilters={_.without(NODE_LIST_FILTERS, 'cluster')}
+      defaultSorting={[{roles: 'asc'}]}
+      availableSorters={_.without(NODE_LIST_SORTERS, 'cluster')}
     />;
   },
   renderFooter() {

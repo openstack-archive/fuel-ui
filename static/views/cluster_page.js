@@ -287,20 +287,8 @@ var ClusterPage = React.createClass({
     return _.filter(this.constructor.getTabs(),
       (tabData) => !tabData.tab.isVisible || tabData.tab.isVisible(cluster));
   },
-  selectNodes(ids, checked) {
-    if (ids && ids.length) {
-      var nodeSelection = this.state.selectedNodeIds;
-      _.each(ids, (id) => {
-        if (checked) {
-          nodeSelection[id] = true;
-        } else {
-          delete nodeSelection[id];
-        }
-      });
-      this.setState({selectedNodeIds: nodeSelection});
-    } else {
-      this.setState({selectedNodeIds: {}});
-    }
+  selectNodes(selectedNodeIds) {
+    this.setState({selectedNodeIds});
   },
   render() {
     var cluster = this.props.cluster;
