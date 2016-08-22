@@ -91,11 +91,14 @@ HistoryTab = React.createClass({
       this.loadScreenData(activeTransactionId);
     }
   },
+  getTransactionTitle(transaction) {
+    return <span>{utils.formatTimestamp(transaction.get('time_start'), false)}</span>;
+  },
   render() {
     var {cluster, activeTransactionId} = this.props;
     var ns = 'cluster_page.history_tab.';
     var transactions = cluster.get('transactions').filterTasks({active: false});
-    var visibleTransactionsAmount = 7;
+    var visibleTransactionsAmount = 2;
     var visibleTransactions = transactions;
     var hiddenTransactions = [];
     var activeHiddenTransaction;
@@ -131,9 +134,11 @@ HistoryTab = React.createClass({
                       >
                         <span className='dropdown-name'>
                           {activeHiddenTransaction ?
-                            ('#' + activeTransactionId)
+                            this.getTransactionTitle(activeHiddenTransaction)
                           :
-                            i18n(ns + 'previous_deployments')
+                            <span className='previous-deployments'>
+                              {i18n(ns + 'previous_deployments')}
+                            </span>
                           }
                         </span>
                         <span className='caret' />
@@ -148,7 +153,7 @@ HistoryTab = React.createClass({
                                   to={'/cluster/' + cluster.id + '/history/' + transaction.id}
                                   className={transaction.get('status')}
                                 >
-                                  <span>{'#' + transaction.id}</span>
+                                  {this.getTransactionTitle(transaction)}
                                 </Link>
                               </li>
                             );
@@ -170,7 +175,7 @@ HistoryTab = React.createClass({
                           active: transaction.id === activeTransactionId
                         })}
                       >
-                        <span>{'#' + transaction.id}</span>
+                        {this.getTransactionTitle(transaction)}
                       </Link>
                       {index < visibleTransactions.length - 1 &&
                         <i className='glyphicon glyphicon-arrow-right' />

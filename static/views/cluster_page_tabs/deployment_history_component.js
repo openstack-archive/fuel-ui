@@ -93,6 +93,7 @@ var DeploymentHistory = React.createClass({
         }
       }
     });
+
     return [timelineTimeStart, timelineTimeEnd];
   },
   getTimelineMaxMillisecondsPerPixel(timelineTimeStart, timelineTimeEnd) {
