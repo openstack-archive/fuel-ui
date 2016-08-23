@@ -685,11 +685,11 @@ export var RunCustomGraphDialog = React.createClass({
     dispatcher.trigger('deploymentTasksUpdated');
 
     var {cluster, nodeIds, graphType} = this.props;
-    var data = {graph_type: graphType};
-    if (nodeIds.length < cluster.get('nodes').length) data.nodes = nodeIds;
+    var params = {graph_type: graphType};
+    if (nodeIds.length < cluster.get('nodes').length) params.nodes = nodeIds;
 
     (new models.Task())
-      .save(data, {url: _.result(cluster, 'url') + '/deploy', type: 'PUT'})
+      .save({}, {url: _.result(cluster, 'url') + '/deploy/?' + $.param(params), type: 'PUT'})
       .then(
         () => {
           this.close();
