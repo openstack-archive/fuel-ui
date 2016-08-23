@@ -5510,21 +5510,32 @@ input[type=range] {
         }
         td {
           width: 40%;
-          &:nth-child(3), &:nth-child(4) { // action buttons
+          &:nth-child(3), &:nth-child(4) { // actions columns
             width: 10%;
-            text-align: right;
+            text-align: center;
           }
           .btn {
-            margin: 0;
+            margin: 0 3px;
             padding: 0;
             .font-normal;
           }
         }
         &.subheader {
-          .font-bold;
-          td:nth-child(2) { // action buttons
-            text-align: right;
+          td {
+            &:nth-child(1) { // graph type column
+              .font-bold;
+            }
+            &:nth-child(2) { // actions column
+              text-align: center;
+            }
           }
+        }
+      }
+    }
+    thead {
+      th {
+        &:nth-child(3), &:nth-child(4) { // actions columns
+          text-align: center;
         }
       }
     }

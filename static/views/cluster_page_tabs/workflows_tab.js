@@ -222,8 +222,8 @@ var WorkflowsTab = React.createClass({
                   <tr>
                     <th>{i18n(ns + 'graph_name_header')}</th>
                     <th>{i18n(ns + 'graph_level_header')}</th>
-                    <th />
-                    <th />
+                    <th>{i18n(ns + 'graph_actions_header')}</th>
+                    <th>{i18n(ns + 'graph_download_header')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -235,11 +235,22 @@ var WorkflowsTab = React.createClass({
                         </td>
                         <td>
                           <DownloadFileButton
-                            label={i18n(ns + 'download_graph')}
+                            label={i18n(ns + 'download_graph_json')}
                             fileName={graphType + '.json'}
                             url={'/api/clusters/' + cluster.id + '/deployment_tasks/'}
+                            headers={{Accept: 'application/json'}}
                             fetchOptions={{graph_type: graphType}}
-                            className='btn btn-link btn-download-merged-graph'
+                            className='btn btn-link btn-download-merged-graph-json'
+                            showProgressBar='global'
+                          />
+                          /
+                          <DownloadFileButton
+                            label={i18n(ns + 'download_graph_yaml')}
+                            fileName={graphType + '.yaml'}
+                            url={'/api/clusters/' + cluster.id + '/deployment_tasks/'}
+                            headers={{Accept: 'application/x-yaml'}}
+                            fetchOptions={{graph_type: graphType}}
+                            className='btn btn-link btn-download-merged-graph-yaml'
                             showProgressBar='global'
                           />
                         </td>
@@ -249,16 +260,18 @@ var WorkflowsTab = React.createClass({
                         if (graph.getType() !== graphType) return null;
 
                         var level = graph.getLevel();
+                        var graphLevelModel = {
+                          cluster,
+                          release: cluster.get('release'),
+                          plugin: plugins.get(graph.get('relations')[0].model_id)
+                        }[level];
+
                         return <tr key={graph.id}>
                           <td>{graph.get('name') || '-'}</td>
                           <td className='level'>
                             {level}
                             &nbsp;
-                            {level === 'plugin' &&
-                              <span>
-                                ({plugins.get(graph.get('relations')[0].model_id).get('title')})
-                              </span>
-                            }
+                            {level === 'plugin' && <span>({graphLevelModel.get('title')})</span>}
                           </td>
                           <td>
                             {level === 'cluster' &&
@@ -272,10 +285,20 @@ var WorkflowsTab = React.createClass({
                           </td>
                           <td>
                             <DownloadFileButton
-                              label={i18n(ns + 'download_graph')}
+                              label={i18n(ns + 'download_graph_json')}
                               fileName={graphType + '-' + level + '.json'}
                               fileContent={() => JSON.stringify(graph.get('tasks'), null, 2)}
-                              className='btn btn-link btn-download-graph'
+                              className='btn btn-link btn-download-graph-json'
+                            />
+                            /
+                            <DownloadFileButton
+                              label={i18n(ns + 'download_graph_yaml')}
+                              fileName={graphType + '-' + level + '.yaml'}
+                              url={_.result(graphLevelModel, 'url') + '/deployment_tasks/'}
+                              headers={{Accept: 'application/x-yaml'}}
+                              fetchOptions={{graph_type: graphType}}
+                              className='btn btn-link btn-download-graph-yaml'
+                              showProgressBar='global'
                             />
                           </td>
                         </tr>;
