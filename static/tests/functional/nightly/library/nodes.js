@@ -15,6 +15,7 @@
  **/
 
 import 'tests/functional/helpers';
+import ModalWindow from 'tests/functional/pages/modal';
 import ClusterPage from 'tests/functional/pages/cluster';
 import ClustersPage from 'tests/functional/pages/clusters';
 import GenericLib from 'tests/functional/nightly/library/generic';
@@ -22,6 +23,7 @@ import GenericLib from 'tests/functional/nightly/library/generic';
 class NodesLib {
   constructor(remote) {
     this.remote = remote;
+    this.modal = new ModalWindow(remote);
     this.clusterPage = new ClusterPage(remote);
     this.clustersPage = new ClustersPage(remote);
     this.genericLib = new GenericLib(remote);
@@ -29,6 +31,7 @@ class NodesLib {
     this.popupSelector = 'div.popover';
     this.btnCancelSelector = 'button[class$="btn-default"]';
     this.warningIconSelector = ' i.glyphicon-warning-sign';
+    this.nodeGroupSelector = 'div.nodes-group';
   }
 
   cleanAllPopups() {
@@ -76,46 +79,21 @@ class NodesLib {
     return chain;
   }
 
-  checkRoleColors(roleName, roleSelector, backgroundColor, borderColor, textColor) {
-    return this.remote
-      .findByCssSelector(roleSelector)
-        .getComputedStyle('background-color')
-        .then((color) => {
-          if (color !== backgroundColor) {
-            throw new Error(roleName + ' role state has invalid background color: ' + color);
-          }
-        })
-        .getComputedStyle('border-top-color')
-        .then((color) => {
-          if (color !== borderColor) {
-            throw new Error(roleName + ' role state has invalid border color: ' + color);
-          }
-        })
-        .getComputedStyle('color')
-        .then((color) => {
-          if (color !== textColor) {
-            throw new Error(roleName + ' role state has invalid text color: ' + color);
-          }
-        })
-        .end();
-  }
-
   checkDeployResults(controller1Name, controller1Status, controller2Name, controller2Status,
     computeName, computeStatus, clusterName, clusterStatus) {
-    var nodeGroupSelector = 'div.nodes-group';
     var nodeSelector = 'div.node.';
-    var controller1Selector = nodeGroupSelector + ':first-child ' + nodeSelector +
+    var controller1Selector = this.nodeGroupSelector + ':first-child ' + nodeSelector +
       controller1Status + ':first-child';
-    var controller2Selector = nodeGroupSelector + ':first-child ' + nodeSelector +
+    var controller2Selector = this.nodeGroupSelector + ':first-child ' + nodeSelector +
       controller2Status + ':last-child';
-    var computeSelector = nodeGroupSelector + ':last-child ' + nodeSelector +
+    var computeSelector = this.nodeGroupSelector + ':last-child ' + nodeSelector +
       computeStatus + ':first-child';
     var nameSelector = ' div.name';
     var statusSelector = ' div.status';
     var clusterSelector = 'a.clusterbox';
     return this.remote
       .then(() => this.clusterPage.goToTab('Nodes'))
-      .assertElementsAppear(nodeGroupSelector, 1000, '"Nodes" subpage is not empty')
+      .assertElementsAppear(this.nodeGroupSelector, 1000, '"Nodes" subpage is not empty')
       .assertElementsExist(controller1Selector, controller1Status + ' conroller node #1 exists')
       .assertElementsExist(controller2Selector, controller2Status + ' conroller node #2 exists')
       .assertElementsExist(computeSelector, computeStatus + ' compute node exists')
@@ -132,6 +110,23 @@ class NodesLib {
       .assertElementContainsText(clusterSelector + statusSelector, clusterStatus,
         'Cluster has correct status')
       .then(() => this.clustersPage.goToEnvironment(clusterName));
+  }
+
+  removeNodeFromCluster() {
+    var nodeInputSelector = this.nodeGroupSelector + ' div.node:last-child input[type="checkbox"]';
+    var buttonDeleteNodes = 'button.btn-delete-nodes';
+    return this.remote
+      .then(() => this.clusterPage.goToTab('Nodes'))
+      .assertElementsAppear(this.nodeGroupSelector, 3000, '"Nodes" subpage appears')
+      .assertElementsExist(nodeInputSelector, 'Last node selector checkbox exists')
+      .clickByCssSelector(nodeInputSelector)
+      .assertElementsAppear(buttonDeleteNodes, 1000, '"Delete" button appears')
+      .clickByCssSelector(buttonDeleteNodes)
+      .then(() => this.modal.waitToOpen())
+      .then(() => this.modal.clickFooterButton('Delete'))
+      .then(() => this.modal.waitToClose())
+      .waitForElementDeletion(buttonDeleteNodes, 3000)
+      .sleep(500);
   }
 }
 

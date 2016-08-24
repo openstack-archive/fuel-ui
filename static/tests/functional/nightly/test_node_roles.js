@@ -19,9 +19,10 @@ import Common from 'tests/functional/pages/common';
 import ClusterPage from 'tests/functional/pages/cluster';
 import SettingsLib from 'tests/functional/nightly/library/settings';
 import NodesLib from 'tests/functional/nightly/library/nodes';
+import GenericLib from 'tests/functional/nightly/library/generic';
 
 registerSuite(() => {
-  var common, clusterPage, settingsLib, nodesLib, clusterName;
+  var common, clusterPage, settingsLib, nodesLib, genericLib, clusterName;
   var btnAddNodesSelector = '.btn-add-nodes';
   var btnCancelSelector = 'button[class$="btn-default"]';
   var rolePaneSelector = 'div.role-panel ';
@@ -95,6 +96,7 @@ registerSuite(() => {
       clusterPage = new ClusterPage(this.remote);
       settingsLib = new SettingsLib(this.remote);
       nodesLib = new NodesLib(this.remote);
+      genericLib = new GenericLib(this.remote);
       clusterName = common.pickRandomName('Test Cluster');
       var cinderBlockDeviceDriverSelector = 'input[name="volumes_block_device"]';
       var btnSaveSettingsSelector = '.btn-apply-changes';
@@ -190,33 +192,33 @@ registerSuite(() => {
         .assertElementNotExists(rolePaneSelector + selR, 'No one role is selected')
         // Check "Base" role state
         .assertElementsExist(baseOsR + nselR + ndisR + nhovR, baseOsN + ' role has true state')
-        .then(() => nodesLib.checkRoleColors(baseOsN, baseOsR, whiteC, greyC, blackC))
+        .then(() => genericLib.checkSelectorColors(baseOsN, baseOsR, whiteC, greyC, blackC))
         .assertElementsExist(virtualR + nselR + ndisR + nhovR, virtualN + ' role has true state')
         // Check "Hover" role state
         .then(() => nodesLib.waitForPopup(baseOsR))
         .assertElementsExist(baseOsR + nselR + ndisR + hovR, baseOsN + ' role has true state')
-        .then(() => nodesLib.checkRoleColors(baseOsN, baseOsR, greyC, greyC, blackC))
+        .then(() => genericLib.checkSelectorColors(baseOsN, baseOsR, greyC, greyC, blackC))
         .assertElementsExist(virtualR + nselR + ndisR + nhovR, virtualN + ' role has true state')
         // Check "Selected" and "Hover" role states
         .clickByCssSelector(baseOsR + btnRole)
         .assertElementNotExists(popupSelector, 'Help popup is gone for "Selected" state')
         .assertElementsExist(baseOsR + selectedIconSelector, baseOsN + ' role has selected icon')
         .assertElementsExist(baseOsR + selR + ndisR + hovR, baseOsN + ' role has true state')
-        .then(() => nodesLib.checkRoleColors(baseOsN, baseOsR, greenC, greenC, whiteC))
+        .then(() => genericLib.checkSelectorColors(baseOsN, baseOsR, greenC, greenC, whiteC))
         // Check "Selected" role state
         .then(() => nodesLib.cleanAllPopups())
         .assertElementsExist(baseOsR + selR + ndisR + nhovR, baseOsN + ' role has true state')
-        .then(() => nodesLib.checkRoleColors(baseOsN, baseOsR, lgreenC, lgreenC, whiteC))
+        .then(() => genericLib.checkSelectorColors(baseOsN, baseOsR, lgreenC, lgreenC, whiteC))
         // Check "Disabled" role state
         .assertElementsExist(virtualR + warningIconSelector, virtualN + ' role has disabled icon')
         .assertElementsExist(virtualR + nselR + disR + nhovR, virtualN + ' role has true state')
-        .then(() => nodesLib.checkRoleColors(virtualN, virtualR, whiteC, lorangeC, orangeC))
+        .then(() => genericLib.checkSelectorColors(virtualN, virtualR, whiteC, lorangeC, orangeC))
         // Check "Disabled" and "Hover" role states and that user cannot select disabled role
         .then(() => nodesLib.waitForPopup(virtualR))
         .clickByCssSelector(virtualR + btnRole)
         .assertElementNotExists(popupSelector, 'Help popup is gone for "Disabled" state')
         .assertElementsExist(virtualR + nselR + disR + hovR, virtualN + ' role has true state')
-        .then(() => nodesLib.checkRoleColors(virtualN, virtualR, greyC, greyC, orangeC))
+        .then(() => genericLib.checkSelectorColors(virtualN, virtualR, greyC, greyC, orangeC))
         // Precondition
         .clickByCssSelector(btnCancelSelector)
         .waitForCssSelector(btnAddNodesSelector, 1000)
@@ -229,11 +231,11 @@ registerSuite(() => {
         // Check "Indeterminate" role state for "Controller"
         .assertElementsExist(controlR + warningIconSelector, controlN + ' role has disabled icon')
         .assertElementsExist(controlR + indR, controlN + ' role has true state')
-        .then(() => nodesLib.checkRoleColors(controlN, controlR, llgreenC, llgreenC, whiteC))
+        .then(() => genericLib.checkSelectorColors(controlN, controlR, llgreenC, llgreenC, whiteC))
         // Check "Indeterminate" role state for "Compute"
         .assertElementsExist(computeR + warningIconSelector, computeN + ' role has disabled icon')
         .assertElementsExist(computeR + indR, computeN + ' role has true state')
-        .then(() => nodesLib.checkRoleColors(computeN, computeR, llgreenC, llgreenC, whiteC));
+        .then(() => genericLib.checkSelectorColors(computeN, computeR, llgreenC, llgreenC, whiteC));
     }
   };
 });
