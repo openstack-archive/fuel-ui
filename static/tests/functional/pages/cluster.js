@@ -118,7 +118,7 @@ class ClusterPage {
         })
         .end()
       .then(() => this.modal.waitToClose())
-      .waitForElementDeletion('div.progress-bar', 20000);
+      .waitForElementDeletion('div.progress-bar', 30000);
   }
 
   isTabLocked(tabName) {
