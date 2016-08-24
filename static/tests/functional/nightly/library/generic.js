@@ -65,6 +65,30 @@ class GenericLib {
         .then((element) => this.remote.moveMouseTo(element))
         .end();
   }
+
+  checkSelectorColors(selectorName, cssSelector, backgroundColor, borderColor, textColor) {
+    return this.remote
+      .findByCssSelector(cssSelector)
+        .getComputedStyle('background-color')
+        .then((color) => {
+          if (color !== backgroundColor) {
+            throw new Error(selectorName + ' role state has invalid background color: ' + color);
+          }
+        })
+        .getComputedStyle('border-top-color')
+        .then((color) => {
+          if (color !== borderColor) {
+            throw new Error(selectorName + ' role state has invalid border color: ' + color);
+          }
+        })
+        .getComputedStyle('color')
+        .then((color) => {
+          if (color !== textColor) {
+            throw new Error(selectorName + ' role state has invalid text color: ' + color);
+          }
+        })
+        .end();
+  }
 }
 
 export default GenericLib;
