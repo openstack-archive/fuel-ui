@@ -57,9 +57,10 @@ class DashboardLib {
 
   changeDeploymentMode(deploymentModeName) {
     var deployModeMenuSelector = this.deployModePaneSelector + 'ul.dropdown-menu ';
-    var properNames = ['Deploy', 'Provision', 'Deployment'];
-    var menuNames = ['Provisioning + Deployment', 'Provisioning only', 'Deployment only'];
-    var menuSelectors = ['deploy', 'provision', 'deployment'];
+    var properNames = ['Deploy', 'Provision', 'Deployment', 'Workflow'];
+    var menuNames =
+      ['Provisioning + Deployment', 'Provisioning only', 'Deployment only', 'Custom Workflow'];
+    var menuSelectors = ['deploy', 'provision', 'deployment', 'custom_graph'];
     // There are items indexes of dopdown menu to check proper values in it
     var firstItemIndex = properNames.indexOf(deploymentModeName);
     var secondItemIndex = properNames.length - firstItemIndex;
