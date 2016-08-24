@@ -52,138 +52,140 @@ registerSuite(() => {
         .then(() => clusterPage.resetEnvironment(clusterName))
         .then(() => dashboardPage.discardChanges());
     },
-    'Provision nodes'() {
-      this.timeout = 100000;
-      return this.remote
-        .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
-        .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.provision button')
-        .assertElementContainsText(
-          '.btn-provision',
-          'Provision 1 Node',
-          '1 node to be provisioned'
-        )
-        .clickByCssSelector('.btn-provision')
-        .then(() => modal.waitToOpen())
-        .then(() => modal.checkTitle('Provision Nodes'))
-        .then(() => modal.clickFooterButton('Provision 1 Node'))
-        .then(() => modal.waitToClose())
-        .assertElementAppears('div.deploy-process div.progress', 2000, 'Provisioning started')
-        .assertElementDisappears('div.deploy-process div.progress', 20000, 'Provisioning finished')
-        .assertElementContainsText(
-          'div.alert-success strong',
-          'Success',
-          'Provisioning successfully finished'
-        )
-        .then(() => clusterPage.isTabLocked('Networks'))
-        .then((isLocked) => {
-          assert.isFalse(isLocked, 'Networks tab is not locked after nodes were provisioned');
-        })
-        .then(() => clusterPage.isTabLocked('Settings'))
-        .then((isLocked) => {
-          assert.isFalse(isLocked, 'Settings tab is not locked after nodes were provisioned');
-        })
-        .then(() => clusterPage.goToTab('Dashboard'))
-        .assertElementEnabled(
-          dashboardPage.deployButtonSelector,
-          'Provisioned nodes can be deployed'
-        )
-        .then(() => common.addNodesToCluster(2, ['Controller']))
-        .then(() => clusterPage.goToTab('Dashboard'))
-        .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
-        .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.provision button')
-        .clickByCssSelector('.changes-list .dropdown-toggle')
-        .clickByCssSelector('.changes-list .btn-select-nodes')
-        .then(() => modal.waitToOpen())
-        .then(() => modal.checkTitle('Select Nodes'))
-        .assertElementsExist(
-          '.modal .node.selected',
-          2,
-          'All available nodes are selected for provisioning'
-        )
-        .assertElementContainsText(
-          '.modal-footer .btn-success',
-          'Select 2 Nodes',
-          'Select Nodes dialog confirmation button has a proper text'
-        )
-        .assertElementNotExists(
-          '.modal .node-management-panel .control-buttons-box .btn',
-          'There are no batch action buttons in Select Nodes dialog'
-        )
-        .clickByCssSelector('.modal .node-management-panel .btn-sorters')
-        .clickByCssSelector('.modal .sorters .more-control .dropdown-toggle')
-        .clickByCssSelector('.modal .sorters .popover input[name=manufacturer]')
-        .assertElementsExist(
-          '.modal .nodes-group',
-          2,
-          'Node sorting in Select nodes dialog works'
-        )
-        .clickByCssSelector('.modal .node-management-panel .btn-filters')
-        .clickByCssSelector('.modal .filters .more-control .dropdown-toggle')
-        .clickByCssSelector('.modal .filters .popover input[name=hdd]')
-        .setInputValue('.modal .filters .popover input[name=end]', '1000')
-        .assertElementsExist(
-          '.modal .node',
-          1,
-          'Node filtering in Select nodes dialog works'
-        )
-        .clickByCssSelector('.modal .filters .btn-reset-filters')
-        .clickByCssSelector('.modal .node-list-header input[name=select-all]')
-        .assertElementDisabled(
-          '.modal-footer .btn-success',
-          'No nodes selected for provisioning'
-        )
-        .clickByCssSelector('.modal .node')
-        .then(() => modal.clickFooterButton('Select 1 Node'))
-        .then(() => modal.waitToClose())
-        .assertElementContainsText(
-          '.btn-provision',
-          'Provision 1 of 2 Nodes',
-          '1 of 2 nodes to be provisioned'
-        )
-        .clickByCssSelector('.btn-provision')
-        .then(() => modal.waitToOpen())
-        .then(() => modal.clickFooterButton('Provision 1 Node'))
-        .then(() => modal.waitToClose())
-        .assertElementAppears('div.deploy-process div.progress', 2000, 'Provisioning started')
-        .assertElementDisappears('div.deploy-process div.progress', 5000, 'Provisioning finished')
-        .then(() => clusterPage.goToTab('Nodes'))
-        .assertElementsExist('.node.provisioned', 2, '2 of 3 nodes provisioned')
-        .then(() => clusterPage.goToTab('Dashboard'));
-    },
-    'Deploy nodes'() {
-      this.timeout = 100000;
-      return this.remote
-        .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
-        .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.deployment button')
-        .assertElementDisabled('.btn-deploy-nodes', 'There are no provisioned nodes to deploy')
-        .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
-        .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.provision button')
-        .clickByCssSelector('.btn-provision')
-        .then(() => modal.waitToOpen())
-        .then(() => modal.clickFooterButton('Provision 1 Node'))
-        .then(() => modal.waitToClose())
-        .assertElementAppears('div.deploy-process div.progress', 2000, 'Provisioning started')
-        .assertElementDisappears('div.deploy-process div.progress', 20000, 'Provisioning finished')
-        .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
-        .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.deployment button')
-        .assertElementContainsText('.btn-deploy-nodes', 'Deploy 1 Node', '1 node to be deployed')
-        .clickByCssSelector('.btn-deploy-nodes')
-        .then(() => modal.waitToOpen())
-        .then(() => modal.checkTitle('Deploy Nodes'))
-        .then(() => modal.clickFooterButton('Deploy 1 Node'))
-        .then(() => modal.waitToClose())
-        .assertElementAppears('div.deploy-process div.progress', 2000, 'Deployment started')
-        .assertElementDisappears('div.deploy-process div.progress', 20000, 'Deployment finished')
-        .assertElementContainsText(
-          'div.alert-success strong',
-          'Success',
-          'Deployment successfully finished'
-        )
-        .assertElementNotExists(
-          dashboardPage.deployButtonSelector,
-          'There are no changes to deploy in the environment'
-        );
-    },
+//    'Provision nodes'() {
+//      this.timeout = 100000;
+//      return this.remote
+//        .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
+//        .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.provision button')
+//        .assertElementContainsText(
+//          '.btn-provision',
+//          'Provision 1 Node',
+//          '1 node to be provisioned'
+//        )
+//        .clickByCssSelector('.btn-provision')
+//        .then(() => modal.waitToOpen())
+//        .then(() => modal.checkTitle('Provision Nodes'))
+//        .then(() => modal.clickFooterButton('Provision 1 Node'))
+//        .then(() => modal.waitToClose())
+//        .assertElementAppears('div.deploy-process div.progress', 2000, 'Provisioning started')
+//        .assertElementDisappears('div.deploy-process div.progress', 20000,
+//    'Provisioning finished')
+//        .assertElementContainsText(
+//          'div.alert-success strong',
+//          'Success',
+//          'Provisioning successfully finished'
+//        )
+//        .then(() => clusterPage.isTabLocked('Networks'))
+//        .then((isLocked) => {
+//          assert.isFalse(isLocked, 'Networks tab is not locked after nodes were provisioned');
+//        })
+//        .then(() => clusterPage.isTabLocked('Settings'))
+//        .then((isLocked) => {
+//          assert.isFalse(isLocked, 'Settings tab is not locked after nodes were provisioned');
+//        })
+//        .then(() => clusterPage.goToTab('Dashboard'))
+//        .assertElementEnabled(
+//          dashboardPage.deployButtonSelector,
+//          'Provisioned nodes can be deployed'
+//        )
+//        .then(() => common.addNodesToCluster(2, ['Controller']))
+//        .then(() => clusterPage.goToTab('Dashboard'))
+//        .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
+//        .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.provision button')
+//        .clickByCssSelector('.changes-list .dropdown-toggle')
+//        .clickByCssSelector('.changes-list .btn-select-nodes')
+//        .then(() => modal.waitToOpen())
+//        .then(() => modal.checkTitle('Select Nodes'))
+//        .assertElementsExist(
+//          '.modal .node.selected',
+//          2,
+//          'All available nodes are selected for provisioning'
+//        )
+//        .assertElementContainsText(
+//          '.modal-footer .btn-success',
+//          'Select 2 Nodes',
+//          'Select Nodes dialog confirmation button has a proper text'
+//        )
+//        .assertElementNotExists(
+//          '.modal .node-management-panel .control-buttons-box .btn',
+//          'There are no batch action buttons in Select Nodes dialog'
+//        )
+//        .clickByCssSelector('.modal .node-management-panel .btn-sorters')
+//        .clickByCssSelector('.modal .sorters .more-control .dropdown-toggle')
+//        .clickByCssSelector('.modal .sorters .popover input[name=manufacturer]')
+//        .assertElementsExist(
+//          '.modal .nodes-group',
+//          2,
+//          'Node sorting in Select nodes dialog works'
+//        )
+//        .clickByCssSelector('.modal .node-management-panel .btn-filters')
+//        .clickByCssSelector('.modal .filters .more-control .dropdown-toggle')
+//        .clickByCssSelector('.modal .filters .popover input[name=hdd]')
+//        .setInputValue('.modal .filters .popover input[name=end]', '1000')
+//        .assertElementsExist(
+//          '.modal .node',
+//          1,
+//          'Node filtering in Select nodes dialog works'
+//        )
+//        .clickByCssSelector('.modal .filters .btn-reset-filters')
+//        .clickByCssSelector('.modal .node-list-header input[name=select-all]')
+//        .assertElementDisabled(
+//          '.modal-footer .btn-success',
+//          'No nodes selected for provisioning'
+//        )
+//        .clickByCssSelector('.modal .node')
+//        .then(() => modal.clickFooterButton('Select 1 Node'))
+//        .then(() => modal.waitToClose())
+//        .assertElementContainsText(
+//          '.btn-provision',
+//          'Provision 1 of 2 Nodes',
+//          '1 of 2 nodes to be provisioned'
+//        )
+//        .clickByCssSelector('.btn-provision')
+//        .then(() => modal.waitToOpen())
+//        .then(() => modal.clickFooterButton('Provision 1 Node'))
+//        .then(() => modal.waitToClose())
+//        .assertElementAppears('div.deploy-process div.progress', 2000, 'Provisioning started')
+//        .assertElementDisappears('div.deploy-process div.progress', 5000, 'Provisioning finished')
+//        .then(() => clusterPage.goToTab('Nodes'))
+//        .assertElementsExist('.node.provisioned', 2, '2 of 3 nodes provisioned')
+//        .then(() => clusterPage.goToTab('Dashboard'));
+//    },
+//    'Deploy nodes'() {
+//      this.timeout = 100000;
+//      return this.remote
+//        .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
+//        .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.deployment button')
+//        .assertElementDisabled('.btn-deploy-nodes', 'There are no provisioned nodes to deploy')
+//        .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
+//        .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.provision button')
+//        .clickByCssSelector('.btn-provision')
+//        .then(() => modal.waitToOpen())
+//        .then(() => modal.clickFooterButton('Provision 1 Node'))
+//        .then(() => modal.waitToClose())
+//        .assertElementAppears('div.deploy-process div.progress', 2000, 'Provisioning started')
+//        .assertElementDisappears('div.deploy-process div.progress',
+//    20000, 'Provisioning finished')
+//        .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
+//        .clickByCssSelector('.actions-panel .dropdown .dropdown-menu li.deployment button')
+//        .assertElementContainsText('.btn-deploy-nodes', 'Deploy 1 Node', '1 node to be deployed')
+//        .clickByCssSelector('.btn-deploy-nodes')
+//        .then(() => modal.waitToOpen())
+//        .then(() => modal.checkTitle('Deploy Nodes'))
+//        .then(() => modal.clickFooterButton('Deploy 1 Node'))
+//        .then(() => modal.waitToClose())
+//        .assertElementAppears('div.deploy-process div.progress', 2000, 'Deployment started')
+//        .assertElementDisappears('div.deploy-process div.progress', 20000, 'Deployment finished')
+//        .assertElementContainsText(
+//          'div.alert-success strong',
+//          'Success',
+//          'Deployment successfully finished'
+//        )
+//        .assertElementNotExists(
+//          dashboardPage.deployButtonSelector,
+//          'There are no changes to deploy in the environment'
+//        );
+//    },
     'Start/stop deployment'() {
       this.timeout = 100000;
       return this.remote
