@@ -53,6 +53,7 @@ registerSuite(() => {
         .then(() => dashboardPage.discardChanges());
     },
     'Provision nodes'() {
+      this.skip('Skipped due to bug #1615557');
       this.timeout = 100000;
       return this.remote
         .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
@@ -151,6 +152,7 @@ registerSuite(() => {
         .then(() => clusterPage.goToTab('Dashboard'));
     },
     'Deploy nodes'() {
+      this.skip('Skipped due to bug #1615557');
       this.timeout = 100000;
       return this.remote
         .clickByCssSelector('.actions-panel .dropdown button.dropdown-toggle')
