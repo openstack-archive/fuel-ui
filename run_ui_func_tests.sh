@@ -117,6 +117,15 @@ function run_ui_func_tests {
         popd > /dev/null
     fi
 
+    ls $FUEL_WEB_ROOT/nailgun
+    ls $FUEL_WEB_ROOT/nailgun/test_run
+    
+    cat $FUEL_WEB_ROOT/nailgun/test_run/test.yaml
+
+    sed -i 's/^APP_LOGLEVEL:.*$/APP_LOGLEVEL: "DEBUG"/' $FUEL_WEB_ROOT/nailgun/test_run/test.yaml
+  
+    cat $FUEL_WEB_ROOT/nailgun/test_run/test.yaml
+  
     SERVER_PORT=$NAILGUN_PORT \
     ARTIFACTS=$ARTIFACTS \
     ${GULP} functional-tests --no-transpile --suites=$testcase || result=1
