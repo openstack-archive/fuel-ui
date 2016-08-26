@@ -117,6 +117,12 @@ function run_ui_func_tests {
         popd > /dev/null
     fi
 
+    cat $ARTS/test.yaml
+
+    sed -i 's/^APP_LOGLEVEL:.*$/APP_LOGLEVEL: "DEBUG"/' $ARTS/test.yaml
+  
+    cat $ARTS/test.yaml
+  
     SERVER_PORT=$NAILGUN_PORT \
     ARTIFACTS=$ARTIFACTS \
     ${GULP} functional-tests --no-transpile --suites=$testcase || result=1
