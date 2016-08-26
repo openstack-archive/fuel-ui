@@ -5248,10 +5248,21 @@ input[type=range] {
         .font-semibold;
         color: @base-text-color;
       }
+      &.error span {
+        .text-danger;
+      }
       &.active {
-        background: @green;
-        &:hover {
-          background: @green - 20%;
+        &.ready {
+          background: @green;
+          &:hover {
+            background: @green - 20%;
+          }
+        }
+        &.error {
+          background: @red;
+          &:hover {
+            background: @red - 20%;
+          }
         }
         &:focus {
           text-decoration: none;
@@ -5290,6 +5301,9 @@ input[type=range] {
       }
       .dropdown-menu {
         top: 48px;
+        a.error {
+          .text-danger;
+        }
       }
     }
   }

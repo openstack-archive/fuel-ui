@@ -94,15 +94,17 @@ HistoryTab = React.createClass({
   render() {
     var {cluster, activeTransactionId} = this.props;
     var ns = 'cluster_page.history_tab.';
-    var transactionIds = _.map(cluster.get('transactions').filterTasks({active: false}), 'id');
+    var transactions = cluster.get('transactions').filterTasks({active: false});
     var visibleTransactionsAmount = 7;
-    var visibleTransactions = transactionIds;
+    var visibleTransactions = transactions;
     var hiddenTransactions = [];
-    if (transactionIds.length > visibleTransactionsAmount) {
-      visibleTransactions = _.takeRight(transactionIds, visibleTransactionsAmount - 1);
-      hiddenTransactions = _.take(transactionIds,
-        transactionIds.length - (visibleTransactionsAmount - 1)
+    var activeHiddenTransaction;
+    if (transactions.length > visibleTransactionsAmount) {
+      visibleTransactions = _.takeRight(transactions, visibleTransactionsAmount - 1);
+      hiddenTransactions = _.take(transactions,
+        transactions.length - (visibleTransactionsAmount - 1)
       ).reverse();
+      activeHiddenTransaction = _.find(hiddenTransactions, {id: activeTransactionId});
     }
 
     return (
@@ -111,7 +113,7 @@ HistoryTab = React.createClass({
           {i18n(ns + 'title')}
         </div>
         <div className='wrapper col-xs-12'>
-          {transactionIds.length ?
+          {transactions.length ?
             <div>
               <div className='transaction-list clearfix'>
                 {!!hiddenTransactions.length &&
@@ -120,13 +122,15 @@ HistoryTab = React.createClass({
                       <button
                         className={utils.classNames({
                           'btn btn-default dropdown-toggle': true,
-                          active: _.includes(hiddenTransactions, activeTransactionId)
+                          [activeHiddenTransaction && activeHiddenTransaction.get('status')]:
+                            activeHiddenTransaction,
+                          active: activeHiddenTransaction
                         })}
                         id='previous-transactions'
                         data-toggle='dropdown'
                       >
                         <span className='dropdown-name'>
-                          {_.includes(hiddenTransactions, activeTransactionId) ?
+                          {activeHiddenTransaction ?
                             ('#' + activeTransactionId)
                           :
                             i18n(ns + 'previous_deployments')
@@ -136,12 +140,15 @@ HistoryTab = React.createClass({
                       </button>
                       <ul className='dropdown-menu'>
                         {_.map(
-                          _.without(hiddenTransactions, activeTransactionId),
-                          (transactionId) => {
+                          _.reject(hiddenTransactions, {id: activeTransactionId}),
+                          (transaction) => {
                             return (
-                              <li key={transactionId}>
-                                <Link to={'/cluster/' + cluster.id + '/history/' + transactionId}>
-                                  <span>{'#' + transactionId}</span>
+                              <li key={transaction.id}>
+                                <Link
+                                  to={'/cluster/' + cluster.id + '/history/' + transaction.id}
+                                  className={transaction.get('status')}
+                                >
+                                  <span>{'#' + transaction.id}</span>
                                 </Link>
                               </li>
                             );
@@ -152,17 +159,18 @@ HistoryTab = React.createClass({
                     <i className='glyphicon glyphicon-arrow-right' />
                   </div>
                 }
-                {_.map(visibleTransactions, (transactionId, index) => {
+                {_.map(visibleTransactions, (transaction, index) => {
                   return (
-                    <div key={transactionId}>
+                    <div key={transaction.id}>
                       <Link
-                        to={'/cluster/' + cluster.id + '/history/' + transactionId}
+                        to={'/cluster/' + cluster.id + '/history/' + transaction.id}
                         className={utils.classNames({
                           'transaction-link': true,
-                          active: transactionId === activeTransactionId
+                          [transaction.get('status')]: true,
+                          active: transaction.id === activeTransactionId
                         })}
                       >
-                        <span>{'#' + transactionId}</span>
+                        <span>{'#' + transaction.id}</span>
                       </Link>
                       {index < visibleTransactions.length - 1 &&
                         <i className='glyphicon glyphicon-arrow-right' />
