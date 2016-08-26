@@ -34,6 +34,7 @@ registerSuite(() => {
   var cancelChgsBtn = 'button.btn-revert-changes';
   var saveNetworksChangesButton = 'button.btn.apply-btn';
   var saveSettingsChangesButton = 'button.btn-apply-changes';
+  var buttonProgressSelector = 'button.btn-progress';
   var deployButton = '.deploy-btn';
   var clusterStatus = '.cluster-info-value.status';
   var dashboardTabSelector = 'div.dashboard-tab ';
@@ -73,7 +74,7 @@ registerSuite(() => {
           '"Load Deployed Settings" button does not exist on settings tab');
     },
     'Check that any settings are locked till deployment process is in progress'() {
-      this.timeout = 45000;
+      this.timeout = 60000;
       return this.remote
         .then(() => clusterPage.goToTab('Dashboard'))
         .then(() => dashboardPage.startDeployment())
@@ -105,9 +106,12 @@ registerSuite(() => {
         .waitForCssSelector(saveNetworksChangesButton, 1000)
         .clickByCssSelector(saveNetworksChangesButton)
         // wait a bit for updating elements on page
+        .waitForElementDeletion(buttonProgressSelector, 5000)
         .assertElementAppears(checkBoxToChange + ':enabled', 3000, 'Change is saved successfully')
-        .assertElementPropertyEquals(checkBoxToChange, 'value', 'true',
-          '"Assign public network to all nodes" checkbox is checked')
+        // .assertElementPropertyEquals(checkBoxToChange, 'value', 'true',
+        //   '"Assign public network to all nodes" checkbox is checked')
+        .assertElementSelected(checkBoxToChange,
+          '"Assign public network to all nodes" checkbox is selected')
         .then(() => clusterPage.goToTab('Dashboard'))
         // Check that, after any changes for cluster in operational state,
         // deploy button is available
@@ -133,9 +137,11 @@ registerSuite(() => {
         .clickByCssSelector('input[name="sahara"]')
         .clickByCssSelector(saveSettingsChangesButton)
         // wait a bit for updating elements on page
+        .waitForElementDeletion(buttonProgressSelector, 5000)
         .assertElementAppears('input[name="sahara"]:enabled', 3000, 'Change is saved successfully')
-        .assertElementPropertyEquals('input[name*="sahara"]', 'value', 'true',
-          '"Install Sahara" checkbox is enabled')
+        // .assertElementPropertyEquals('input[name*="sahara"]', 'value', 'true',
+        //   '"Install Sahara" checkbox is enabled')
+        .assertElementSelected('input[name*="sahara"]', '"Install Sahara" checkbox is selected')
         .then(() => clusterPage.goToTab('Dashboard'))
         .assertElementContainsText('.changes-item', 'Changed environment configuration',
           'List of changes contains message about Changes in environment configuration')
@@ -151,7 +157,7 @@ registerSuite(() => {
           'Settings changes were discarded');
     },
     'Check "Load deployed settings" button behavior'() {
-      this.timeout = 60000;
+      this.timeout = 45000;
       var publicVlanChkbox = '.public input[type*="checkbox"][name*="vlan_start"]';
       var publicVlanInput = '.public input[type="text"][name*="vlan_start"]';
       var ironicCheckbox = 'input[name="ironic"]';
@@ -171,6 +177,7 @@ registerSuite(() => {
         .assertElementEnabled(saveNetworksChangesButton, '"Save changes" button should be enabled')
         .clickByCssSelector(saveNetworksChangesButton)
         // wait a bit for updating elements on page
+        .waitForElementDeletion(buttonProgressSelector, 5000)
         .assertElementAppears(publicVlanChkbox + ':enabled', 3000, 'Change is saved successfully')
         .assertElementPropertyEquals(publicVlanChkbox, 'value', '123', 'changes were saved')
         // wait a bit for button would have loaded after page were updated
@@ -191,16 +198,21 @@ registerSuite(() => {
         .clickByCssSelector(ironicCheckbox)
         .clickByCssSelector(saveSettingsChangesButton)
         // wait a bit for updating elements on page
+        .waitForElementDeletion(buttonProgressSelector, 5000)
         .assertElementAppears(ironicCheckbox + ':enabled', 3000, 'Change is saved successfully')
-        .assertElementPropertyEquals(ironicCheckbox, 'value', 'true',
-          '"Settings" changes were saved')
+        // .assertElementPropertyEquals(ironicCheckbox, 'value', 'true',
+        //   '"Settings" changes were saved')
+        .assertElementSelected(ironicCheckbox, '"Settings" changes were saved')
         .clickByCssSelector(loadDeployedBtn)
         // wait a bit for updating elements on page
         .assertElementAppears(ironicCheckbox + ':enabled', 3000, 'Change is saved successfully')
-        .assertElementPropertyEquals(ironicCheckbox, 'value', 'false',
+        // .assertElementPropertyEquals(ironicCheckbox, 'value', 'false',
+        //   '"Load defaults setting" button had discarded "Settings" changes')
+        .assertElementNotSelected(ironicCheckbox,
           '"Load defaults setting" button had discarded "Settings" changes')
         .clickByCssSelector(saveSettingsChangesButton)
         // Wait for changes apply
+        .waitForElementDeletion(buttonProgressSelector, 5000)
         .waitForElementDeletion(loadDeployedBtn + ':disabled', 1000);
     }
     /*
