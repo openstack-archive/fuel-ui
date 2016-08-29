@@ -195,7 +195,10 @@ class App {
         if (this.version.get('auth_required')) {
           this.keystoneClient.token = this.user.get('token');
           return this.keystoneClient.authenticate()
-            .done(() => this.user.set({authenticated: true}));
+            .done(() => {
+              this.user.set({authenticated: true});
+              return this.version.fetch({cache: true});
+            });
         }
         return $.Deferred().resolve();
       })
