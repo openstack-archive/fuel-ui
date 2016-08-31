@@ -341,7 +341,12 @@ var RunningDeploymentControl = React.createClass({
           }
         </div>
         {!!transaction && isDeploymentHistoryOpen &&
-          <DeploymentHistoryWrapper transaction={transaction} />
+          <DeploymentHistoryWrapper
+            transaction={transaction}
+            cluster={cluster}
+            nodes={cluster.get('nodes')}
+            nodeNetworkGroups={cluster.get('nodeNetworkGroups')}
+          />
         }
       </div>
     );
