@@ -20,6 +20,7 @@ import React from 'react';
 import classNames from 'classnames';
 import naturalSort from 'javascript-natural-sort';
 import IP from 'ip';
+import moment from 'moment';
 import {ErrorDialog} from 'views/dialogs';
 import models from 'models';
 
@@ -330,13 +331,13 @@ var utils = {
       return result;
     }, _.isArray(object) ? [] : {});
   },
-  formatTimestamp(timestamp) {
-    if (!timestamp) return '';
-    var date = new Date(timestamp);
-    var addLeadingZero = (value) => ('0' + value).substr(-2);
-    return addLeadingZero(date.getHours()) + ':' + addLeadingZero(date.getMinutes()) + ':' +
-      addLeadingZero(date.getSeconds()) + ' ' + addLeadingZero(date.getDate()) + '/' +
-      addLeadingZero(date.getMonth() + 1) + '/' + date.getFullYear();
+  formatISO8601Date(date) {
+    if (_.isNull(date)) return '';
+    return moment(utils.parseISO8601Date(date)).format('HH:mm:ss DD/MM/YYYY');
+  },
+  parseISO8601Date: _.memoize((date) => new Date(date + 'Z').getTime()),
+  parseRFC2822Date(date) {
+    return Number(moment.utc(date, 'ddd, D MMM YYYY H:mm:ss [GMT]', true));
   },
   getStringHashCode(str) {
     var hash = 0;

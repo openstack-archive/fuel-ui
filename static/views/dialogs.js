@@ -2365,7 +2365,8 @@ export var DeploymentTaskDetailsDialog = React.createClass({
             </strong>
             <span className='col-xs-9'>
               {this.renderTaskAttribute(
-                _.startsWith(attr, 'time') ? utils.formatTimestamp(task.get(attr)) : task.get(attr)
+                _.startsWith(attr, 'time') ?
+                  utils.formatISO8601Date(task.get(attr)) : task.get(attr)
               )}
             </span>
           </div>
