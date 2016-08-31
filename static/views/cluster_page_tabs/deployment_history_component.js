@@ -19,7 +19,7 @@ import React from 'react';
 import utils from 'utils';
 import moment from 'moment';
 import {Table, Tooltip, Popover, MultiSelectControl, DownloadFileButton} from 'views/controls';
-import {DeploymentTaskDetailsDialog} from 'views/dialogs';
+import {DeploymentTaskDetailsDialog, ShowNodeInfoDialog} from 'views/dialogs';
 import {
   DEPLOYMENT_HISTORY_VIEW_MODES, DEPLOYMENT_TASK_STATUSES, DEPLOYMENT_TASK_ATTRIBUTES
 } from 'consts';
@@ -149,7 +149,8 @@ var DeploymentHistory = React.createClass({
           {viewMode === 'timeline' &&
             <DeploymentHistoryTimeline
               {... _.pick(this.props,
-                'deploymentHistory', 'width', 'timelineIntervalWidth', 'timelineRowHeight'
+                'deploymentHistory', 'cluster', 'nodes', 'nodeNetworkGroups',
+                'width', 'timelineIntervalWidth', 'timelineRowHeight'
               )}
               {... _.pick(this.state, 'millisecondsPerPixel')}
               nodeTimelineContainerWidth={this.getNodeTimelineContainerWidth()}
@@ -160,6 +161,7 @@ var DeploymentHistory = React.createClass({
           }
           {viewMode === 'table' &&
             <DeploymentHistoryTable
+              {... _.pick(this.props, 'cluster', 'nodes', 'nodeNetworkGroups')}
               deploymentTasks={deploymentHistory.filter((task) =>
                 _.every(filters, ({name, values}) =>
                   !values.length || _.includes(values, task.get(name))
@@ -387,8 +389,33 @@ var DeploymentHistoryTask = React.createClass({
   }
 });
 
+// Prefer to keep this as a function, not a component, since components
+// don't allow to return plain text and I'd really prefer not to create extra
+// useless spans
+function renderNodeName(nodeId) {
+  if (nodeId === 'master') {
+    return i18n(ns + 'master_node');
+  }
+  var node = this.props.nodes.get(nodeId);
+  if (!node) {
+    return i18n(ns + 'deleted_node', {id: nodeId});
+  }
+  return (
+    <button
+      className='btn btn-link'
+      onClick={() => ShowNodeInfoDialog.show({
+        node,
+        cluster: this.props.cluster,
+        nodeNetworkGroup: this.props.nodeNetworkGroups.get(node.get('group_id'))
+      })}
+    >
+      <div>{node.get('name')}</div>
+    </button>
+  );
+}
+
 var DeploymentHistoryTimeline = React.createClass({
-  getIntervalLabel(index) {
+  renderIntervalLabel(index) {
     var {timelineIntervalWidth, millisecondsPerPixel} = this.props;
     var seconds = Math.floor(millisecondsPerPixel / 1000 * timelineIntervalWidth * (index + 1));
     var minutes = seconds < 60 ? 0 : Math.floor(seconds / 60);
@@ -450,7 +477,7 @@ var DeploymentHistoryTimeline = React.createClass({
               <div className='node-names' ref='names'>
                 {_.map(nodeIds,
                   (nodeId) => <div key={nodeId} style={{height: timelineRowHeight}}>
-                    {nodeId === 'master' ? nodeId : '#' + nodeId}
+                    {renderNodeName.call(this, nodeId)}
                   </div>
                 )}
               </div>
@@ -467,7 +494,7 @@ var DeploymentHistoryTimeline = React.createClass({
                       right: (intervals - (n + 1)) * timelineIntervalWidth
                     }}
                   >
-                    {this.getIntervalLabel(n)}
+                    {this.renderIntervalLabel(n)}
                   </div>
                 )}
               </div>
@@ -535,9 +562,15 @@ var DeploymentHistoryTable = React.createClass({
             }
             body={_.map(deploymentTasks,
               (task) => DEPLOYMENT_TASK_ATTRIBUTES
-                .map((attr) => _.startsWith(attr, 'time') ?
-                  utils.formatTimestamp(task.get(attr)) : task.get(attr)
-                )
+                .map((attr) => {
+                  if (attr === 'time_start' || attr === 'time_end') {
+                    return utils.formatTimestamp(task.get(attr));
+                  } else if (attr === 'node_id') {
+                    return renderNodeName.call(this, task.get(attr));
+                  } else {
+                    return task.get(attr);
+                  }
+                })
                 .concat([
                   <button
                     key={task.get('task_name') + 'details'}
