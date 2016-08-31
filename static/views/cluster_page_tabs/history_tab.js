@@ -190,6 +190,9 @@ HistoryTab = React.createClass({
                       ref='screen'
                       deploymentHistory={deploymentHistory}
                       transaction={cluster.get('transactions').get(activeTransactionId)}
+                      cluster={cluster}
+                      nodes={cluster.get('nodes')}
+                      nodeNetworkGroups={cluster.get('nodeNetworkGroups')}
                     />
                   </ScreenTransitionWrapper>
                 </ReactTransitionGroup>

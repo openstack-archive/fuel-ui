@@ -5324,11 +5324,12 @@ input[type=range] {
       tbody tr td, thead th {
         padding: 5px 15px;
         text-align: left;
-        &:nth-child(2), &:nth-child(6) {text-align: center;} // node id and task details columns
+        &:nth-child(2) {max-width: 250px;} // node column
+        &:nth-child(6) {text-align: center;} // task details column
       }
       thead th {
         border-bottom-width: 1px;
-        &:nth-child(2) {width: 90px;} // node id column
+        &:nth-child(2) {width: 250px;} // node column
         &:nth-child(3) {width: 150px;} // task status column
         &:nth-child(4), &:nth-child(5) {width: 170px;} // task start and end time columns
         &:nth-child(6) {width: 80px;} // task details button column
@@ -5340,6 +5341,13 @@ input[type=range] {
         font-size: @base-font-size - 2;
         line-height: @base-font-size - 2;
         padding: 0;
+        border: 0;
+        max-width: 100%;
+        > div {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
       }
     }
     .alert {
@@ -5437,10 +5445,18 @@ input[type=range] {
 
         > div {
           width: 100%;
-          padding: 6px 20px 5px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          font-size: @base-font-size - 2;
+          padding: 6px 10px 5px;
+          &, > .btn-link > div {
+            font-size: @base-font-size - 2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          > .btn-link {
+            max-width: 100%;
+            padding: 0;
+            border: 0;
+          }
         }
       }
     }
