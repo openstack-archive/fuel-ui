@@ -231,6 +231,19 @@ var DeploymentHistoryManagementPanel = React.createClass({
                 })}
               </div>
             </div>
+            {viewMode === 'table' &&
+              <Tooltip wrap text={i18n(ns + 'filter_tooltip')}>
+                <button
+                  onClick={this.toggleFilters}
+                  className={utils.classNames({
+                    'btn btn-default pull-left btn-filters': true,
+                    active: areFiltersVisible
+                  })}
+                >
+                  <i className='glyphicon glyphicon-filter' />
+                </button>
+              </Tooltip>
+            }
             {viewMode === 'timeline' &&
               <div className='zoom-controls pull-right'>
                 <div className='btn-group' data-toggle='buttons'>
@@ -255,29 +268,14 @@ var DeploymentHistoryManagementPanel = React.createClass({
                 </div>
               </div>
             }
-            {viewMode === 'table' &&
-              <div>
-                <Tooltip wrap text={i18n(ns + 'filter_tooltip')}>
-                  <button
-                    onClick={this.toggleFilters}
-                    className={utils.classNames({
-                      'btn btn-default pull-left btn-filters': true,
-                      active: areFiltersVisible
-                    })}
-                  >
-                    <i className='glyphicon glyphicon-filter' />
-                  </button>
-                </Tooltip>
-                <DownloadFileButton
-                  label={i18n(ns + 'export_csv')}
-                  fileName={'deployment#' + transaction.id + '.csv'}
-                  url={deploymentHistory.url}
-                  headers={{Accept: 'text/csv'}}
-                  className='btn btn-default pull-right btn-export-history-csv'
-                  showProgressBar='inline'
-                />
-              </div>
-            }
+            <DownloadFileButton
+              label={i18n(ns + 'export_csv')}
+              fileName={'deployment#' + transaction.id + '.csv'}
+              url={deploymentHistory.url}
+              headers={{Accept: 'text/csv'}}
+              className='btn btn-default pull-right btn-export-history-csv'
+              showProgressBar='inline'
+            />
           </div>
           {viewMode === 'table' && areFiltersVisible && (
             <div className='filters col-xs-12'>
