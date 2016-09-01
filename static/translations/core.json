@@ -1179,6 +1179,7 @@
                     "drive_plural": "drives",
                     "node_network_group": "Node network group",
                     "cluster": "Environment",
+                    "roles": "Roles",
                     "nova_hugepages": "Nova Huge pages",
                     "cpu_id": "CPU IDs",
                     "memory": "Memory",

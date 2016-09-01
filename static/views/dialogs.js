@@ -1478,8 +1478,15 @@ export var ShowNodeInfoDialog = React.createClass({
       <div className='row node-summary'>
         <div className='col-xs-6'>
           {node.get('cluster') && cluster &&
-            <div><strong>{i18n('dialog.show_node.cluster')}: </strong>
-              {cluster.get('name')}
+            <div>
+              <div><strong>{i18n('dialog.show_node.cluster')}: </strong>
+                {cluster.get('name')}
+              </div>
+              <div><strong>{i18n('dialog.show_node.roles')}: </strong>
+                {_.map(node.sortedRoles(cluster.get('roles').map('name')),
+                  (role) => cluster.get('roles').find({name: role}).get('label')
+                ).join(', ')}
+              </div>
             </div>
           }
           <div><strong>{i18n('dialog.show_node.manufacturer_label')}: </strong>
