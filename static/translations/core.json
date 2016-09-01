@@ -336,7 +336,10 @@
                 "history_tab": {
                     "title": "Deployment History",
                     "previous_deployments": "Previous Deployments",
-                    "no_finished_deployment_alert": "No deployment finished yet."
+                    "no_finished_deployment_alert": "No deployment finished yet.",
+                    "graph_titles": {
+                        "default": "Deployment"
+                    }
                 },
                 "workflows_tab": {
                     "title": "Workflows",

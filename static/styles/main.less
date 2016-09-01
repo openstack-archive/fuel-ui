@@ -5239,7 +5239,7 @@ input[type=range] {
       height: 46px;
       border-radius: 4px;
       text-align: center;
-      padding: 12px 0 0;
+      padding: 7px;
       &:hover {
         text-decoration: none;
         background: @gray + 60%;
@@ -5247,6 +5247,11 @@ input[type=range] {
       span {
         .font-semibold;
         color: @base-text-color;
+        line-height: 16px;
+        display: block;
+        margin-bottom: 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       &.error span {
         .text-danger;
@@ -5281,28 +5286,36 @@ input[type=range] {
         width: @base-size;
         padding: 0 10px;
         overflow: hidden;
-        .dropdown-name {
-          display: inline-block;
-          width: @base-size - 40px;
-          overflow: hidden;
-          white-space: pre-wrap;
-          text-align: left;
-          line-height: 18px;
-          float: left;
-        }
-        &.active .dropdown-name {
-          text-align: center;
-        }
-        .caret {
-          display: inline-block;
-          position: absolute;
-          top: 22px;
+        span {
+          margin-top: 3px;
+          &.previous-deployments {
+            display: inline-block;
+            width: @base-size - 40px;
+            overflow: hidden;
+            white-space: pre-wrap;
+            text-align: left;
+            line-height: 18px;
+            float: left;
+            margin-top: 0;
+          }
+          &.caret {
+            display: inline-block;
+            position: absolute;
+            top: 19px;
+            right: 10px;
+          }
         }
       }
       .dropdown-menu {
         top: 48px;
-        a.error {
-          .text-danger;
+        a {
+          span {
+            display: inline-block;
+            margin-right: 3px;
+          }
+          &.error {
+            .text-danger;
+          }
         }
       }
     }

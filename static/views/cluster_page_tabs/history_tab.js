@@ -91,12 +91,23 @@ HistoryTab = React.createClass({
       this.loadScreenData(activeTransactionId);
     }
   },
+  renderTransactionTitle(transaction) {
+    return [
+      <span key='graph'>
+        {i18n(
+          'cluster_page.history_tab.graph_titles.' + transaction.get('graph_type'),
+          {defaultValue: transaction.get('graph_type')}
+        )}
+      </span>,
+      <span key='id'>{'#' + transaction.id}</span>
+    ];
+  },
   render() {
     var {cluster, activeTransactionId} = this.props;
     var {deploymentHistory} = this.state;
     var ns = 'cluster_page.history_tab.';
     var transactions = cluster.get('transactions').filterTasks({active: false});
-    var visibleTransactionsAmount = 7;
+    var visibleTransactionsAmount = 2;
     var visibleTransactions = transactions;
     var hiddenTransactions = [];
     var activeHiddenTransaction;
@@ -130,13 +141,13 @@ HistoryTab = React.createClass({
                         id='previous-transactions'
                         data-toggle='dropdown'
                       >
-                        <span className='dropdown-name'>
-                          {activeHiddenTransaction ?
-                            ('#' + activeTransactionId)
-                          :
-                            i18n(ns + 'previous_deployments')
-                          }
-                        </span>
+                        {activeHiddenTransaction ?
+                          this.renderTransactionTitle(activeHiddenTransaction)
+                        :
+                          <span className='previous-deployments'>
+                            {i18n(ns + 'previous_deployments')}
+                          </span>
+                        }
                         <span className='caret' />
                       </button>
                       <ul className='dropdown-menu'>
@@ -149,7 +160,7 @@ HistoryTab = React.createClass({
                                   to={'/cluster/' + cluster.id + '/history/' + transaction.id}
                                   className={transaction.get('status')}
                                 >
-                                  <span>{'#' + transaction.id}</span>
+                                  {this.renderTransactionTitle(transaction)}
                                 </Link>
                               </li>
                             );
@@ -171,7 +182,7 @@ HistoryTab = React.createClass({
                           active: transaction.id === activeTransactionId
                         })}
                       >
-                        <span>{'#' + transaction.id}</span>
+                        {this.renderTransactionTitle(transaction)}
                       </Link>
                       {index < visibleTransactions.length - 1 &&
                         <i className='glyphicon glyphicon-arrow-right' />
