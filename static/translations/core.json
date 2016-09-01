@@ -369,6 +369,7 @@
                     "time_end_header": "Finished",
                     "filter_by": "Filter By",
                     "filter_by_task_name": "Task Name",
+                    "filter_by_node": "Node",
                     "filter_by_status": "Task Status",
                     "task_details": "Details",
                     "filter_tooltip": "Filter Tasks",

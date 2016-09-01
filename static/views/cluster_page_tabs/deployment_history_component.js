@@ -46,13 +46,25 @@ var DeploymentHistory = React.createClass({
           name: 'task_name',
           label: i18n(ns + 'filter_by_task_name'),
           values: [],
-          options: _.uniq(deploymentHistory.map('task_name')).sort(),
+          options: _.map(_.uniq(deploymentHistory.map('task_name')).sort(),
+            (taskName) => ({name: taskName, title: taskName})
+          ),
+          addOptionsFilter: true
+        }, {
+          name: 'node_id',
+          label: i18n(ns + 'filter_by_node'),
+          values: [],
+          options: _.map(_.uniq(deploymentHistory.map('node_id')),
+            (nodeId) => ({name: nodeId, title: renderNodeName.call(this, nodeId, false)})
+          ),
           addOptionsFilter: true
         }, {
           name: 'status',
           label: i18n(ns + 'filter_by_status'),
           values: [],
-          options: DEPLOYMENT_TASK_STATUSES
+          options: _.map(DEPLOYMENT_TASK_STATUSES,
+            (status) => ({name: status, title: status})
+          )
         }
       ],
       millisecondsPerPixel:
@@ -295,7 +307,6 @@ var DeploymentHistoryManagementPanel = React.createClass({
                     onChange={_.partial(changeFilter, filter.name)}
                     isOpen={openFilter === filter.name}
                     toggle={_.partial(this.toggleFilter, filter.name)}
-                    options={_.map(filter.options, (value) => ({name: value, title: value}))}
                   />
                 )}
               </div>
@@ -307,10 +318,12 @@ var DeploymentHistoryManagementPanel = React.createClass({
             <div className='active-filters row' onClick={this.toggleFilters}>
               <strong className='col-xs-1'>{i18n(ns + 'filter_by')}</strong>
               <div className='col-xs-11'>
-                {_.map(filters, ({name, label, values}) => {
+                {_.map(filters, ({name, label, values, options}) => {
                   if (!values.length) return null;
                   return <div key={name}>
-                    <strong>{label + ':'}</strong> <span>{values.join(', ')}</span>
+                    <strong>{label + ':'}</strong> <span>
+                      {_.map(values, (value) => _.find(options, {name: value}).title).join(', ')}
+                    </span>
                   </div>;
                 })}
               </div>
@@ -384,7 +397,7 @@ var DeploymentHistoryTask = React.createClass({
 // Prefer to keep this as a function, not a component, since components
 // don't allow to return plain text and I'd really prefer not to create extra
 // useless spans
-function renderNodeName(nodeId) {
+function renderNodeName(nodeId, isClickable = true) {
   if (nodeId === 'master') {
     return i18n(ns + 'master_node');
   }
@@ -392,18 +405,21 @@ function renderNodeName(nodeId) {
   if (!node) {
     return i18n(ns + 'deleted_node', {id: nodeId});
   }
-  return (
-    <button
-      className='btn btn-link'
-      onClick={() => ShowNodeInfoDialog.show({
-        node,
-        cluster: this.props.cluster,
-        nodeNetworkGroup: this.props.nodeNetworkGroups.get(node.get('group_id'))
-      })}
-    >
-      <div>{node.get('name')}</div>
-    </button>
-  );
+  if (isClickable) {
+    return (
+      <button
+        className='btn btn-link'
+        onClick={() => ShowNodeInfoDialog.show({
+          node,
+          cluster: this.props.cluster,
+          nodeNetworkGroup: this.props.nodeNetworkGroups.get(node.get('group_id'))
+        })}
+      >
+        <div>{node.get('name')}</div>
+      </button>
+    );
+  }
+  return node.get('name');
 }
 
 var DeploymentHistoryTimeline = React.createClass({
