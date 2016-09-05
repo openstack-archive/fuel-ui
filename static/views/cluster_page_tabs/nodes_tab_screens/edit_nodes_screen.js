@@ -16,7 +16,7 @@
 import _ from 'underscore';
 import React from 'react';
 import utils from 'utils';
-import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {NodeListScreen} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 
 var EditNodesScreen = React.createClass({
   statics: {
