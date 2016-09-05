@@ -99,7 +99,12 @@ HistoryTab = React.createClass({
           {defaultValue: transaction.get('graph_type')}
         )}
       </span>,
-      <span key='id'>{'#' + transaction.id}</span>
+      transaction.get('time_start') ?
+        <span key='time' className='time-start'>
+          {utils.formatTimestamp(utils.parseISO8601Date(transaction.get('time_start')), false)}
+        </span>
+      :
+        <span key='id'>{'#' + transaction.id}</span>
     ];
   },
   render() {
