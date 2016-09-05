@@ -334,9 +334,9 @@ var utils = {
       return result;
     }, _.isArray(object) ? [] : {});
   },
-  formatTimestamp(timestamp) {
+  formatTimestamp(timestamp, showSeconds = true) {
     if (_.isNull(timestamp)) return '';
-    return moment(timestamp).format('HH:mm:ss DD/MM/YYYY');
+    return moment(timestamp).format(showSeconds ? 'HH:mm:ss DD/MM/YYYY' : 'HH:mm DD/MM/YYYY');
   },
   parseISO8601Date: _.memoize((date) => new Date(date + 'Z').getTime()),
   parseRFC2822Date(date) {
