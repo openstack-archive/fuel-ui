@@ -20,8 +20,10 @@ import utils from 'utils';
 import {Table, Tooltip, Popover, MultiSelectControl, DownloadFileButton} from 'views/controls';
 import {DeploymentTaskDetailsDialog, ShowNodeInfoDialog} from 'views/dialogs';
 import {
-  DEPLOYMENT_HISTORY_VIEW_MODES, DEPLOYMENT_TASK_STATUSES, DEPLOYMENT_TASK_ATTRIBUTES
+  DEPLOYMENT_HISTORY_VIEW_MODES, DEPLOYMENT_TASK_STATUSES, DEPLOYMENT_TASK_ATTRIBUTES,
+  NODE_STATUSES
 } from 'consts';
+import {Sorter} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 
 var ns = 'cluster_page.deployment_history.';
 
@@ -459,17 +461,114 @@ var DeploymentHistoryTimeline = React.createClass({
   },
   render() {
     var {
-      deploymentHistory, timeStart, timeEnd, isRunning,
+      cluster, deploymentHistory, timeStart, timeEnd, isRunning,
       nodeTimelineContainerWidth, width, timelineIntervalWidth, timelineRowHeight
     } = this.props;
 
-    var nodeIds = [];
+    var nodeIds = _.uniq(deploymentHistory.map('node_id'));
+    var {sort, sort_by_labels: sortByLabels} = cluster.get('ui_settings');
+    var nodeListSorters = _.union(
+      _.map(sort, _.partial(Sorter.fromObject, _, false)),
+      _.map(sortByLabels, _.partial(Sorter.fromObject, _, true))
+    );
+
+    nodeIds.sort((id1, id2) => {
+      // master node should go first
+      if (id1 === 'master') return -1;
+      if (id2 === 'master') return 1;
+
+      var node1 = cluster.get('nodes').get(id1);
+      var node2 = cluster.get('nodes').get(id2);
+
+      // removed nodes should go last
+      if (!node1 || !node2) {
+        if (node1) return -1;
+        if (node2) return 1;
+        return id1 - id2;
+      }
+
+      // apply user defined sorting to cluster nodes
+      var result;
+      var preferredRolesOrder = cluster.get('roles').map('name');
+      var composeNodeDiskSizesLabel = (node) => {
+        var diskSizes = node.resource('disks');
+        return i18n('node_details.disks_amount', {
+          count: diskSizes.length,
+          size: diskSizes.map(
+            (size) => utils.showSize(size) + ' ' + i18n('node_details.hdd')
+          ).join(', ')
+        });
+      };
+      _.each(nodeListSorters, (sorter) => {
+        if (sorter.isLabel) {
+          var node1Label = node1.getLabel(sorter.name);
+          var node2Label = node2.getLabel(sorter.name);
+          if (node1Label && node2Label) {
+            result = utils.natsort(node1Label, node2Label, {insensitive: true});
+          } else {
+            result = node1Label === node2Label ? 0 : _.isString(node1Label) ? -1 :
+              _.isNull(node1Label) ? -1 : 1;
+          }
+        } else {
+          var comparators = {
+            roles: () => {
+              var roles1 = node1.sortedRoles(preferredRolesOrder);
+              var roles2 = node2.sortedRoles(preferredRolesOrder);
+              var order;
+              if (!roles1.length && !roles2.length) {
+                result = 0;
+              } else if (!roles1.length) {
+                result = 1;
+              } else if (!roles2.length) {
+                result = -1;
+              } else {
+                while (!order && roles1.length && roles2.length) {
+                  order = _.indexOf(preferredRolesOrder, roles1.shift()) -
+                    _.indexOf(preferredRolesOrder, roles2.shift());
+                }
+                result = order || roles1.length - roles2.length;
+              }
+            },
+            status: () => {
+              var status1 = !node1.get('online') ? 'offline' : node1.get('status');
+              var status2 = !node2.get('online') ? 'offline' : node2.get('status');
+              result = _.indexOf(NODE_STATUSES, status1) - _.indexOf(NODE_STATUSES, status2);
+            },
+            disks: () => {
+              result = utils.natsort(
+                composeNodeDiskSizesLabel(node1),
+                composeNodeDiskSizesLabel(node2)
+              );
+            },
+            group_id: () => {
+              var nodeGroup1 = node1.get('group_id');
+              var nodeGroup2 = node2.get('group_id');
+              result = nodeGroup1 === nodeGroup2 ? 0 :
+                !nodeGroup1 ? 1 : !nodeGroup2 ? -1 : nodeGroup1 - nodeGroup2;
+            },
+            default: () => {
+              result = node1.resource(sorter.name) - node2.resource(sorter.name);
+            }
+          };
+
+          if (!_.includes(['name', 'ip', 'mac', 'manufacturer'], sorter.name)) {
+            (comparators[sorter.name] || comparators.default)();
+          } else {
+            result = utils.natsort(node1.get(sorter.name), node2.get(sorter.name));
+          }
+        }
+
+        if (sorter.order === 'desc') result = result * -1;
+
+        return result === 0;
+      });
+
+      return result === 0 ? id1 - id2 : result;
+    });
+
     var nodeOffsets = {};
-    deploymentHistory.each((task) => {
-      var nodeId = task.get('node_id');
-      if (_.has(nodeOffsets, nodeId)) return;
-      nodeOffsets[nodeId] = nodeIds.length;
-      nodeIds.push(nodeId);
+    _.each(nodeIds, (nodeId, index) => {
+      nodeOffsets[nodeId] = index;
     });
 
     var nodeTimelineWidth = _.max([

@@ -16,7 +16,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {NODE_STATUSES, NODE_LIST_SORTERS, NODE_LIST_FILTERS} from 'consts';
-import NodeListScreen from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
+import {NodeListScreen} from 'views/cluster_page_tabs/nodes_tab_screens/node_list_screen';
 
 var ClusterNodesScreen = React.createClass({
   statics: {

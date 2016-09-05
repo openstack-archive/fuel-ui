@@ -28,10 +28,10 @@ import {DeleteNodesDialog} from 'views/dialogs';
 import {backboneMixin, pollingMixin, dispatcherMixin, unsavedChangesMixin} from 'component_mixins';
 import Node from 'views/cluster_page_tabs/nodes_tab_screens/node';
 
-var NodeListScreen, NodeListScreenContent, NumberRangeControl, ManagementPanel,
+var NodeListScreenContent, NumberRangeControl, ManagementPanel,
   NodeLabelsPanel, RolePanel, Role, SelectAllMixin, NodeList, NodeGroup;
 
-class Sorter {
+export class Sorter {
   constructor(name, order = 'asc', isLabel = false) {
     this.name = name;
     this.order = order;
@@ -97,7 +97,7 @@ class Filter {
   }
 }
 
-NodeListScreen = React.createClass({
+export var NodeListScreen = React.createClass({
   propTypes: {
     uiSettings: React.PropTypes.object,
     defaultFilters: React.PropTypes.object,
@@ -2116,5 +2116,3 @@ NodeGroup = React.createClass({
     );
   }
 });
-
-export default NodeListScreen;
