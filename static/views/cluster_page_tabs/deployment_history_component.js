@@ -55,7 +55,7 @@ var DeploymentHistory = React.createClass({
           label: i18n(ns + 'filter_by_node'),
           values: [],
           options: _.map(_.uniq(deploymentHistory.map('node_id')),
-            (nodeId) => ({name: nodeId, title: renderNodeName.call(this, nodeId, false)})
+            (nodeId) => ({name: nodeId, title: renderNodeName.call(this, nodeId)})
           ),
           addOptionsFilter: true
         }, {
@@ -358,7 +358,10 @@ var DeploymentHistoryTask = React.createClass({
     return <div
       onClick={() => {
         this.togglePopover(false);
-        DeploymentTaskDetailsDialog.show({task});
+        DeploymentTaskDetailsDialog.show({
+          task,
+          nodeName: renderNodeName.call(this, task.get('node_id'))
+        });
       }}
       onMouseEnter={() => this.togglePopover(true)}
       onMouseLeave={() => this.togglePopover(false)}
@@ -399,7 +402,7 @@ var DeploymentHistoryTask = React.createClass({
 // Prefer to keep this as a function, not a component, since components
 // don't allow to return plain text and I'd really prefer not to create extra
 // useless spans
-function renderNodeName(nodeId, isClickable = true) {
+function renderNodeName(nodeId, isClickable = false) {
   if (nodeId === 'master') {
     return i18n(ns + 'master_node');
   }
@@ -459,7 +462,7 @@ var DeploymentHistoryTimeline = React.createClass({
   },
   render() {
     var {
-      deploymentHistory, timeStart, timeEnd, isRunning,
+      nodes, deploymentHistory, timeStart, timeEnd, isRunning,
       nodeTimelineContainerWidth, width, timelineIntervalWidth, timelineRowHeight
     } = this.props;
 
@@ -487,7 +490,7 @@ var DeploymentHistoryTimeline = React.createClass({
               <div className='node-names' ref='names'>
                 {_.map(nodeIds,
                   (nodeId) => <div key={nodeId} style={{height: timelineRowHeight}}>
-                    {renderNodeName.call(this, nodeId)}
+                    {renderNodeName.call(this, nodeId, true)}
                   </div>
                 )}
               </div>
@@ -533,10 +536,7 @@ var DeploymentHistoryTimeline = React.createClass({
 
                   return <DeploymentHistoryTask
                     key={task.get('node_id') + ' ' + task.get('task_name')}
-                    task={task}
-                    top={top}
-                    left={left}
-                    width={width}
+                    {...{task, top, left, width, nodes}}
                   />;
                 })}
                 {isRunning &&
@@ -576,7 +576,7 @@ var DeploymentHistoryTable = React.createClass({
                   if (attr === 'time_start' || attr === 'time_end') {
                     return formatTimestamp(parseISO8601Date(task.get(attr)));
                   } else if (attr === 'node_id') {
-                    return renderNodeName.call(this, task.get(attr));
+                    return renderNodeName.call(this, task.get('node_id'), true);
                   } else {
                     return task.get(attr);
                   }
@@ -585,7 +585,10 @@ var DeploymentHistoryTable = React.createClass({
                   <button
                     key={task.get('task_name') + 'details'}
                     className='btn btn-link'
-                    onClick={() => DeploymentTaskDetailsDialog.show({task})}
+                    onClick={() => DeploymentTaskDetailsDialog.show({
+                      task,
+                      nodeName: renderNodeName.call(this, task.get('node_id'))
+                    })}
                   >
                     {i18n(ns + 'task_details')}
                   </button>
