@@ -5230,6 +5230,8 @@ input[type=range] {
       i.glyphicon-arrow-right {
         display: inline-block;
         margin-left: 3px;
+        position: relative;
+        top: -16px;
       }
     }
     a.transaction-link, .btn.dropdown-toggle {
@@ -5252,6 +5254,9 @@ input[type=range] {
         margin-bottom: 2px;
         overflow: hidden;
         text-overflow: ellipsis;
+        &.time-start {
+          font-size: @base-font-size - 2;
+        }
       }
       &.error span {
         .text-danger;
@@ -5317,6 +5322,9 @@ input[type=range] {
             .text-danger;
           }
         }
+      }
+      + i.glyphicon-arrow-right {
+        top: 0;
       }
     }
   }
