@@ -358,7 +358,10 @@ var DeploymentHistoryTask = React.createClass({
     return <div
       onClick={() => {
         this.togglePopover(false);
-        DeploymentTaskDetailsDialog.show({task});
+        DeploymentTaskDetailsDialog.show({
+          task,
+          nodeName: renderNodeName.call(this, task.get('node_id'), false)
+        });
       }}
       onMouseEnter={() => this.togglePopover(true)}
       onMouseLeave={() => this.togglePopover(false)}
@@ -459,7 +462,7 @@ var DeploymentHistoryTimeline = React.createClass({
   },
   render() {
     var {
-      deploymentHistory, timeStart, timeEnd, isRunning,
+      nodes, deploymentHistory, timeStart, timeEnd, isRunning,
       nodeTimelineContainerWidth, width, timelineIntervalWidth, timelineRowHeight
     } = this.props;
 
@@ -533,10 +536,7 @@ var DeploymentHistoryTimeline = React.createClass({
 
                   return <DeploymentHistoryTask
                     key={task.get('node_id') + ' ' + task.get('task_name')}
-                    task={task}
-                    top={top}
-                    left={left}
-                    width={width}
+                    {...{task, top, left, width, nodes}}
                   />;
                 })}
                 {isRunning &&
@@ -576,7 +576,7 @@ var DeploymentHistoryTable = React.createClass({
                   if (attr === 'time_start' || attr === 'time_end') {
                     return task.get(attr) ? formatTimestamp(parseISO8601Date(task.get(attr))) : '-';
                   } else if (attr === 'node_id') {
-                    return renderNodeName.call(this, task.get(attr));
+                    return renderNodeName.call(this, task.get('node_id'));
                   } else {
                     return task.get(attr);
                   }
@@ -585,7 +585,10 @@ var DeploymentHistoryTable = React.createClass({
                   <button
                     key={task.get('task_name') + 'details'}
                     className='btn btn-link'
-                    onClick={() => DeploymentTaskDetailsDialog.show({task})}
+                    onClick={() => DeploymentTaskDetailsDialog.show({
+                      task,
+                      nodeName: renderNodeName.call(this, task.get('node_id'), false)
+                    })}
                   >
                     {i18n(ns + 'task_details')}
                   </button>
