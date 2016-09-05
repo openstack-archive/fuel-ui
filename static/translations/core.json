@@ -1001,7 +1001,8 @@
                         "task_name": "Name",
                         "status": "Status",
                         "time_start": "Started",
-                        "time_end": "Finished"
+                        "time_end": "Finished",
+                        "node_id": "Node"
                     }
                 },
                 "nailgun_unavailability": {
