@@ -2373,7 +2373,7 @@ export var DeploymentTaskDetailsDialog = React.createClass({
     return value;
   },
   renderBody() {
-    var {task} = this.props;
+    var {task, nodeName} = this.props;
     var attributes = DEPLOYMENT_TASK_ATTRIBUTES
       .concat(
         _.difference(_.without(_.keys(task.attributes), 'summary'), DEPLOYMENT_TASK_ATTRIBUTES)
@@ -2389,10 +2389,12 @@ export var DeploymentTaskDetailsDialog = React.createClass({
                 {i18n('dialog.deployment_task_details.task.' + attr, {defaultValue: attr})}
               </strong>
               <span className='col-xs-9'>
-                {this.renderTaskAttribute(
-                  attr === 'time_start' || attr === 'time_end' ?
-                    utils.formatTimestamp(utils.parseISO8601Date(task.get(attr))) : task.get(attr)
-                )}
+                {attr === 'node_id' ? nodeName :
+                  this.renderTaskAttribute(
+                    attr === 'time_start' || attr === 'time_end' ?
+                      utils.formatTimestamp(utils.parseISO8601Date(task.get(attr))) : task.get(attr)
+                  )
+                }
               </span>
             </div>
           );
