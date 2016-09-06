@@ -5177,6 +5177,36 @@ input[type=range] {
     }
   }
 
+  .transaction-summary {
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: @base-indent;
+
+    > div {
+      margin-bottom: 5px;
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+    &.ready {
+      .status {
+        .text-success;
+      }
+    }
+    &.error {
+      .status, .message {
+        .text-danger;
+      }
+    }
+    .transaction-summary-label {
+      .font-semibold;
+    }
+    .dry-run-label {
+      margin-left: 10px;
+    }
+  }
+
   .screen-loading-bar {
     margin: 0;
   }
