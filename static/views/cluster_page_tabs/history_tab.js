@@ -112,6 +112,7 @@ HistoryTab = React.createClass({
     var {deploymentHistory} = this.state;
     var ns = 'cluster_page.history_tab.';
     var transactions = cluster.get('transactions').filterTasks({active: false});
+    var activeTransaction = cluster.get('transactions').get(activeTransactionId);
     var visibleTransactionsAmount = 7;
     var visibleTransactions = transactions;
     var hiddenTransactions = [];
@@ -195,6 +196,58 @@ HistoryTab = React.createClass({
                     </div>
                   );
                 })}
+              </div>
+              <div
+                className={utils.classNames('transaction-summary', activeTransaction.get('status'))}
+              >
+                <div className='row'>
+                  <div className='col-xs-2 transaction-summary-label'>
+                    {i18n(ns + 'transaction_attributes.graph_type')}
+                  </div>
+                  <div className='col-xs-4 transaction-summary-value'>
+                    {i18n(
+                      ns + 'graph_titles.' + activeTransaction.get('graph_type'),
+                      {defaultValue: activeTransaction.get('graph_type')}
+                    )}
+                    {activeTransaction.get('dry_run') &&
+                      <div className='dry-run-label label label-default'>
+                        {i18n(ns + 'transaction_attributes.dry_run')}
+                      </div>
+                    }
+                  </div>
+                  <div className='col-xs-2 transaction-summary-label'>
+                    {i18n(ns + 'transaction_attributes.time_start')}
+                  </div>
+                  <div className='col-xs-4 transaction-summary-value'>
+                    {utils.formatTimestamp(
+                      utils.parseISO8601Date(activeTransaction.get('time_start'))
+                    )}
+                  </div>
+                </div>
+                <div className='row'>
+                  <div className='col-xs-2 transaction-summary-label'>
+                    {i18n(ns + 'transaction_attributes.status')}
+                  </div>
+                  <div className='col-xs-4 transaction-summary-value status'>
+                    {activeTransaction.get('status')}
+                  </div>
+                  <div className='col-xs-2 transaction-summary-label'>
+                    {i18n(ns + 'transaction_attributes.time_end')}
+                  </div>
+                  <div className='col-xs-4 transaction-summary-value'>
+                    {utils.formatTimestamp(
+                      utils.parseISO8601Date(activeTransaction.get('time_end'))
+                    )}
+                  </div>
+                </div>
+                <div className='row'>
+                  <div className='col-xs-2 transaction-summary-label'>
+                    {i18n(ns + 'transaction_attributes.message')}
+                  </div>
+                  <div className='col-xs-10 transaction-summary-value message'>
+                    {activeTransaction.get('message')}
+                  </div>
+                </div>
               </div>
               {!_.isNull(deploymentHistory) &&
                 <ReactTransitionGroup

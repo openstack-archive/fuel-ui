@@ -339,6 +339,14 @@
                     "no_finished_deployment_alert": "No deployment finished yet.",
                     "graph_titles": {
                         "default": "Deployment"
+                    },
+                    "transaction_attributes": {
+                        "graph_type": "Workflow",
+                        "time_start": "Started",
+                        "time_end": "Finished",
+                        "status": "Status",
+                        "message": "Message",
+                        "dry_run": "DRY RUN"
                     }
                 },
                 "workflows_tab": {
