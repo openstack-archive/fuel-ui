@@ -332,7 +332,6 @@ var utils = {
     }, _.isArray(object) ? [] : {});
   },
   formatTimestamp(timestamp, showSeconds = true) {
-    if (_.isNull(timestamp)) return '';
     return moment(timestamp).format(showSeconds ? 'HH:mm:ss DD/MM/YYYY' : 'HH:mm DD/MM/YYYY');
   },
   parseISO8601Date: _.memoize((date) => new Date(date + 'Z').getTime()),

@@ -2359,25 +2359,28 @@ export var DeploymentTaskDetailsDialog = React.createClass({
       .concat(_.difference(_.keys(task.attributes), DEPLOYMENT_TASK_ATTRIBUTES));
     return (
       <div>
-        {_.map(attributes, (attr) => (
-          <div
-            key={attr}
-            className={utils.classNames({
-              row: true,
-              'main-attribute': _.includes(DEPLOYMENT_TASK_ATTRIBUTES, attr)
-            })}
-          >
-            <strong className='col-xs-3'>
-              {i18n('dialog.deployment_task_details.task.' + attr, {defaultValue: attr})}
-            </strong>
-            <span className='col-xs-9'>
-              {this.renderTaskAttribute(
-                attr === 'time_start' || attr === 'time_end' ?
-                  utils.formatTimestamp(utils.parseISO8601Date(task.get(attr))) : task.get(attr)
-              )}
-            </span>
-          </div>
-        ))}
+        {_.map(attributes, (attr) => {
+          if (_.isNull(task.get(attr))) return null;
+          return (
+            <div
+              key={attr}
+              className={utils.classNames({
+                row: true,
+                'main-attribute': _.includes(DEPLOYMENT_TASK_ATTRIBUTES, attr)
+              })}
+            >
+              <strong className='col-xs-3'>
+                {i18n('dialog.deployment_task_details.task.' + attr, {defaultValue: attr})}
+              </strong>
+              <span className='col-xs-9'>
+                {this.renderTaskAttribute(
+                  attr === 'time_start' || attr === 'time_end' ?
+                    utils.formatTimestamp(utils.parseISO8601Date(task.get(attr))) : task.get(attr)
+                )}
+              </span>
+            </div>
+          );
+        })}
       </div>
     );
   }

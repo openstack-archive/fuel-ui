@@ -92,19 +92,19 @@ HistoryTab = React.createClass({
     }
   },
   renderTransactionTitle(transaction) {
+    var graphType = transaction.get('graph_type');
     return [
-      <span key='graph'>
-        {i18n(
-          'cluster_page.history_tab.graph_titles.' + transaction.get('graph_type'),
-          {defaultValue: transaction.get('graph_type')}
-        )}
-      </span>,
-      transaction.get('time_start') ?
-        <span key='time' className='time-start'>
-          {utils.formatTimestamp(utils.parseISO8601Date(transaction.get('time_start')), false)}
-        </span>
-      :
-        <span key='id'>{'#' + transaction.id}</span>
+      !_.isNull(graphType) &&
+        <span key='graph'>
+          {i18n('cluster_page.history_tab.graph_titles.' + graphType, {defaultValue: graphType})}
+        </span>,
+      <span key='time' className='time-start'>
+        {transaction.get('time_start') ?
+          utils.formatTimestamp(utils.parseISO8601Date(transaction.get('time_start')), false)
+        :
+          '#' + transaction.id
+        }
+      </span>
     ];
   },
   render() {

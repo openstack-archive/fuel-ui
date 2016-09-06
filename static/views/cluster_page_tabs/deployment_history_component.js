@@ -574,7 +574,8 @@ var DeploymentHistoryTable = React.createClass({
               (task) => DEPLOYMENT_TASK_ATTRIBUTES
                 .map((attr) => {
                   if (attr === 'time_start' || attr === 'time_end') {
-                    return formatTimestamp(parseISO8601Date(task.get(attr)));
+                    return _.isNull(task.get(attr)) ?
+                      '' : formatTimestamp(parseISO8601Date(task.get(attr)));
                   } else if (attr === 'node_id') {
                     return renderNodeName.call(this, task.get(attr));
                   } else {
