@@ -2341,34 +2341,51 @@ export var RemoveNodeNetworkGroupDialog = React.createClass({
 });
 
 export var DeploymentTaskDetailsDialog = React.createClass({
-  mixins: [dialogMixin],
+  mixins: [
+    dialogMixin,
+    backboneMixin('task')
+  ],
   getDefaultProps() {
     return {
       title: i18n('dialog.deployment_task_details.title'),
       modalClass: 'deployment-task-details-dialog'
     };
   },
+  componentDidMount() {
+    this.loadTaskSummary();
+  },
+  loadTaskSummary() {
+    var {task, deploymentHistory} = this.props;
+    (new models.BaseModel())
+      .fetch({
+        url: _.result(deploymentHistory, 'url') + '/?' + $.param({
+          tasks_names: task.get('task_name'),
+          nodes: task.get('node_id'),
+          include_summary: 1
+        })
+      })
+      .then(
+        (response) => task.set({summary: (response[0] || {}).summary || {}})
+      );
+  },
   renderTaskAttribute(value) {
     if (_.isArray(value)) return _.map(value, this.renderTaskAttribute).join(', ');
-    if (_.isPlainObject(value)) return JSON.stringify(value);
+    if (_.isPlainObject(value)) return JSON.stringify(value, null, 2);
     return value;
   },
   renderBody() {
     var {task} = this.props;
     var attributes = DEPLOYMENT_TASK_ATTRIBUTES
-      .concat(_.difference(_.keys(task.attributes), DEPLOYMENT_TASK_ATTRIBUTES));
+      .concat(
+        _.difference(_.without(_.keys(task.attributes), 'summary'), DEPLOYMENT_TASK_ATTRIBUTES)
+      )
+      .concat('summary');
     return (
       <div>
         {_.map(attributes, (attr) => {
           if (_.isNull(task.get(attr))) return null;
           return (
-            <div
-              key={attr}
-              className={utils.classNames({
-                row: true,
-                'main-attribute': _.includes(DEPLOYMENT_TASK_ATTRIBUTES, attr)
-              })}
-            >
+            <div key={attr} className='row'>
               <strong className='col-xs-3'>
                 {i18n('dialog.deployment_task_details.task.' + attr, {defaultValue: attr})}
               </strong>

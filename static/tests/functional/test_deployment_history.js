@@ -140,7 +140,7 @@ registerSuite(() => {
         .then(() => modal.waitToOpen())
         .then(() => modal.checkTitle('Deployment Task Details'))
         .assertElementsExist(
-          '.deployment-task-details-dialog .main-attribute',
+          '.deployment-task-details-dialog .row',
           'Main attributes for tasks are presented on task details dialog'
         )
         .then(() => modal.clickFooterButton('Close'))

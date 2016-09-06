@@ -165,7 +165,7 @@ var DeploymentHistory = React.createClass({
           }
           {viewMode === 'table' &&
             <DeploymentHistoryTable
-              {... _.pick(this.props, 'cluster', 'nodes', 'nodeNetworkGroups')}
+              {... _.pick(this.props, 'cluster', 'nodes', 'nodeNetworkGroups', 'deploymentHistory')}
               deploymentTasks={deploymentHistory.filter((task) =>
                 _.every(filters, ({name, values}) =>
                   !values.length || _.includes(values, task.get(name))
@@ -351,14 +351,14 @@ var DeploymentHistoryTask = React.createClass({
     return '#' + ('00000' + color).substr(-6);
   },
   render() {
-    var {task, top, left, width} = this.props;
+    var {task, top, left, width, deploymentHistory} = this.props;
 
     var taskName = task.get('task_name');
     var taskStatus = task.get('status');
     return <div
       onClick={() => {
         this.togglePopover(false);
-        DeploymentTaskDetailsDialog.show({task});
+        DeploymentTaskDetailsDialog.show({task, deploymentHistory});
       }}
       onMouseEnter={() => this.togglePopover(true)}
       onMouseLeave={() => this.togglePopover(false)}
@@ -533,10 +533,7 @@ var DeploymentHistoryTimeline = React.createClass({
 
                   return <DeploymentHistoryTask
                     key={task.get('node_id') + ' ' + task.get('task_name')}
-                    task={task}
-                    top={top}
-                    left={left}
-                    width={width}
+                    {...{deploymentHistory, task, top, left, width}}
                   />;
                 })}
                 {isRunning &&
@@ -560,7 +557,7 @@ var DeploymentHistoryTimeline = React.createClass({
 
 var DeploymentHistoryTable = React.createClass({
   render() {
-    var {deploymentTasks} = this.props;
+    var {deploymentTasks, deploymentHistory} = this.props;
     return (
       <div className='history-table col-xs-12'>
         {deploymentTasks.length ?
@@ -585,7 +582,7 @@ var DeploymentHistoryTable = React.createClass({
                   <button
                     key={task.get('task_name') + 'details'}
                     className='btn btn-link'
-                    onClick={() => DeploymentTaskDetailsDialog.show({task})}
+                    onClick={() => DeploymentTaskDetailsDialog.show({task, deploymentHistory})}
                   >
                     {i18n(ns + 'task_details')}
                   </button>
