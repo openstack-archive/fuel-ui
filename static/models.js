@@ -357,7 +357,9 @@ models.Cluster = BaseModel.extend({
       collection.updateFetchOptions(() => {
         if (key === 'deploymentGraphs') return {clusters_ids: this.id, fetch_related: 1};
         var fetchOptions = {cluster_id: this.id};
-        if (key === 'transactions') fetchOptions.transaction_types = 'deployment';
+        if (key === 'transactions') {
+          fetchOptions.transaction_types = ['deployment', 'dry_run_deployment'].join(',');
+        }
         return fetchOptions;
       });
     });
@@ -659,13 +661,14 @@ models.Tasks = BaseCollection.extend({
   },
   comparator: 'id',
   filterTasks(filters) {
-    return _.chain(this.model.prototype.extendGroups(filters))
-      .map((name) => {
-        return this.filter((task) => task.match(_.extend(_.omit(filters, 'group'), {name: name})));
-      })
-      .flatten()
-      .compact()
-      .value();
+    if (filters.group) {
+      // convert group to task name list
+      filters = _.extend(
+        _.omit(filters, 'group'),
+        {name: this.model.prototype.extendGroups(filters)}
+      );
+    }
+    return this.filter((task) => task.match(filters));
   },
   findTask(filters) {
     return this.filterTasks(filters)[0];
