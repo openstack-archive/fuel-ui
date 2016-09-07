@@ -153,7 +153,7 @@ var DashboardTab = React.createClass({
           <RunningDeploymentControl
             cluster={cluster}
             task={runningDeploymentTask}
-            transaction={cluster.get('transactions').findTask({active: true})}
+            transaction={cluster.get('transactions').findTask({status: 'running'})}
           />
         :
           ([

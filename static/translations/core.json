@@ -979,6 +979,7 @@
                 "provision": "Provisioning of nodes",
                 "deployment": "Deployment of nodes",
                 "reset_environment": "Resetting",
+                "dry_run_deployment": "Deploying (dry_run)",
                 "stop_deployment": "Stopping",
                 "stop_deployment_button": "Stop deployment",
                 "stop_provisioning_button": "Stop provisioning",
