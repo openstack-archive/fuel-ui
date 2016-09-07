@@ -126,7 +126,9 @@ var DashboardTab = React.createClass({
     var {cluster} = this.props;
     var {configModels} = this.state;
     var release = cluster.get('release');
-    var runningDeploymentTask = cluster.task({group: 'deployment', active: true});
+    var runningDeploymentTask = cluster.get('tasks').find(
+      (task) => _.isNull(task.get('parent_id')) && task.match({group: 'deployment', active: true})
+    );
     var finishedDeploymentTask = cluster.task({group: 'deployment', active: false});
     var dashboardLinks = [{
       url: '/',
@@ -153,7 +155,7 @@ var DashboardTab = React.createClass({
           <RunningDeploymentControl
             cluster={cluster}
             task={runningDeploymentTask}
-            transaction={cluster.get('transactions').findTask({active: true})}
+            transaction={cluster.get('transactions').findTask({status: 'running'})}
           />
         :
           ([
@@ -286,6 +288,9 @@ var RunningDeploymentControl = React.createClass({
     var {task, cluster, transaction} = this.props;
     var {isDeploymentHistoryOpen} = this.state;
     var taskName = task.get('name');
+
+    // FIXME(jkirnosova): need to display name of current active subtask
+    // blocked by #1621003
 
     var showStopButton = task.isStoppable();
     var stopButtonTooltipTexts = {
