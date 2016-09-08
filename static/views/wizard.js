@@ -636,27 +636,18 @@ var CreateClusterWizard = React.createClass({
     var panes = this.getEnabledPanes();
     return panes[this.state.activePaneIndex];
   },
-  isCurrentPaneValid() {
-    var pane = this.refs.pane;
-    if (pane && _.isFunction(pane.isValid) && !pane.isValid()) {
-      this.updateState({paneHasErrors: true});
-      return false;
-    }
-    return true;
+  isCurrentPaneInvalid() {
+    var {pane} = this.refs;
+    if (!pane) return null;
+    // FIXME(jkirnosova): pane validation should be provided by one method
+    return _.isFunction(pane.isValid) && !pane.isValid() ||
+      _.isFunction(pane.constructor.hasErrors) && pane.constructor.hasErrors(this.wizard);
   },
   prevPane() {
-    // check for pane's validation errors
-    if (!this.isCurrentPaneValid()) {
-      return;
-    }
-
     this.updateState({activePaneIndex: this.state.activePaneIndex - 1});
   },
   nextPane() {
-    // check for pane's validation errors
-    if (!this.isCurrentPaneValid()) {
-      return;
-    }
+    if (this.isCurrentPaneInvalid()) return;
 
     var nextIndex = this.state.activePaneIndex + 1;
     this.updateState({
@@ -665,21 +656,14 @@ var CreateClusterWizard = React.createClass({
     });
   },
   goToPane(index) {
-    if (index > this.state.maxAvailablePaneIndex) {
-      return;
-    }
-
-    // check for pane's validation errors
-    if (!this.isCurrentPaneValid()) {
-      return;
-    }
+    if (index > this.state.maxAvailablePaneIndex) return;
+    if (index > this.state.activePaneIndex && this.isCurrentPaneInvalid()) return;
 
     this.updateState({activePaneIndex: index});
   },
   saveCluster() {
-    if (this.stopHandlingKeys) {
-      return;
-    }
+    if (this.stopHandlingKeys) return;
+
     this.stopHandlingKeys = true;
     this.setState({actionInProgress: true});
     var cluster = this.cluster;
