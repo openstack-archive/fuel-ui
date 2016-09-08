@@ -156,7 +156,10 @@ var EditNodeInterfacesScreen = React.createClass({
     var result = _.reduce(
       interfacesByIndex,
       (result, interfaces) => {
-        result[interfaces[0].id] = this.getInterfacesLimitations(interfaces);
+        // get limitation of interfaces for all selected nodes
+        for (var i = 0, len = interfaces.length; i < len; i++) {
+          result[interfaces[i].id] = this.getInterfacesLimitations(interfaces);
+        }
         return result;
       }, {}
     );
