@@ -14,8 +14,10 @@
  * under the License.
  **/
 import _ from 'underscore';
+import $ from 'jquery';
 import i18n from 'i18n';
 import React from 'react';
+import ReactDOM from 'react-dom';
 import utils from 'utils';
 import {Table, Tooltip, Popover, MultiSelectControl, DownloadFileButton} from 'views/controls';
 import {DeploymentTaskDetailsDialog, ShowNodeInfoDialog} from 'views/dialogs';
@@ -340,8 +342,39 @@ var DeploymentHistoryManagementPanel = React.createClass({
 });
 
 var DeploymentHistoryTask = React.createClass({
+  getDefaultProps() {
+    return {
+      popoverMinPadding: 10
+    };
+  },
   getInitialState() {
     return {isPopoverVisible: false};
+  },
+  onMouseEnter(e) {
+    var {width, popoverMinPadding} = this.props;
+    var anchorPosition;
+    if (width < popoverMinPadding * 2) {
+      anchorPosition = Math.round(width / 2);
+    } else {
+      var {left} = $(ReactDOM.findDOMNode(this)).offset();
+      var {pageX} = e;
+      anchorPosition = pageX - left - 1;
+      if (anchorPosition < popoverMinPadding) {
+        anchorPosition = popoverMinPadding;
+      } else if (anchorPosition > (width - popoverMinPadding)) {
+        anchorPosition = width - popoverMinPadding;
+      }
+    }
+    this.setState({anchorPosition});
+    this.togglePopover(true);
+  },
+  onMouseLeave() {
+    this.togglePopover(false);
+  },
+  onClick() {
+    var {task, deploymentHistory} = this.props;
+    this.togglePopover(false);
+    DeploymentTaskDetailsDialog.show({task, deploymentHistory});
   },
   togglePopover(isPopoverVisible) {
     this.setState({isPopoverVisible});
@@ -351,46 +384,45 @@ var DeploymentHistoryTask = React.createClass({
     return '#' + ('00000' + color).substr(-6);
   },
   render() {
-    var {task, top, left, width, deploymentHistory} = this.props;
+    var {task, top, left, width} = this.props;
 
     var taskName = task.get('task_name');
     var taskStatus = task.get('status');
     return <div
-      onClick={() => {
-        this.togglePopover(false);
-        DeploymentTaskDetailsDialog.show({task, deploymentHistory});
-      }}
-      onMouseEnter={() => this.togglePopover(true)}
-      onMouseLeave={() => this.togglePopover(false)}
+      onClick={this.onClick}
+      onMouseEnter={this.onMouseEnter}
+      onMouseLeave={this.onMouseLeave}
       className='node-task'
       style={{background: this.getColorFromString(taskName), top, left, width}}
     >
-      {taskStatus === 'error' &&
-        <div className='error-marker' style={{left: Math.floor(width / 2)}} />
-      }
       {this.state.isPopoverVisible &&
-        <Popover
-          placement='top'
-          container='body'
-          className='deployment-task-info'
-        >
-          <div>
-            {_.without(DEPLOYMENT_TASK_ATTRIBUTES, 'node_id')
-              .map((attr) => !_.isNull(task.get(attr)) && (
-                <div key={attr} className={utils.classNames('row', attr, taskStatus)}>
-                  <span className='col-xs-3'>
-                    {i18n('dialog.deployment_task_details.task.' + attr)}
-                  </span>
-                  <span className='col-xs-9'>
-                    {attr === 'time_start' || attr === 'time_end' ?
-                      formatTimestamp(parseISO8601Date(task.get(attr))) : task.get(attr)
-                    }
-                  </span>
-                </div>
-              ))
-            }
-          </div>
-        </Popover>
+        <div className='popover-anchor' style={{left: this.state.anchorPosition}}>
+          <Popover
+            placement='top'
+            container='body'
+            className='deployment-task-info'
+          >
+            <div>
+              {_.without(DEPLOYMENT_TASK_ATTRIBUTES, 'node_id')
+                .map((attr) => !_.isNull(task.get(attr)) && (
+                  <div key={attr} className={utils.classNames('row', attr, taskStatus)}>
+                    <span className='col-xs-3'>
+                      {i18n('dialog.deployment_task_details.task.' + attr)}
+                    </span>
+                    <span className='col-xs-9'>
+                      {attr === 'time_start' || attr === 'time_end' ?
+                        formatTimestamp(parseISO8601Date(task.get(attr))) : task.get(attr)
+                      }
+                    </span>
+                  </div>
+                ))
+              }
+            </div>
+          </Popover>
+        </div>
+      }
+      {taskStatus === 'error' &&
+        <div className='error-marker' style={{left: Math.round(width / 2)}} />
       }
     </div>;
   }
