@@ -262,49 +262,48 @@ var NameAndRelease = React.createClass({
     return true;
   },
   render() {
-    var releases = this.props.releases;
-    var name = this.props.wizard.get('name');
-    var nameError = this.props.wizard.get('name_error');
-    var release = this.props.wizard.get('release');
+    if (this.props.loading) return null;
 
-    if (this.props.loading) {
-      return null;
+    var {wizard, releases, onChange} = this.props;
+    var ns = 'dialog.create_cluster_wizard.name_release.';
+    var paneClassName = 'create-cluster-form name-and-release';
+
+    var availableReleases = releases.filter({is_deployable: true});
+    if (!availableReleases.length) {
+      return (
+        <div className={paneClassName}>
+          <div className='alert alert-danger'>{i18n(ns + 'no_releases_message')}</div>
+        </div>
+      );
     }
-    var os = release.get('operating_system');
-    var connectivityAlert = i18n(
-      'dialog.create_cluster_wizard.name_release.' + os + '_connectivity_alert'
-    );
+
+    var release = wizard.get('release');
     return (
-      <div className='create-cluster-form name-and-release'>
+      <div className={paneClassName}>
         <Input
           type='text'
           name='name'
           autoComplete='off'
-          label={i18n('dialog.create_cluster_wizard.name_release.name')}
-          value={name}
-          error={nameError}
-          onChange={this.props.onChange}
+          label={i18n(ns + 'name')}
+          value={wizard.get('name')}
+          error={wizard.get('name_error')}
+          onChange={onChange}
         />
         <Input
           type='select'
           name='release'
-          label={i18n('dialog.create_cluster_wizard.name_release.release_label')}
+          label={i18n(ns + 'release_label')}
           value={release.id}
-          onChange={this.props.onChange}
+          onChange={onChange}
         >
-          {
-            releases.map((release) => {
-              if (!release.get('is_deployable')) {
-                return null;
-              }
-              return <option key={release.id} value={release.id}>{release.get('name')}</option>;
-            })
-          }
+          {_.map(availableReleases,
+            (release) => <option key={release.id} value={release.id}>{release.get('name')}</option>
+          )}
         </Input>
         <div className='help-block'>
-          {connectivityAlert &&
-            <div className='alert alert-warning'>{connectivityAlert}</div>
-          }
+          <div className='alert alert-warning'>
+            {i18n(ns + release.get('operating_system') + '_connectivity_alert')}
+          </div>
           <div className='release-description'>{release.get('description')}</div>
         </div>
       </div>
@@ -592,12 +591,12 @@ var CreateClusterWizard = React.createClass({
     this.wizard.set({cluster: this.cluster, clusters: this.props.clusters});
   },
   componentDidMount() {
-    this.releases.fetch().then(() => {
-      var defaultRelease = this.releases.find({is_deployable: true});
-      this.wizard.set('release', defaultRelease.id);
-      this.selectRelease(defaultRelease.id);
-      this.setState({loading: false});
-    });
+    this.releases.fetch()
+      .then(() => {
+        var defaultReleaseId = (this.releases.find({is_deployable: true}) || {}).id || null;
+        this.selectRelease(defaultReleaseId);
+        this.setState({loading: false});
+      });
 
     this.updateState({activePaneIndex: 0});
   },
@@ -713,20 +712,23 @@ var CreateClusterWizard = React.createClass({
     }
   },
   selectRelease(releaseId) {
-    var release = this.releases.get(releaseId);
-    this.wizard.set({release: release});
+    var release = this.releases.get(releaseId) || null;
+    this.wizard.set({release});
     this.cluster.set({release: releaseId});
+    this.components = new models.ComponentsCollection([], {releaseId});
+    this.wizard.set({components: this.components});
 
     // fetch components based on releaseId
-    this.setState({loading: true});
-    this.components = new models.ComponentsCollection([], {releaseId: releaseId});
-    this.wizard.set({components: this.components});
-    this.components.fetch().then(() => {
-      this.components.invokeMap('expandWildcards', this.components);
-      this.components.invokeMap('restoreDefaultValue', this.components);
-      this.components.invokeMap('preprocessRequires', this.components);
-      this.setState({loading: false});
-    });
+    if (releaseId) {
+      this.setState({loading: true});
+      this.components.fetch()
+        .then(() => {
+          this.components.invokeMap('expandWildcards', this.components);
+          this.components.invokeMap('restoreDefaultValue', this.components);
+          this.components.invokeMap('preprocessRequires', this.components);
+          this.setState({loading: false});
+        });
+    }
   },
   onChange(name, value) {
     var maxAvailablePaneIndex = this.state.maxAvailablePaneIndex;
@@ -817,50 +819,51 @@ var CreateClusterWizard = React.createClass({
     );
   },
   renderFooter() {
-    var actionInProgress = this.state.actionInProgress;
+    var {actionInProgress, previousEnabled, nextVisible, nextEnabled, createVisible} = this.state;
+    var clusterCreationBlocked = !this.releases.some({is_deployable: true});
     return (
       <div className='wizard-footer'>
         <button
-          className={utils.classNames('btn btn-default pull-left', {disabled: actionInProgress})}
+          className='btn btn-default pull-left'
           data-dismiss='modal'
+          disabled={actionInProgress}
         >
           {i18n('common.cancel_button')}
         </button>
-        <button
-          className={utils.classNames(
-            'btn btn-default prev-pane-btn',
-            {disabled: !this.state.previousEnabled || actionInProgress}
-          )}
-          onClick={this.prevPane}
-        >
-          <i className='glyphicon glyphicon-arrow-left' aria-hidden='true'></i>
-          &nbsp;
-          <span>{i18n('dialog.create_cluster_wizard.prev')}</span>
-        </button>
-        {this.state.nextVisible &&
+        {!clusterCreationBlocked && [
           <button
-            className={utils.classNames(
-              'btn btn-default btn-success next-pane-btn',
-              {disabled: !this.state.nextEnabled || actionInProgress}
-            )}
-            onClick={this.nextPane}
+            key='prev'
+            className='btn btn-default prev-pane-btn'
+            disabled={!previousEnabled || actionInProgress}
+            onClick={this.prevPane}
           >
-            <span>{i18n('dialog.create_cluster_wizard.next')}</span>
+            <i className='glyphicon glyphicon-arrow-left' aria-hidden='true' />
             &nbsp;
-            <i className='glyphicon glyphicon-arrow-right-white' aria-hidden='true'></i>
-          </button>
-        }
-        {this.state.createVisible &&
-          <ProgressButton
-            className='btn btn-default btn-success finish-btn'
-            onClick={this.saveCluster}
-            disabled={actionInProgress}
-            autoFocus
-            progress={actionInProgress}
-          >
-            {i18n('dialog.create_cluster_wizard.create')}
-          </ProgressButton>
-        }
+            <span>{i18n('dialog.create_cluster_wizard.prev')}</span>
+          </button>,
+          nextVisible &&
+            <button
+              key='next'
+              className='btn btn-default btn-success next-pane-btn'
+              disabled={!nextEnabled || actionInProgress}
+              onClick={this.nextPane}
+            >
+              <span>{i18n('dialog.create_cluster_wizard.next')}</span>
+              &nbsp;
+              <i className='glyphicon glyphicon-arrow-right-white' aria-hidden='true' />
+            </button>,
+          createVisible &&
+            <ProgressButton
+              key='finish'
+              className='btn btn-default btn-success finish-btn'
+              onClick={this.saveCluster}
+              disabled={actionInProgress}
+              autoFocus
+              progress={actionInProgress}
+            >
+              {i18n('dialog.create_cluster_wizard.create')}
+            </ProgressButton>
+        ]}
       </div>
     );
   }

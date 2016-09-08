@@ -42,20 +42,26 @@ var ReleasesPage = React.createClass({
     });
   },
   render() {
+    var {releases, columns} = this.props;
+    var ns = 'release_page.';
     return (
       <div className='releases-page'>
         <div className='page-title'>
-          <h1 className='title'>{i18n('release_page.title')}</h1>
+          <h1 className='title'>{i18n(ns + 'title')}</h1>
         </div>
         <div className='content-box'>
           <div className='row'>
             <div className='col-xs-12 content-elements'>
-              <Table
-                head={_.map(this.props.columns, (column) => {
-                  return ({label: i18n('release_page.' + column), className: column});
-                })}
-                body={this.props.releases.map(this.getReleaseData)}
-              />
+              {releases.length ?
+                <Table
+                  head={_.map(columns,
+                    (column) => ({label: i18n(ns + column), className: column})
+                  )}
+                  body={releases.map(this.getReleaseData)}
+                />
+              :
+                <div className='alert alert-warning'>{i18n(ns + 'no_releases_message')}</div>
+              }
             </div>
           </div>
         </div>

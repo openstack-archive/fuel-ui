@@ -1041,6 +1041,7 @@
                         "title": "Name and Release",
                         "name": "Name",
                         "release_label": "OpenStack Release",
+                        "no_releases_message": "There are no releases available.",
                         "existing_environment": "Environment with this name already exists",
                         "Ubuntu_connectivity_alert": "By default, Fuel uploads the software packages for the Fuel Slave nodes from the external repositories. Please verify the Fuel Master node has the Internet connection.\nIf the Fuel Master node does not have access to the Internet, you must create a local mirror with all required software packages and configure Fuel to use the mirror before you deploy an OpenStack environment.",
                         "CentOS_connectivity_alert": "By default, Fuel uploads the software packages for the Fuel Slave nodes from the external repositories. Please verify the Fuel Master node has the Internet connection.\nIf the Fuel Master node does not have access to the Internet, you must create a local mirror with all required software packages and configure Fuel to use the mirror before you deploy an OpenStack environment."
