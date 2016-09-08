@@ -240,7 +240,7 @@ var NameAndRelease = React.createClass({
     }
   },
   isValid() {
-    var wizard = this.props.wizard;
+    var {wizard} = this.props;
     var [name, cluster, clusters] = [
       wizard.get('name'),
       wizard.get('cluster'),
@@ -255,7 +255,7 @@ var NameAndRelease = React.createClass({
     }
     // validate cluster fields
     cluster.isValid();
-    if (cluster.validationError && cluster.validationError.name) {
+    if ((cluster.validationError || {}).name) {
       wizard.set({name_error: cluster.validationError.name});
       return false;
     }
@@ -575,9 +575,6 @@ var CreateClusterWizard = React.createClass({
       activePaneIndex: 0,
       maxAvailablePaneIndex: 0,
       panes: clusterWizardPanes,
-      paneHasErrors: false,
-      previousAvailable: true,
-      nextAvailable: true,
       createEnabled: false
     };
   },
@@ -616,18 +613,12 @@ var CreateClusterWizard = React.createClass({
     var numberOfPanes = this.getEnabledPanes().length;
     var nextActivePaneIndex = _.isNumber(nextState.activePaneIndex) ? nextState.activePaneIndex :
       this.state.activePaneIndex;
-    var pane = clusterWizardPanes[nextActivePaneIndex];
-    var paneHasErrors = _.isFunction(pane.hasErrors) ? pane.hasErrors(this.wizard) : false;
 
-    var newState = _.merge(nextState, {
+    this.setState(_.merge(nextState, {
       activePaneIndex: nextActivePaneIndex,
-      previousEnabled: nextActivePaneIndex > 0,
-      nextEnabled: !paneHasErrors,
       nextVisible: (nextActivePaneIndex < numberOfPanes - 1),
-      createVisible: nextActivePaneIndex === numberOfPanes - 1,
-      paneHasErrors: paneHasErrors
-    });
-    this.setState(newState);
+      createVisible: nextActivePaneIndex === numberOfPanes - 1
+    }));
   },
   getEnabledPanes() {
     return _.reject(this.state.panes, 'hidden');
@@ -636,28 +627,18 @@ var CreateClusterWizard = React.createClass({
     var panes = this.getEnabledPanes();
     return panes[this.state.activePaneIndex];
   },
-  isCurrentPaneValid() {
-    var pane = this.refs.pane;
-    if (pane && _.isFunction(pane.isValid) && !pane.isValid()) {
-      this.updateState({paneHasErrors: true});
-      return false;
-    }
-    return true;
+  isCurrentPaneInvalid() {
+    var {pane} = this.refs;
+    if (!pane) return null;
+    // FIXME(jkirnosova): pane validation should be provided by one method
+    return _.isFunction(pane.isValid) && !pane.isValid() ||
+      _.isFunction(pane.constructor.hasErrors) && pane.constructor.hasErrors(this.wizard);
   },
   prevPane() {
-    // check for pane's validation errors
-    if (!this.isCurrentPaneValid()) {
-      return;
-    }
-
     this.updateState({activePaneIndex: this.state.activePaneIndex - 1});
   },
   nextPane() {
-    // check for pane's validation errors
-    if (!this.isCurrentPaneValid()) {
-      return;
-    }
-
+    if (this.isCurrentPaneInvalid()) return;
     var nextIndex = this.state.activePaneIndex + 1;
     this.updateState({
       activePaneIndex: nextIndex,
@@ -665,21 +646,15 @@ var CreateClusterWizard = React.createClass({
     });
   },
   goToPane(index) {
-    if (index > this.state.maxAvailablePaneIndex) {
-      return;
-    }
-
-    // check for pane's validation errors
-    if (!this.isCurrentPaneValid()) {
-      return;
-    }
-
+    var {activePaneIndex, maxAvailablePaneIndex} = this.state;
+    if (
+      index > maxAvailablePaneIndex ||
+      index > activePaneIndex && this.isCurrentPaneInvalid()
+    ) return;
     this.updateState({activePaneIndex: index});
   },
   saveCluster() {
-    if (this.stopHandlingKeys) {
-      return;
-    }
+    if (this.stopHandlingKeys) return;
     this.stopHandlingKeys = true;
     this.setState({actionInProgress: true});
     var cluster = this.cluster;
@@ -819,7 +794,7 @@ var CreateClusterWizard = React.createClass({
     );
   },
   renderFooter() {
-    var {actionInProgress, previousEnabled, nextVisible, nextEnabled, createVisible} = this.state;
+    var {actionInProgress, activePaneIndex, nextVisible, createVisible} = this.state;
     var clusterCreationBlocked = !this.releases.some({is_deployable: true});
     return (
       <div className='wizard-footer'>
@@ -834,7 +809,7 @@ var CreateClusterWizard = React.createClass({
           <button
             key='prev'
             className='btn btn-default prev-pane-btn'
-            disabled={!previousEnabled || actionInProgress}
+            disabled={activePaneIndex === 0 || actionInProgress}
             onClick={this.prevPane}
           >
             <i className='glyphicon glyphicon-arrow-left' aria-hidden='true' />
@@ -845,7 +820,7 @@ var CreateClusterWizard = React.createClass({
             <button
               key='next'
               className='btn btn-default btn-success next-pane-btn'
-              disabled={!nextEnabled || actionInProgress}
+              disabled={this.isCurrentPaneInvalid() || actionInProgress}
               onClick={this.nextPane}
             >
               <span>{i18n('dialog.create_cluster_wizard.next')}</span>
