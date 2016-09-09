@@ -498,7 +498,7 @@ var NetworkTab = React.createClass({
     fetchData({cluster}) {
       return Promise.all([
         cluster.get('settings').fetch({cache: true}),
-        cluster.get('networkConfiguration').fetch({cache: true})
+        cluster.get('networkConfiguration').fetch()
       ]).then(() => ({}));
     },
     getSubtabs(options) {
