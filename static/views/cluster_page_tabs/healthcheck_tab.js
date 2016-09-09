@@ -28,6 +28,10 @@ var HealthCheckTab = React.createClass({
       modelOrCollection: (props) => props.cluster.get('tasks'),
       renderOn: 'update change:status'
     }),
+    backboneMixin({
+      modelOrCollection: (props) => props.cluster.get('ostf').testruns,
+      renderOn: 'update change'
+    }),
     backboneMixin('cluster', 'change:status')
   ],
   statics: {
