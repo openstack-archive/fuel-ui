@@ -324,6 +324,7 @@ var NotificationsPopover = React.createClass({
     var notificationClasses = {
       notification: true,
       clickable: nodeId,
+      'long-notification': notification.get('message').length > 100,
       unread: notification.get('status') === 'unread' ||
         _.includes(this.state.unreadNotificationsIds, notification.id)
     };
