@@ -96,7 +96,7 @@ var HealthcheckTabContent = React.createClass({
   fetchData() {
     return this.props.testruns.fetch();
   },
-  componentWillReceiveProps(newProps) {
+  shouldComponentUpdate(newProps) {
     if (this.state.stoppingTestsInProgress &&
       !newProps.testruns.some((testrun) => {
         return _.includes(['running', 'stopped'], testrun.get('status'));
@@ -104,6 +104,7 @@ var HealthcheckTabContent = React.createClass({
     ) {
       this.setState({stoppingTestsInProgress: false});
     }
+    return true;
   },
   getInitialState() {
     return {
