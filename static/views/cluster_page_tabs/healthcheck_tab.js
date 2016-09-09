@@ -214,7 +214,10 @@ var HealthcheckTabContent = React.createClass({
         );
       };
       Backbone.sync('update', testruns).then(() => {
-        this.setState({actionInProgress: false});
+        this.setState({
+          actionInProgress: false,
+          stoppingTestsInProgress: false
+        });
         this.startPolling(true);
       });
     }
