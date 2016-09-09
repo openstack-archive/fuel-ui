@@ -1028,11 +1028,20 @@ input[type=range] {
           top: 0;
         }
         p {
+          @line-height: 1.2em;
+          @lines-to-show: 10;
           display: block;
+          display: -webkit-box;
           width: 90%;
           float: left;
           margin: 0;
           .break-word;
+          line-height: @line-height;
+          max-height: @line-height * @lines-to-show;
+          -webkit-line-clamp: @lines-to-show;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         &.clickable {
           p {
