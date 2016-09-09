@@ -332,12 +332,18 @@ var NotificationsPopover = React.createClass({
       warning: 'glyphicon-warning-sign text-warning',
       discover: 'glyphicon-bell'
     }[notification.get('topic')] || 'glyphicon-info-sign';
+    // show not more than 10 lines of notification text
+    const MAX_NOTIFICATION_LENGTH = 10 * 30;
+    var message = notification.get('message');
+    if (message.length > MAX_NOTIFICATION_LENGTH) {
+      message = message.substr(0, MAX_NOTIFICATION_LENGTH) + '...';
+    }
 
     return (
       <div key={notification.id} className={utils.classNames(notificationClasses)}>
         <i className={utils.classNames('glyphicon', iconClass)} />
         <p
-          dangerouslySetInnerHTML={{__html: utils.urlify(notification.escape('message'))}}
+          dangerouslySetInnerHTML={{__html: utils.urlify(_.escape(message))}}
           onClick={nodeId && _.partial(this.showNodeInfo, nodeId)}
         />
       </div>
