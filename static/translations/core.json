@@ -705,7 +705,8 @@
                         }
                     },
                     "plugin_versions": "Versions",
-                    "active_not_hot_pluggable_plugin": "This plugin is now enabled. However, this plugin does not have \"hot pluggable\" compatibility. Your environment may stop functioning properly if this plugin is applied after initial deployment. Please consult with the plugin developer if you experience issues."
+                    "active_not_hot_pluggable_plugin": "This plugin is now enabled. However, this plugin does not have \"hot pluggable\" compatibility. Your environment may stop functioning properly if this plugin is applied after initial deployment. Please consult with the plugin developer if you experience issues.",
+                    "plugin_with_legacy_tasks": "Plugin contains legacy tasks and can be enabled in the environment"
                 },
                 "dashboard_tab": {
                     "delete_environment": "Delete Environment",

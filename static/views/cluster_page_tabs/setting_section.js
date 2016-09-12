@@ -264,15 +264,22 @@ var SettingSection = React.createClass({
     var {cluster, settings, sectionName, locked, settingsToDisplay} = this.props;
     var section = settings.get(sectionName);
     var isPlugin = settings.isPlugin && settings.isPlugin(section);
-    var metadata = section.metadata;
+    var {metadata} = section;
+    var isPluginWithLegacyTasksLocked = isPlugin && metadata.contains_legacy_tasks &&
+      settings.get('common.propagate_task_deploy.value');
+
     var sortedSettings = _.sortBy(settingsToDisplay, (settingName) => section[settingName].weight);
     var processedGroupRestrictions = this.processRestrictions(metadata);
     var processedGroupDependencies = this.checkDependencies(sectionName, 'metadata');
-    var isGroupDisabled = locked || processedGroupRestrictions.result;
+    var isGroupDisabled = locked ||
+      isPluginWithLegacyTasksLocked ||
+      processedGroupRestrictions.result;
     var showSettingGroupWarning = !locked;
-    var groupWarning = _.compact(
-      [processedGroupRestrictions.message, processedGroupDependencies.message]
-    ).join(' ');
+    var groupWarning = isPluginWithLegacyTasksLocked ?
+        i18n('cluster_page.settings_tab.plugin_with_legacy_tasks')
+      :
+        _.compact([processedGroupRestrictions.message, processedGroupDependencies.message])
+          .join(' ');
     var groupLabel = sectionName === 'common' ?
       i18n('cluster_page.settings_tab.groups.common')
     :
@@ -299,9 +306,7 @@ var SettingSection = React.createClass({
           {cluster.get('status') !== 'new' &&
             isPlugin && metadata.enabled && !metadata.hot_pluggable &&
             <div className='alert alert-warning'>
-              {i18n(
-                'cluster_page.settings_tab.active_not_hot_pluggable_plugin'
-              )}
+              {i18n('cluster_page.settings_tab.active_not_hot_pluggable_plugin')}
             </div>
           }
           {isPlugin &&
