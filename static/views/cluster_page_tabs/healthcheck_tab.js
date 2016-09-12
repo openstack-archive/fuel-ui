@@ -28,7 +28,20 @@ var HealthCheckTab = React.createClass({
       modelOrCollection: (props) => props.cluster.get('tasks'),
       renderOn: 'update change:status'
     }),
-    backboneMixin('cluster', 'change:status')
+    backboneMixin('cluster', 'change:status'),
+    backboneMixin({
+      modelOrCollection: ({ostf}) => ostf.tests,
+      renderOn: 'update change'
+    }),
+    backboneMixin({
+      modelOrCollection: ({ostf}) => ostf.testsets,
+      renderOn: 'update change:checked'
+    }),
+    backboneMixin({
+      modelOrCollection: ({ostf}) => ostf.testruns,
+      renderOn: 'update change:status'
+    }),
+    pollingMixin(3)
   ],
   statics: {
     breadcrumbsPath() {
@@ -36,28 +49,33 @@ var HealthCheckTab = React.createClass({
         [i18n('cluster_page.tabs.healthcheck'), null, {active: true}]
       ];
     },
-    fetchData(options) {
-      if (!options.cluster.get('ostf')) {
-        var ostf = {};
-        var clusterId = options.cluster.id;
-        ostf.testsets = new models.TestSets();
-        ostf.testsets.url = _.result(ostf.testsets, 'url') + '/' + clusterId;
-        ostf.tests = new models.Tests();
-        ostf.tests.url = _.result(ostf.tests, 'url') + '/' + clusterId;
-        ostf.testruns = new models.TestRuns();
-        ostf.testruns.url = _.result(ostf.testruns, 'url') + '/last/' + clusterId;
-        return Promise.all([ostf.testsets.fetch(), ostf.tests.fetch(), ostf.testruns.fetch()])
+    fetchData({cluster}) {
+      if (!cluster.get('ostf')) {
+        var testsets = new models.TestSets();
+        testsets.url = _.result(testsets, 'url') + '/' + cluster.id;
+        var tests = new models.Tests();
+        tests.url = _.result(tests, 'url') + '/' + cluster.id;
+        var testruns = new models.TestRuns();
+        testruns.url = _.result(testruns, 'url') + '/last/' + cluster.id;
+
+        return Promise.all([testsets.fetch(), tests.fetch(), testruns.fetch()])
           .then(() => {
-            options.cluster.set({ostf: ostf});
-            return {};
+            cluster.set('ostf', {testsets, tests, testruns});
+            return {ostf: cluster.get('ostf')};
           })
           .catch(() => true);
       }
-      return Promise.resolve();
+      return Promise.resolve().then(() => ({ostf: cluster.get('ostf')}));
     }
   },
+  shouldDataBeFetched() {
+    return this.props.ostf.testruns.some({status: 'running'});
+  },
+  fetchData() {
+    return this.props.ostf.testruns.fetch();
+  },
   render() {
-    var ostf = this.props.cluster.get('ostf');
+    var {cluster, ostf} = this.props;
     return (
       <div className='row'>
         <div className='title'>
@@ -67,10 +85,9 @@ var HealthCheckTab = React.createClass({
           {ostf ?
             <HealthcheckTabContent
               ref='content'
-              testsets={ostf.testsets}
-              tests={ostf.tests}
-              testruns={ostf.testruns}
-              cluster={this.props.cluster}
+              {...ostf}
+              cluster={cluster}
+              startPolling={this.startPolling}
             />
           :
             <div className='alert alert-danger'>
@@ -84,37 +101,27 @@ var HealthCheckTab = React.createClass({
 });
 
 var HealthcheckTabContent = React.createClass({
-  mixins: [
-    backboneMixin('tests', 'update change'),
-    backboneMixin('testsets', 'update change:checked'),
-    backboneMixin('testruns', 'update change'),
-    pollingMixin(3)
-  ],
-  shouldDataBeFetched() {
-    return this.props.testruns.some({status: 'running'});
-  },
-  fetchData() {
-    return this.props.testruns.fetch();
-  },
-  componentWillReceiveProps(newProps) {
-    if (this.state.stoppingTestsInProgress &&
-      !newProps.testruns.some((testrun) => {
-        return _.includes(['running', 'stopped'], testrun.get('status'));
-      })
+  componentWillReceiveProps({testruns}) {
+    if (
+      this.state.stoppingTestsInProgress &&
+      !testruns.some((testrun) => _.includes(['running', 'stopped'], testrun.get('status')))
     ) {
       this.setState({stoppingTestsInProgress: false});
+    }
+    if (this.state.runningTestsInProgress && !testruns.some({status: 'running'})) {
+      this.setState({runningTestsInProgress: false});
     }
   },
   getInitialState() {
     return {
-      actionInProgress: false,
       credentialsVisible: null,
       credentials: _.transform(
         this.props.cluster.get('settings').get('access'),
-        (result, value, key) => {
-          result[key] = value.value;
+        (result, {value}, key) => {
+          result[key] = value;
         }
       ),
+      runningTestsInProgress: false,
       stoppingTestsInProgress: false
     };
   },
@@ -128,19 +135,21 @@ var HealthcheckTabContent = React.createClass({
   toggleCredentials() {
     this.setState({credentialsVisible: !this.state.credentialsVisible});
   },
-  handleSelectAllClick(name, value) {
-    this.props.tests.invokeMap('set', {checked: value});
+  handleSelectAllClick(name, checked) {
+    this.props.tests.invokeMap('set', {checked});
   },
   handleInputChange(name, value) {
-    var credentials = this.state.credentials;
+    var {credentials} = this.state;
     credentials[name] = value;
-    this.setState({credentials: credentials});
+    this.setState({credentials});
   },
   runTests() {
+    this.setState({runningTestsInProgress: true});
+
     var testruns = new models.TestRuns();
     var oldTestruns = new models.TestRuns();
     var testsetIds = this.props.testsets.map('id');
-    this.setState({actionInProgress: true});
+
     _.each(testsetIds, (testsetId) => {
       var testsToRun = _.map(this.props.tests.filter({
         testset: testsetId,
@@ -157,7 +166,7 @@ var HealthcheckTabContent = React.createClass({
           return obj;
         };
 
-        if (this.props.testruns.filter({testset: testsetId}).length) {
+        if (this.props.testruns.some({testset: testsetId})) {
           _.each(this.props.testruns.filter({testset: testsetId}), (testrun) => {
             _.extend(testrunConfig, addCredentials({
               id: testrun.id,
@@ -187,14 +196,8 @@ var HealthcheckTabContent = React.createClass({
     }
     Promise.all(requests)
       .then(
-        () => {
-          this.startPolling(true);
-          this.setState({actionInProgress: false});
-        },
-        (response) => {
-          this.setState({actionInProgress: false});
-          utils.showErrorDialog({response: response});
-        }
+        () => this.props.startPolling(true),
+        (response) => utils.showErrorDialog({response})
       );
   },
   getActiveTestRuns() {
@@ -204,7 +207,7 @@ var HealthcheckTabContent = React.createClass({
     var testruns = new models.TestRuns(this.getActiveTestRuns());
     if (testruns.length) {
       this.setState({
-        actionInProgress: true,
+        runningTestsInProgress: false,
         stoppingTestsInProgress: true
       });
       testruns.invokeMap('set', {status: 'stopped'});
@@ -213,10 +216,8 @@ var HealthcheckTabContent = React.createClass({
           _.pick(testrun.attributes, 'id', 'status')
         );
       };
-      Backbone.sync('update', testruns).then(() => {
-        this.setState({actionInProgress: false});
-        this.startPolling(true);
-      });
+      Backbone.sync('update', testruns)
+        .then(() => this.props.startPolling(true));
     }
   },
   render() {
@@ -227,6 +228,7 @@ var HealthcheckTabContent = React.createClass({
     // moment the tests are actually stopped, - added check for 'stopped' and
     // 'running' testruns state
     var {tests, testruns, testsets, cluster} = this.props;
+    var {runningTestsInProgress, stoppingTestsInProgress, credentials} = this.state;
     var ns = 'cluster_page.healthcheck_tab.';
     var hasRunningTests = testruns.some({status: 'running'});
     var hasStoppingTests = testruns.some({status: 'stopped'});
@@ -248,18 +250,18 @@ var HealthcheckTabContent = React.createClass({
             {(hasRunningTests || hasStoppingTests) ?
               (<ProgressButton
                 className='btn btn-danger stop-tests-btn pull-right'
-                disabled={this.state.actionInProgress || this.state.stoppingTestsInProgress}
+                disabled={stoppingTestsInProgress}
                 onClick={this.stopTests}
-                progress={this.state.stoppingTestsInProgress}
+                progress={stoppingTestsInProgress}
               >
                 {i18n(ns + 'stop_tests_button')}
               </ProgressButton>)
             :
               (<ProgressButton
                 className='btn btn-success run-tests-btn pull-right'
-                disabled={!this.getNumberOfCheckedTests() || this.state.actionInProgress}
+                disabled={!this.getNumberOfCheckedTests() || runningTestsInProgress}
                 onClick={this.runTests}
-                progress={this.state.actionInProgress}
+                progress={runningTestsInProgress}
               >
                 {i18n(ns + 'run_tests_button')}
               </ProgressButton>)
@@ -274,7 +276,7 @@ var HealthcheckTabContent = React.createClass({
             </button>
 
             <HealthcheckCredentials
-              credentials={this.state.credentials}
+              credentials={credentials}
               onInputChange={this.handleInputChange}
               disabled={hasRunningTests}
             />
