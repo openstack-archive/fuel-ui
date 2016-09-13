@@ -247,9 +247,12 @@ HistoryTab = React.createClass({
                   <div className='col-xs-2 transaction-summary-label'>
                     {i18n(ns + 'transaction_attributes.message')}
                   </div>
-                  <div className='col-xs-10 transaction-summary-value message'>
-                    {activeTransaction.get('message')}
-                  </div>
+                  <div
+                    className='col-xs-10 transaction-summary-value message'
+                    dangerouslySetInnerHTML={{
+                      __html: utils.urlify(activeTransaction.escape('message'))
+                    }}
+                  />
                 </div>
               </div>
               {!_.isNull(deploymentHistory) &&

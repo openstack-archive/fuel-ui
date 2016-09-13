@@ -164,7 +164,7 @@ var DeploymentHistory = React.createClass({
                 'deploymentHistory', 'cluster', 'nodes', 'nodeNetworkGroups',
                 'width', 'timelineIntervalWidth', 'timelineRowHeight'
               )}
-              {... _.pick(this.state, 'millisecondsPerPixel')}
+              {... _.pick(this.state, 'millisecondsPerPixel', 'filters')}
               nodeTimelineContainerWidth={this.getNodeTimelineContainerWidth()}
               timeStart={timelineTimeStart}
               timeEnd={timelineTimeEnd}
@@ -245,19 +245,17 @@ var DeploymentHistoryManagementPanel = React.createClass({
                 })}
               </div>
             </div>
-            {viewMode === 'table' &&
-              <Tooltip wrap text={i18n(ns + 'filter_tooltip')}>
-                <button
-                  onClick={this.toggleFilters}
-                  className={utils.classNames({
-                    'btn btn-default pull-left btn-filters': true,
-                    active: areFiltersVisible
-                  })}
-                >
-                  <i className='glyphicon glyphicon-filter' />
-                </button>
-              </Tooltip>
-            }
+            <Tooltip wrap text={i18n(ns + 'filter_tooltip')}>
+              <button
+                onClick={this.toggleFilters}
+                className={utils.classNames({
+                  'btn btn-default pull-left btn-filters': true,
+                  active: areFiltersVisible
+                })}
+              >
+                <i className='glyphicon glyphicon-filter' />
+              </button>
+            </Tooltip>
             {viewMode === 'timeline' &&
               <div className='zoom-controls pull-right'>
                 <div className='btn-group'>
@@ -291,7 +289,7 @@ var DeploymentHistoryManagementPanel = React.createClass({
               showProgressBar='inline'
             />
           </div>
-          {viewMode === 'table' && areFiltersVisible && (
+          {areFiltersVisible && (
             <div className='filters col-xs-12'>
               <div className='well clearfix'>
                 <div className='well-heading'>
@@ -319,7 +317,7 @@ var DeploymentHistoryManagementPanel = React.createClass({
             </div>
           )}
         </div>
-        {viewMode === 'table' && !areFiltersVisible && areFiltersApplied &&
+        {!areFiltersVisible && areFiltersApplied &&
           <div className='active-sorters-filters'>
             <div className='active-filters row' onClick={this.toggleFilters}>
               <strong className='col-xs-1'>{i18n(ns + 'filter_by')}</strong>
@@ -511,15 +509,21 @@ var DeploymentHistoryTimeline = React.createClass({
   },
   render() {
     var {
-      nodes, deploymentHistory, timeStart, timeEnd, isRunning,
+      nodes, deploymentHistory, timeStart, timeEnd, isRunning, filters,
       nodeTimelineContainerWidth, width, timelineIntervalWidth, timelineRowHeight
     } = this.props;
+
+    var appliedFilters = _.filter(filters, ({values}) => values.length);
+    var filteredNodes = (_.find(appliedFilters, {name: 'node_id'}) || {}).values || [];
 
     var nodeIds = [];
     var nodeOffsets = {};
     deploymentHistory.each((task) => {
       var nodeId = task.get('node_id');
-      if (_.has(nodeOffsets, nodeId)) return;
+      if (
+        filteredNodes.length && !_.includes(filteredNodes, nodeId) ||
+        _.has(nodeOffsets, nodeId)
+      ) return;
       nodeOffsets[nodeId] = nodeIds.length;
       nodeIds.push(nodeId);
     });
@@ -571,6 +575,10 @@ var DeploymentHistoryTimeline = React.createClass({
               >
                 {deploymentHistory.map((task) => {
                   if (!_.includes(['ready', 'error', 'running'], task.get('status'))) return null;
+
+                  if (
+                    _.some(appliedFilters, ({name, values}) => !_.includes(values, task.get(name)))
+                  ) return null;
 
                   var taskTimeStart = task.get('time_start') ?
                     parseISO8601Date(task.get('time_start')) : 0;
