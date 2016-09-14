@@ -137,6 +137,10 @@ var DashboardTab = React.createClass({
     );
     var clusterHasChanges = cluster.hasChanges({configModels});
 
+    var runningChildTask = cluster.get('tasks').find(
+      (task) => !_.isNull(task.get('parent_id')) && task.match({group: 'deployment', active: true})
+    );
+
     return (
       <div className='wrapper'>
         {release.get('state') === 'unavailable' &&
@@ -152,7 +156,7 @@ var DashboardTab = React.createClass({
         {runningDeploymentTask ?
           <RunningDeploymentControl
             cluster={cluster}
-            task={runningDeploymentTask}
+            task={runningChildTask || runningDeploymentTask}
             transaction={cluster.get('transactions').findTask({status: 'running'})}
           />
         :
