@@ -285,7 +285,12 @@ var RunningDeploymentControl = React.createClass({
   render() {
     var {task, cluster, transaction} = this.props;
     var {isDeploymentHistoryOpen} = this.state;
+
     var taskName = task.get('name');
+    var childTask = cluster.get('tasks').find(
+      (task) => !_.isNull(task.get('parent_id')) && task.match({group: 'deployment', active: true})
+    );
+    var taskLabel = task.match({status: 'running'}) && childTask ? childTask.get('name') : taskName;
 
     var showStopButton = task.isStoppable();
     var stopButtonTooltipTexts = {
@@ -300,16 +305,20 @@ var RunningDeploymentControl = React.createClass({
           <div className='col-xs-12'>
             <div className={utils.classNames({
               'deploy-process': true,
-              [taskName]: true,
+              [taskLabel]: true,
               'has-stop-control': showStopButton
             })}>
               <h4>
                 <strong>
                   {i18n(ns + 'current_task') + ' '}
                 </strong>
-                {i18n('cluster_page.' + taskName, {defaultValue: taskName}) + '...'}
+                {i18n('cluster_page.' + taskLabel, {defaultValue: taskLabel}) + '...'}
               </h4>
-              <ProgressBar progress={task.isInfinite() ? null : task.get('progress')} />
+              <ProgressBar
+                progress={!task.isInfinite() && task.match({status: 'running'}) ?
+                  task.get('progress') : null
+                }
+              />
               {showStopButton &&
                 <Tooltip text={stopButtonTooltipTexts[taskName]}>
                   <button
