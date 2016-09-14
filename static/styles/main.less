@@ -2204,12 +2204,12 @@ input[type=range] {
 
     .node.provisioning {
       .progress-bar, + .node-popover .progress-bar {
-        background-color: @green;
+        background-color: @blue;
       }
     }
     .node.deploying {
       .progress-bar, + .node-popover .progress-bar {
-        background-color: @blue;
+        background-color: @green;
       }
     }
 
@@ -5083,10 +5083,10 @@ input[type=range] {
         width: 95%;
       }
       &.deploy .progress-bar, &.deployment .progress-bar {
-        background-color: @blue;
+        background-color: @green;
       }
       &.provision .progress-bar {
-        background-color: @green;
+        background-color: @blue;
       }
       &.reset_environment .progress-bar, &.stop_deployment .progress-bar {
         background-color: @orange;
