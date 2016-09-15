@@ -113,10 +113,11 @@ EquipmentPage = React.createClass({
           <PluginLinks links={this.props.links} />
           <NodeListScreen
             ref='screen'
-            {...this.props}
-            selectedNodeIds={this.state.selectedNodeIds}
-            selectNodes={this.selectNodes}
-            updateUISettings={this.updateUISettings}
+            {... _.pick(this.props,
+              'nodes', 'clusters', 'nodeNetworkGroups', 'roles', 'uiSettings'
+            )}
+            {... _.pick(this.state, 'selectedNodeIds')}
+            {... _.pick(this, 'selectNodes', 'updateUISettings')}
             showBatchActionButtons={false}
           />
         </div>

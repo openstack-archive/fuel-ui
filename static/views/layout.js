@@ -218,7 +218,7 @@ var LanguagePopover = React.createClass({
   render() {
     var currentLocale = i18n.getCurrentLocale();
     return (
-      <Popover {...this.props} className='language-popover'>
+      <Popover toggle={this.props.toggle} className='language-popover'>
         <ul className='nav nav-pills nav-stacked'>
           {_.map(i18n.getAvailableLocales(), (locale) => {
             return (
@@ -238,17 +238,18 @@ var LanguagePopover = React.createClass({
 var StatisticsPopover = React.createClass({
   mixins: [backboneMixin('statistics')],
   render() {
+    var {toggle, statistics} = this.props;
     return (
-      <Popover {...this.props} className='statistics-popover'>
+      <Popover toggle={toggle} className='statistics-popover'>
         <div className='list-group'>
           <li className='list-group-item'>
-            <span className='badge'>{this.props.statistics.get('unallocated')}</span>
-            {i18n('navbar.stats.unallocated', {count: this.props.statistics.get('unallocated')})}
+            <span className='badge'>{statistics.get('unallocated')}</span>
+            {i18n('navbar.stats.unallocated', {count: statistics.get('unallocated')})}
           </li>
           <li className='list-group-item text-success font-semibold'>
-            <span className='badge bg-green'>{this.props.statistics.get('total')}</span>
+            <span className='badge bg-green'>{statistics.get('total')}</span>
             <Link to='/equipment'>
-              {i18n('navbar.stats.total', {count: this.props.statistics.get('total')})}
+              {i18n('navbar.stats.total', {count: statistics.get('total')})}
             </Link>
           </li>
         </div>
@@ -268,10 +269,11 @@ var UserPopover = React.createClass({
     app.logout();
   },
   render() {
+    var {toggle, user} = this.props;
     return (
-      <Popover {...this.props} className='user-popover'>
+      <Popover toggle={toggle} className='user-popover'>
         <div className='username'>{i18n('common.username')}:</div>
-        <h3 className='name'>{this.props.user.get('username')}</h3>
+        <h3 className='name'>{user.get('username')}</h3>
         <div className='clearfix'>
           <button
             className='btn btn-default btn-sm pull-left'
@@ -351,10 +353,10 @@ var NotificationsPopover = React.createClass({
   },
   render() {
     var showMore = Backbone.history.getHash() !== 'notifications';
-    var notifications = this.props.notifications.take(this.props.displayCount);
+    var {notifications, displayCount, toggle} = this.props;
     return (
-      <Popover {...this.props} className='notifications-popover'>
-        {_.map(notifications, this.renderNotification)}
+      <Popover toggle={toggle} className='notifications-popover'>
+        {_.map(notifications.take(displayCount), this.renderNotification)}
         {showMore &&
           <div className='show-more'>
             <Link to='/notifications'>{i18n('notifications_popover.view_all_button')}</Link>

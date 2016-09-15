@@ -752,11 +752,13 @@ export var SelectNodesDialog = React.createClass({
   },
   renderBody() {
     return <NodeListScreen
-      {...this.props}
+      {... _.pick(this.props,
+        'nodes', 'cluster', 'nodeNetworkGroups', 'roles', 'selectedNodeIds', 'statusesToFilter'
+      )}
+      {... _.pick(this.state, 'selectedNodeIds')}
+      {... _.pick(this, 'selectNodes')}
       ref='screen'
       mode='list'
-      selectedNodeIds={this.state.selectedNodeIds}
-      selectNodes={this.selectNodes}
       showBatchActionButtons={false}
       showLabelManagementButton={false}
       nodeActionsAvailable={false}

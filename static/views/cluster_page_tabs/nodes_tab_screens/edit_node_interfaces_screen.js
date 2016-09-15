@@ -643,8 +643,11 @@ var EditNodeInterfacesScreen = React.createClass({
       );
     }
 
-    var {nodes, interfaces, viewModes} = this.props;
-    var {interfacesByIndex, indexByInterface, viewMode} = this.state;
+    var {nodes, cluster, interfaces, viewModes, bondingConfig} = this.props;
+    var {
+      interfacesByIndex, indexByInterface, viewMode, actionInProgress,
+      interfacesErrors, initialInterfaces
+    } = this.state;
     var nodeNames = nodes.map('name');
     var locked = this.isLocked();
     var configurationTemplateExists = this.configurationTemplateExists();
@@ -688,8 +691,8 @@ var EditNodeInterfacesScreen = React.createClass({
 
     var hasChanges = this.hasChanges();
     var slaveInterfaceNames = _.map(_.flatten(_.filter(interfaces.map('slaves'))), 'name');
-    var loadDefaultsEnabled = !this.state.actionInProgress;
-    var revertChangesEnabled = !this.state.actionInProgress && hasChanges;
+    var loadDefaultsEnabled = !actionInProgress;
+    var revertChangesEnabled = !actionInProgress && hasChanges;
 
     var invalidSpeedsForBonding = bondingPossible &&
       this.validateSpeedsForBonding(checkedBonds.concat(checkedInterfaces)) ||
@@ -783,23 +786,23 @@ var EditNodeInterfacesScreen = React.createClass({
             if (!_.includes(slaveInterfaceNames, ifcName)) {
               return (
                 <NodeInterfaceDropTarget
-                  {...this.props}
+                  {... _.pick(this.props, 'cluster', 'nodes', 'interfaces', 'configModels')}
                   key={'interface-' + ifcName}
                   interface={ifc}
                   limitations={limitations}
                   nodesInterfaces={nodesInterfaces[index]}
                   hasChanges={
                     !_.isEqual(
-                       _.find(this.state.initialInterfaces, {name: ifcName}),
+                       _.find(initialInterfaces, {name: ifcName}),
                       _.omit(ifc.toJSON(), 'state')
                     )
                   }
                   locked={locked}
                   configurationTemplateExists={configurationTemplateExists}
-                  errors={this.state.interfacesErrors[ifcName]}
+                  errors={interfacesErrors[ifcName]}
                   validate={this.validate}
                   removeInterfaceFromBond={this.removeInterfaceFromBond}
-                  bondingProperties={this.props.bondingConfig.properties}
+                  bondingProperties={bondingConfig.properties}
                   availableBondingTypes={availableBondingTypes[ifcName]}
                   getAvailableBondingTypes={this.getAvailableBondingTypes}
                   interfaceSpeeds={interfaceSpeeds[index]}
@@ -815,8 +818,8 @@ var EditNodeInterfacesScreen = React.createClass({
             <div className='btn-group'>
               <Link
                 className='btn btn-default'
-                to={'/cluster/' + this.props.cluster.id + '/nodes'}
-                disabled={this.state.actionInProgress}
+                to={'/cluster/' + cluster.id + '/nodes'}
+                disabled={!!actionInProgress}
               >
                 {i18n('cluster_page.nodes_tab.back_to_nodes_button')}
               </Link>
@@ -827,7 +830,7 @@ var EditNodeInterfacesScreen = React.createClass({
                   className='btn btn-default btn-defaults'
                   onClick={this.loadDefaults}
                   disabled={!loadDefaultsEnabled}
-                  progress={this.state.actionInProgress === 'load_defaults'}
+                  progress={actionInProgress === 'load_defaults'}
                 >
                   {i18n('common.load_defaults_button')}
                 </ProgressButton>
@@ -842,7 +845,7 @@ var EditNodeInterfacesScreen = React.createClass({
                   className='btn btn-success btn-apply'
                   onClick={this.applyChanges}
                   disabled={!this.isSavingPossible()}
-                  progress={this.state.actionInProgress === 'apply_changes'}
+                  progress={actionInProgress === 'apply_changes'}
                 >
                   {i18n('common.apply_button')}
                 </ProgressButton>

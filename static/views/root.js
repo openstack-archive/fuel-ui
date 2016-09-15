@@ -75,9 +75,13 @@ var RootComponent = React.createClass({
               key='navbar'
               ref='navbar'
               activeElement={Page.navbarActiveElement}
-              {...this.props}
+              {... _.pick(this.props, 'version', 'user', 'statistics', 'notifications')}
             />,
-            <Breadcrumbs key='breadcrumbs' ref='breadcrumbs' {...this.state} />,
+            <Breadcrumbs
+              key='breadcrumbs'
+              ref='breadcrumbs'
+              {... _.pick(this.state, 'Page', 'pageOptions')}
+            />,
             showDefaultPasswordWarning &&
               <DefaultPasswordWarning
                 key='password-warning'

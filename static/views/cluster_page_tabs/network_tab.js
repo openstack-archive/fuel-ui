@@ -61,25 +61,21 @@ var NetworkModelManipulationMixin = {
 
 var NetworkInputsMixin = {
   composeProps(attribute, isRange, isInteger) {
-    var {network, disabled, cluster, verificationErrorField} = this.props;
+    var {network, disabled, verificationErrorField} = this.props;
     var ns = network ? networkTabNS + 'network.' : parametersNS;
 
     var error = this.getError(attribute) || null;
     // in case of verification error we need to pass an empty string to highlight the field only
     // but not overwriting validation error
-    if (!error && _.includes(verificationErrorField, attribute)) {
-      error = '';
-    }
+    if (!error && _.includes(verificationErrorField, attribute)) error = '';
 
     return {
       key: attribute,
-      onChange: _.partialRight(this.setValue, {isInteger: isInteger}),
+      onChange: _.partialRight(this.setValue, {isInteger}),
       name: attribute,
       label: i18n(ns + attribute),
       value: this.getModel().get(attribute),
       wrapperClassName: isRange ? attribute : false,
-      network,
-      cluster,
       disabled,
       error
     };
@@ -393,7 +389,8 @@ var VlanTagInput = React.createClass({
             </Tooltip>
           }
         </label>
-        <Input {...this.props}
+        <Input
+          {... _.pick(this.props, 'name', 'label', 'value')}
           onChange={this.onTaggingChange}
           type='checkbox'
           checked={!_.isNull(value)}
@@ -402,7 +399,8 @@ var VlanTagInput = React.createClass({
           label={null}
         />
         {!_.isNull(value) &&
-          <Input {...this.props}
+          <Input
+            {... _.pick(this.props, 'name', 'label', 'value', 'error')}
             ref={name}
             onChange={this.onInputChange}
             type='text'
@@ -428,17 +426,16 @@ var CidrControl = React.createClass({
       <div className='form-group cidr'>
         <label>{i18n(networkTabNS + 'network.cidr')}</label>
         <Input
-          {...this.props}
+          {... _.pick(this.props, 'name', 'value', 'error', 'disabled')}
           type='text'
-          label={null}
           onChange={this.onCidrChange}
           wrapperClassName='pull-left'
         />
         <Input
+          {... _.pick(this.props, 'disabled')}
           type='checkbox'
           checked={this.props.network.get('meta').notation === 'cidr'}
           label={i18n(networkTabNS + 'network.use_whole_cidr')}
-          disabled={this.props.disabled}
           onChange={this.props.changeNetworkNotation}
           wrapperClassName='pull-left'
         />
@@ -1280,11 +1277,13 @@ var Network = React.createClass({
         <div className='network-description'>{i18n('network.descriptions.' + networkName)}</div>
         <CidrControl
           {... this.composeProps('cidr')}
+          {... _.pick(this.props, 'cluster', 'network')}
           changeNetworkNotation={this.changeNetworkNotation}
           autoUpdateParameters={this.autoUpdateParameters}
         />
         <Range
           {...ipRangeProps}
+          {... _.pick(this.props, 'cluster', 'network')}
           disabled={ipRangeProps.disabled || meta.notation === 'cidr'}
           rowsClassName='ip-ranges-rows'
           verificationError={_.includes(verificationErrorField, 'ip_ranges')}
@@ -1298,6 +1297,7 @@ var Network = React.createClass({
         }
         <VlanTagInput
           {... this.composeProps('vlan_start')}
+          {... _.pick(this.props, 'cluster', 'network')}
           label={i18n(networkTabNS + 'network.use_vlan_tagging')}
           value={network.get('vlan_start')}
           configurationTemplateExists={configurationTemplateExists}
