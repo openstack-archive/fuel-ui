@@ -534,7 +534,7 @@ NodeListScreenContent = React.createClass({
     return result;
   },
   render() {
-    var {cluster, nodes, selectedNodeIds, search, activeFilters, showRolePanel} = this.props;
+    var {cluster, nodes, selectedNodeIds, search, activeFilters, showRolePanel, mode} = this.props;
     var locked = !!cluster && !!cluster.task({group: 'deployment', active: true});
     var processedRoleData = cluster ? this.processRoleLimits() : {};
 
@@ -570,29 +570,32 @@ NodeListScreenContent = React.createClass({
     });
 
     var screenNodesLabels = this.getNodeLabels();
+
     return (
       <div>
-        {this.props.mode === 'edit' &&
+        {mode === 'edit' &&
           <div className='alert alert-warning'>
             {i18n('cluster_page.nodes_tab.disk_configuration_reset_warning')}
           </div>
         }
         <ManagementPanel
-          {...this.props}
-          {... _.pick(this,
-            'addSorting',
-            'removeSorting',
-            'resetSorters',
-            'changeSortingOrder',
-            'addFilter',
-            'changeFilter',
-            'removeFilter',
-            'resetFilters',
-            'getFilterOptions',
-            'changeSearch',
-            'toggleLabelsPanel'
+          {... _.pick(this.props,
+            'cluster', 'mode', 'showBatchActionButtons',
+            'viewMode', 'changeViewMode', 'showViewModeButtons',
+            'search', 'updateSearch',
+            'activeSorters', 'availableSorters', 'defaultSorting',
+            'activeFilters', 'availableFilters',
+            'showLabelManagementButton'
           )}
-          isLabelsPanelOpen={this.state.isLabelsPanelOpen}
+          {... _.pick(this,
+            'addSorting', 'removeSorting', 'resetSorters', 'changeSortingOrder',
+            'addFilter', 'changeFilter', 'removeFilter', 'resetFilters', 'getFilterOptions',
+            'changeSearch',
+            'toggleLabelsPanel',
+            'revertChanges',
+            'selectNodes'
+          )}
+          {... _.pick(this.state, 'isLabelsPanelOpen')}
           labelSorters={screenNodesLabels.map((name) => new Sorter(name, 'asc', true))}
           labelFilters={screenNodesLabels.map((name) => new Filter(name, [], true))}
           nodes={selectedNodes}
@@ -601,8 +604,6 @@ NodeListScreenContent = React.createClass({
           selectedNodeLabels={selectedNodeLabels}
           hasChanges={this.hasChanges()}
           locked={locked}
-          revertChanges={this.revertChanges}
-          selectNodes={this.selectNodes}
         />
         {showRolePanel &&
           <RolePanel
@@ -2037,7 +2038,12 @@ NodeList = React.createClass({
         }
         <div className='col-xs-12 content-elements'>
           {groups.map((group) => {
-            return <NodeGroup {...this.props}
+            return <NodeGroup
+              {... _.pick(this.props,
+                'cluster', 'clusters', 'nodeNetworkGroups', 'locked',
+                'selectNodes', 'selectedNodeIds', 'nodeActionsAvailable',
+                'mode', 'viewMode'
+              )}
               key={group[0]}
               label={group[0]}
               nodes={group[1]}

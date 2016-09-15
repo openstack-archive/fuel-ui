@@ -225,13 +225,14 @@ var SettingSection = React.createClass({
       .compact()
       .value();
     return (
-      <RadioGroup {...this.props}
+      <RadioGroup
         key={settingKey}
         name={settingName}
         label={setting.label}
         values={values}
         error={error}
         tooltipText={showSettingWarning && settingWarning}
+        {... _.pick(this.props, 'onChange')}
       />
     );
   },
