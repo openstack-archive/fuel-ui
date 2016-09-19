@@ -226,8 +226,14 @@ registerSuite(() => {
     'Check that "Deployment History" results are saved'() {
       this.timeout = 60000;
       var activeHistoryPoint = historyPointSelector + '.active';
+      var tabNames = ['Dashboard', 'Nodes', 'Networks', 'Settings', 'Logs', 'Workflows'];
+      /*
+      FIXME: Uncomment after bugfix.
+      Bug: https://bugs.launchpad.net/fuel/+bug/1625115
+
       var tabNames = ['Dashboard', 'Nodes', 'Networks', 'Settings', 'Logs', 'Workflows',
         'Health Check'];
+      */
       var chain = this.remote;
       chain = chain.then(() => clusterPage.goToTab('History'))
       .assertElementsAppear(timelinePaneSelector, 5000, '"Timeline pane" appears')

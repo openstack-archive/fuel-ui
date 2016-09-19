@@ -23,62 +23,62 @@ import Command from 'intern/dojo/node!leadfoot/Command';
 import GenericNetworksLib from 'tests/functional/nightly/library/networks_generic';
 import NetworksLib from 'tests/functional/nightly/library/networks';
 
-registerSuite(() => {
-  var common, clusterPage, clusterName, networksLib;
+// registerSuite(() => {
+//   var common, clusterPage, clusterName, networksLib;
 
-  return {
-    name: 'Neutron tunneling segmentation',
-    setup() {
-      common = new Common(this.remote);
-      clusterPage = new ClusterPage(this.remote);
-      networksLib = new GenericNetworksLib(this.remote);
-      clusterName = common.pickRandomName('Tunneling Cluster');
+//   return {
+//     name: 'Neutron tunneling segmentation',
+//     setup() {
+//       common = new Common(this.remote);
+//       clusterPage = new ClusterPage(this.remote);
+//       networksLib = new GenericNetworksLib(this.remote);
+//       clusterName = common.pickRandomName('Tunneling Cluster');
 
-      return this.remote
-        .then(() => common.getIn())
-        .then(
-          () => common.createCluster(
-            clusterName,
-            {
-              'Networking Setup'() {
-                return this.remote
-                  .clickByCssSelector('input[value*="neutron"][value$=":vlan"]')
-                  .clickByCssSelector('input[value*="neutron"][value$=":tun"]');
-              }
-            }
-          )
-        )
-        .then(() => common.addNodesToCluster(1, ['Controller']))
-        .then(() => common.addNodesToCluster(1, ['Compute']))
-        .then(() => clusterPage.goToTab('Networks'));
-    },
-    'The same VLAN for different node network groups'() {
-      return this.remote
-        .then(() => networksLib.createNetworkGroup('Network_Group_1'))
-        .then(() => networksLib.createNetworkGroup('Network_Group_2'))
-        .then(() => networksLib.checkVLANs('Network_Group_2', 'VLAN'))
-        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_1'))
-        .then(() => networksLib.checkVLANs('Network_Group_1', 'VLAN'))
-        .then(() => networksLib.goToNodeNetworkSubTab('default'))
-        .then(() => networksLib.checkVLANs('default', 'VLAN'));
-    },
-    'Gateways appear for two or more node network groups'() {
-      return this.remote
-        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_2'))
-        .then(() => networksLib.checkGateways('Network_Group_2', 'VLAN'))
-        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_1'))
-        .then(() => networksLib.checkGateways('Network_Group_1', 'VLAN'))
-        .then(() => networksLib.goToNodeNetworkSubTab('default'))
-        .then(() => networksLib.checkGateways('default', 'VLAN'))
-        .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_1'))
-        .then(() => networksLib.deleteNetworkGroup('Network_Group_1'))
-        .then(() => networksLib.checkDefaultNetworkGroup())
-        .then(() => networksLib.checkGateways('default', 'VLAN'))
-        .assertElementEnabled('div.public input[name="gateway"]',
-          'Public "Gateway" field exists and enabled for "default" network group');
-    }
-  };
-});
+//       return this.remote
+//         .then(() => common.getIn())
+//         .then(
+//           () => common.createCluster(
+//             clusterName,
+//             {
+//               'Networking Setup'() {
+//                 return this.remote
+//                   .clickByCssSelector('input[value*="neutron"][value$=":vlan"]')
+//                   .clickByCssSelector('input[value*="neutron"][value$=":tun"]');
+//               }
+//             }
+//           )
+//         )
+//         .then(() => common.addNodesToCluster(1, ['Controller']))
+//         .then(() => common.addNodesToCluster(1, ['Compute']))
+//         .then(() => clusterPage.goToTab('Networks'));
+//     },
+//     'The same VLAN for different node network groups'() {
+//       return this.remote
+//         .then(() => networksLib.createNetworkGroup('Network_Group_1'))
+//         .then(() => networksLib.createNetworkGroup('Network_Group_2'))
+//         .then(() => networksLib.checkVLANs('Network_Group_2', 'VLAN'))
+//         .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_1'))
+//         .then(() => networksLib.checkVLANs('Network_Group_1', 'VLAN'))
+//         .then(() => networksLib.goToNodeNetworkSubTab('default'))
+//         .then(() => networksLib.checkVLANs('default', 'VLAN'));
+//     },
+//     'Gateways appear for two or more node network groups'() {
+//       return this.remote
+//         .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_2'))
+//         .then(() => networksLib.checkGateways('Network_Group_2', 'VLAN'))
+//         .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_1'))
+//         .then(() => networksLib.checkGateways('Network_Group_1', 'VLAN'))
+//         .then(() => networksLib.goToNodeNetworkSubTab('default'))
+//         .then(() => networksLib.checkGateways('default', 'VLAN'))
+//         .then(() => networksLib.goToNodeNetworkSubTab('Network_Group_1'))
+//         .then(() => networksLib.deleteNetworkGroup('Network_Group_1'))
+//         .then(() => networksLib.checkDefaultNetworkGroup())
+//         .then(() => networksLib.checkGateways('default', 'VLAN'))
+//         .assertElementEnabled('div.public input[name="gateway"]',
+//           'Public "Gateway" field exists and enabled for "default" network group');
+//     }
+//   };
+// });
 
 registerSuite(() => {
   var common, command, modal, clusterPage, clusterName, networksLib, publicNetwork, storageNetwork,
@@ -310,9 +310,14 @@ registerSuite(() => {
         .then(() => clusterPage.goToTab('Logs'))
         .then(() => clusterPage.goToTab('Networks'))
         .then(() => networksLib.checkMergedNetworksGrouping(networkNames))
+        /*
+        FIXME: Uncomment after bugfix.
+        Bug: https://bugs.launchpad.net/fuel/+bug/1625115
+
         .then(() => clusterPage.goToTab('Health Check'))
         .then(() => clusterPage.goToTab('Networks'))
         .then(() => networksLib.checkMergedNetworksGrouping(networkNames))
+        */
         // Check after switching between "Networks" segments
         .then(() => networksLib.goToNodeNetworkSubTab('Neutron L2'))
         .assertElementsExist(allNetworksSelector, '"All Networks" segment exists and not selected')
