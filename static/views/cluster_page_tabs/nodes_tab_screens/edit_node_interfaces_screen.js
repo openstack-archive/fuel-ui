@@ -1620,9 +1620,9 @@ var NodeInterfaceAttributes = React.createClass({
           name='dpdk.enabled'
           onChange={(propertyName, propertyValue) => {
             this.onInterfacePropertiesChange('dpdk.enabled', propertyValue);
-            if (isBond) this.changeBondType(newBondType);
+            if (isBond && newBondType) this.changeBondType(newBondType);
           }}
-          disabled={this.props.locked || isBond && !newBondType}
+          disabled={this.props.locked || isBond && !newBondType && !currentDPDKValue}
           tooltipText={isBond && !newBondType && i18n(ns + 'locked_dpdk_bond')}
           wrapperClassName='dpdk-control'
           error={errors && errors.common}
