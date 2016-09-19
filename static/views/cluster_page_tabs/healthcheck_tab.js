@@ -50,7 +50,7 @@ var HealthCheckTab = React.createClass({
       ];
     },
     fetchData({cluster}) {
-      if (!cluster.get('ostf')) {
+      if (_.isEmpty(cluster.get('ostf'))) {
         var testsets = new models.TestSets();
         testsets.url = _.result(testsets, 'url') + '/' + cluster.id;
         var tests = new models.Tests();
@@ -59,17 +59,15 @@ var HealthCheckTab = React.createClass({
         testruns.url = _.result(testruns, 'url') + '/last/' + cluster.id;
 
         return Promise.all([testsets.fetch(), tests.fetch(), testruns.fetch()])
-          .then(() => {
-            cluster.set('ostf', {testsets, tests, testruns});
-            return {ostf: cluster.get('ostf')};
-          })
-          .catch(() => true);
+          .then(() => cluster.set('ostf', {testsets, tests, testruns}))
+          .catch(() => true)
+          .then(() => ({ostf: cluster.get('ostf')}));
       }
       return Promise.resolve().then(() => ({ostf: cluster.get('ostf')}));
     }
   },
   shouldDataBeFetched() {
-    return this.props.ostf.testruns.some({status: 'running'});
+    return this.props.ostf.testruns && this.props.ostf.testruns.some({status: 'running'});
   },
   fetchData() {
     return this.props.ostf.testruns.fetch();
@@ -82,7 +80,7 @@ var HealthCheckTab = React.createClass({
           {i18n('cluster_page.healthcheck_tab.title')}
         </div>
         <div className='col-xs-12 content-elements'>
-          {ostf ?
+          {!_.isEmpty(ostf) ?
             <HealthcheckTabContent
               ref='content'
               {...ostf}
