@@ -484,21 +484,24 @@ var EditNodeInterfacesScreen = React.createClass({
   },
   mergeLimitations(limitation1, limitation2) {
     return _.mergeWith(limitation1, limitation2, (value1, value2, interfaceProperty) => {
+      var result;
       switch (interfaceProperty) {
         case 'mtu':
         case 'offloading_modes':
           // Offloading modes are presumed to be calculated intersection
-          return {equal: true, shown: true};
+          result = {equal: true, shown: true};
+          break;
         case 'dpdk':
-          if (_.isUndefined(value1) || _.isUndefined(value2)) break;
-
-          // Both interfaces should support DPDK in order bond to support it either
-          var equal = true;
-          var shown = value1.shown && value2.shown;
-          return {equal: equal, shown: shown};
+          if (!_.isUndefined(value1) && !_.isUndefined(value2)) {
+            // Both interfaces should support DPDK in order bond to support it either
+            result = {equal: true, shown: value1.shown && value2.shown};
+          }
+          break;
         case 'sriov':
-          return {equal: true, shown: false};
+          result = {equal: true, shown: false};
+          break;
       }
+      return result;
     });
   },
   unbondInterfaces() {
@@ -783,7 +786,7 @@ var EditNodeInterfacesScreen = React.createClass({
             var ifcName = ifc.get('name');
             var limitations = this.state.limitations[ifc.isBond() ? ifcName : ifc.id];
 
-            if (!_.includes(slaveInterfaceNames, ifcName)) {
+            return !_.includes(slaveInterfaceNames, ifcName) && {
               return (
                 <NodeInterfaceDropTarget
                   {... _.pick(this.props, 'cluster', 'nodes', 'interfaces', 'configModels')}
@@ -1383,7 +1386,7 @@ var NodeInterfaceAttributes = React.createClass({
             excerpt.push((added > 1 ? ',' : '') + mode.name + ' ' + states[mode.state]);
           }
           // show no more than two modes in the button
-          if (added === 2) return false;
+          return added <= 2;
         }
     );
     if (added < ifcModes.length) excerpt.push(', ...');
@@ -1439,58 +1442,60 @@ var NodeInterfaceAttributes = React.createClass({
           </button>
         </span>
         {_.map(ifcProperties, (propertyValue, propertyName) => {
-          var {equal, shown} = _.get(
-              limitations, propertyName,
-              {equal: true, shown: true}
-          );
+          var {equal, shown} = _.get(limitations, propertyName, {equal: true, shown: true});
           var propertyShown = (!equal && isMassConfiguration && !isBond) || (equal && shown);
 
-          if (_.isPlainObject(propertyValue) && !propertyShown) return null;
+          if (
+            _.isPlainObject(propertyValue) && !propertyShown ||
+            !_.includes(renderableIfcProperties, propertyName)
+          ) return null;
 
-          if (_.includes(renderableIfcProperties, propertyName)) {
-            var classes = {
-              'text-danger': _.has(errors, propertyName),
-              'property-item-container': true,
-              [propertyName]: true,
-              active: !collapsed && activeInterfaceSectionName === propertyName,
-              forbidden: !equal
-            };
-            var commonButtonProps = {
-              className: 'btn btn-link property-item',
-              onClick: () => this.switchActiveSubtab(propertyName)
-            };
-            //@TODO (morale): create some common component out of this
-            switch (propertyName) {
-              case 'sriov':
-              case 'dpdk':
-                return (
-                  <span key={propertyName} className={utils.classNames(classes)}>
-                    {!equal && this.renderLockTooltip(propertyName)}
-                    {i18n(ns + propertyName) + ':'}
-                    <button {...commonButtonProps} disabled={!equal}>
-                      {equal ?
-                        propertyValue.enabled ?
-                            i18n('common.enabled')
-                            :
-                            i18n('common.disabled')
-                        :
-                        i18n(ns + 'different_availability')
-                      }
-                    </button>
-                  </span>
-                );
-              default:
-                return (
-                  <span key={propertyName} className={utils.classNames(classes)}>
-                    {!equal && this.renderLockTooltip(propertyName)}
-                    {i18n(ns + propertyName) + ':'}
-                    <button {...commonButtonProps} disabled={!equal}>
-                      {propertyValue || i18n(ns + propertyName + '_placeholder')}
-                    </button>
-                  </span>
-                );
-            }
+          var result;
+          var classes = {
+            'text-danger': _.has(errors, propertyName),
+            'property-item-container': true,
+            [propertyName]: true,
+            active: !collapsed && activeInterfaceSectionName === propertyName,
+            forbidden: !equal
+          };
+          var commonButtonProps = {
+            className: 'btn btn-link property-item',
+            onClick: () => this.switchActiveSubtab(propertyName)
+          };
+          //@TODO (morale): create some common component out of this
+          switch (propertyName) {
+            case 'sriov':
+            case 'dpdk':
+              result = (
+                <span key={propertyName} className={utils.classNames(classes)}>
+                  {!equal && this.renderLockTooltip(propertyName)}
+                  {i18n(ns + propertyName) + ':'}
+                  <button {...commonButtonProps} disabled={!equal}>
+                    {equal ?
+                      propertyValue.enabled ?
+                          i18n('common.enabled')
+                          :
+                          i18n('common.disabled')
+                      :
+                      i18n(ns + 'different_availability')
+                    }
+                  </button>
+                </span>
+              );
+              break;
+            default:
+              result = (
+                <span key={propertyName} className={utils.classNames(classes)}>
+                  {!equal && this.renderLockTooltip(propertyName)}
+                  {i18n(ns + propertyName) + ':'}
+                  <button {...commonButtonProps} disabled={!equal}>
+                    {propertyValue || i18n(ns + propertyName + '_placeholder')}
+                  </button>
+                </span>
+              );
+              break;
           }
+          return result;
         })}
       </div>
     );
@@ -1540,6 +1545,8 @@ var NodeInterfaceAttributes = React.createClass({
         return this.renderSRIOV(errors);
       case 'dpdk':
         return this.renderDPDK(errors);
+      default:
+        return null;
     }
   },
   renderSRIOV(errors) {

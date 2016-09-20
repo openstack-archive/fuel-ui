@@ -47,7 +47,7 @@ var utils = {
       options.cluster.get('nodes').getByIds(ids),
       {fetchOptions: {cluster_id: options.cluster.id}}
     );
-    if (nodes.length === ids.length) return nodes;
+    return nodes.length === ids.length ? nodes : null;
   },
   renderMultilineText(text) {
     if (!text) return null;
