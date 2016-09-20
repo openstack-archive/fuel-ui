@@ -219,16 +219,12 @@ var DashboardLinks = React.createClass({
       <div className='row'>
         <div className='dashboard-block links-block clearfix'>
           <div className='col-xs-12'>
-            {links.map((link, index) => {
-              if (index % 2 === 0) {
-                return (
-                  <div className='row' key={link.url}>
-                    {this.renderLink(link)}
-                    {index + 1 < links.length && this.renderLink(links[index + 1])}
-                  </div>
-                );
-              }
-            })}
+            {links.map((link, index) => index % 2 === 0 && (
+              <div className='row' key={link.url}>
+                {this.renderLink(link)}
+                {index + 1 < links.length && this.renderLink(links[index + 1])}
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -503,77 +499,71 @@ var ClusterActionsPanel = React.createClass({
       case 'deploy':
         return [
           // check for unprovisioned virt nodes
-          function(cluster) {
-            if (virtNodes.length) {
-              return {
-                blocker: [
-                  i18n(ns + 'unprovisioned_virt_nodes', {
-                    role: cluster.get('roles').find({name: 'virt'}).get('label'),
-                    count: virtNodes.length
-                  })
-                ]
-              };
-            }
+          (cluster) => virtNodes.length && {
+            blocker: [
+              i18n(ns + 'unprovisioned_virt_nodes', {
+                role: cluster.get('roles').find({name: 'virt'}).get('label'),
+                count: virtNodes.length
+              })
+            ]
           },
           // check for offline nodes
-          function(cluster) {
+          (cluster) => {
             var offlineNodes = cluster.get('nodes').filter({online: false});
-            if (offlineNodes.length) {
-              return {
-                blocker: [i18n(ns + 'offline_nodes', {count: offlineNodes.length})]
-              };
-            }
+            return offlineNodes.length && {
+              blocker: [i18n(ns + 'offline_nodes', {count: offlineNodes.length})]
+            };
           },
           // check if TLS settings are not configured
-          function(cluster) {
+          (cluster) => {
             var settings = cluster.get('settings');
-            if (!settings.get('public_ssl')) return false;
-            if (
-              !settings.get('public_ssl.horizon.value') &&
-              !settings.get('public_ssl.services.value')
-            ) {
-              return {warning: [i18n(ns + 'tls_not_enabled')]};
+            if (settings.get('public_ssl')) {
+              if (
+                !settings.get('public_ssl.horizon.value') &&
+                !settings.get('public_ssl.services.value')
+              ) {
+                return {warning: [i18n(ns + 'tls_not_enabled')]};
+              }
+              if (!settings.get('public_ssl.horizon.value')) {
+                return {warning: [i18n(ns + 'tls_for_horizon_not_enabled')]};
+              }
+              if (!settings.get('public_ssl.services.value')) {
+                return {warning: [i18n(ns + 'tls_for_services_not_enabled')]};
+              }
+              return false;
             }
-            if (!settings.get('public_ssl.horizon.value')) {
-              return {warning: [i18n(ns + 'tls_for_horizon_not_enabled')]};
-            }
-            if (!settings.get('public_ssl.services.value')) {
-              return {warning: [i18n(ns + 'tls_for_services_not_enabled')]};
-            }
+            return false;
           },
           // check if deployment failed
-          function(cluster) {
-            return cluster.needsRedeployment() && {
-              error: [
-                <div
-                  key='unsuccessful_deploy'
-                  className='instruction'>
-                  {i18n(ns + 'unsuccessful_deploy')}
-                </div>
+          (cluster) => cluster.needsRedeployment() && {
+            error: [
+              <div
+                key='unsuccessful_deploy'
+                className='instruction'>
+                {i18n(ns + 'unsuccessful_deploy')}
+              </div>
+            ]
+          },
+          // check VCenter settings
+          (cluster) => {
+            if (!cluster.get('settings').get('common.use_vcenter.value')) return false;
+            var vcenter = cluster.get('vcenter');
+            vcenter.setModels(_.extend({
+              current_vcenter: vcenter.get('availability_zones').at(0),
+              glance: vcenter.get('glance')
+            }, configModels));
+            return !vcenter.isValid() && {
+              blocker: [
+                <span key='vcenter'>{i18n('vmware.has_errors') + ' '}
+                  <Link to={'/cluster/' + cluster.id + '/vmware'}>
+                    {i18n('vmware.tab_name')}
+                  </Link>
+                </span>
               ]
             };
           },
-          // check VCenter settings
-          function(cluster) {
-            if (cluster.get('settings').get('common.use_vcenter.value')) {
-              var vcenter = cluster.get('vcenter');
-              vcenter.setModels(_.extend({
-                current_vcenter: vcenter.get('availability_zones').at(0),
-                glance: vcenter.get('glance')
-              }, configModels));
-              return !vcenter.isValid() && {
-                blocker: [
-                  <span key='vcenter'>{i18n('vmware.has_errors') + ' '}
-                    <Link to={'/cluster/' + cluster.id + '/vmware'}>
-                      {i18n('vmware.tab_name')}
-                    </Link>
-                  </span>
-                ]
-              };
-            }
-          },
           // check cluster settings
-          function(cluster) {
+          (cluster) => {
             var settings = cluster.get('settings');
             settings.isValid({models: configModels});
             if (_.isNull(settings.validationError)) return {};
@@ -592,27 +582,29 @@ var ClusterActionsPanel = React.createClass({
               return areOpenStackSettingsValid || areNetworkSettingsValid;
             });
 
-            return {blocker: [
-              !areOpenStackSettingsValid &&
-                <span key='invalid_settings'>
-                  {i18n(ns + 'invalid_settings')}
-                  {' ' + i18n(ns + 'get_more_info') + ' '}
-                  <Link to={'/cluster/' + cluster.id + '/settings'}>
-                    {i18n(ns + 'settings_link')}
-                  </Link>.
-                </span>,
-              !areNetworkSettingsValid &&
-                <span key='invalid_network_settings'>
-                  {i18n(ns + 'invalid_network_settings')}
-                  {' ' + i18n(ns + 'get_more_info') + ' '}
-                  <Link to={'/cluster/' + cluster.id + '/network/network_settings'}>
-                    {i18n(ns + 'network_settings_link')}
-                  </Link>.
-                </span>
-            ]};
+            return {
+              blocker: [
+                !areOpenStackSettingsValid &&
+                  <span key='invalid_settings'>
+                    {i18n(ns + 'invalid_settings')}
+                    {' ' + i18n(ns + 'get_more_info') + ' '}
+                    <Link to={'/cluster/' + cluster.id + '/settings'}>
+                      {i18n(ns + 'settings_link')}
+                    </Link>.
+                  </span>,
+                !areNetworkSettingsValid &&
+                  <span key='invalid_network_settings'>
+                    {i18n(ns + 'invalid_network_settings')}
+                    {' ' + i18n(ns + 'get_more_info') + ' '}
+                    <Link to={'/cluster/' + cluster.id + '/network/network_settings'}>
+                      {i18n(ns + 'network_settings_link')}
+                    </Link>.
+                  </span>
+              ]
+            };
           },
           // check node amount restrictions according to their roles
-          function(cluster) {
+          (cluster) => {
             var roleModels = cluster.get('roles');
             var validRoleModels = roleModels.filter(
               (role) => !role.checkRestrictions(configModels).result
@@ -638,9 +630,9 @@ var ClusterActionsPanel = React.createClass({
             };
           },
           // check cluster network configuration
-          function(cluster) {
+          (cluster) => {
             // network verification is not supported in multi-rack environment
-            if (cluster.get('nodeNetworkGroups').length > 1) return null;
+            if (cluster.get('nodeNetworkGroups').length > 1) return false;
 
             var task = cluster.task('verify_networks');
             var makeComponent = (text, isError) => {
@@ -665,6 +657,7 @@ var ClusterActionsPanel = React.createClass({
             if (task.match({active: true})) {
               return makeComponent(i18n(ns + 'verification_in_progress'));
             }
+            return false;
           }
         ];
       default:

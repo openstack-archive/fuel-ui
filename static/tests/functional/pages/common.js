@@ -92,9 +92,7 @@ class CommonMethods {
       .clickByCssSelector('.btn-add-nodes')
       .waitForElementDeletion('.btn-add-nodes', 3000)
       .waitForCssSelector('.node', 3000)
-      .then(() => {
-        if (nodeNameFilter) return this.clusterPage.searchForNode(nodeNameFilter);
-      })
+      .then(() => !nodeNameFilter || this.clusterPage.searchForNode(nodeNameFilter))
       .then(() => this.clusterPage.checkNodeRoles(nodesRoles))
       .then(() => this.clusterPage.checkNodes(nodesAmount, nodeStatus))
       .clickByCssSelector('.btn-apply')

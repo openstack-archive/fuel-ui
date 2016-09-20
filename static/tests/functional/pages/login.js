@@ -29,11 +29,7 @@ class LoginPage {
       .setFindTimeout(500)
       .setWindowSize(1280, 1024)
       .getCurrentUrl()
-      .then((url) => {
-        if (url !== Helpers.serverUrl + '/#login') {
-          return this.logout();
-        }
-      })
+      .then((url) => url === Helpers.serverUrl + '/#login' || this.logout())
       .setInputValue('[name=username]', username)
       .setInputValue('[name=password]', password)
       .clickByCssSelector('.login-btn');
@@ -42,14 +38,12 @@ class LoginPage {
   logout() {
     return this.remote
       .getCurrentUrl()
-      .then((url) => {
-        if (url.indexOf(Helpers.serverUrl) !== 0) {
-          return this.remote
-            .get(Helpers.serverUrl + '/#logout')
-            .findByClassName('login-btn')
-            .then(() => true);
-        }
-      })
+      .then((url) => url.indexOf(Helpers.serverUrl) === 0 ||
+        this.remote
+          .get(Helpers.serverUrl + '/#logout')
+          .findByClassName('login-btn')
+          .then(() => true)
+      )
       .clickByCssSelector('li.user-icon')
       .clickByCssSelector('.user-popover button.btn-logout')
       .findByCssSelector('.login-btn')

@@ -48,13 +48,11 @@ class ClusterPage {
       .then(() => this.modal.waitToOpen())
       .then(() => this.modal.clickFooterButton('Delete'))
       .findAllByCssSelector('.confirmation-form input[type=text]')
-        .then((confirmInputs) => {
-          if (confirmInputs.length) {
-            return confirmInputs[0]
-              .type(clusterName)
-              .then(() => this.modal.clickFooterButton('Delete'));
-          }
-        })
+        .then((confirmInputs) => !confirmInputs.length ||
+          confirmInputs[0]
+            .type(clusterName)
+            .then(() => this.modal.clickFooterButton('Delete'))
+        )
         .end()
       .then(() => this.modal.waitToClose())
       .waitForCssSelector('.clusters-page', 2000)
@@ -81,6 +79,7 @@ class ClusterPage {
                 assignRoles.splice(index, 1);
                 return !assignRoles.length;
               }
+              return true;
             }),
           false
         )
@@ -109,13 +108,11 @@ class ClusterPage {
       .then(() => this.modal.checkTitle('Reset Environment'))
       .then(() => this.modal.clickFooterButton('Reset'))
       .findAllByCssSelector('.confirmation-form input[type=text]')
-        .then((confirmationInputs) => {
-          if (confirmationInputs.length) {
-            return confirmationInputs[0]
-              .type(clusterName)
-              .then(() => this.modal.clickFooterButton('Reset'));
-          }
-        })
+        .then((confirmationInputs) => !confirmationInputs.length ||
+          confirmationInputs[0]
+            .type(clusterName)
+            .then(() => this.modal.clickFooterButton('Reset'))
+        )
         .end()
       .then(() => this.modal.waitToClose())
       .waitForElementDeletion('div.progress-bar', 30000);

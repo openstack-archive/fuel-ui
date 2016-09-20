@@ -94,6 +94,7 @@ class Router extends Backbone.Router {
           this.navigate('', {trigger: true});
           return false;
         }
+        return true;
       });
     }
     return !preventRouting;

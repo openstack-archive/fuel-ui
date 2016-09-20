@@ -3,7 +3,6 @@
   extends: openstack
   rules:
     # disabled rules from openstack config
-    consistent-return: 1 # we have lots of incosistent returns which need to be fixed
     no-extra-parens: 0 # extra parens are preferred with JSX
     no-warning-comments: 0 # we're ok with FIXMEs
     no-process-env: 0 # we use it in a few places and are ok with it

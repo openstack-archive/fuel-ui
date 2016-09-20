@@ -125,12 +125,10 @@ export var Input = React.createClass({
   },
   onChange() {
     var {onChange, name, type} = this.props;
-    if (onChange) {
-      var input = this.getInputDOMNode();
-      var value = type === 'checkbox' ? input.checked : input.value;
-      if (type === 'number') value = parseInt(value, 10);
-      return onChange(name, value);
-    }
+    var input = this.getInputDOMNode();
+    var value = type === 'checkbox' ? input.checked : input.value;
+    if (type === 'number') value = parseInt(value, 10);
+    return onChange(name, value);
   },
   handleFocus(e) {
     e.target.select();
@@ -191,10 +189,10 @@ export var Input = React.createClass({
         className: utils.classNames({
           'form-control': type !== 'range',
           [inputClassName]: inputClassName
-        }),
-        onChange: debounce ? this.debouncedChange : this.onChange
+        })
       }
     );
+    if (this.props.onChange) props.onChange = debounce ? this.debouncedChange : this.onChange;
 
     if (_.has(props, 'value')) {
       props.value = _.isNull(value) || _.isUndefined(value) ? '' : value;
