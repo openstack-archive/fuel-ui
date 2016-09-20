@@ -59,7 +59,7 @@ HistoryTab = React.createClass({
   },
   loadScreenData(transactionId) {
     transactionId = transactionId || this.props.activeTransactionId;
-    if (_.isNull(transactionId)) return;
+    if (_.isNull(transactionId)) return Promise.resolve();
 
     return DeploymentHistoryScreen
       .fetchData(transactionId)
