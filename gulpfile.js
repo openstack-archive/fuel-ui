@@ -351,6 +351,7 @@ gulp.task('build', 'Build the project.', function(cb) {
     } else if (!config.watch) {
       return cb();
     }
+    return null;
   });
 });
 

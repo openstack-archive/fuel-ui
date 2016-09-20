@@ -45,14 +45,11 @@ var EditNodeDisksScreen = React.createClass({
         node.disks = new models.Disks();
         return node.disks.fetch({url: _.result(node, 'url') + '/disks'});
       }).concat(volumes.fetch()))
-        .then(() => {
-          var disks = new models.Disks(_.cloneDeep(nodes.at(0).disks.toJSON()), {parse: true});
-          return {
-            disks: disks,
-            nodes: nodes,
-            volumes: volumes
-          };
-        });
+        .then(() => ({
+          disks: new models.Disks(_.cloneDeep(nodes.at(0).disks.toJSON()), {parse: true}),
+          nodes,
+          volumes
+        }));
     }
   },
   getInitialState() {

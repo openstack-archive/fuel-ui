@@ -37,9 +37,8 @@ export function dispatcherMixin(events, callback) {
 
 export var unsavedChangesMixin = {
   onBeforeunloadEvent() {
-    if (this.hasChanges()) {
-      return _.result(this, 'getStayMessage') || i18n('dialog.dismiss_settings.default_message');
-    }
+    return this.hasChanges() &&
+      (_.result(this, 'getStayMessage') || i18n('dialog.dismiss_settings.default_message'));
   },
   componentWillMount() {
     this.eventName = _.uniqueId('unsavedchanges');
@@ -85,6 +84,7 @@ export function pollingMixin(updateInterval, delayedStart) {
         this.stopPolling();
         return this.fetchData().then(this.scheduleDataFetch, this.scheduleDataFetch);
       }
+      return Promise.resolve();
     },
     stopPolling() {
       if (this.activeTimeout) clearTimeout(this.activeTimeout);

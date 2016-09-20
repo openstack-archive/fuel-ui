@@ -391,33 +391,33 @@ export var DiscardClusterChangesDialog = React.createClass({
             );
           }
         );
-    } else {
-      var nodes = new models.Nodes(this.props.nodes.map((node) => {
-        if (node.get('pending_deletion')) {
-          return {
-            id: node.id,
-            pending_deletion: false
-          };
-        }
+    }
+
+    var nodes = new models.Nodes(this.props.nodes.map((node) => {
+      if (node.get('pending_deletion')) {
         return {
           id: node.id,
-          cluster_id: null,
-          pending_addition: false,
-          pending_roles: []
+          pending_deletion: false
         };
-      }));
-      Backbone.sync('update', nodes)
-        .then(() => cluster.get('nodes').fetch())
-        .then(
-          () => {
-            dispatcher
-            .trigger('updateNodeStats networkConfigurationUpdated labelsConfigurationUpdated');
-            this.resolveResult();
-            this.close();
-          },
-          (response) => this.showError(response, i18n(ns + 'cant_discard'))
-        );
-    }
+      }
+      return {
+        id: node.id,
+        cluster_id: null,
+        pending_addition: false,
+        pending_roles: []
+      };
+    }));
+    return Backbone.sync('update', nodes)
+      .then(() => cluster.get('nodes').fetch())
+      .then(
+        () => {
+          dispatcher
+          .trigger('updateNodeStats networkConfigurationUpdated labelsConfigurationUpdated');
+          this.resolveResult();
+          this.close();
+        },
+        (response) => this.showError(response, i18n(ns + 'cant_discard'))
+      );
   },
   renderBody() {
     var {nodes, changeName, ns} = this.props;
@@ -1319,9 +1319,11 @@ export var ShowNodeInfoDialog = React.createClass({
       }),
       default: () => ''
     };
+    var summary;
     try {
-      return (summaryFormatters[group] || summaryFormatters.default)();
+      summary = (summaryFormatters[group] || summaryFormatters.default)();
     } catch (ignore) {}
+    return summary;
   },
   showPropertyName(propertyName) {
     return String(propertyName).replace(/_/g, ' ');
@@ -1639,11 +1641,9 @@ export var ShowNodeInfoDialog = React.createClass({
         (sectionName) => {
           var metadata = nodeAttributes.get(utils.makePath(sectionName, 'metadata'));
           var settingsToDisplay = _.compact(_.map(nodeAttributes.attributes[sectionName],
-            (setting, settingName) => {
-              if (nodeAttributes.isSettingVisible(setting, settingName, configModels)) {
-                return settingName;
-              }
-            }));
+            (setting, settingName) =>
+              nodeAttributes.isSettingVisible(setting, settingName, configModels) && settingName
+            ));
           return (
             <SettingSection
               {... {sectionName, settingsToDisplay, cluster, configModels}}
@@ -1766,17 +1766,13 @@ export var ShowNodeInfoDialog = React.createClass({
                   return (
                     <div className='nested-object' key={'entry_' + groupIndex + entryIndex}>
                       {_.map(utils.sortEntryProperties(entry, sortOrder[group]),
-                        (propertyName) => {
-                          if (
-                            !_.isPlainObject(entry[propertyName]) &&
-                            !_.isArray(entry[propertyName])
-                          ) {
-                            return this.renderNodeInfo(
-                              propertyName,
-                              this.showPropertyValue(group, propertyName, entry[propertyName])
-                            );
-                          }
-                        }
+                        (propertyName) =>
+                          !_.isPlainObject(entry[propertyName]) &&
+                          !_.isArray(entry[propertyName]) &&
+                          this.renderNodeInfo(
+                            propertyName,
+                            this.showPropertyValue(group, propertyName, entry[propertyName])
+                          )
                       )}
                     </div>
                   );
@@ -1785,18 +1781,15 @@ export var ShowNodeInfoDialog = React.createClass({
             }
             {_.isPlainObject(groupEntries) &&
               <div>
-                {_.map(groupEntries, (propertyValue, propertyName) => {
-                  if (
-                    !_.isPlainObject(propertyValue) &&
-                    !_.isArray(propertyValue) &&
-                    !_.isNumber(propertyName)
-                  ) {
-                    return this.renderNodeInfo(
-                      propertyName,
-                      this.showPropertyValue(group, propertyName, propertyValue)
-                    );
-                  }
-                })}
+                {_.map(groupEntries, (propertyValue, propertyName) =>
+                  !_.isPlainObject(propertyValue) &&
+                  !_.isArray(propertyValue) &&
+                  !_.isNumber(propertyName) &&
+                  this.renderNodeInfo(
+                    propertyName,
+                    this.showPropertyValue(group, propertyName, propertyValue)
+                  )
+                )}
                 {!_.isEmpty(subEntries) &&
                   <div>
                     {_.map(subEntries, (subentry, subentrysIndex) => {
@@ -2183,7 +2176,7 @@ export var ChangePasswordDialog = React.createClass({
     }
     if (e.key === ' ') {
       e.preventDefault();
-      return false;
+      return;
     }
   },
   handleChange(clearError, name, value) {
