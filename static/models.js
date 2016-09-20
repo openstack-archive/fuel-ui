@@ -184,11 +184,9 @@ var restrictionMixin = models.restrictionMixin = {
     var label = this.get('label');
 
     var checkOneLimit = (obj, limitType) => {
-      var limitValue, comparator;
+      if (_.isUndefined(obj[limitType])) return null;
 
-      if (_.isUndefined(obj[limitType])) {
-        return null;
-      }
+      var limitValue, comparator;
       switch (limitType) {
         case 'min':
           comparator = checkLimitIsReached ? (a, b) => a < b : (a, b) => a <= b;
@@ -204,36 +202,26 @@ var restrictionMixin = models.restrictionMixin = {
       // limitValues with overrides having priority
       limitValues[limitType] = limitValue;
       checkedLimitTypes[limitType] = true;
-      if (comparator(count, limitValue)) {
-        return {
-          type: limitType,
-          value: limitValue,
-          message: obj.message || i18n('common.role_limits.' + limitType,
-            {limitValue: limitValue, count: count, roleName: label})
-        };
-      }
+      return comparator(count, limitValue) && {
+        type: limitType,
+        value: limitValue,
+        message: obj.message ||
+          i18n('common.role_limits.' + limitType, {limitValue, count, roleName: label})
+      };
     };
 
     // Check the overridden limit types
     messages = _.chain(overrides)
       .map((override) => {
         var exp = evaluateExpressionHelper(override.condition, models);
-
-        if (exp) {
-          return _.map(limitTypes, _.partial(checkOneLimit, override));
-        }
+        return exp && _.map(limitTypes, _.partial(checkOneLimit, override));
       })
       .flatten()
       .compact()
       .value();
     // Now check the global, not-overridden limit types
     messages = messages.concat(_.chain(limitTypes)
-      .map((limitType) => {
-        if (checkedLimitTypes[limitType]) {
-          return null;
-        }
-        return checkOneLimit(limitValues, limitType);
-      })
+      .map((limitType) => !checkedLimitTypes[limitType] && checkOneLimit(limitValues, limitType))
       .flatten()
       .compact()
       .value()
@@ -245,21 +233,14 @@ var restrictionMixin = models.restrictionMixin = {
     // pick one with maximal value, for 'max' type we pick
     // the minimal one.
     messages = _.map(limitTypes, (limitType) => {
-      var message = _.chain(messages)
-        .filter({type: limitType})
-        .sortBy('value')
-        .value();
-      if (limitType !== 'max') {
-        message = message.reverse();
-      }
-      if (message[0]) {
-        return message[0].message;
-      }
+      var message = _.sortBy(messages.filter({type: limitType}), 'value');
+      if (limitType !== 'max') message = message.reverse();
+      return (message[0] || {}).message;
     });
     messages = _.compact(messages).join(' ');
 
     return {
-      count: count,
+      count,
       limits: limitValues,
       message: messages,
       valid: !messages
@@ -1467,10 +1448,10 @@ models.NetworkConfiguration = BaseModel.extend(cacheMixin).extend({
   },
   validateNameServers(nameservers) {
     var errors = _.map(nameservers,
-      (nameserver) => !utils.validateIP(nameserver) ?
-        i18n('cluster_page.network_tab.validation.invalid_nameserver') : null
+      (nameserver) => !utils.validateIP(nameserver) &&
+        i18n('cluster_page.network_tab.validation.invalid_nameserver')
     );
-    if (_.compact(errors).length) return {dns_nameservers: errors};
+    return _.compact(errors).length ? {dns_nameservers: errors} : null;
   },
   validate(attrs, options = {}) {
     var networkingParameters = attrs.networking_parameters;
@@ -1666,24 +1647,11 @@ class ComponentPattern {
     this.hasWildcard = _.includes(this.parts, '*');
   }
   match(componentName) {
-    if (!this.hasWildcard) {
-      return this.pattern === componentName;
-    }
+    if (!this.hasWildcard) return this.pattern === componentName;
 
     var componentParts = componentName.split(':');
-    if (componentParts.length < this.parts.length) {
-      return false;
-    }
-    var matched = true;
-    _.each(this.parts, (part, index) => {
-      if (part !== '*') {
-        if (part !== componentParts[index]) {
-          matched = false;
-          return matched;
-        }
-      }
-    });
-    return matched;
+    return componentParts.length >= this.parts.length &&
+      _.every(this.parts, (part, index) => part === '*' || part === componentParts[index]);
   }
 }
 

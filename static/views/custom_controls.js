@@ -261,7 +261,7 @@ customControls.text_list = customControls.textarea_list = React.createClass({
         value[index] = input.value;
         break;
     }
-    if (this.props.onChange) return this.props.onChange(this.props.name, value);
+    if (this.props.onChange) this.props.onChange(this.props.name, value);
   },
   debouncedFieldChange: _.debounce(function(index) {
     return this.changeField(index);

@@ -1575,12 +1575,11 @@ var NetworkSettings = React.createClass({
             .map(
               (sectionName) => {
                 var section = settings.get(sectionName);
-                var settingsToDisplay = _.compact(_.map(section, (setting, settingName) => {
-                  if (
-                    (section.metadata.group || setting.group === 'network') &&
-                    settings.isSettingVisible(setting, settingName, this.props.configModels)
-                  ) return settingName;
-                }));
+                var settingsToDisplay = _.compact(_.map(section, (setting, settingName) =>
+                  (section.metadata.group || setting.group === 'network') &&
+                  settings.isSettingVisible(setting, settingName, this.props.configModels) &&
+                  settingName
+                ));
                 if (_.isEmpty(settingsToDisplay) && !settings.isPlugin(section)) return null;
                 return <SettingSection
                   {... _.pick(

@@ -90,27 +90,23 @@ var SettingSection = React.createClass({
     return result;
   },
   checkDependentRoles(sectionName, settingName) {
-    if (!this.props.allocatedRoles || !this.props.allocatedRoles.length) return [];
+    var {settings, allocatedRoles, cluster, configModels, getValueAttribute} = this.props;
+    if (!_.size(allocatedRoles)) return [];
     var path = utils.makePath(sectionName, settingName);
-    var setting = this.props.settings.get(path);
+    var setting = settings.get(path);
     if (!this.areCalculationsPossible(setting)) return [];
-    var valueAttribute = this.props.getValueAttribute(settingName);
+    var valueAttribute = getValueAttribute(settingName);
     var valuesToCheck = this.getValuesToCheck(setting, valueAttribute);
     var pathToCheck = utils.makePath(path, valueAttribute);
-    var roles = this.props.cluster.get('roles');
-    return _.compact(this.props.allocatedRoles.map((roleName) => {
+    var roles = cluster.get('roles');
+    return _.compact(allocatedRoles.map((roleName) => {
       var role = roles.find({name: roleName});
-      if (_.some(role.get('restrictions'), (restriction) => {
+      return _.some(role.get('restrictions'), (restriction) => {
         restriction = utils.expandRestriction(restriction);
-        if (_.includes(restriction.condition, 'settings:' + path) &&
-          !(new Expression(
-            restriction.condition,
-            this.props.configModels,
-            restriction
-          ).evaluate())) {
-          return this.checkValues(valuesToCheck, pathToCheck, setting[valueAttribute], restriction);
-        }
-      })) return role.get('label');
+        return _.includes(restriction.condition, 'settings:' + path) &&
+          !(new Expression(restriction.condition, configModels, restriction).evaluate()) &&
+          this.checkValues(valuesToCheck, pathToCheck, setting[valueAttribute], restriction);
+      }) && role.get('label');
     }));
   },
   checkDependentSettings(sectionName, settingName) {
@@ -157,9 +153,9 @@ var SettingSection = React.createClass({
         this.checkValues,
         valuesToCheck, pathToCheck, currentSetting[valueAttribute]
       );
-      return _.compact(_.map(dependentRestrictions, (restrictions, label) => {
-        if (_.some(restrictions, checkValues)) return label;
-      }));
+      return _.compact(_.map(dependentRestrictions,
+        (restrictions, label) => _.some(restrictions, checkValues) && label
+      ));
     }
     return [];
   },
@@ -215,12 +211,11 @@ var SettingSection = React.createClass({
     var values = _.chain(_.cloneDeep(setting.values))
       .map((value) => {
         var processedValueRestrictions = this.props.checkRestrictions('disable', value);
-        if (!this.props.checkRestrictions('hide', value).result) {
-          value.disabled = isSettingDisabled || processedValueRestrictions.result;
-          value.checked = value.data === setting.value;
-          value.tooltipText = showSettingWarning && processedValueRestrictions.message;
-          return value;
-        }
+        if (this.props.checkRestrictions('hide', value).result) return null;
+        value.disabled = isSettingDisabled || processedValueRestrictions.result;
+        value.checked = value.data === setting.value;
+        value.tooltipText = showSettingWarning && processedValueRestrictions.message;
+        return value;
       })
       .compact()
       .value();

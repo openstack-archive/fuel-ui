@@ -238,11 +238,9 @@ var LogFilterBar = React.createClass({
     this.setState(data);
   },
   getLocalSources() {
-    return this.state.sources.map((source) => {
-      if (!source.get('remote')) {
-        return <option value={source.id} key={source.id}>{source.get('name')}</option>;
-      }
-    });
+    return _.map(this.state.sources.filter({remote: false}),
+      (source) => <option value={source.id} key={source.id}>{source.get('name')}</option>
+    );
   },
   getRemoteSources() {
     var options = {};

@@ -264,15 +264,14 @@ var SettingsTab = React.createClass({
 
           _.each(settingGroups, (settingGroup) => {
             var calculatedGroup = settings.sanitizeGroup(settingGroup);
-            var pickedSettings = _.compact(_.map(section, (setting, settingName) => {
-              if (
-                settings.isSettingVisible(setting, settingName, this.state.configModels) &&
-                settings.sanitizeGroup(setting.group) === calculatedGroup
-              ) return settingName;
-            }));
-            var hasErrors = _.some(pickedSettings, (settingName) => {
-              return (settings.validationError || {})[utils.makePath(sectionName, settingName)];
-            });
+            var pickedSettings = _.compact(_.map(section, (setting, settingName) =>
+              settings.isSettingVisible(setting, settingName, this.state.configModels) &&
+              settings.sanitizeGroup(setting.group) === calculatedGroup &&
+              settingName
+            ));
+            var hasErrors = _.some(pickedSettings, (settingName) =>
+              (settings.validationError || {})[utils.makePath(sectionName, settingName)]
+            );
             if (!_.isEmpty(pickedSettings)) {
               groupedSettings[calculatedGroup][sectionName] = {
                 settings: pickedSettings,
@@ -308,11 +307,10 @@ var SettingsTab = React.createClass({
             <div className={'col-xs-10 forms-box ' + groupName} key={groupName}>
               {_.map(sortedSections, (sectionName) => {
                 var settingsToDisplay = selectedGroup[sectionName].settings ||
-                  _.compact(_.map(settings.get(sectionName), (setting, settingName) => {
-                    if (settings.isSettingVisible(setting, settingName, this.state.configModels)) {
-                      return settingName;
-                    }
-                  }));
+                  _.compact(_.map(settings.get(sectionName), (setting, settingName) =>
+                    settings.isSettingVisible(setting, settingName, this.state.configModels) &&
+                    settingName
+                  ));
                 return <SettingSection
                   {... _.pick(this.state, 'initialAttributes', 'settingsForChecks', 'configModels')}
                   key={sectionName}
