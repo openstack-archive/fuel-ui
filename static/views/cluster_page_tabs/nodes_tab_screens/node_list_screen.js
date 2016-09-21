@@ -505,33 +505,21 @@ NodeListScreenContent = React.createClass({
   getNodeLabels() {
     return _.chain(this.props.nodes.map('labels')).flatten().map(_.keys).flatten().uniq().value();
   },
-  getFilterResults(filter, node) {
-    var result;
-    switch (filter.name) {
-      case 'roles':
-        result = _.some(filter.values, (role) => node.hasRole(role));
-        break;
-      case 'status':
-        result = _.includes(filter.values, node.getStatus()) ||
-          _.includes(filter.values, 'pending_addition') && node.get('pending_addition') ||
-          _.includes(filter.values, 'pending_deletion') && node.get('pending_deletion');
-        break;
-      case 'manufacturer':
-      case 'cluster':
-      case 'group_id':
-        result = _.includes(filter.values, node.get(filter.name));
-        break;
-      default:
-        // handle number ranges
-        var currentValue = node.resource(filter.name);
-        if (filter.name === 'hdd' || filter.name === 'ram') {
-          currentValue = currentValue / Math.pow(1024, 3);
-        }
-        result = currentValue >= filter.values[0] &&
-          (_.isUndefined(filter.values[1]) || currentValue <= filter.values[1]);
-        break;
-    }
-    return result;
+  getFilterResults({name, values}, node) {
+    var applyFilter = {
+      roles: () => _.some(values, (role) => node.hasRole(role)),
+      status: () => _.includes(values, node.getStatus()) ||
+        _.includes(values, 'pending_addition') && node.get('pending_addition') ||
+        _.includes(values, 'pending_deletion') && node.get('pending_deletion'),
+      manufacturer: () => _.includes(values, node.get('manufacturer')),
+      cluster: () => _.includes(values, node.get('cluster')),
+      group_id: () => _.includes(values, node.get('group_id'))
+    };
+    if (applyFilter[name]) return applyFilter[name]();
+    // handle number ranges
+    var currentValue = node.resource(name);
+    if (name === 'hdd' || name === 'ram') currentValue = currentValue / Math.pow(1024, 3);
+    return currentValue >= values[0] && (_.isUndefined(values[1]) || currentValue <= values[1]);
   },
   render() {
     var {cluster, nodes, selectedNodeIds, search, activeFilters, showRolePanel, mode} = this.props;

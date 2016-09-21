@@ -1023,9 +1023,11 @@ var NodeInterface = React.createClass({
   },
   render() {
     var ifc = this.props.interface;
-    var {cluster, locked, availableBondingTypes,
+    var {
+      cluster, nodes, locked, availableBondingTypes,
       configurationTemplateExists, viewMode,
-      interfaceSpeeds, interfaceNames, errors} = this.props;
+      interfaceSpeeds, interfaceNames, errors
+    } = this.props;
     var isBond = ifc.isBond();
     var availableBondingModes = isBond ? this.getAvailableBondingModes() : [];
     var networkConfiguration = cluster.get('networkConfiguration');
@@ -1033,22 +1035,14 @@ var NodeInterface = React.createClass({
     var networkingParameters = networkConfiguration.get('networking_parameters');
     var slaveInterfaces = ifc.getSlaveInterfaces();
     var assignedNetworks = ifc.get('assigned_networks');
-    var connectionStatusClasses = (ifc) => {
-      var isInterfaceDown = ifc.get('state') === 'down';
-      return {
-        'ifc-connection-status': true,
-        'ifc-online': !isInterfaceDown,
-        'ifc-offline': isInterfaceDown
-      };
-    };
     var bondProperties = ifc.get('bond_properties');
     var bondingPossible = !!availableBondingTypes.length && !configurationTemplateExists && !locked;
     var networkErrors = (_.flatten((errors || {}).network_errors || [])).join(', ');
-    var hasPropertiesErrors = !_.isEmpty((errors || {}).interface_properties);
+    var propertiesErrors = (errors || {}).interface_properties || {};
     var isCompact = viewMode === 'compact';
     var visibleErrors = _.compact([
       networkErrors,
-      hasPropertiesErrors && isCompact && i18n(ns + 'interface_properties_errors')
+      !_.isEmpty(propertiesErrors) && isCompact && i18n(ns + 'interface_properties_errors')
     ]);
     var checkbox = bondingPossible ?
       <Input
@@ -1137,9 +1131,12 @@ var NodeInterface = React.createClass({
                         className='ifc-info-block clearfix'
                         >
                         <div className='ifc-connection pull-left'>
-                          <div className={utils.classNames(
-                            connectionStatusClasses(renderedInterface)
-                          )}></div>
+                          <div
+                            className={utils.classNames(
+                              'ifc-connection-status',
+                              ifc.get('state') === 'down' ? 'ifc-offline' : 'ifc-online'
+                            )}
+                          />
                         </div>
                         <div className={utils.classNames({
                           'ifc-info pull-left': true,
@@ -1166,7 +1163,7 @@ var NodeInterface = React.createClass({
                               </div>
                             :
                               ([
-                                this.props.nodes.length === 1 &&
+                                nodes.length === 1 &&
                                   <div key='mac'>
                                     {i18n(ns + 'mac')}: {renderedInterface.get('mac')}
                                   </div>,
@@ -1230,12 +1227,12 @@ var NodeInterface = React.createClass({
                 'interface', 'nodesInterfaces', 'getAvailableBondingTypes', 'bondingProperties',
                 'limitations', 'locked'
               )}
-              errors={(this.props.errors || {}).interface_properties || {}}
-              isMassConfiguration={!!this.props.nodes.length}
+              errors={propertiesErrors}
+              isMassConfiguration={!!nodes.length}
               bondingModeChanged={this.bondingModeChanged}
             />
             :
-            <div className='clearfix'></div>
+            <div className='clearfix' />
           }
         </div>
       </div>

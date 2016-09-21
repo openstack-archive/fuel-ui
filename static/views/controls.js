@@ -162,57 +162,49 @@ export var Input = React.createClass({
       </div>
     </form>;
   },
-  renderInput() {
+  composeInputProps() {
     var {visible} = this.state;
-    var {
-      type, value, inputClassName, toggleable, selectOnFocus,
-      debounce, children, extraContent
-    } = this.props;
-    var isFile = type === 'file';
-    var isCheckboxOrRadio = this.isCheckboxOrRadio();
-    var inputWrapperClasses = {
-      'input-group': toggleable,
-      'custom-tumbler': isCheckboxOrRadio,
-      hidden: type === 'hidden'
-    };
-
+    var {type, value, inputClassName, toggleable, selectOnFocus, debounce, onChange} = this.props;
     var props = _.extend(
-      _.omit(this.props, [
-        'label', 'debounce', 'description', 'inputClassName', 'wrapperClassName',
-        'tooltipPlacement', 'tooltipIcon', 'tooltipText', 'toggleable', 'error', 'extraContent'
-      ]),
+      _.omit(
+        this.props, [
+          'label', 'debounce', 'description', 'inputClassName', 'wrapperClassName',
+          'tooltipPlacement', 'tooltipIcon', 'tooltipText', 'toggleable', 'error', 'extraContent'
+        ].concat(type === 'file' && ['defaultValue', 'value'])
+      ),
       {
         ref: 'input',
         key: 'input',
         onFocus: selectOnFocus && this.handleFocus,
         type: (toggleable && visible) ? 'text' : type,
-        className: utils.classNames({
-          'form-control': type !== 'range',
-          [inputClassName]: inputClassName
-        })
+        className: utils.classNames({'form-control': type !== 'range'}, [inputClassName]),
+        onChange: type === 'file' ? this.readFile :
+          onChange && (debounce ? this.debouncedChange : this.onChange)
       }
     );
-    if (this.props.onChange) props.onChange = debounce ? this.debouncedChange : this.onChange;
-
     if (_.has(props, 'value')) {
       props.value = _.isNull(value) || _.isUndefined(value) ? '' : value;
     }
-
-    if (isFile) {
-      // File control cannot have any value preset due to
-      // security issues. That's why these props should be removed.
-      props = _.omit(props, ['defaultValue', 'value']);
-      // Value changing handler is needed to calculate and render
-      // new control's value in renderFile
-      props.onChange = this.readFile;
-    }
+    return props;
+  },
+  renderInput() {
+    var {visible} = this.state;
+    var {type, toggleable, children, extraContent} = this.props;
+    var isCheckboxOrRadio = this.isCheckboxOrRadio();
 
     var Tag = _.includes(['select', 'textarea'], type) ? type : 'input';
-    var input = <Tag {...props}>{children}</Tag>;
+    var input = <Tag {...this.composeInputProps()}>{children}</Tag>;
 
     return (
-      <div key='input-group' className={utils.classNames(inputWrapperClasses)}>
-        {isFile ? this.renderFile(input) : input}
+      <div
+        key='input-group'
+        className={utils.classNames({
+          'input-group': toggleable,
+          'custom-tumbler': isCheckboxOrRadio,
+          hidden: type === 'hidden'
+        })}
+      >
+        {type === 'file' ? this.renderFile(input) : input}
         {toggleable &&
           <div className='input-group-addon' onClick={this.togglePassword}>
             <i
