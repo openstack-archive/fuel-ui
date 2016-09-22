@@ -151,9 +151,10 @@ registerSuite(() => {
         )
         .clickByCssSelector('.deployment-history-toolbar .btn-filters')
         .assertElementsExist(
-          '.filters .filter-by-task_name, .filters .filter-by-node_id, .filters .filter-by-status',
-          3,
-          'Three filters are presented: filter by Task Name, Node, and by Task Status'
+          '.filters .filter-by-task_name, .filters .filter-by-type,' +
+          '.filters .filter-by-node_id, .filters .filter-by-status',
+          4,
+          'Three filters are presented: filter by Task Name, Task Type, Node, and by Task Status'
         )
         .findAllByCssSelector('.history-table table tbody tr')
           .then((elements) => {

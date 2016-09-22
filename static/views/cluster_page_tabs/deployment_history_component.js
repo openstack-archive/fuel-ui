@@ -40,7 +40,15 @@ var DeploymentHistory = React.createClass({
     };
   },
   getInitialState() {
-    var {deploymentHistory} = this.props;
+    var taskNames = [];
+    var taskTypes = [];
+    var taskNodes = [];
+    this.props.deploymentHistory.each((task) => {
+      taskNames.push(task.get('task_name'));
+      taskTypes.push(task.get('type'));
+      taskNodes.push(task.get('node_id'));
+    });
+
     return {
       viewMode: 'timeline',
       filters: [
@@ -48,15 +56,19 @@ var DeploymentHistory = React.createClass({
           name: 'task_name',
           label: i18n(ns + 'filter_by_task_name'),
           values: [],
-          options: _.map(_.uniq(deploymentHistory.map('task_name')).sort(),
-            (taskName) => ({name: taskName, title: taskName})
-          ),
+          options: _.map(_.uniq(taskNames).sort(), (name) => ({name, title: name})),
+          addOptionsFilter: true
+        }, {
+          name: 'type',
+          label: i18n(ns + 'filter_by_task_type'),
+          values: [],
+          options: _.map(_.uniq(taskTypes).sort(), (type) => ({name: type, title: type})),
           addOptionsFilter: true
         }, {
           name: 'node_id',
           label: i18n(ns + 'filter_by_node'),
           values: [],
-          options: _.map(_.uniq(deploymentHistory.map('node_id')),
+          options: _.map(_.uniq(taskNodes),
             (nodeId) => ({name: nodeId, title: renderNodeName.call(this, nodeId, false)})
           ),
           addOptionsFilter: true
