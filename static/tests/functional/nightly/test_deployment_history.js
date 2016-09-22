@@ -307,22 +307,23 @@ registerSuite(() => {
         // Check "Table View"
         .clickByCssSelector(tableViewButton)
         .assertElementsAppear(tablePaneSelector, 5000, '"Table pane" appears')
-        .assertElementsExist(tableHeader, 6, '6 columns are observed by default')
+        .assertElementsExist(tableHeader, 7, '7 columns are observed by default')
         .assertElementTextEquals(tableHeader + ':nth-child(1)', 'Task', 'Column has true name')
         .assertElementTextEquals(tableHeader + ':nth-child(2)', 'Node', 'Column has true name')
         .assertElementTextEquals(tableHeader + ':nth-child(3)', 'Status', 'Column has true name')
-        .assertElementTextEquals(tableHeader + ':nth-child(4)', 'Started', 'Column has true name')
-        .assertElementTextEquals(tableHeader + ':nth-child(5)', 'Finished', 'Column has true name')
-        .assertElementTextEquals(tableHeader + ':nth-child(6)', '', 'Column has true name')
+        .assertElementTextEquals(tableHeader + ':nth-child(4)', 'Type', 'Column has true name')
+        .assertElementTextEquals(tableHeader + ':nth-child(5)', 'Started', 'Column has true name')
+        .assertElementTextEquals(tableHeader + ':nth-child(6)', 'Finished', 'Column has true name')
+        .assertElementTextEquals(tableHeader + ':nth-child(7)', '', 'Column has true name')
         .assertElementsExist(tableBodyRow, 7, '7 node tasks are observed')
-        .assertElementsExist(tableBodyRow + ' td', 42, '42 cells are observed in the table')
+        .assertElementsExist(tableBodyRow + ' td', 49, '49 cells are observed in the table')
         .assertElementTextEquals(tableBodyRow + ' td:nth-child(2)', 'Master node',
           'Master node has correct name')
         .assertElementTextEquals(tableBodyRow + ':nth-child(2) td:nth-child(2)', controllerName,
           'Controller node has correct name')
-        .assertElementContainsText(tableBodyRow + ' td:nth-child(4)', currentTime,
+        .assertElementContainsText(tableBodyRow + ' td:nth-child(5)', currentTime,
           'Task start time the same as real via "Table View"')
-        .assertElementContainsText(tableBodyRow + ' td:nth-child(4)', currentDate,
+        .assertElementContainsText(tableBodyRow + ' td:nth-child(5)', currentDate,
           'Task start date the same as real via "Table View"');
     },
     'Check that "Timeline View" data equals to "Table View" data'() {

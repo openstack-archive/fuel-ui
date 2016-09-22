@@ -399,7 +399,7 @@ registerSuite(() => {
           'Deletion of several node network groups one after another is successfull');
     },
     'Can not create node network group without saving changes'() {
-      var errorTextSelector = 'div.text-error';
+      var errorTextSelector = 'div.text-danger div';
       var ipRangeStart = '172.16.0.25';
       return this.remote
         .assertElementEnabled(startIpSelector, 'Public "Start IP Range" textfield is enabled')
@@ -410,7 +410,7 @@ registerSuite(() => {
         .clickByCssSelector(addGroupSelector)
         .then(() => modal.waitToOpen())
         .then(() => modal.checkTitle('Node Network Group Creation Error'))
-        .assertElementDisplayed(errorTextSelector, 'Error message exists')
+        .assertElementsAppear(errorTextSelector, 1000, 'Error message appears')
         .assertElementContainsText(errorTextSelector,
           'It is necessary to save changes before creating a new node network group',
           'True error message presents')

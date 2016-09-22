@@ -68,10 +68,7 @@ registerSuite(() => {
         .then(() => genericLib.checkMirantisRefsOnTab('Dashboard'))
         .then(() => genericLib.checkMirantisRefsOnTab('Nodes'))
         .then(() => genericLib.checkMirantisRefsOnTab('Networks'))
-        /* @FIXME: uncomment "Settings" tab check after after this patch will be merged:
-          https://review.openstack.org/#/c/321997
         .then(() => genericLib.checkMirantisRefsOnTab('Settings'))
-        */
         .then(() => genericLib.checkMirantisRefsOnTab('Logs'))
         .then(() => genericLib.checkMirantisRefsOnTab('Health Check'));
     }
