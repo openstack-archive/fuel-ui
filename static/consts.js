@@ -74,6 +74,7 @@ export const DEPLOYMENT_TASK_STATUSES = [
 
 export const DEPLOYMENT_TASK_ATTRIBUTES = [
   'task_name',
+  'type',
   'node_id',
   'status',
   'time_start',

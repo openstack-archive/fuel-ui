@@ -53,6 +53,14 @@ var DeploymentHistory = React.createClass({
           ),
           addOptionsFilter: true
         }, {
+          name: 'type',
+          label: i18n(ns + 'filter_by_task_type'),
+          values: [],
+          options: _.map(_.uniq(deploymentHistory.map('type')).sort(),
+            (type) => ({name: type, title: type})
+          ),
+          addOptionsFilter: true
+        }, {
           name: 'node_id',
           label: i18n(ns + 'filter_by_node'),
           values: [],
