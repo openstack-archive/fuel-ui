@@ -136,7 +136,7 @@ registerSuite(() => {
           '.history-table table',
           'Deployment history switched into table view'
         )
-        .clickByCssSelector('.history-table tr td .btn-link')
+        .clickByCssSelector('.history-table tr td .btn-task-details')
         .then(() => modal.waitToOpen())
         .then(() => modal.checkTitle('Deployment Task Details'))
         .assertElementsExist(
