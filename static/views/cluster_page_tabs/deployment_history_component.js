@@ -20,12 +20,14 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import utils from 'utils';
 import {Table, Tooltip, Popover, MultiSelectControl, DownloadFileButton} from 'views/controls';
+import {Sorter} from 'views/cluster_page_tabs/nodes_tab_screens/sorter_and_filter';
 import {DeploymentTaskDetailsDialog, ShowNodeInfoDialog} from 'views/dialogs';
 import {
-  DEPLOYMENT_HISTORY_VIEW_MODES, DEPLOYMENT_TASK_STATUSES, DEPLOYMENT_TASK_ATTRIBUTES
+  DEPLOYMENT_HISTORY_VIEW_MODES, DEPLOYMENT_TASK_STATUSES, DEPLOYMENT_TASK_ATTRIBUTES, NODE_STATUSES
 } from 'consts';
 
 var ns = 'cluster_page.deployment_history.';
+var sorterNs = ns + 'sort_by_';
 
 var {parseRFC2822Date, parseISO8601Date, formatTimestamp} = utils;
 
@@ -36,14 +38,18 @@ var DeploymentHistory = React.createClass({
   getDefaultProps() {
     return {
       timelineIntervalWidth: 75,
-      timelineRowHeight: 28
+      timelineRowHeight: 28,
+      defaultSorting: [{time_start: 'asc'}],
+      availableSorters: DEPLOYMENT_TASK_ATTRIBUTES
     };
   },
   getInitialState() {
+    var {deploymentHistory, defaultSorting, availableSorters} = this.props;
+
     var taskNames = [];
     var taskNodes = [];
     var taskTypes = [];
-    this.props.deploymentHistory.each((task) => {
+    deploymentHistory.each((task) => {
       taskNames.push(task.get('task_name'));
       taskNodes.push(task.get('node_id'));
       taskTypes.push(task.get('type'));
@@ -87,6 +93,8 @@ var DeploymentHistory = React.createClass({
           addOptionsFilter: true
         }
       ],
+      activeSorters: _.map(defaultSorting, _.partial(Sorter.fromObject, _, sorterNs, false)),
+      availableSorters: _.map(availableSorters, (name) => new Sorter(name, 'asc', sorterNs)),
       millisecondsPerPixel:
         this.getTimelineMaxMillisecondsPerPixel(...this.getTimelineTimeInterval())
     };
@@ -149,8 +157,31 @@ var DeploymentHistory = React.createClass({
     });
     this.setState({filters});
   },
+  addSorting(sorter) {
+    this.setState({activeSorters: this.state.activeSorters.concat(sorter)});
+  },
+  removeSorting(sorter) {
+    this.setState({activeSorters: _.difference(this.state.activeSorters, [sorter])});
+  },
+  changeSortingOrder(sorterToChange) {
+    this.setState({
+      activeSorters: this.state.activeSorters.map((sorter) => {
+        if (sorter.name === sorterToChange.name) {
+          return new Sorter(sorter.name, sorter.order === 'asc' ? 'desc' : 'asc', sorterNs);
+        }
+        return sorter;
+      })
+    });
+  },
+  resetSorters() {
+    this.setState({
+      activeSorters: _.map(this.props.defaultSorting,
+        _.partial(Sorter.fromObject, _, sorterNs, false)
+      )
+    });
+  },
   render() {
-    var {viewMode, millisecondsPerPixel} = this.state;
+    var {viewMode, activeSorters, millisecondsPerPixel} = this.state;
     var {transaction, timelineIntervalWidth} = this.props;
     var [timelineTimeStart, timelineTimeEnd] = this.getTimelineTimeInterval();
 
@@ -163,9 +194,13 @@ var DeploymentHistory = React.createClass({
     return (
       <div className='deployment-history-table'>
         <DeploymentHistoryManagementPanel
-          {... _.pick(this.props, 'deploymentHistory', 'transaction')}
-          {... _.pick(this.state, 'viewMode', 'filters')}
-          {... _.pick(this, 'changeViewMode', 'resetFilters', 'changeFilter')}
+          {... _.pick(this.props, 'deploymentHistory', 'transaction', 'defaultSorting')}
+          {... _.pick(this.state, 'viewMode', 'filters', 'activeSorters', 'availableSorters')}
+          {... _.pick(this,
+            'changeViewMode',
+            'resetFilters', 'changeFilter',
+            'addSorting', 'removeSorting', 'changeSortingOrder', 'resetSorters'
+          )}
           zoomInTimeline={canTimelineBeZoommedIn && this.zoomInTimeline}
           zoomOutTimeline={canTimelineBeZoommedOut && this.zoomOutTimeline}
         />
@@ -187,6 +222,7 @@ var DeploymentHistory = React.createClass({
             <DeploymentHistoryTable
               {... _.pick(this.props, 'cluster', 'nodes', 'nodeNetworkGroups', 'deploymentHistory')}
               {... _.pick(this.state, 'filters')}
+              sorters={activeSorters}
             />
           }
         </div>
@@ -199,13 +235,18 @@ var DeploymentHistoryManagementPanel = React.createClass({
   getInitialState() {
     return {
       areFiltersVisible: false,
-      openFilter: null
+      openFilter: null,
+      areSortersVisible: false,
+      isMoreSorterControlVisible: false
     };
   },
   toggleFilters() {
     this.setState({
       areFiltersVisible: !this.state.areFiltersVisible,
-      openFilter: null
+      openFilter: false,
+      //close activeSorters panel
+      areSortersVisible: false,
+      isMoreSorterControlVisible: false
     });
   },
   toggleFilter(filterName, visible) {
@@ -216,17 +257,40 @@ var DeploymentHistoryManagementPanel = React.createClass({
       openFilter: visible ? filterName : isFilterOpen ? null : openFilter
     });
   },
+  toggleSorters() {
+    this.setState({
+      areSortersVisible: !this.state.areSortersVisible,
+      isMoreSorterControlVisible: false,
+      //close filters panel
+      areFiltersVisible: false,
+      openFilter: null
+    });
+  },
+  toggleMoreSorterControl(visible) {
+    this.setState({
+      isMoreSorterControlVisible: _.isBoolean(visible) ?
+        visible : !this.state.isMoreSorterControlVisible
+    });
+  },
   render() {
     var {
       deploymentHistory, transaction,
       viewMode, changeViewMode,
       zoomInTimeline, zoomOutTimeline,
-      filters, resetFilters, changeFilter
+      filters, resetFilters, changeFilter,
+      activeSorters, defaultSorting, availableSorters,
+      addSorting, removeSorting, changeSortingOrder, resetSorters
     } = this.props;
 
-    var {areFiltersVisible, openFilter} = this.state;
+    var {
+      areFiltersVisible, openFilter,
+      areSortersVisible, isMoreSorterControlVisible
+    } = this.state;
 
     var areFiltersApplied = _.some(filters, ({values}) => values.length);
+
+    var inactiveSorters = _.filter(availableSorters, ({name}) => !_.some(activeSorters, {name}));
+    var canResetSorters = !_.isEqual(_.map(activeSorters, Sorter.toObject), defaultSorting);
 
     return (
       <div>
@@ -253,6 +317,19 @@ var DeploymentHistoryManagementPanel = React.createClass({
                 })}
               </div>
             </div>
+            {viewMode === 'table' &&
+              <Tooltip wrap text={i18n(ns + 'sort_tooltip')}>
+                <button
+                  onClick={this.toggleSorters}
+                  className={utils.classNames({
+                    'btn btn-default pull-left btn-sorters': true,
+                    active: areSortersVisible
+                  })}
+                >
+                  <i className='glyphicon glyphicon-sort' />
+                </button>
+              </Tooltip>
+            }
             <Tooltip wrap text={i18n(ns + 'filter_tooltip')}>
               <button
                 onClick={this.toggleFilters}
@@ -297,6 +374,64 @@ var DeploymentHistoryManagementPanel = React.createClass({
               showProgressBar='inline'
             />
           </div>
+          {viewMode === 'table' && areSortersVisible && (
+            <div className='sorters col-xs-12'>
+              <div className='well clearfix'>
+                <div className='well-heading'>
+                  <i className='glyphicon glyphicon-sort' /> {i18n(ns + 'sort_by')}
+                  {canResetSorters &&
+                    <button
+                      className='btn btn-link pull-right btn-reset-sorters'
+                      onClick={resetSorters}
+                    >
+                      <i className='glyphicon discard-changes-icon' /> {i18n('common.reset_button')}
+                    </button>
+                  }
+                </div>
+                {_.map(activeSorters, (sorter) => {
+                  var {name, order, title} = sorter;
+                  var asc = order === 'asc';
+                  return (
+                    <div
+                      key={'sort_by-' + name}
+                      className={utils.classNames(
+                        'sorter-control', 'pull-left', 'sort-by-' + name + '-' + order
+                      )}
+                    >
+                      <button
+                        className='btn btn-default'
+                        onClick={() => changeSortingOrder(sorter)}
+                      >
+                        {title}
+                        <i
+                          className={utils.classNames({
+                            glyphicon: true,
+                            'glyphicon-arrow-down': asc,
+                            'glyphicon-arrow-up': !asc
+                          })}
+                        />
+                      </button>
+                      {activeSorters.length > 1 &&
+                        <i
+                          className='btn btn-link glyphicon glyphicon-minus-sign btn-remove-sorter'
+                          onClick={() => removeSorting(sorter)}
+                        />
+                      }
+                    </div>
+                  );
+                })}
+                <MultiSelectControl
+                  name='sorter-more'
+                  label={i18n(ns + 'add_sorter')}
+                  options={inactiveSorters}
+                  onChange={addSorting}
+                  dynamicValues
+                  isOpen={isMoreSorterControlVisible}
+                  toggle={this.toggleMoreSorterControl}
+                />
+              </div>
+            </div>
+          )}
           {areFiltersVisible && (
             <div className='filters col-xs-12'>
               <div className='well clearfix'>
@@ -325,27 +460,62 @@ var DeploymentHistoryManagementPanel = React.createClass({
             </div>
           )}
         </div>
-        {!areFiltersVisible && areFiltersApplied &&
+        {(
+          !areFiltersVisible && areFiltersApplied ||
+          viewMode === 'table' && !areSortersVisible && !!activeSorters.length
+        ) &&
           <div className='active-sorters-filters'>
-            <div className='active-filters row' onClick={this.toggleFilters}>
-              <strong className='col-xs-1'>{i18n(ns + 'filter_by')}</strong>
-              <div className='col-xs-11'>
-                {_.map(filters, ({name, label, values, options}) => {
-                  if (!values.length) return null;
-                  return <div key={name}>
-                    <strong>{label + ':'}</strong> <span>
-                      {_.map(values, (value) => _.find(options, {name: value}).title).join(', ')}
-                    </span>
-                  </div>;
-                })}
+            {!areFiltersVisible && areFiltersApplied &&
+              <div className='active-filters row' onClick={this.toggleFilters}>
+                <strong className='col-xs-1'>{i18n(ns + 'filter_by')}</strong>
+                <div className='col-xs-11'>
+                  {_.map(filters, ({name, label, values, options}) => {
+                    if (!values.length) return null;
+                    return <div key={name}>
+                      <strong>{label + ':'}</strong> <span>
+                        {_.map(values, (value) => _.find(options, {name: value}).title).join(', ')}
+                      </span>
+                    </div>;
+                  })}
+                </div>
+                <button
+                  className='btn btn-link btn-reset-filters'
+                  onClick={resetFilters}
+                >
+                  <i className='glyphicon discard-changes-icon' />
+                </button>
               </div>
-              <button
-                className='btn btn-link btn-reset-filters'
-                onClick={resetFilters}
-              >
-                <i className='glyphicon discard-changes-icon' />
-              </button>
-            </div>
+            }
+            {viewMode === 'table' && !areSortersVisible && !!activeSorters.length &&
+              <div className='active-sorters row' onClick={this.toggleSorters}>
+                <strong className='col-xs-1'>{i18n(ns + 'sort_by')}</strong>
+                <div className='col-xs-11'>
+                  {activeSorters.map(({name, order, title}, index) => {
+                    var asc = order === 'asc';
+                    return (
+                      <span key={name}>
+                        {title}
+                        <i
+                          className={utils.classNames(
+                            'glyphicon',
+                            asc ? 'glyphicon-arrow-down' : 'glyphicon-arrow-up'
+                          )}
+                        />
+                        {!!activeSorters[index + 1] && ' + '}
+                      </span>
+                    );
+                  })}
+                </div>
+                {canResetSorters &&
+                  <button
+                    className='btn btn-link btn-reset-sorters'
+                    onClick={resetSorters}
+                  >
+                    <i className='glyphicon discard-changes-icon' />
+                  </button>
+                }
+              </div>
+            }
           </div>
         }
       </div>
@@ -517,23 +687,115 @@ var DeploymentHistoryTimeline = React.createClass({
   },
   render() {
     var {
-      nodes, deploymentHistory, timeStart, timeEnd, isRunning, filters,
+      cluster, nodes, deploymentHistory, timeStart, timeEnd, isRunning, filters,
       nodeTimelineContainerWidth, width, timelineIntervalWidth, timelineRowHeight
     } = this.props;
 
     var appliedFilters = _.filter(filters, ({values}) => values.length);
     var filteredNodes = (_.find(appliedFilters, {name: 'node_id'}) || {}).values || [];
 
-    var nodeIds = [];
+    var nodeIds = filteredNodes.length ? filteredNodes : _.uniq(deploymentHistory.map('node_id'));
+    var {sort, sort_by_labels: sortByLabels} = cluster.get('ui_settings');
+    var nodeListSorters = _.union(
+      _.map(sort, _.partial(Sorter.fromObject, _, sorterNs, false)),
+      _.map(sortByLabels, _.partial(Sorter.fromObject, _, sorterNs, true))
+    );
+
+    // FIXME(jkirnosova): need to get rid of the following code duplication
+    // (sorting logic is taken from node list screen view)
+    nodeIds.sort((id1, id2) => {
+      // master node should go first
+      if (id1 === 'master') return -1;
+      if (id2 === 'master') return 1;
+
+      var node1 = cluster.get('nodes').get(id1);
+      var node2 = cluster.get('nodes').get(id2);
+
+      // removed nodes should go last
+      if (!node1 || !node2) return node1 ? -1 : node2 ? 1 : id1 - id2;
+
+      // apply user defined sorting to cluster nodes
+      var result;
+      var preferredRolesOrder = cluster.get('roles').map('name');
+      var composeNodeDiskSizesLabel = (node) => {
+        var diskSizes = node.resource('disks');
+        return i18n('node_details.disks_amount', {
+          count: diskSizes.length,
+          size: diskSizes.map(
+            (size) => utils.showSize(size) + ' ' + i18n('node_details.hdd')
+          ).join(', ')
+        });
+      };
+      _.each(nodeListSorters, (sorter) => {
+        if (sorter.isLabel) {
+          var node1Label = node1.getLabel(sorter.name);
+          var node2Label = node2.getLabel(sorter.name);
+          if (node1Label && node2Label) {
+            result = utils.natsort(node1Label, node2Label, {insensitive: true});
+          } else {
+            result = node1Label === node2Label ? 0 : _.isString(node1Label) ? -1 :
+              _.isNull(node1Label) ? -1 : 1;
+          }
+        } else {
+          var comparators = {
+            roles: () => {
+              var roles1 = node1.sortedRoles(preferredRolesOrder);
+              var roles2 = node2.sortedRoles(preferredRolesOrder);
+              var order;
+              if (!roles1.length && !roles2.length) {
+                result = 0;
+              } else if (!roles1.length) {
+                result = 1;
+              } else if (!roles2.length) {
+                result = -1;
+              } else {
+                while (!order && roles1.length && roles2.length) {
+                  order = _.indexOf(preferredRolesOrder, roles1.shift()) -
+                    _.indexOf(preferredRolesOrder, roles2.shift());
+                }
+                result = order || roles1.length - roles2.length;
+              }
+            },
+            status: () => {
+              var status1 = !node1.get('online') ? 'offline' : node1.get('status');
+              var status2 = !node2.get('online') ? 'offline' : node2.get('status');
+              result = _.indexOf(NODE_STATUSES, status1) - _.indexOf(NODE_STATUSES, status2);
+            },
+            disks: () => {
+              result = utils.natsort(
+                composeNodeDiskSizesLabel(node1),
+                composeNodeDiskSizesLabel(node2)
+              );
+            },
+            group_id: () => {
+              var nodeGroup1 = node1.get('group_id');
+              var nodeGroup2 = node2.get('group_id');
+              result = nodeGroup1 === nodeGroup2 ? 0 :
+                !nodeGroup1 ? 1 : !nodeGroup2 ? -1 : nodeGroup1 - nodeGroup2;
+            },
+            default: () => {
+              result = node1.resource(sorter.name) - node2.resource(sorter.name);
+            }
+          };
+
+          if (!_.includes(['name', 'ip', 'mac', 'manufacturer'], sorter.name)) {
+            (comparators[sorter.name] || comparators.default)();
+          } else {
+            result = utils.natsort(node1.get(sorter.name), node2.get(sorter.name));
+          }
+        }
+
+        if (sorter.order === 'desc') result = result * -1;
+
+        return result === 0;
+      });
+
+      return result === 0 ? id1 - id2 : result;
+    });
+
     var nodeOffsets = {};
-    deploymentHistory.each((task) => {
-      var nodeId = task.get('node_id');
-      if (
-        filteredNodes.length && !_.includes(filteredNodes, nodeId) ||
-        _.has(nodeOffsets, nodeId)
-      ) return;
-      nodeOffsets[nodeId] = nodeIds.length;
-      nodeIds.push(nodeId);
+    _.each(nodeIds, (nodeId, index) => {
+      nodeOffsets[nodeId] = index;
     });
 
     var nodeTimelineWidth = _.max([
@@ -624,6 +886,44 @@ var DeploymentHistoryTimeline = React.createClass({
 });
 
 var DeploymentHistoryTable = React.createClass({
+  sortDeploymentTasks({deploymentHistory, sorters, cluster}) {
+    var comparators = {
+      node_id: (attr1, attr2) => {
+        // master node should go first
+        if (attr1 === 'master') return -1;
+        if (attr2 === 'master') return 1;
+
+        var node1 = cluster.get('nodes').get(attr1);
+        var node2 = cluster.get('nodes').get(attr2);
+
+        // removed node should go last
+        if (!node1 || !node2) return node1 ? -1 : node2 ? 1 : attr1 - attr2;
+        // sort by name
+        return utils.natsort(node1.get('name'), node2.get('name'));
+      },
+      task_name: (attr1, attr2) => utils.natsort(attr1, attr2),
+      status: (attr1, attr2) => _.indexOf(DEPLOYMENT_TASK_STATUSES, attr1) -
+        _.indexOf(DEPLOYMENT_TASK_STATUSES, attr2),
+      type: (attr1, attr2) => utils.natsort(attr1, attr2),
+      time_start: (attr1, attr2) => parseISO8601Date(attr1) - parseISO8601Date(attr2),
+      time_end: (attr1, attr2) => parseISO8601Date(attr1) - parseISO8601Date(attr2)
+    };
+    deploymentHistory.models.sort((task1, task2) => {
+      var result;
+      _.each(sorters, ({name, order}) => {
+        result = comparators[name](task1.get(name), task2.get(name));
+        if (order === 'desc') result = result * -1;
+        return result === 0;
+      });
+      return result;
+    });
+  },
+  componentWillMount() {
+    this.sortDeploymentTasks(this.props);
+  },
+  componentWillUpdate(newProps) {
+    if (!_.isEqual(this.props.sorters, newProps.sorters)) this.sortDeploymentTasks(newProps);
+  },
   render() {
     var {deploymentHistory, filters} = this.props;
     var deploymentTasks = deploymentHistory.filter((task) =>

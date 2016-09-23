@@ -676,15 +676,6 @@ models.DeploymentTask = BaseModel.extend({
 models.DeploymentTasks = BaseCollection.extend({
   constructorName: 'DeploymentTasks',
   model: models.DeploymentTask,
-  comparator(task1, task2) {
-    var node1 = task1.get('node_id');
-    var node2 = task2.get('node_id');
-    if (node1 === node2) return utils.compare(task1, task2, {attr: 'time_start'});
-    // master node tasks should go first
-    if (node1 === 'master') return -1;
-    if (node2 === 'master') return 1;
-    return node1 - node2;
-  },
   parse(response) {
     // no need to show tasks of Virtual Sync Node (node_id is Null)
     // also no need to show tasks that were not executed on any node (node_id is '-')
