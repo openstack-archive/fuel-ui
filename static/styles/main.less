@@ -5473,15 +5473,28 @@ input[type=range] {
       }
       .btn {
         padding: 7px 10px 8px;
+        &.btn-sorters {
+          margin-right: 5px;
+        }
         &.btn-export-history-csv {
           padding: 6px 10px;
         }
       }
     }
-    .filters {
+    .filters, .sorters {
       margin-top: 17px;
       .well {
         margin: 0;
+        .sorter-control {
+          .glyphicon {
+            padding-left: 5px;
+            float: none;
+            margin: 0 5px;
+          }
+        }
+        .more-control .btn {
+          padding-left: 5px;
+        }
         .checkbox-group {
           label {
             width: 100%;
