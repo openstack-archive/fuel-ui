@@ -17,7 +17,6 @@ import _ from 'underscore';
 
 class KeystoneClient {
   constructor(url, options) {
-    this.DEFAULT_PASSWORD = 'admin';
     _.extend(this, {
       url: url,
       cacheTokenFor: 10 * 60 * 1000
@@ -28,8 +27,10 @@ class KeystoneClient {
     options.headers = new Headers(_.extend({}, {
       'Content-Type': 'application/json'
     }, options.headers));
-    return fetch(this.url + url, options)
-      .then((response) => response.json());
+    return fetch(this.url + url, options).then((response) => {
+      if (!response.ok) throw response;
+      return response;
+    });
   }
 
   authenticate(username, password, options = {}) {
@@ -42,28 +43,40 @@ class KeystoneClient {
     ) {
       return Promise.resolve();
     }
-    var data = {auth: {}};
+    var data = {auth: {identity: {}}};
     if (username && password) {
-      data.auth.passwordCredentials = {
-        username: username,
-        password: password
+      data.auth.identity.methods = ['password'];
+      data.auth.identity.password = {
+        user: {
+          name: username,
+          password: password,
+          domain: {name: 'fuel'}
+        }
       };
     } else if (this.token) {
-      data.auth.token = {id: this.token};
+      data.auth.identity.methods = ['token'];
+      data.auth.identity.token = {id: this.token};
     } else {
       return Promise.reject();
     }
-    if (this.tenant) {
-      data.auth.tenantName = this.tenant;
+    if (this.project) {
+      data.auth.scope = {
+        project: {
+          name: this.project,
+          domain: {name: 'fuel'}
+        }
+      };
     }
-    this.tokenUpdatePromise = this.request('/v2.0/tokens', {
+    this.tokenUpdatePromise = this.request('/v3/auth/tokens', {
       method: 'POST',
       body: JSON.stringify(data)
-    }).then((result) => {
-      this.userId = result.access.user.id;
-      this.userRoles = result.access.user.roles;
-      this.token = result.access.token.id;
+    }).then((response) => {
+      this.token = response.headers.get('X-Subject-Token');
       this.tokenUpdateTime = new Date();
+      return response.json();
+    }).then((body) => {
+      this.userId = body.token.user.id;
+      this.userRoles = body.token.roles;
     });
 
     this.tokenUpdatePromise
@@ -80,14 +93,14 @@ class KeystoneClient {
         original_password: currentPassword
       }
     };
-    return this.request('/v2.0/OS-KSCRUD/users/' + this.userId, {
-      method: 'PATCH',
+    return this.request('/v3/users/' + this.userId + '/password', {
+      method: 'POST',
       headers: {
         'X-Auth-Token': this.token
       },
       body: JSON.stringify(data)
-    }).then((result) => {
-      this.token = result.access.token.id;
+    }).then((response) => {
+      this.token = response.headers.get('X-Subject-Token');
       this.tokenUpdateTime = new Date();
     });
   }
@@ -103,10 +116,11 @@ class KeystoneClient {
     delete this.token;
     delete this.tokenUpdateTime;
 
-    this.tokenRemoveRequest = this.request('/v2.0/tokens/' + token, {
+    this.tokenRemoveRequest = this.request('/v3/auth/tokens', {
       method: 'DELETE',
       headers: {
-        'X-Auth-Token': this.token
+        'X-Auth-Token': token,
+        'X-Subject-Token': token
       }
     });
 
