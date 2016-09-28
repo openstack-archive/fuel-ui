@@ -754,7 +754,7 @@ export var DownloadFileButton = React.createClass({
         url,
         data: fetchOptions,
         dataType: 'text',
-        headers: _.extend({'X-Auth-Token': app.keystoneClient.token}, headers)
+        headers: _.extend({'X-Auth-Token': app.user.get('token')}, headers)
       })
       .then(
         (response) => this.saveFile(response),

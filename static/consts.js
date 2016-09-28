@@ -91,3 +91,8 @@ export var DEPLOYMENT_GRAPH_LEVELS = [
   'plugin',
   'cluster'
 ];
+
+export var DEFAULT_ADMIN_PASSWORD = 'admin';
+export var FUEL_PROJECT_NAME = 'admin';
+export var FUEL_PROJECT_DOMAIN_NAME = 'fuel';
+export var FUEL_USER_DOMAIN_NAME = 'fuel';
