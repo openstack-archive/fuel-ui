@@ -20,6 +20,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import utils from 'utils';
 import dispatcher from 'dispatcher';
+import {
+  DEFAULT_ADMIN_PASSWORD, FUEL_PROJECT_NAME, FUEL_PROJECT_DOMAIN_NAME, FUEL_USER_DOMAIN_NAME
+} from 'consts';
 
 var LoginPage = React.createClass({
   statics: {
@@ -48,11 +51,16 @@ var LoginForm = React.createClass({
   login(username, password) {
     var keystoneClient = app.keystoneClient;
 
-    return keystoneClient.authenticate(username, password, {force: true})
-      .fail((xhr) => {
+    return keystoneClient.authenticate({
+      username, password,
+      projectName: FUEL_PROJECT_NAME,
+      userDomainName: FUEL_USER_DOMAIN_NAME,
+      projectDomainName: FUEL_PROJECT_DOMAIN_NAME
+    }, {force: true})
+      .fail((response) => {
         $(ReactDOM.findDOMNode(this.refs.username)).focus();
 
-        var status = xhr && xhr.status;
+        var status = response && response.status;
         var error = 'login_error';
         if (status === 401) {
           error = 'credentials_error';
@@ -62,18 +70,27 @@ var LoginForm = React.createClass({
         }
         this.setState({error: i18n('login_page.' + error)});
       })
-      .then(() => {
+      .then((token) => {
         app.user.set({
           authenticated: true,
-          username: username,
-          token: keystoneClient.token
+          username,
+          token
         });
 
-        if (password === keystoneClient.DEFAULT_PASSWORD) {
+        if (password === DEFAULT_ADMIN_PASSWORD) {
           dispatcher.trigger('showDefaultPasswordWarning');
         }
 
-        return $.when(app.version.fetch({cache: true}), app.fuelSettings.fetch({cache: true}));
+        return $.when(
+          app.version.fetch({cache: true}),
+          app.fuelSettings.fetch({cache: true}),
+          keystoneClient.getTokenInfo(token).then((tokenInfo) => {
+            app.user.set({
+              id: tokenInfo.token.user.id,
+              roles: tokenInfo.token.roles
+            });
+          })
+        );
       })
       .then(() => {
         var nextUrl = '';

@@ -14,105 +14,101 @@
  * under the License.
 **/
 import $ from 'jquery';
-import _ from 'underscore';
 
 class KeystoneClient {
-  constructor(url, options) {
-    this.DEFAULT_PASSWORD = 'admin';
-    _.extend(this, {
-      url: url,
-      cacheTokenFor: 10 * 60 * 1000
-    }, options);
+  constructor(url) {
+    this.url = url;
   }
 
-  authenticate(username, password, options = {}) {
-    if (this.tokenUpdateRequest) return this.tokenUpdateRequest;
+  authenticate({username, password, projectName, userDomainName, projectDomainName}) {
+    if (this.tokenIssueRequest) return this.tokenIssueRequest;
 
-    if (
-      !options.force &&
-      this.tokenUpdateTime &&
-      (this.cacheTokenFor > (new Date() - this.tokenUpdateTime))
-    ) {
-      return $.Deferred().resolve();
-    }
-    var data = {auth: {}};
-    if (username && password) {
-      data.auth.passwordCredentials = {
-        username: username,
-        password: password
+    if (!(username && password)) return $.Deferred().reject();
+
+    var data = {
+      auth: {
+        identity: {
+          methods: ['password'],
+          password: {
+            user: {
+              name: username,
+              password: password,
+              domain: {name: userDomainName}
+            }
+          }
+        }
+      }
+    };
+    if (projectName) {
+      data.auth.scope = {
+        project: {
+          name: projectName,
+          domain: {name: projectDomainName}
+        }
       };
-    } else if (this.token) {
-      data.auth.token = {id: this.token};
-    } else {
-      return $.Deferred().reject();
     }
-    if (this.tenant) {
-      data.auth.tenantName = this.tenant;
-    }
-    this.tokenUpdateRequest = $.ajax(this.url + '/v2.0/tokens', {
+
+    this.tokenIssueRequest = $.ajax(this.url + '/v3/auth/tokens', {
       type: 'POST',
       dataType: 'json',
       contentType: 'application/json',
       data: JSON.stringify(data)
-    }).then((result, state, deferred) => {
-      try {
-        this.userId = result.access.user.id;
-        this.token = result.access.token.id;
-        this.tokenUpdateTime = new Date();
-        return deferred;
-      } catch (e) {
-        return $.Deferred().reject();
-      }
+    }).then((response) => {
+      return response.headers.get('X-Subject-Token');
     })
-    .fail(() => delete this.tokenUpdateTime)
-    .always(() => delete this.tokenUpdateRequest);
+    .always(() => delete this.tokenIssueRequest);
 
-    return this.tokenUpdateRequest;
+    return this.tokenIssueRequest;
   }
 
-  changePassword(currentPassword, newPassword) {
+  getTokenInfo(token) {
+    return $.ajax(this.url + '/v3/auth/tokens', {
+      type: 'GET',
+      dataType: 'json',
+      contentType: 'application/json',
+      headers: {
+        'X-Subject-Token': token,
+        'X-Auth-Token': token
+      }
+    })
+    .then((response) => response.json());
+  }
+
+  changePassword(token, userId, currentPassword, newPassword) {
     var data = {
       user: {
         password: newPassword,
         original_password: currentPassword
       }
     };
-    return $.ajax(this.url + '/v2.0/OS-KSCRUD/users/' + this.userId, {
-      type: 'PATCH',
+
+    return $.ajax(this.url + '/v3/users/' + userId + '/password', {
+      type: 'POST',
       dataType: 'json',
       contentType: 'application/json',
       data: JSON.stringify(data),
       headers: {'X-Auth-Token': this.token}
-    }).then((result, state, deferred) => {
-      try {
-        this.token = result.access.token.id;
-        this.tokenUpdateTime = new Date();
-        return deferred;
-      } catch (e) {
-        return $.Deferred().reject();
-      }
+    }).then((response) => {
+      return response.headers.get('X-Subject-Token');
     });
   }
 
-  deauthenticate() {
-    var token = this.token;
-
-    if (this.tokenUpdateRequest) return this.tokenUpdateRequest;
+  deauthenticate(token) {
+    if (this.tokenIssueRequest) return this.tokenIssueRequest;
     if (!token) return $.Deferred().reject();
 
-    delete this.userId;
-    delete this.token;
-    delete this.tokenUpdateTime;
-
-    this.tokenRemoveRequest = $.ajax(this.url + '/v2.0/tokens/' + token, {
+    this.tokenRemoveRequest = $.ajax(this.url + '/v3/auth/tokens', {
       type: 'DELETE',
       dataType: 'json',
       contentType: 'application/json',
-      headers: {'X-Auth-Token': token}
+      headers: {
+        'X-Auth-Token': token,
+        'X-Subject-Token': token
+      }
     })
     .always(() => delete this.tokenRemoveRequest);
 
-    return this.tokenRemoveRequest;
+    return this.tokenRevokeRequest;
   }
 }
 
