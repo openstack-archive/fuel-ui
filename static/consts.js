@@ -91,3 +91,8 @@ export const DEPLOYMENT_GRAPH_LEVELS = [
   'plugin',
   'cluster'
 ];
+
+export const DEFAULT_ADMIN_PASSWORD = 'admin';
+export const FUEL_PROJECT_NAME = 'admin';
+export const FUEL_PROJECT_DOMAIN_NAME = 'fuel';
+export const FUEL_USER_DOMAIN_NAME = 'fuel';

@@ -82,7 +82,7 @@ var LogsTab = React.createClass({
       dataType: 'json',
       data: _.extend(_.omit(this.props.selectedLogs, 'type'), data),
       headers: {
-        'X-Auth-Token': app.keystoneClient.token
+        'X-Auth-Token': app.user.get('token')
       }
     });
   },
