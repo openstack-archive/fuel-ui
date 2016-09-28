@@ -16,105 +16,107 @@
 import _ from 'underscore';
 
 class KeystoneClient {
-  constructor(url, options) {
-    this.DEFAULT_PASSWORD = 'admin';
-    _.extend(this, {
-      url: url,
-      cacheTokenFor: 10 * 60 * 1000
-    }, options);
+  constructor(url) {
+    this.url = url;
   }
 
   request(url, options = {}) {
     options.headers = new Headers(_.extend({}, {
       'Content-Type': 'application/json'
     }, options.headers));
-    return fetch(this.url + url, options)
-      .then((response) => response.json());
+    return fetch(this.url + url, options).then((response) => {
+      if (!response.ok) throw response;
+      return response;
+    });
   }
 
-  authenticate(username, password, options = {}) {
-    if (this.tokenUpdatePromise) return this.tokenUpdatePromise;
+  authenticate({username, password, projectName, userDomainName, projectDomainName}) {
+    if (this.tokenIssueRequest) return this.tokenIssueRequest;
 
-    if (
-      !options.force &&
-      this.tokenUpdateTime &&
-      (this.cacheTokenFor > (new Date() - this.tokenUpdateTime))
-    ) {
-      return Promise.resolve();
-    }
-    var data = {auth: {}};
-    if (username && password) {
-      data.auth.passwordCredentials = {
-        username: username,
-        password: password
+    if (!(username && password)) return Promise.reject();
+
+    var data = {
+      auth: {
+        identity: {
+          methods: ['password'],
+          password: {
+            user: {
+              name: username,
+              password: password,
+              domain: {name: userDomainName}
+            }
+          }
+        }
+      }
+    };
+    if (projectName) {
+      data.auth.scope = {
+        project: {
+          name: projectName,
+          domain: {name: projectDomainName}
+        }
       };
-    } else if (this.token) {
-      data.auth.token = {id: this.token};
-    } else {
-      return Promise.reject();
     }
-    if (this.tenant) {
-      data.auth.tenantName = this.tenant;
-    }
-    this.tokenUpdatePromise = this.request('/v2.0/tokens', {
+
+    this.tokenIssueRequest = this.request('/v3/auth/tokens', {
       method: 'POST',
       body: JSON.stringify(data)
-    }).then((result) => {
-      this.userId = result.access.user.id;
-      this.userRoles = result.access.user.roles;
-      this.token = result.access.token.id;
-      this.tokenUpdateTime = new Date();
+    }).then((response) => {
+      return response.headers.get('X-Subject-Token');
     });
 
-    this.tokenUpdatePromise
-      .catch(() => delete this.tokenUpdateTime)
-      .then(() => delete this.tokenUpdatePromise);
+    this.tokenIssueRequest
+      .catch(() => true)
+      .then(() => delete this.tokenIssueRequest);
 
-    return this.tokenUpdatePromise;
+    return this.tokenIssueRequest;
   }
 
-  changePassword(currentPassword, newPassword) {
+  getTokenInfo(token) {
+    return this.request('/v3/auth/tokens', {
+      method: 'GET',
+      headers: {
+        'X-Subject-Token': token,
+        'X-Auth-Token': token
+      }
+    }).then((response) => response.json());
+  }
+
+  changePassword(token, userId, currentPassword, newPassword) {
     var data = {
       user: {
         password: newPassword,
         original_password: currentPassword
       }
     };
-    return this.request('/v2.0/OS-KSCRUD/users/' + this.userId, {
-      method: 'PATCH',
+    return this.request('/v3/users/' + userId + '/password', {
+      method: 'POST',
       headers: {
-        'X-Auth-Token': this.token
+        'X-Auth-Token': token
       },
       body: JSON.stringify(data)
-    }).then((result) => {
-      this.token = result.access.token.id;
-      this.tokenUpdateTime = new Date();
+    }).then((response) => {
+      return response.headers.get('X-Subject-Token');
     });
   }
 
-  deauthenticate() {
-    var token = this.token;
-
-    if (this.tokenUpdatePromise) return this.tokenUpdatePromise;
+  deauthenticate(token) {
+    if (this.tokenRevokeRequest) return this.tokenRevokeRequest;
     if (!token) return Promise.reject();
 
-    delete this.userId;
-    delete this.userRoles;
-    delete this.token;
-    delete this.tokenUpdateTime;
-
-    this.tokenRemoveRequest = this.request('/v2.0/tokens/' + token, {
+    this.tokenRevokeRequest = this.request('/v3/auth/tokens', {
       method: 'DELETE',
       headers: {
-        'X-Auth-Token': this.token
+        'X-Auth-Token': token,
+        'X-Subject-Token': token
       }
     });
 
-    this.tokenRemoveRequest
+    this.tokenRevokeRequest
       .catch(() => true)
-      .then(() => delete this.tokenRemoveRequest);
+      .then(() => delete this.tokenRevokeRequest);
 
-    return this.tokenRemoveRequest;
+    return this.tokenRevokeRequest;
   }
 }
 

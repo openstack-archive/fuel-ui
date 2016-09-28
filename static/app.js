@@ -78,7 +78,7 @@ class Router extends Backbone.Router {
         }},
         {name: 'welcome', condition: (previousUrl) => {
           return previousUrl !== 'logout' &&
-            _.find(app.keystoneClient.userRoles, {name: 'admin'}) &&
+            _.find(app.user.get('roles'), {name: 'admin'}) &&
             !app.fuelSettings.get('statistics.user_choice_saved.value');
         }}
       ];
@@ -173,11 +173,7 @@ class App {
     this.statistics = new models.NodesStatistics();
     this.notifications = new models.Notifications();
     this.releases = new models.Releases();
-    this.keystoneClient = new KeystoneClient('/keystone', {
-      cacheTokenFor: 10 * 60 * 1000,
-      tenant: 'admin',
-      token: this.user.get('token')
-    });
+    this.keystoneClient = new KeystoneClient('/keystone');
   }
 
   initialize() {
@@ -186,23 +182,22 @@ class App {
 
     document.title = i18n('common.title');
 
+    this.version.set({auth_required: true});
+    this.user.set({authenticated: false});
+
     return this.version.fetch()
-      .catch((response) => {
-        if (response.status === 401) {
-          this.version.set({auth_required: true});
-        }
-      })
       .then(() => {
-        this.user.set({authenticated: !this.version.get('auth_required')});
+        this.user.set({authenticated: true});
         if (this.version.get('auth_required')) {
-          this.keystoneClient.token = this.user.get('token');
-          return this.keystoneClient.authenticate()
-            .then(() => {
-              this.user.set({authenticated: true});
-              return this.version.fetch({cache: true});
+          return this.keystoneClient.getTokenInfo(this.user.get('token')).then((tokenInfo) => {
+            this.user.set({
+              id: tokenInfo.token.user.id,
+              roles: tokenInfo.token.roles
             });
+          });
+        } else {
+          return Promise.resolve();
         }
-        return Promise.resolve();
       })
       .then(() => this.fuelSettings.fetch())
       .catch(() => {
@@ -250,11 +245,15 @@ class App {
 
   logout() {
     if (this.user.get('authenticated') && this.version.get('auth_required')) {
-      this.user.set('authenticated', false);
-      this.user.unset('username');
-      this.user.unset('token');
+      var token = this.user.get('token');
 
-      this.keystoneClient.deauthenticate();
+      this.user.set('authenticated', false);
+      this.user.unset('token');
+      this.user.unset('username');
+      this.user.unset('id');
+      this.user.unset('roles');
+
+      this.keystoneClient.deauthenticate(token);
     }
 
     _.defer(() => this.navigate('login', {trigger: true, replace: true}));
@@ -269,18 +268,10 @@ class App {
         method = 'update';
       }
       // add auth token to header if auth is enabled
-      if (app.version && app.version.get('auth_required')) {
-        return app.keystoneClient.authenticate()
-          .catch(() => {
-            app.logout();
-            return Promise.reject();
-          })
-          .then(() => {
-            app.user.set('token', app.keystoneClient.token);
-            options.headers = options.headers || {};
-            options.headers['X-Auth-Token'] = app.keystoneClient.token;
-            return originalSyncMethod.call(this, method, model, options);
-          })
+      if (app.version.get('auth_required')) {
+        options.headers = options.headers || {};
+        options.headers['X-Auth-Token'] = app.user.get('token');
+        return originalSyncMethod.call(this, method, model, options)
           .catch((response) => {
             if (response && response.status === 401) {
               app.logout();
