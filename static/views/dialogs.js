@@ -20,7 +20,11 @@ import i18n from 'i18n';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Backbone from 'backbone';
-import {NODE_LIST_SORTERS, NODE_LIST_FILTERS, DEPLOYMENT_TASK_ATTRIBUTES} from 'consts';
+import {
+  NODE_LIST_SORTERS, NODE_LIST_FILTERS,
+  DEPLOYMENT_TASK_ATTRIBUTES,
+  DEFAULT_ADMIN_PASSWORD
+} from 'consts';
 import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
@@ -2194,8 +2198,10 @@ export var ChangePasswordDialog = React.createClass({
       keystoneClient.changePassword(this.state.currentPassword, this.state.newPassword)
         .then(
           () => {
-            dispatcher.trigger(this.state.newPassword === keystoneClient.DEFAULT_PASSWORD ?
-              'showDefaultPasswordWarning' : 'hideDefaultPasswordWarning');
+            dispatcher.trigger(
+              this.state.newPassword === DEFAULT_ADMIN_PASSWORD ?
+              'showDefaultPasswordWarning' : 'hideDefaultPasswordWarning'
+            );
             app.user.set({token: keystoneClient.token});
             this.close();
           },

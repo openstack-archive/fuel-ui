@@ -20,6 +20,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import utils from 'utils';
 import dispatcher from 'dispatcher';
+import {DEFAULT_ADMIN_PASSWORD} from 'consts';
 
 var LoginPage = React.createClass({
   statics: {
@@ -71,7 +72,7 @@ var LoginForm = React.createClass({
           token: keystoneClient.token
         });
 
-        if (password === keystoneClient.DEFAULT_PASSWORD) {
+        if (password === DEFAULT_ADMIN_PASSWORD) {
           dispatcher.trigger('showDefaultPasswordWarning');
         }
 

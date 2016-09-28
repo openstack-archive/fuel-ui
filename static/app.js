@@ -175,7 +175,7 @@ class App {
     this.releases = new models.Releases();
     this.keystoneClient = new KeystoneClient('/keystone', {
       cacheTokenFor: 10 * 60 * 1000,
-      tenant: 'admin',
+      project: 'admin',
       token: this.user.get('token')
     });
   }
