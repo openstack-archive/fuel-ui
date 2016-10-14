@@ -1,0 +1,8 @@
+Code-Review+2: Vitaly Kramskikh <vkramskikh@mirantis.com>
+Workflow+1: Vitaly Kramskikh <vkramskikh@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Fri, 14 Oct 2016 13:58:01 +0000
+Reviewed-on: https://review.openstack.org/386603
+Project: openstack/fuel-ui
+Branch: refs/heads/stable/newton
