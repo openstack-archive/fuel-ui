@@ -286,7 +286,7 @@
             "release_page": {
                 "title": "Releases",
                 "name": "OpenStack Release",
-                "version": "Version",
+                "openstack_version": "Version",
                 "state": "Available for New Deployments",
                 "no_releases_message": "There are no releases available.",
                 "release": {
