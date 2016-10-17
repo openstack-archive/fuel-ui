@@ -22,7 +22,7 @@ import {backboneMixin} from 'component_mixins';
 var ReleasesPage = React.createClass({
   mixins: [backboneMixin('releases')],
   getDefaultProps() {
-    return {columns: ['name', 'version', 'state']};
+    return {columns: ['name', 'openstack_version', 'state']};
   },
   statics: {
     title: i18n('release_page.title'),
