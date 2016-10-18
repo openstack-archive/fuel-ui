@@ -787,7 +787,8 @@ models.Settings = BaseModel
     mergePluginSettings(pluginNames) {
       if (!pluginNames) {
         pluginNames = _.compact(_.map(this.attributes,
-          (section, sectionName) => this.isPlugin(section) && sectionName
+          (section, sectionName) =>
+            this.isPlugin(section) && section.metadata.versions && sectionName
         ));
       } else if (_.isString(pluginNames)) {
         pluginNames = [pluginNames];
@@ -812,7 +813,7 @@ models.Settings = BaseModel
       var settings = this._super('toJSON', arguments);
       // update plugin settings
       _.each(settings, (section, sectionName) => {
-        if (this.isPlugin(section)) {
+        if (this.isPlugin(section) && section.metadata.versions) {
           var chosenVersionData = section.metadata.versions.find(
               (version) => version.metadata.plugin_id === section.metadata.chosen_id
             );

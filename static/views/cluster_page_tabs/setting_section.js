@@ -308,7 +308,7 @@ var SettingSection = React.createClass({
               {i18n('cluster_page.settings_tab.active_not_hot_pluggable_plugin')}
             </div>
           }
-          {isPlugin &&
+          {isPlugin && metadata.versions &&
             <div className='plugin-versions clearfix'>
               <RadioGroup
                 key={metadata.chosen_id}
