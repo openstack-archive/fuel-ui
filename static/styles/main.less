@@ -3624,6 +3624,9 @@ input[type=range] {
       font-size: @base-font-size;
     }
     .form-group {
+      &:after {
+        .clearfix;
+      }
       margin-bottom: 3px;
       > div {
         display: inline-block;
@@ -3641,10 +3644,29 @@ input[type=range] {
       }
       .help-block {
         padding-top: 3px;
-        display: inline-block;
+        display: block;
+        float: right;
+        width: 250px;
         color: @gray;
       }
       &.has-error .help-block {color: @red;}
+    }
+    .checkbox-group {
+      label {
+        .font-normal;
+        .custom-tumbler {
+          position: relative;
+          top: -2px;
+        }
+      }
+      .help-block {
+        margin-top: 0;
+      }
+    }
+    label .glyphicon-warning-sign {
+      margin-left: 3px;
+      position: relative;
+      top: 2px;
     }
     .huge-pages {
       margin-bottom: @node-attributes-padding;
