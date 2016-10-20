@@ -146,3 +146,47 @@ suite('Text_list Control', () => {
     );
   });
 });
+
+suite('Text_list Control allow empty', () => {
+  setup(() => {
+    var renderControl = function(value, error) {
+      return ReactTestUtils.renderIntoDocument(
+        <customControls.text_list
+          type='text_list'
+          name='some_name'
+          value={value}
+          label='Some label'
+          description='Some description'
+          disabled={false}
+          onChange={sinon.spy()}
+          error={error || null}
+          min={0}
+          max={4}
+        />
+      );
+    };
+    control1 = renderControl([]);
+  });
+
+  test('Test empty control render', () => {
+    assert.equal(
+      ReactTestUtils.scryRenderedDOMComponentsWithTag(control1, 'input').length,
+      0,
+      'Text inputs are not rendered'
+    );
+
+    var checkInputButtons = function(control, addFieldButtonsAmount, removeFieldButtonsAmount) {
+      assert.equal(
+        ReactTestUtils.scryRenderedDOMComponentsWithClass(control, 'btn-add-field').length,
+        addFieldButtonsAmount,
+        'Add Field buttons amount: ' + addFieldButtonsAmount
+      );
+      assert.equal(
+        ReactTestUtils.scryRenderedDOMComponentsWithClass(control1, 'btn-remove-field').length,
+        removeFieldButtonsAmount,
+        'Remove Field buttons amount: ' + removeFieldButtonsAmount
+      );
+    };
+    checkInputButtons(control1, 1, 0);
+  });
+});

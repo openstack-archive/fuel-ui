@@ -353,9 +353,11 @@ customControls.text_list = customControls.textarea_list = React.createClass({
   render() {
     return this.renderWrapper([
       this.renderLabel(),
-      <div key='field-list' className='field-list'>
-        {_.map(this.props.value, this.renderInput)}
-      </div>,
+      this.props.value.length === 0 ?
+        this.renderMultipleInputControls(-1) :
+        <div key='field-list' className='field-list'>
+          {_.map(this.props.value, this.renderInput)}
+        </div>,
       this.renderDescription()
     ]);
   }
