@@ -264,7 +264,10 @@ var SettingSection = React.createClass({
     var isPluginWithLegacyTasksLocked = isPlugin && metadata.contains_legacy_tasks &&
       !settings.get('common.propagate_task_deploy.value');
 
-    var sortedSettings = _.sortBy(settingsToDisplay, (settingName) => section[settingName].weight);
+    var sortedSettings = _.sortBy(settingsToDisplay, (settingName) => {
+      var {weight, label} = section[settingName];
+      return weight + label;
+    });
     var processedGroupRestrictions = this.processRestrictions(metadata);
     var processedGroupDependencies = this.checkDependencies(sectionName, 'metadata');
     var isGroupDisabled = locked ||

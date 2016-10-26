@@ -1573,9 +1573,10 @@ var NetworkSettings = React.createClass({
                   !this.checkRestrictions('hide', section.metadata).result;
               }
             )
-            .sortBy(
-              (sectionName) => settings.get(sectionName + '.metadata.weight')
-            )
+            .sortBy((sectionName) => {
+              var {weight, label} = settings.get(sectionName + '.metadata');
+              return weight + label;
+            })
             .map(
               (sectionName) => {
                 var section = settings.get(sectionName);

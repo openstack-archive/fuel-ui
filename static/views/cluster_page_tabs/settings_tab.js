@@ -300,9 +300,10 @@ var SettingsTab = React.createClass({
         {_.map(groupedSettings, (selectedGroup, groupName) => {
           if (groupName !== activeSettingsSectionName) return null;
 
-          var sortedSections = _.sortBy(
-            _.keys(selectedGroup), (name) => settings.get(name + '.metadata.weight')
-          );
+          var sortedSections = _.sortBy(_.keys(selectedGroup), (sectionName) => {
+            var {weight, label} = settings.get(sectionName + '.metadata');
+            return weight + label;
+          });
           return (
             <div className={'col-xs-10 forms-box ' + groupName} key={groupName}>
               {_.map(sortedSections, (sectionName) => {

@@ -1641,9 +1641,10 @@ export var ShowNodeInfoDialog = React.createClass({
           nodeAttributes.get(sectionName).metadata
         ).result
       )
-      .sortBy(
-        (sectionName) => nodeAttributes.get(utils.makePath(sectionName, 'metadata', 'weight'))
-      )
+      .sortBy((sectionName) => {
+        var {weight, label} = nodeAttributes.get(sectionName + '.metadata');
+        return weight + label;
+      })
       .map(
         (sectionName) => {
           var metadata = nodeAttributes.get(utils.makePath(sectionName, 'metadata'));
