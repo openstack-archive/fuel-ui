@@ -127,8 +127,10 @@ function run_ui_func_tests {
         popd > /dev/null
     fi
 
-    if [ $result -ne 0 ]; then
-      break
+    if [[ $TESTS != *"static/tests/functional/nightly/"* ]]; then
+      if [ $result -ne 0 ]; then
+        break
+      fi
     fi
   done
 
