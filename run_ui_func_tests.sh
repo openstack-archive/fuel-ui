@@ -48,6 +48,8 @@ NAILGUN_ROOT=$FUEL_WEB_ROOT/nailgun
 ARTIFACTS=${ARTIFACTS:-`pwd`/test_run/ui_func}
 mkdir -p $ARTIFACTS
 
+export FAIL_FAST=${FAIL_FAST:-true}
+
 export NAILGUN_STATIC=$ARTIFACTS/static
 export NAILGUN_TEMPLATES=$NAILGUN_STATIC
 
@@ -127,8 +129,10 @@ function run_ui_func_tests {
         popd > /dev/null
     fi
 
-    if [ $result -ne 0 ]; then
-      break
+    if [ $FAIL_FAST = true ] ; then
+      if [ $result -ne 0 ]; then
+        break
+      fi
     fi
   done
 
