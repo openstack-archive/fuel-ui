@@ -846,7 +846,13 @@ models.Settings = Backbone.DeepModel
       return {[this.root]: settings};
     },
     initialize() {
-      this.once('change', () => this.mergePluginSettings(), this);
+      // merge settings of newly installed plugins
+      this.on('change', ({attributes}) => {
+        var newPlugins = _.compact(_.map(attributes, (section, sectionName) =>
+          this.isPlugin(section) && _.isEmpty(_.omit(section, 'metadata')) && sectionName
+        ));
+        if (newPlugins.length) this.mergePluginSettings(newPlugins);
+      }, this);
     },
     validate(attrs, options) {
       var errors = {};
