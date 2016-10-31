@@ -65,6 +65,8 @@ export NAILGUN_FIXTURE_FILES="${NAILGUN_ROOT}/nailgun/fixtures/sample_environmen
 
 export NAILGUN_CHECK_URL='/api/version'
 
+export FAIL_FAST=${FAIL_FAST:-true}
+
 
 # Run UI functional tests.
 #
@@ -127,8 +129,10 @@ function run_ui_func_tests {
         popd > /dev/null
     fi
 
-    if [ $result -ne 0 ]; then
-      break
+    if [ $FAIL_FAST = true ] ; then
+      if [ $result -ne 0 ]; then
+        break
+      fi
     fi
   done
 
