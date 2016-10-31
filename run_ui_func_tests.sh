@@ -126,10 +126,10 @@ function run_ui_func_tests {
         tox -e stop
         popd > /dev/null
     fi
-
-    if [ $result -ne 0 ]; then
-      break
-    fi
+#
+#    if [ $result -ne 0 ]; then
+#      break
+#    fi
   done
 
   return $result
