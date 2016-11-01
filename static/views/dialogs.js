@@ -1288,6 +1288,7 @@ export var ShowNodeInfoDialog = React.createClass({
       initialNodeAttributes: null,
       nodeAttributesError: null,
       savingError: null,
+      loadDefaultsError: null,
       configModels: null
     };
   },
@@ -1417,22 +1418,53 @@ export var ShowNodeInfoDialog = React.createClass({
     this.setState({
       nodeAttributes: attributesModel,
       nodeAttributesError: attributesModel.validationError,
-      savingError: null
+      savingError: null,
+      loadDefaultsError: null
     });
   },
   saveNodeAttributes() {
-    this.setState({actionInProgress: true});
+    this.setState({actionInProgress: 'save_changes'});
     this.state.nodeAttributes.save(null, {validate: false})
       .then(
         () => this.setState({
           initialNodeAttributes: _.cloneDeep(this.state.nodeAttributes.attributes),
+          loadDefaultsError: null,
           actionInProgress: false
         }),
         (response) => this.setState({
           savingError: utils.getResponseText(response),
+          loadDefaultsError: null,
           actionInProgress: false
         })
       );
+  },
+  loadNodeAttributesDefaults() {
+    this.setState({actionInProgress: 'load_defaults'});
+    var {nodeAttributes, configModels} = this.state;
+    var defaultNodeAttributes = new models.NodeAttributes();
+    defaultNodeAttributes
+      .fetch({
+        url: _.result(this.props.node, 'url') + '/attributes/defaults'
+      })
+      .done(() => {
+        nodeAttributes.set(defaultNodeAttributes.attributes);
+        nodeAttributes.isValid({models: configModels});
+        this.setState({
+          nodeAttributes,
+          nodeAttributesError: nodeAttributes.validationError,
+          actionInProgress: false,
+          loadDefaultsError: null,
+          savingError: null,
+          key: _.now()
+        });
+      })
+      .fail((response) => {
+        this.setState({
+          actionInProgress: false,
+          savingError: null,
+          loadDefaultsError: utils.getResponseText(response)
+        });
+      });
   },
   cancelNodeAttributesChange() {
     var {nodeAttributes, initialNodeAttributes, configModels} = this.state;
@@ -1441,6 +1473,7 @@ export var ShowNodeInfoDialog = React.createClass({
     this.setState({
       nodeAttributes,
       nodeAttributesError: nodeAttributes.validationError,
+      loadDefaultsError: null,
       savingError: null,
       key: _.now()
     });
@@ -1637,7 +1670,7 @@ export var ShowNodeInfoDialog = React.createClass({
   renderNodeAttributes() {
     var {node, cluster} = this.props;
     var {
-      nodeAttributes, initialNodeAttributes, nodeAttributesError, savingError,
+      nodeAttributes, initialNodeAttributes, nodeAttributesError, savingError, loadDefaultsError,
       actionInProgress, configModels
     } = this.state;
 
@@ -1691,26 +1724,40 @@ export var ShowNodeInfoDialog = React.createClass({
               {savingError}
             </div>
           }
+          {loadDefaultsError &&
+            <div className='alert alert-danger'>
+              <h4>{i18n('node_details.load_defaults_error')}</h4>
+              {loadDefaultsError}
+            </div>
+          }
           <div className='btn-group'>
             <button
               className='btn btn-default discard-changes'
               onClick={this.cancelNodeAttributesChange}
               disabled={
                 !this.hasNodeAttributesChanges() ||
-                this.state.actionInProgress
+                actionInProgress
               }
             >
               {i18n('common.cancel_changes_button')}
             </button>
+            <ProgressButton
+              className='btn btn-default btn-load-defaults'
+              onClick={this.loadNodeAttributesDefaults}
+              disabled={isLocked}
+              progress={actionInProgress === 'load_defaults'}
+            >
+              {i18n('common.load_defaults_button')}
+            </ProgressButton>
             <ProgressButton
               className='btn btn-success apply-changes'
               onClick={this.saveNodeAttributes}
               disabled={
                 !_.isNull(nodeAttributesError) ||
                 !this.hasNodeAttributesChanges() ||
-                this.state.actionInProgress
+                actionInProgress
               }
-              progress={this.state.actionInProgress}
+              progress={actionInProgress === 'save_changes'}
             >
               {i18n('common.save_settings_button')}
             </ProgressButton>
