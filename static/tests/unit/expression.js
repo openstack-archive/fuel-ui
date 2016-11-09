@@ -22,7 +22,10 @@ suite('Expression', () => {
   test('Expression parser test', () => {
     var hypervisor = 'kvm';
     var testModels = {
-      cluster: new models.Cluster({mode: 'ha_compact'}),
+      cluster: new models.Cluster({
+        mode: 'ha_compact',
+        mode_insecure: true
+      }),
       settings: new models.Settings({common: {libvirt_type: {value: hypervisor}}}),
       release: new models.Release({roles: ['controller', 'compute']})
     };
@@ -64,6 +67,7 @@ suite('Expression', () => {
       ['cluster:mode', 'ha_compact'],
       ['cluster:mode == "ha_compact"', true],
       ['cluster:mode != "multinode"', true],
+      ['cluster:mode_insecure == true', true],
       ['"controller" in release:roles', true],
       ['"unknown-role" in release:roles', false],
       ['settings:common.libvirt_type.value', hypervisor],
