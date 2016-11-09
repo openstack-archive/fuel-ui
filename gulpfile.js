@@ -121,16 +121,15 @@ function runIntern(suites, browser) {
     var config = {
       environments: [{browserName: browser}],
       excludeInstrumentation: true,
-      reporters: ['Runner', 'tests/functional/screenshot_on_fail']
-    };
-    if (process.env.FAIL_FAST === 'false') {
-      config.reporters.push(
+      reporters: [
+        'Runner',
+        'tests/functional/screenshot_on_fail',
         {
           id: 'JUnit',
           filename: process.env.WORKSPACE + '/nightly_report_' + new Date().getTime() + '.xml'
         }
-      );
-    }
+      ]
+    };
     var configFile = 'tests/functional/config.js';
     var configFileContents = 'define(function(){return' + JSON.stringify(config) + '})';
     fs.writeFileSync( // eslint-disable-line no-sync
