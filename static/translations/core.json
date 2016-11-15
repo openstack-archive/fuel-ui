@@ -507,6 +507,8 @@
                             "fast": "Fast"
                         },
                         "bonding_policy": "Xmit Hash Policy",
+                        "unassigned_networks": "Unassigned Networks (__count__)",
+                        "no_unassigned_networks": "There are no unassigned networks",
                         "drag_and_drop_description": "You can drag and drop logical networks between the interfaces",
                         "configuration_error": {
                             "title": "Interfaces Configuration Error",

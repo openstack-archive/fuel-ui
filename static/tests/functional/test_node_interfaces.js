@@ -91,6 +91,27 @@ define([
             'MTU control is hidden after clicking MTU link again'
           );
       },
+      'Unassigned networks': function() {
+        return this.remote
+          .assertElementExists(
+            '.unassigned-networks .collapsed',
+            'Unassigned networks block exists'
+          )
+          .assertElementNotExists(
+            '.unassigned-networks .networks-block.collapse.in',
+            'Unassigned networks block is collapsed by default'
+          )
+          .clickByCssSelector('.unassigned-networks .toggle-configuration-control .glyphicon')
+          .then(function() {
+            return interfacesPage.removeNetwork('Public');
+          })
+          .assertElementTextEquals(
+            '.unassigned-networks .network-block .network-name',
+            'Public',
+            'Public network was successfully removed'
+          )
+          .assertElementEnabled('.btn-apply', 'Network removal can be saved');
+      },
       'Untagged networks error': function() {
         return this.remote
           .then(function() {

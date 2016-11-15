@@ -3844,7 +3844,7 @@ input[type=range] {
   }
 }
 
-.ifc-list {
+.ifc-list, .unassigned-networks {
   .ifc-container {
     @base-ifc-indent: 5px;
     margin-bottom: @base-ifc-indent * 2;
@@ -4040,15 +4040,15 @@ input[type=range] {
         .physnet {
           label {width: 250px;}
         }
-        .toggle-configuration-control {
-          .glyphicon {
-            margin-top: 9px;
-            left: 50px;
-            cursor: pointer;
-            transition: transform .35s ease;
-            &.rotate {
-              transform: rotate(-180deg);
-            }
+      }
+      .toggle-configuration-control {
+        .glyphicon {
+          margin-top: 9px;
+          left: 50px;
+          cursor: pointer;
+          transition: transform .35s ease;
+          &.rotate {
+            transform: rotate(-180deg);
           }
         }
       }
@@ -4101,16 +4101,16 @@ input[type=range] {
       }
 
       .networks-block {
-        padding: @base-ifc-indent * 2;
+        padding: 0;
         > div {
-          padding: 0;
+          padding: @base-ifc-indent * 2;
         }
         .ifc-networks {
           @network-block-width: 120px;
           @network-block-height: @network-block-width / 2;
           text-align: center;
           font-weight: 100;
-          min-height: @network-block-height + @base-ifc-indent;
+          min-height: @network-block-height;
           margin-right: 5px;
 
           .network-block {
@@ -4120,7 +4120,6 @@ input[type=range] {
             border-box: sizing;
             background-color: @ifc-container-dark-color;
             margin-left: @base-ifc-indent;
-            margin-bottom: @base-ifc-indent;
             padding: @base-ifc-indent * 2 @base-ifc-indent @base-ifc-indent;
             cursor: move;
             .network-name {
@@ -4150,6 +4149,38 @@ input[type=range] {
           font-size: @base-font-size - 2px;
           .text-danger;
           padding: 10px;
+        }
+      }
+    }
+  }
+}
+
+.unassigned-networks {
+  .ifc-container .ifc-inner-container {
+    background: #f5f5f5;
+    border-color: #e3e3e3;
+    .ifc-header {
+      width: 100%;
+      .common-ifc-name.no-checkbox {
+        padding: 0 5px;
+      }
+      .toggle-configuration-control {
+        .glyphicon {
+          margin-top: 0;
+        }
+      }
+    }
+    .networks-block .ifc-networks {
+      min-height: 80px;
+      .no-networks {
+        padding-left: 5px;
+      }
+    }
+    &.collapsed {
+      .ifc-header {
+        border-bottom: none;
+        .common-ifc-name.no-checkbox {
+          padding-top: 0px;
         }
       }
     }

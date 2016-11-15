@@ -96,6 +96,31 @@ define([
             return this.parent.dragTo(ifcElement);
           });
     },
+    removeNetwork: function(networkName) {
+      return this.remote
+        .findAllByCssSelector('div.network-block')
+          .then(function(networkElements) {
+            return networkElements.reduce(
+              function(result, networkElement) {
+                return networkElement
+                  .getVisibleText()
+                    .then(function(currentNetworkName) {
+                      return currentNetworkName === networkName ? networkElement : result;
+                    });
+              },
+              null
+            );
+          })
+          .then(function(networkElement) {
+            return this.remote.dragFrom(networkElement);
+          })
+          .then(function() {
+            return this.remote.findByCssSelector('.unassigned-networks .ifc-inner-container');
+          })
+          .then(function(ifcElement) {
+            return this.remote.dragTo(ifcElement);
+          });
+    },
     selectInterface: function(ifcName) {
       var self = this;
       return this.remote
