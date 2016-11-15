@@ -83,6 +83,23 @@ registerSuite(() => {
           'MTU control is hidden after clicking MTU link again'
         );
     },
+    'Unassigned networks'() {
+      return this.remote
+        .assertElementExists('.unassigned-networks .collapsed', 'Unassigned networks block exists')
+        .assertElementNotExists(
+          '.unassigned-networks .networks-block.collapse.in',
+          'Unassigned networks block is collapsed by default'
+        )
+        .clickByCssSelector('.unassigned-networks .toggle-configuration-control .glyphicon')
+        //.waitForCssSelector('.unassigned-networks .networks-block.collapse.in', 2000)
+        .then(() => interfacesPage.removeNetwork('Public'))
+        .assertElementTextEquals(
+          '.unassigned-networks .network-block .network-name',
+          'Public',
+          'Public network was successfully removed'
+        )
+        .assertElementEnabled('.btn-apply', 'Network removal can be saved');
+    },
     'Untagged networks error'() {
       return this.remote
         .then(() => interfacesPage.assignNetworkToInterface('Public', 'eth0'))

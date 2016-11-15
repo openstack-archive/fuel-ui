@@ -1271,10 +1271,12 @@ var Network = React.createClass({
     return (
       <div className={'forms-box ' + networkName}>
         <h3 className='networks'>
-          {i18n('network.' + networkName)}
+          {i18n('network.' + networkName, {defaultValue: networkName})}
           <NetworkRequirementsHelp sectionName={networkName} />
         </h3>
-        <div className='network-description'>{i18n('network.descriptions.' + networkName)}</div>
+        <div className='network-description'>
+          {i18n('network.descriptions.' + networkName, {defaultValue: networkName})}
+        </div>
         <CidrControl
           {... this.composeProps('cidr')}
           {... _.pick(this.props, 'cluster', 'network')}
