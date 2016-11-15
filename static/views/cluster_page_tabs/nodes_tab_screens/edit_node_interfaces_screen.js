@@ -781,6 +781,17 @@ var EditNodeInterfacesScreen = React.createClass({
                 </div>}
             </div>
           ]}
+        <UnassignedNetworksDropTarget
+          networks={
+            cluster.get('networkConfiguration').get('networks').reject(
+              (network) => interfaces.some(
+                (ifc) => ifc.get('assigned_networks').some({name: network.get('name')})
+              )
+            )
+          }
+          networkingParameters={cluster.get('networkConfiguration').get('networking_parameters')}
+          {...{viewMode, locked, interfaces}}
+        />
         <div className='ifc-list col-xs-12'>
           {interfaces.map((ifc, index) => {
             var ifcName = ifc.get('name');
@@ -859,6 +870,98 @@ var EditNodeInterfacesScreen = React.createClass({
   }
 });
 
+var UnassignedNetworks = React.createClass({
+  statics: {
+    target: {
+      drop({interfaces}, monitor) {
+        var {networkName, interfaceName} = monitor.getItem();
+        var sourceInterface = interfaces.find({name: interfaceName});
+        var network = sourceInterface.get('assigned_networks').find({name: networkName});
+        sourceInterface.get('assigned_networks').remove(network);
+        // trigger 'change' event to update screen buttons state
+        sourceInterface.trigger('change', sourceInterface);
+      },
+      canDrop(props, monitor) {
+        return !!monitor.getItem().interfaceName;
+      }
+    },
+    collect(connect, monitor) {
+      return {
+        connectDropTarget: connect.dropTarget(),
+        isOver: monitor.isOver(),
+        canDrop: monitor.canDrop()
+      };
+    }
+  },
+  getInitialState() {
+    return {collapsed: true};
+  },
+  toggle() {
+    $(ReactDOM.findDOMNode(this.refs['networks-panel'])).collapse('toggle');
+  },
+  assignNetworksPanelEvents() {
+    $(ReactDOM.findDOMNode(this.refs['networks-panel']))
+      .on('show.bs.collapse', () => this.setState({collapsed: false}))
+      .on('hide.bs.collapse', () => this.setState({collapsed: true}));
+  },
+  componentDidMount() {
+    this.assignNetworksPanelEvents();
+  },
+  render() {
+    var {networks, viewMode, connectDropTarget} = this.props;
+    var {collapsed} = this.state;
+    return connectDropTarget(
+      <div className='unassigned-networks col-xs-12'>
+        <div className='ifc-container'>
+          <div className={
+            utils.classNames({
+              'ifc-inner-container': true,
+              compact: viewMode === 'compact',
+              collapsed
+            })
+          }>
+            <div className='ifc-header row'>
+              <div className='common-ifc-name no-checkbox col-xs-11'>
+                {i18n(ns + 'unassigned_networks', {count: networks.length})}
+              </div>
+              <div className='col-xs-1 toggle-configuration-control'>
+                <i
+                  className={utils.classNames({
+                    'glyphicon glyphicon-menu-down': true,
+                    rotate: !collapsed
+                  })}
+                  onClick={this.toggle}
+                />
+              </div>
+            </div>
+            <div className='networks-block collapse' ref='networks-panel'>
+              <div className='ifc-networks'>
+                {networks.map((network) =>
+                  <DraggableNetwork
+                    key={'network-' + network.id}
+                    {... _.pick(this.props, ['networkingParameters', 'viewMode', 'locked'])}
+                    label={network.get('name')}
+                    network={network}
+                  />
+                )}
+                {!networks.length &&
+                  <div className='no-networks'>{i18n(ns + 'no_unassigned_networks')}</div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+});
+
+var UnassignedNetworksDropTarget = DropTarget(
+  'network',
+  UnassignedNetworks.target,
+  UnassignedNetworks.collect
+)(UnassignedNetworks);
+
 var ErrorScreen = React.createClass({
   render() {
     var {nodes, cluster, nodesByNetworksMap} = this.props;
@@ -915,12 +1018,15 @@ var ErrorScreen = React.createClass({
 var NodeInterface = React.createClass({
   statics: {
     target: {
-      drop(props, monitor) {
-        var targetInterface = props.interface;
-        var sourceInterface = props.interfaces.find({name: monitor.getItem().interfaceName});
-        var network = sourceInterface.get('assigned_networks')
-          .find({name: monitor.getItem().networkName});
-        sourceInterface.get('assigned_networks').remove(network);
+      drop({interface: targetInterface, interfaces, cluster}, monitor) {
+        var {networkName, interfaceName} = monitor.getItem();
+        var sourceInterface = interfaces.find({name: interfaceName});
+        var network = sourceInterface ?
+          sourceInterface.get('assigned_networks').find({name: networkName})
+        :
+          cluster.get('networkConfiguration').get('networks')
+            .find({name: networkName}).pick('id', 'name');
+        if (sourceInterface) sourceInterface.get('assigned_networks').remove(network);
         targetInterface.get('assigned_networks').add(network);
         // trigger 'change' event to update screen buttons state
         targetInterface.trigger('change', targetInterface);
@@ -1065,7 +1171,6 @@ var NodeInterface = React.createClass({
         <div
           className={utils.classNames({
             'ifc-inner-container': true,
-            nodrag: !!networkErrors,
             over: this.props.isOver && this.props.canDrop,
             'has-changes': this.props.hasChanges,
             [ifc.get('name')]: true,
@@ -1204,7 +1309,7 @@ var NodeInterface = React.createClass({
                             key={'network-' + network.id}
                             {... _.pick(this.props, ['locked', 'interface'])}
                             networkingParameters={networkingParameters}
-                            interfaceNetwork={interfaceNetwork}
+                            label={interfaceNetwork.get('name')}
                             network={network}
                           />
                         );
@@ -1234,8 +1339,8 @@ var NodeInterface = React.createClass({
               isMassConfiguration={!!this.props.nodes.length}
               bondingModeChanged={this.bondingModeChanged}
             />
-            :
-            <div className='clearfix'></div>
+          :
+            <div className='clearfix' />
           }
         </div>
       </div>
@@ -1255,7 +1360,7 @@ var Network = React.createClass({
       beginDrag(props) {
         return {
           networkName: props.network.get('name'),
-          interfaceName: props.interface.get('name')
+          interfaceName: props.interface && props.interface.get('name')
         };
       },
       canDrag(props) {
@@ -1270,9 +1375,7 @@ var Network = React.createClass({
     }
   },
   render() {
-    var network = this.props.network;
-    var interfaceNetwork = this.props.interfaceNetwork;
-    var networkingParameters = this.props.networkingParameters;
+    var {network, label, networkingParameters} = this.props;
     var classes = {
       'network-block pull-left': true,
       disabled: !this.constructor.source.canDrag(this.props),
@@ -1283,10 +1386,7 @@ var Network = React.createClass({
     return this.props.connectDragSource(
       <div className={utils.classNames(classes)}>
         <div className='network-name'>
-          {i18n(
-            'network.' + interfaceNetwork.get('name'),
-            {defaultValue: interfaceNetwork.get('name')}
-          )}
+          {i18n('network.' + label, {defaultValue: label})}
         </div>
         {vlanRange &&
           <div className='vlan-id'>
@@ -1304,8 +1404,8 @@ var DraggableNetwork = DragSource('network', Network.source, Network.collect)(Ne
 var NodeInterfaceAttributes = React.createClass({
   assignConfigurationPanelEvents() {
     $(ReactDOM.findDOMNode(this.refs['configuration-panel']))
-        .on('show.bs.collapse', () => this.setState({pendingToggle: false, collapsed: false}))
-        .on('hide.bs.collapse', () => this.setState({pendingToggle: false, collapsed: true}));
+      .on('show.bs.collapse', () => this.setState({pendingToggle: false, collapsed: false}))
+      .on('hide.bs.collapse', () => this.setState({pendingToggle: false, collapsed: true}));
   },
   componentDidMount() {
     this.assignConfigurationPanelEvents();

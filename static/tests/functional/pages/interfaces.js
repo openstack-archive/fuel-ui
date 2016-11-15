@@ -86,6 +86,24 @@ class InterfacesPage {
         .then((ifcElement) => this.remote.dragTo(ifcElement));
   }
 
+  removeNetwork(networkName) {
+    return this.remote
+      .findAllByCssSelector('div.network-block')
+        .then(
+          (networkElements) => networkElements.reduce(
+            (result, networkElement) => networkElement
+              .getVisibleText()
+                .then((currentNetworkName) => {
+                  return currentNetworkName === networkName ? networkElement : result;
+                }),
+            null
+          )
+        )
+        .then((networkElement) => this.remote.dragFrom(networkElement))
+        .then(() => this.remote.findByCssSelector('.unassigned-networks .ifc-inner-container'))
+        .then((ifcElement) => this.remote.dragTo(ifcElement));
+  }
+
   selectInterface(ifcName) {
     return this.remote
       .then(() => this.findInterfaceElement(ifcName))
