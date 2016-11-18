@@ -1195,6 +1195,13 @@ models.InterfaceAttributes = models.Settings.extend({
     options.models = _.extend({nic_attributes: this, default: this}, options.configModels);
 
     var errors = this._super('validate', [attrs, options]);
+
+    // FIXME(jkirnosova): the following hack should be removed after fix of sriov.numvfs null value
+    if (!((options.meta || {}).sriov || {}).available) {
+      // clear sriov errors if sriov is unavailable
+      errors = _.omit(errors, (value, key) => _.startsWith(key, 'sriov.'));
+    }
+
     // MTU has a special validation case which depends on DPDK and cant be moved to YAML
     // SRIOV virtual functions number has maximum which is set into interface plain object metadata
     _.extend(errors, this.validateMTU(options), this.validateSRIOV(options));
