@@ -38,7 +38,7 @@ registerSuite(() => {
         .then(() => common.addNodesToCluster(1, 'Controller', null, 'Supermicro X9SCD'))
         .clickByCssSelector('.node.pending_addition input[type=checkbox]:not(:checked)')
         .clickByCssSelector('button.btn-configure-interfaces')
-        .assertElementAppears('div.ifc-list', 2000, 'Node interfaces loaded')
+        .assertElementAppears('div.ifc-list', 5000, 'Node interfaces loaded')
         .then(
           pollUntil(
             () => window.$('div.ifc-list').is(':visible') || null,
