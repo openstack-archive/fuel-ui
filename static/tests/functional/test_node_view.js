@@ -131,6 +131,10 @@ registerSuite(() => {
         .clickByCssSelector('#headingattributes')
         .assertElementsAppear('.setting-section-hugepages input[name=dpdk]', 2000,
           'DPDK input is found')
+        .assertElementEnabled(
+          '.node-attributes .btn-load-defaults',
+          'Load Defaults button presented'
+        )
         .assertElementExists('.node-attributes .btn.discard-changes:disabled',
           'Cancel changes button is disabled')
         .setInputValue('.setting-section-hugepages input[name=dpdk]', '2')
