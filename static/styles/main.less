@@ -3681,8 +3681,12 @@ input[type=range] {
         display: block;
         color: @gray;
         margin-top: 0;
+        &.field-error {
+          margin-left: @node-attributes-padding;
+          padding: 0;
+        }
       }
-      &.has-error .help-block {color: @red;}
+      .has-error .help-block, &.has-error .help-block {.text-danger;}
     }
     .checkbox-group {
       label {
@@ -4098,6 +4102,16 @@ input[type=range] {
                 }
                 &.form-group .help-block {
                   max-width: 585px;
+                }
+              }
+              .form-group .field-list {
+                width: auto;
+                > div:after {
+                  .clearfix;
+                }
+                .help-block, + .help-block {
+                  width: 545px;
+                  padding-top: 8px;
                 }
               }
             }
