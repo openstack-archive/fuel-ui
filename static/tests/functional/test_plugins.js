@@ -15,13 +15,15 @@
  **/
 
 import registerSuite from 'intern!object';
+import pollUntil from 'intern/dojo/node!leadfoot/helpers/pollUntil';
 import Common from 'tests/functional/pages/common';
 import ClusterPage from 'tests/functional/pages/cluster';
 import SettingsPage from 'tests/functional/pages/settings';
-import 'tests/functional/pages/dashboard';
+import NodeComponent from 'tests/functional/pages/node';
+import ModalWindow from 'tests/functional/pages/modal';
 
 registerSuite(() => {
-  var common, clusterPage, settingsPage;
+  var common, clusterPage, settingsPage, node, modal;
   var clusterName = 'Plugin UI tests';
   var zabbixSectionSelector = '.setting-section-zabbix_monitoring ';
 
@@ -31,6 +33,8 @@ registerSuite(() => {
       common = new Common(this.remote);
       clusterPage = new ClusterPage(this.remote);
       settingsPage = new SettingsPage(this.remote);
+      node = new NodeComponent(this.remote);
+      modal = new ModalWindow(this.remote);
 
       return this.remote
         .then(() => common.getIn())
@@ -156,7 +160,108 @@ registerSuite(() => {
             'Initial plugin version is set for deactivated plugin'
           )
         )
-        .assertElementDisabled('.btn-apply-changes', 'The change as reset successfully');
+        .assertElementDisabled('.btn-apply-changes', 'The change is reset successfully')
+        .then(() => clusterPage.goToTab('Dashboard'))
+        .then(() => clusterPage.resetEnvironment(clusterName))
+        .then(() => clusterPage.goToTab('Settings'));
+    },
+    'Check node and NIC plugins'() {
+      var pluginSelector = '.setting-section-plugin_with_node_and_nic_attributes ';
+      return this.remote
+        .clickByCssSelector(pluginSelector + 'h3 input[type=checkbox]')
+        .assertElementPropertyEquals(
+          pluginSelector + '.plugin-versions input[type=radio]:checked',
+          'value',
+          '5', '1.0.0 node/NIC plugin version is chosen (version ID = 5)'
+        )
+        .clickByCssSelector('.btn-apply-changes')
+        .then(() => settingsPage.waitForRequestCompleted())
+        .then(() => clusterPage.goToTab('Nodes'))
+        .then(() => node.openNodePopup())
+        .clickByCssSelector('#headingattributes')
+        .assertElementExists(
+          '.setting-section-plugin_section_a',
+          'Section A of node plugin presented in the node pop-up'
+        )
+        .assertElementDisabled(
+          '.setting-section-plugin_section_a input[name=attribute_b]',
+          'Attribute B of Section A of node plugin is disabled according to its restrictions'
+        )
+        .clickByCssSelector('.setting-section-plugin_section_a input[name=attribute_a]')
+        .assertElementEnabled(
+          '.setting-section-plugin_section_a input[name=attribute_b]',
+          'Attribute B of Section A of node plugin is enabled'
+        )
+        .clickByCssSelector('.apply-changes:not(:disabled)')
+        .then(() => modal.close())
+        .clickByCssSelector('.node input[type=checkbox]')
+        .clickByCssSelector('button.btn-configure-interfaces')
+        .assertElementAppears('div.ifc-list', 5000, 'Node interfaces loaded')
+        .then(pollUntil(() => window.$('div.ifc-list').is(':visible') || null, 1000))
+        .assertElementsExist(
+          '.property-item-container.plugin_with_node_and_nic_attributes',
+          2,
+          'NIC plugin presented on the node NICs'
+        )
+        .assertElementTextEquals(
+          '.property-item-container.plugin_with_node_and_nic_attributes .btn-link',
+          'Disabled',
+          'NIC plugin is disabled by default'
+        )
+        .clickByCssSelector(
+          '.property-item-container.plugin_with_node_and_nic_attributes .btn-link'
+        )
+        .assertElementDisabled(
+          pluginSelector + 'input[name=attribute_b]',
+          'Attribute B of NIC plugin is disabled according to its restrictions'
+        )
+        .clickByCssSelector(pluginSelector + 'input[name=attribute_a]')
+        .assertElementEnabled(
+          pluginSelector + 'input[name=attribute_b]',
+          'Attribute B of NIC plugin is enabled'
+        )
+        .assertElementTextEquals(
+          '.property-item-container.plugin_with_node_and_nic_attributes .btn-link',
+          'Enabled',
+          'NIC plugin is enabled'
+        )
+        .clickByCssSelector('.btn-revert-changes')
+        .then(() => clusterPage.goToTab('Settings'))
+        .clickByCssSelector(pluginSelector + '.plugin-versions input[type=radio]:not(:checked)')
+        .clickByCssSelector('.btn-apply-changes')
+        .then(() => settingsPage.waitForRequestCompleted())
+        .then(() => clusterPage.goToTab('Nodes'))
+        .then(() => node.openNodePopup())
+        .clickByCssSelector('#headingattributes')
+        .assertElementExists(
+          '.setting-section-plugin_section_a_v2',
+          'Section A (v2) of node plugin presented in the node pop-up'
+        )
+        .then(() => modal.close())
+        .clickByCssSelector('button.btn-configure-interfaces')
+        .assertElementAppears('div.ifc-list', 5000, 'Node interfaces loaded')
+        .then(pollUntil(() => window.$('div.ifc-list').is(':visible') || null, 1000))
+        .clickByCssSelector(
+          '.property-item-container.plugin_with_node_and_nic_attributes .btn-link'
+        )
+        .assertElementExists(
+          pluginSelector + 'input[name=attribute_a_v2]',
+          'Attribute A (v2) of NIC plugin presented'
+        )
+        .clickByCssSelector('.btn-revert-changes')
+        .then(() => clusterPage.goToTab('Settings'))
+        .clickByCssSelector(pluginSelector + 'h3 input[type=checkbox]')
+        .clickByCssSelector('.btn-apply-changes')
+        .then(() => settingsPage.waitForRequestCompleted())
+        .then(() => clusterPage.goToTab('Nodes'))
+        .then(() => node.openNodePopup())
+        .assertElementNotExists('#headingattributes', 'Node plugin was deactivated')
+        .then(() => modal.close())
+        .clickByCssSelector('button.btn-configure-interfaces')
+        .assertElementAppears('div.ifc-list', 5000, 'Node interfaces loaded')
+        .then(pollUntil(() => window.$('div.ifc-list').is(':visible') || null, 1000))
+        .assertElementNotExists(pluginSelector, 'NIC plugin was deactivated')
+        .then(() => clusterPage.goToTab('Settings'));
     }
   };
 });
