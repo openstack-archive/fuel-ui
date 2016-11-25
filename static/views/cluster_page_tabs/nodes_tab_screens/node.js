@@ -97,10 +97,11 @@ var Node = React.createClass({
     e.preventDefault();
     if (this.state.actionInProgress) return;
     this.setState({actionInProgress: true});
-    new models.Node(this.props.node.attributes)
-      .save({pending_roles: []}, {patch: true})
+    var {cluster, node} = this.props;
+    node.set({pending_roles: []}, {silent: true});
+    cluster.assignNodes(node)
       .then(
-        () => this.props.cluster.get('nodes').fetch(),
+        () => cluster.get('nodes').fetch(),
         (response) => {
           utils.showErrorDialog({
             title: i18n('cluster_page.nodes_tab.node.cant_discard'),
@@ -229,13 +230,17 @@ var Node = React.createClass({
   },
   renderRoleList(roles) {
     var {node} = this.props;
+    var newRoles = _.difference(node.get('pending_roles'), node.get('roles'));
+    var deletedRoles = node.get('pending_roles').length ?
+      _.difference(node.get('roles'), node.get('pending_roles')) : [];
     return (
       <ul>
         {_.map(roles, (role) =>
           <li
             key={node.id + role}
             className={utils.classNames({
-              'text-success': _.includes(node.get('pending_roles'), role)
+              'text-success': _.includes(newRoles, role),
+              'text-danger': _.includes(deletedRoles, role)
             })}
           >
             {role}

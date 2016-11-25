@@ -447,6 +447,27 @@ models.Cluster = BaseModel.extend({
       .flatten()
       .uniq()
       .value();
+  },
+  assignNodes(nodes) {
+    nodes = _.isArray(nodes) ? nodes : [nodes];
+    return this.save(null, {
+      method: 'POST',
+      url: _.result(this, 'url') + '/assignment',
+      data: JSON.stringify(
+        nodes.map((node) => ({
+          id: node.id,
+          roles: node.get('pending_roles')
+        }))
+      )
+    });
+  },
+  deleteNodes(nodes) {
+    nodes = _.isArray(nodes) ? nodes : [nodes];
+    return this.save(null, {
+      method: 'POST',
+      url: _.result(this, 'url') + '/unassignment',
+      data: JSON.stringify(_.invoke(nodes, 'pick', 'id'))
+    });
   }
 });
 

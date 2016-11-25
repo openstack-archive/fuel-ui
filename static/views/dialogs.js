@@ -2088,33 +2088,21 @@ export var DeleteNodesDialog = React.createClass({
   },
   deleteNodes() {
     this.setState({actionInProgress: true});
-    var nodes = new models.Nodes(this.props.nodes.map((node) => {
-      if (node.get('pending_addition')) {
-        return {
-          id: node.id,
-          cluster_id: null,
-          pending_addition: false,
-          pending_roles: []
-        };
-      }
-      return {
-        id: node.id,
-        pending_deletion: true
-      };
-    }));
-    Backbone.sync('update', nodes)
-      .then(() => {
-        return this.props.cluster.get('nodes').fetch();
-      })
+    var {cluster, nodes} = this.props;
+    return cluster.deleteNodes(nodes.models)
+      .then(() => cluster.get('nodes').fetch())
       .done(() => {
-        dispatcher.trigger('updateNodeStats networkConfigurationUpdated ' +
-          'labelsConfigurationUpdated');
+        dispatcher.trigger(
+          'updateNodeStats networkConfigurationUpdated labelsConfigurationUpdated'
+        );
         this.state.result.resolve();
         this.close();
       })
       .fail((response) => {
-        this.showError(response, i18n('cluster_page.nodes_tab.node_deletion_error.' +
-          'node_deletion_warning'));
+        this.showError(
+          response,
+          i18n('cluster_page.nodes_tab.node_deletion_error.node_deletion_warning')
+        );
       });
   }
 });
