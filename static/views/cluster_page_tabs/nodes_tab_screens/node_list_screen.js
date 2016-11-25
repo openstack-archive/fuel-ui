@@ -162,11 +162,17 @@ NodeListScreen = React.createClass({
     // add role panel functionality
     if (showRolePanel) {
       var roles = cluster.get('roles').pluck('name');
+      var hasRole = (role, node) => _.includes(
+        node.get('pending_roles').length ? node.get('pending_roles') : node.get('roles'),
+        role
+      );
       var selectedRoles = nodes.length ?
-        _.filter(roles, (role) => nodes.every((node) => node.hasRole(role))) : [];
+        _.filter(roles,
+          (role) => nodes.every(_.partial(hasRole, role))
+        ) : [];
       var indeterminateRoles = nodes.length ?
         _.filter(roles,
-          (role) => !_.includes(selectedRoles, role) && nodes.some((node) => node.hasRole(role))
+          (role) => !_.includes(selectedRoles, role) && nodes.some(_.partial(hasRole, role))
         ) : [];
       var configModels = {
         cluster,
@@ -571,7 +577,7 @@ NodeListScreenContent = React.createClass({
     var screenNodesLabels = this.getNodeLabels();
     return (
       <div>
-        {this.props.mode === 'edit' &&
+        {this.props.mode === 'edit' && nodes.some({pending_addition: true}) &&
           <div className='alert alert-warning'>
             {i18n('cluster_page.nodes_tab.disk_configuration_reset_warning')}
           </div>
@@ -756,20 +762,23 @@ ManagementPanel = React.createClass({
     if (!this.isSavingPossible()) return $.Deferred().reject();
 
     this.setState({actionInProgress: true});
-    var nodes = new models.Nodes(this.props.nodes.map((node) => {
-      var data = {id: node.id, pending_roles: node.get('pending_roles')};
-      if (node.get('pending_roles').length) {
-        if (this.props.mode === 'add') {
-          return _.extend(data, {cluster_id: this.props.cluster.id, pending_addition: true});
-        }
-      } else if (node.get('pending_addition')) {
-        return _.extend(data, {cluster_id: null, pending_addition: false});
-      }
-      return data;
-    }));
-    return Backbone.sync('update', nodes)
+    var {cluster, nodes} = this.props;
+
+    var deletedNodes = nodes.filter(
+      (node) => !node.get('roles').length && !node.get('pending_roles').length
+    );
+    var addedNodes = nodes.filter((node) => !_.find(deletedNodes, {id: node.id}));
+
+    var requests = [];
+    if (deletedNodes.length) requests.push(cluster.deleteNodes(deletedNodes));
+    if (addedNodes.length) requests.push(cluster.assignNodes(addedNodes));
+
+    return $.when(...requests)
       .done(() => {
-        $.when(this.props.cluster.fetch(), this.props.cluster.get('nodes').fetch()).always(() => {
+        $.when(
+          this.props.cluster.fetch(),
+          this.props.cluster.get('nodes').fetch()
+        ).always(() => {
           if (this.props.mode === 'add') {
             dispatcher.trigger('updateNodeStats networkConfigurationUpdated ' +
               'labelsConfigurationUpdated');
@@ -1612,24 +1621,21 @@ RolePanel = React.createClass({
 
     nodes.each((node) => {
       if (selectedNodeIds[node.id]) {
-        roles.each((role) => {
-          var roleName = role.get('name');
-          if (!node.hasRole(roleName, true)) {
-            var nodeRoles = node.get('pending_roles');
-            if (_.contains(selectedRoles, roleName)) {
-              nodeRoles = _.union(nodeRoles, [roleName]);
-            } else if (!_.contains(indeterminateRoles, roleName)) {
-              nodeRoles = _.without(nodeRoles, roleName);
-            }
-            node.set({pending_roles: nodeRoles}, {assign: true});
-          }
-        });
+        var newRoles = _.reduce(roles.pluck('name'),
+          (result, role) => {
+            if (_.contains(selectedRoles, role)) return _.union(result, [role]);
+            if (!_.contains(indeterminateRoles, role)) return _.without(result, role);
+            return result;
+          },
+          node.get('roles').concat(node.get('pending_roles'))
+        );
+        node.set({pending_roles: newRoles}, {assign: true});
       }
     });
   },
   processRestrictions(role) {
     var {
-      cluster, nodes, selectedRoles, indeterminateRoles, processedRoleLimits, configModels
+      cluster, selectedRoles, indeterminateRoles, processedRoleLimits, configModels
     } = this.props;
     var name = role.get('name');
     var restrictionsCheck = role.checkRestrictions(configModels, 'disable');
@@ -1653,15 +1659,9 @@ RolePanel = React.createClass({
       warnings.push(i18n('cluster_page.nodes_tab.role_conflict'));
     }
 
-    var isDeployed = nodes.some((node) => node.hasRole(name, true));
-    if (isDeployed) {
-      warnings.push(i18n('cluster_page.nodes_tab.deployed_role'));
-    }
-
     return {
       result: restrictionsCheck.result ||
         _.includes(conflicts, name) ||
-        isDeployed ||
         (
           roleLimitsCheckResults &&
           !roleLimitsCheckResults.valid &&
