@@ -1160,11 +1160,13 @@ var NodeInterface = React.createClass({
           attributes.get(utils.makePath(sectionName, 'metadata'))
         ).result
       )
-      .sortBy((sectionName) => {
-        var {weight, label} = attributes.get(sectionName + '.metadata');
-        return [weight, label];
-      })
-      .value();
+      .value()
+      .sort(
+        (sectionName1, sectionName2) => attributes.sortAttributes(
+          attributes.get(sectionName1 + '.metadata'),
+          attributes.get(sectionName2 + '.metadata')
+        )
+      );
 
     var bondingPossible = !!availableBondingTypes.length && !configurationTemplateExists && !locked;
     var networkErrors = (_.flatten((errors || {}).networks || [])).join(', ');
@@ -1479,19 +1481,19 @@ var NodeInterfaceAttributes = React.createClass({
     // the following code provides the following suggestion:
     // first setting in NIC's attribute section should be a checkbox
     // that reflects enableness of the section on the particular NIC
-    var name = _.chain(_.keys(attributes.get(sectionName)))
-      .sortBy((settingName) => {
-        var {weight, label} = attributes.get(utils.makePath(sectionName, settingName));
-        return [weight, label];
-      })
-      .find(
-        (settingName) => attributes.isSettingVisible(
-          attributes.get(utils.makePath(sectionName, settingName)),
-          settingName,
-          configModels
+    var name = _.find(
+      _.keys(attributes.get(sectionName)).sort(
+        (settingName1, settingName2) => attributes.sortAttributes(
+          attributes.get(utils.makePath(sectionName, settingName1)),
+          attributes.get(utils.makePath(sectionName, settingName2))
         )
+      ),
+      (settingName) => attributes.isSettingVisible(
+        attributes.get(utils.makePath(sectionName, settingName)),
+        settingName,
+        configModels
       )
-      .value();
+    );
     var value = attributes.get(utils.makePath(sectionName, name, 'value'));
 
     if (_.isBoolean(value)) {

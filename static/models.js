@@ -967,6 +967,10 @@ models.Settings = Backbone.DeepModel
         }
       });
       this.isValid({models});
+    },
+    sortAttributes({weight: weight1, label: label1}, {weight: weight2, label: label2}) {
+      if (weight1 !== weight2) return weight1 - weight2;
+      return utils.natsort(label1, label2);
     }
   });
 

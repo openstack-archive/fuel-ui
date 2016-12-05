@@ -1786,48 +1786,84 @@ var NetworkSettings = React.createClass({
     return (
       <div className='forms-box network'>
         {
-          _.chain(settings.attributes)
-            .keys()
-            .filter(
-              (sectionName) => {
-                var section = settings.get(sectionName);
-                return (section.metadata.group === 'network' ||
-                  _.any(section, {group: 'network'})) &&
-                  !this.checkRestrictions('hide', section.metadata).result;
-              }
+          _.chain(
+            _.keys(settings.attributes).sort(
+              (sectionName1, sectionName2) => settings.sortAttributes(
+                settings.get(sectionName1 + '.metadata'),
+                settings.get(sectionName2 + '.metadata')
+              )
             )
-            .sortBy((sectionName) => {
-              var {weight, label} = settings.get(sectionName + '.metadata');
-              return [weight, label];
-            })
-            .map(
-              (sectionName) => {
-                var section = settings.get(sectionName);
-                var settingsToDisplay = _.compact(_.map(section, (setting, settingName) => {
-                  if (
-                    (section.metadata.group || setting.group === 'network') &&
-                    settings.isSettingVisible(setting, settingName, this.props.configModels)
-                  ) return settingName;
-                }));
-                if (_.isEmpty(settingsToDisplay) && !settings.isPlugin(section)) return null;
-                return <SettingSection
-                  {... _.pick(
-                    this.props,
-                    'cluster', 'initialAttributes', 'settingsForChecks', 'configModels'
-                  )}
-                  key={sectionName}
-                  sectionName={sectionName}
-                  settingsToDisplay={settingsToDisplay}
-                  onChange={_.bind(this.onChange, this, sectionName)}
-                  allocatedRoles={allocatedRoles}
-                  settings={settings}
-                  getValueAttribute={settings.getValueAttribute}
-                  locked={locked}
-                  checkRestrictions={this.checkRestrictions}
-                />;
-              }
-            )
-            .value()
+          )
+          .filter(
+            (sectionName) => {
+              var section = settings.get(sectionName);
+              return (section.metadata.group === 'network' ||
+                _.any(section, {group: 'network'})) &&
+                !this.checkRestrictions('hide', section.metadata).result;
+            }
+          )
+          .map(
+            (sectionName) => {
+              var section = settings.get(sectionName);
+              var settingsToDisplay = _.compact(_.map(section, (setting, settingName) => {
+                if (
+                  (section.metadata.group || setting.group === 'network') &&
+                  settings.isSettingVisible(setting, settingName, this.props.configModels)
+                ) return settingName;
+              }));
+              if (_.isEmpty(settingsToDisplay) && !settings.isPlugin(section)) return null;
+              return <SettingSection
+                {... _.pick(
+                  this.props,
+                  'cluster', 'initialAttributes', 'settingsForChecks', 'configModels'
+                )}
+                key={sectionName}
+                sectionName={sectionName}
+                settingsToDisplay={settingsToDisplay}
+                onChange={_.bind(this.onChange, this, sectionName)}
+                allocatedRoles={allocatedRoles}
+                settings={settings}
+                getValueAttribute={settings.getValueAttribute}
+                locked={locked}
+                checkRestrictions={this.checkRestrictions}
+              />;
+            }
+          )
+          .filter(
+            (sectionName) => {
+              var section = settings.get(sectionName);
+              return (section.metadata.group === 'network' ||
+                _.some(section, {group: 'network'})) &&
+                !this.checkRestrictions('hide', section.metadata).result;
+            }
+          )
+          .map(
+            (sectionName) => {
+              var section = settings.get(sectionName);
+              var settingsToDisplay = _.compact(_.map(section, (setting, settingName) =>
+                (section.metadata.group || setting.group === 'network') &&
+                settings.isSettingVisible(setting, settingName, this.props.configModels) &&
+                settingName
+              ));
+              if (_.isEmpty(settingsToDisplay) && !settings.isPlugin(section)) return null;
+              return <SettingSection
+                {... _.pick(
+                  this.props,
+                  'cluster', 'initialAttributes', 'settingsForChecks', 'configModels'
+                )}
+                key={sectionName}
+                sectionName={sectionName}
+                settingsToDisplay={settingsToDisplay}
+                onChange={_.partial(this.onChange, sectionName)}
+                allocatedRoles={allocatedRoles}
+                settings={settings}
+                getValueAttribute={settings.getValueAttribute}
+                locked={locked}
+                checkRestrictions={this.checkRestrictions}
+              />;
+            }
+          )
+          .value()
         }
       </div>
     );
