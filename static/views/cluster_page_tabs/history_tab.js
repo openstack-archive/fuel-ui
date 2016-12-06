@@ -113,6 +113,7 @@ HistoryTab = React.createClass({
     var ns = 'cluster_page.history_tab.';
     var transactions = cluster.get('transactions').filterTasks({active: false});
     var activeTransaction = cluster.get('transactions').get(activeTransactionId);
+    var activeTransactionGraphType = activeTransaction.get('graph_type');
     var visibleTransactionsAmount = 7;
     var visibleTransactions = transactions;
     var hiddenTransactions = [];
@@ -205,27 +206,36 @@ HistoryTab = React.createClass({
                 >
                   <div className='row'>
                     <div className='col-xs-2 transaction-summary-label'>
-                      {i18n(ns + 'transaction_attributes.graph_type')}
+                      {i18n(
+                        ns + 'transaction_attributes.' +
+                        (_.isNull(activeTransactionGraphType) ? 'name' : 'graph_type')
+                      )}
                     </div>
                     <div className='col-xs-4'>
-                      {i18n(
-                        ns + 'graph_titles.' + activeTransaction.get('graph_type'),
-                        {defaultValue: activeTransaction.get('graph_type')}
-                      )}
+                      {_.isNull(activeTransactionGraphType) ?
+                        activeTransaction.get('name')
+                      :
+                        i18n(
+                          ns + 'graph_titles.' + activeTransactionGraphType,
+                          {defaultValue: activeTransactionGraphType}
+                        )
+                      }
                       {activeTransaction.get('dry_run') &&
                         <div className='dry-run-label label label-default'>
                           {i18n(ns + 'transaction_attributes.dry_run')}
                         </div>
                       }
                     </div>
-                    <div className='col-xs-2 transaction-summary-label'>
-                      {i18n(ns + 'transaction_attributes.time_start')}
-                    </div>
-                    <div className='col-xs-4'>
-                      {utils.formatTimestamp(
-                        utils.parseISO8601Date(activeTransaction.get('time_start'))
-                      )}
-                    </div>
+                    {activeTransaction.get('time_start') && [
+                      <div key='time-start-label' className='col-xs-2 transaction-summary-label'>
+                        {i18n(ns + 'transaction_attributes.time_start')}
+                      </div>,
+                      <div key='time-start-value' className='col-xs-4'>
+                        {utils.formatTimestamp(
+                          utils.parseISO8601Date(activeTransaction.get('time_start'))
+                        )}
+                      </div>
+                    ]}
                   </div>
                   <div className='row'>
                     <div className='col-xs-2 transaction-summary-label'>
@@ -237,14 +247,16 @@ HistoryTab = React.createClass({
                         {defaultValue: activeTransaction.get('status')}
                       )}
                     </div>
-                    <div className='col-xs-2 transaction-summary-label'>
-                      {i18n(ns + 'transaction_attributes.time_end')}
-                    </div>
-                    <div className='col-xs-4'>
-                      {utils.formatTimestamp(
-                        utils.parseISO8601Date(activeTransaction.get('time_end'))
-                      )}
-                    </div>
+                    {activeTransaction.get('time_end') && [
+                      <div key='time-end-label' className='col-xs-2 transaction-summary-label'>
+                        {i18n(ns + 'transaction_attributes.time_end')}
+                      </div>,
+                      <div key='time-end-value' className='col-xs-4'>
+                        {utils.formatTimestamp(
+                          utils.parseISO8601Date(activeTransaction.get('time_end'))
+                        )}
+                      </div>
+                    ]}
                   </div>
                   <div className='row'>
                     <div className='col-xs-2 transaction-summary-label'>
