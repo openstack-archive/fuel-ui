@@ -18,7 +18,7 @@ import registerSuite from 'intern!object';
 import Common from 'tests/functional/pages/common';
 import Modal from 'tests/functional/pages/modal';
 import 'tests/functional/helpers';
-import 'tests/functional/component_registry/component_helpers';
+import 'tests/functional/real_plugin/plugin_helpers';
 
 registerSuite(() => {
   var common, modal;
@@ -74,7 +74,7 @@ registerSuite(() => {
         .then(() => modal.waitToClose())
 
         // Delete created environment
-        .deleteCluster(modal).sleep(10000);
+        .deleteCluster(modal);
     },
     'Test storage -storage:image'() {
       var nfs = 'input[value=storage\\:image\\:nfs]';
