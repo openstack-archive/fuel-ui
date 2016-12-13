@@ -18,13 +18,15 @@ import _ from 'intern/dojo/node!lodash';
 import childProcess from 'intern/dojo/node!child_process';
 import Command from 'intern/dojo/node!leadfoot/Command';
 import 'tests/functional/helpers';
+import assert from 'intern/chai!assert';
 
 _.defaults(Command.prototype, {
-  updatePlugin(files) {
+  updatePlugin(params) {
     return new this.constructor(this, function() {
+
       return this.parent
         .then(() => {
-          childProcess.exec('/bin/sh ${SCRIPT_PATH} ' + files,
+          childProcess.exec('/bin/bash ${SCRIPT_PATH} ' + params,
             (err) => {
               if (err) return;
             });
@@ -40,20 +42,64 @@ _.defaults(Command.prototype, {
         .setInputValue('[name=name]', 'Temp');
     });
   },
+  newClusterWithPlugin(modal) {
+    return new this.constructor(this, function() {
+      return this.parent
+        .clickByCssSelector('.create-cluster')
+        .then(() => modal.waitToOpen())
+        .setInputValue('[name=name]', 'Temp')
+
+        .pressKeys('\uE007') // go to Compute
+        .pressKeys('\uE007') // Networking
+        .pressKeys('\uE007') // Storage
+        .pressKeys('\uE007') // Additional Services
+        .clickByCssSelector('input[name="additional_service:service_plugin_v5_component"]')
+
+        .pressKeys('\uE007') // Finish
+        .pressKeys('\uE007') // Create
+        .then(() => modal.waitToClose());
+    });
+  },
+  selectNodeByNumber(modal, nodeNumber) {
+    return new this.constructor(this, function() {
+      return this.parent
+        .clickByCssSelector('div.node-list.row div:nth-child(2) > div:nth-child(' + nodeNumber +
+                            ') div.checkbox-group.pull-left input');
+    });
+  },
   assertNextButtonEnabled() {
     return new this.constructor(this, function() {
       return this.parent
-        .assertElementNotExists('button.next-pane-btn.disabled',
-                                'Next button is disabled');
+        .assertElementNotExists('button.next-pane-btn.disabled', 'Next button is disabled');
     });
   },
-  deleteCluster(modal) {
+  deleteCluster(modal, clusterPage) {
     return new this.constructor(this, function() {
       return this.parent
+        .then(() => clusterPage.goToTab('Dashboard'))
         .clickByCssSelector('button.delete-environment-btn')
         .then(() => modal.waitToOpen())
         .clickByCssSelector('button.remove-cluster-btn')
         .then(() => modal.waitToClose());
     });
-  }
+  },
+  selectPluginNICPropertyByNumber(modal, number) {
+    return new this.constructor(this, function() {
+      return this.parent
+        .clickByCssSelector('.ifc-list > div:nth-child(' + number + ')' +
+                            ' .fuel_plugin_example_v5 > button');
+    });
+  },
+  assertAmountMatches(cssSelector1, cssSelector2, message) {
+    return new this.constructor(this, function () {
+      var amount;
+      return this.parent
+        .findAllByCssSelector(cssSelector1).then(function (elements) {
+          amount = elements.length;
+        }).end()
+        .findAllByCssSelector(cssSelector2).then(function (elements) {
+          return assert.equal(elements.length, amount, message);
+        }).end();
+    });
+  },
 });
