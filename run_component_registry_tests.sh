@@ -21,12 +21,14 @@ export NO_NAILGUN_START=${NO_NAILGUN_START:-0}
 export TEST_PREFIX=${TEST_PREFIX:-'test_*'}
 export FUEL_WEB_ROOT=$(readlink -f ${FUEL_WEB_ROOT:-"$(dirname $0)/../fuel-web"})
 export ARTIFACTS=${ARTIFACTS:-"$(pwd)/test_run/ui_component"}
-export CONF_PATH="$(pwd)/static/tests/functional/component_registry/plugin_conf"
-export SCRIPT_PATH="${CONF_PATH}/update_components.sh"
+#export CONF_PATH="$(pwd)/static/tests/functional/component_registry/plugin_conf"
+export CONF_PATH="$(pwd)/static/tests/functional/feature_nics/plugin_conf"
+#export SCRIPT_PATH="${CONF_PATH}/update_components.sh"
+export SCRIPT_PATH="$(pwd)/static/tests/functional/component_registry/plugin_conf/update_components.sh"
 export PLUGIN_RPM=${PLUGIN_RPM:-''}
 if [ -z "${PLUGIN_RPM}" ]; then
   plugins='https://product-ci.infra.mirantis.net/view/All/job/9.0.build-fuel-plugins'
-  path='lastSuccessfulBuild/artifact/built_plugins/fuel_plugin_example_v4-4.0-4.0.0-1.noarch.rpm'
+  path='lastSuccessfulBuild/artifact/built_plugins/fuel_plugin_example_v5-1.0-1.0.0-1.noarch.rpm'
   plugin_url=${PLUGIN_URL:-"${plugins}/${path}"}
 
   export PLUGIN_RPM="${CONF_PATH}/plugin.rpm"
@@ -49,7 +51,7 @@ export NAILGUN_CHECK_URL='/api/version'
 
 mkdir -p "$ARTIFACTS"
 
-function install_plugin {
+function install_prepare_plugin {
   plugin_rpm=$1
 
   mkdir -p "${nailgun_plugins_path}"
@@ -60,23 +62,36 @@ function install_plugin {
   plugin_name=$(grep -oP '^name: \K(.*)' "${meta}")
   plugin_version=$(grep -oP '^version: \K(.*)' "${meta}")
 
-  sudo sed -i -e "s/fuel_version: \['8.0'\]/fuel_version: \['10.0'\]/" "${meta}"
-  sudo sed -i -e "s/fuel_version: \['9.0'\]/fuel_version: \['10.0'\]/" "${meta}"
-  sudo sed -i -e "s/mitaka-9.0/newton-10.0/" "${meta}"
+  # Fix versions
+  sudo sed -i -e "s/fuel_version: .*/fuel_version: \['10.0'\]/" "${meta}"
+  sudo sed -i -e "s/package_version: .*/package_version: '5.0.0'/" "${meta}"
+  sudo sed -i -e "s/mitaka-9.0/newton-10.0/" "${meta}"  # release version
+
+  # Fix components settings
+#  sudo sed -i -e "s/- name: .*/- name: additional_service:plugin_component/" ${PLUGIN_PATH}/components.yaml
+  sudo sed -i -e "s/requires/#requires/" ${PLUGIN_PATH}/components.yaml
+  sudo sed -i -e "s/incompatible/#incompatible/" ${PLUGIN_PATH}/components.yaml
+
+  # Fix plugin name and label
+#  sudo sed -i -e "s/name: .*/name: test_plugin/" "${meta}"
+#  sudo sed -i -e "s/title: .*/title: Test-plugin title/" "${meta}"
 
   fuel --os-username admin --os-password admin plugins \
     --register "${plugin_name}==${plugin_version//\'/}"
+
+#  plugin_name='test_plugin'
 }
 
 function remove_plugin {
   fuel --os-username admin --os-password admin plugins \
-    --remove "${plugin_name}==${plugin_version//\'/}" 2>/dev/null || \
-    echo "${plugin_name} was removed"
+    --remove "${plugin_name}==${plugin_version//\'/}" 2>/dev/null && \
+    echo "${plugin_name} was removed" || echo "Can not remove plugin ${plugin_name}"
 }
 
 function run_component_tests {
   local GULP='./node_modules/.bin/gulp'
-  local TESTS_DIR='static/tests/functional/component_registry'
+#  local TESTS_DIR='static/tests/functional/component_registry'
+  local TESTS_DIR='static/tests/functional/feature_nics'
   local TESTS=$TESTS_DIR/${TEST_PREFIX}.js
   local result=0
 
@@ -99,12 +114,12 @@ function run_component_tests {
       popd > /dev/null
   fi
 
+  install_prepare_plugin "${PLUGIN_RPM}"
+
   ${GULP} build --no-sourcemaps --extra-entries=sinon --static-dir="$NAILGUN_STATIC"
   if [ $? -ne 0 ]; then
     return 1
   fi
-
-  install_plugin "${PLUGIN_RPM}"
 
   for test_case in $TESTS; do
     echo "INFO: Running test case ${test_case}"
@@ -115,11 +130,11 @@ function run_component_tests {
 
   remove_plugin
 
-  if [ "${NO_NAILGUN_START}" -ne 1 ]; then
-    pushd "$FUEL_WEB_ROOT" > /dev/null
-    tox -e stop
-    popd > /dev/null
-  fi
+#  if [ "${NO_NAILGUN_START}" -ne 1 ]; then
+#    pushd "$FUEL_WEB_ROOT" > /dev/null
+#    tox -e stop
+#    popd > /dev/null
+#  fi
 
   return $result
 }
