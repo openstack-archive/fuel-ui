@@ -1,0 +1,17 @@
+plugin_section_a:
+  metadata:
+    group: "Plugin_section"
+    label: "Plugin's attributes section"
+  attribute_checkbox:
+    label: "Node attribute Checkbox for plugin's section"
+    description: "Description Checkbox"
+    type: "checkbox"
+    value: false
+  attribute_text:
+    label: "Node attribute Text for plugin's section"
+    description: "Description Text"
+    type: "text"
+    value: ""
+    restrictions:
+      - condition: "settings:common.libvirt_type.value != 'kvm'"
+        action: "hide"
