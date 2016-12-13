@@ -17,10 +17,10 @@
 define([
   'intern!object',
   'tests/functional/helpers',
-  'tests/functional/component_registry/component_helpers',
+  'tests/functional/alive_plugin/plugin_helpers',
   'tests/functional/pages/common',
   'tests/functional/pages/modal'
-], function(registerSuite, helpers, componentHelpers, Common, Modal) {
+], function(registerSuite, helpers, pluginHelpers, Common, Modal) {
   'use strict';
 
   registerSuite(function() {

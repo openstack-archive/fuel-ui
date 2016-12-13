@@ -17,7 +17,7 @@
     "func-tests": "./run_ui_func_tests.sh",
     "nightly-func-tests": "./run_ui_func_tests.sh static/tests/functional/nightly/*.js",
     "prepublish": "gulp build",
-    "component-tests": "./run_component_registry_tests.sh"
+    "plugin-tests": "./run_alive_plugin_tests.sh"
   },
   "dependencies": {
     "autoprefixer": "5.2.0",
