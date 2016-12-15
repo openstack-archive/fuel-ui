@@ -160,7 +160,7 @@ registerSuite(() => {
         .waitForElementDeletion('.confirmation-question', 5000)
         .assertElementContainsText(
           '.modal-body',
-          'Deployment tasks not found for',
+          'There are no deployment tasks for graph type',
           'Workflow can not be started because it contains no deployment tasks'
         )
         .then(() => modal.clickFooterButton('Close'))
