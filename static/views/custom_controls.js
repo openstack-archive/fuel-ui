@@ -13,6 +13,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
 **/
+import $ from 'jquery';
 import _ from 'underscore';
 import i18n from 'i18n';
 import React from 'react';
@@ -426,6 +427,99 @@ customControls.custom_hugepages = React.createClass({
             );
           })}
         </div>
+      </div>
+    );
+  }
+});
+
+customControls.nullable_number = React.createClass({
+  statics: {
+    validate({value, min, max}) {
+      var error = null;
+      if (!_.isNull(value)) {
+        if (!_.isNumber(value) || _.isNaN(value)) {
+          error = i18n('controls.invalid_value');
+        } else if (_.isNumber(min) && value < min) {
+          error = i18n('controls.number.min_size', {min});
+        } else if (_.isNumber(max) && value > max) {
+          error = i18n('controls.number.max_size', {max});
+        }
+      }
+      return error;
+    }
+  },
+  propTypes: {
+    value: React.PropTypes.node,
+    name: React.PropTypes.node,
+    label: React.PropTypes.node,
+    description: React.PropTypes.node,
+    error: React.PropTypes.node,
+    disabled: React.PropTypes.bool,
+    wrapperClassName: React.PropTypes.node,
+    onChange: React.PropTypes.func,
+    min: React.PropTypes.number,
+    max: React.PropTypes.number,
+    tooltipPlacement: React.PropTypes.oneOf(['left', 'right', 'top', 'bottom']),
+    tooltipIcon: React.PropTypes.node,
+    tooltipText: React.PropTypes.node
+  },
+  getInitialState() {
+    return {pendingFocus: false};
+  },
+  getDefaultProps() {
+    return {
+      tooltipIcon: 'glyphicon-warning-sign',
+      tooltipPlacement: 'right'
+    };
+  },
+  componentDidUpdate() {
+    if (!_.isNull(this.props.value) && this.state.pendingFocus) {
+      $(this.refs.number.getInputDOMNode()).focus();
+      this.setState({pendingFocus: false});
+    }
+  },
+  onCheckboxChange(name, checked) {
+    this.setState({pendingFocus: true});
+    if (this.props.onChange) return this.props.onChange(name, checked ? '' : null);
+  },
+  onNumberChange(name, value) {
+    if (this.props.onChange) return this.props.onChange(name, _.isNaN(value) ? '' : value);
+  },
+  render() {
+    var {
+      label, value, description, error,
+      tooltipText, tooltipIcon, tooltipPlacement, disabled, wrapperClassName
+    } = this.props;
+    return (
+      <div className={utils.classNames('form-group', 'nullable-number-input', disabled, {
+        'has-error': !_.isUndefined(error) && !_.isNull(error),
+        [wrapperClassName]: wrapperClassName
+      })}>
+        <label key='label'>
+          <span>{label}</span>
+          {tooltipText &&
+            <Tooltip text={tooltipText} placement={tooltipPlacement}>
+              <i className={utils.classNames('glyphicon tooltip-icon', tooltipIcon)} />
+            </Tooltip>
+          }
+        </label>
+        <Input
+          type='checkbox'
+          ref='checkbox'
+          checked={!_.isNull(value)}
+          onChange={this.onCheckboxChange}
+          {... _.pick(this.props, 'disabled', 'name')}
+        />
+        <Input
+          type='number'
+          ref='number'
+          disabled={disabled || _.isNull(value)}
+          onChange={this.onNumberChange}
+          {... _.pick(this.props, 'value', 'name', 'min', 'max')}
+        />
+        <span key='description' className='help-block description'>
+          {!_.isUndefined(error) && !_.isNull(error) ? error : description || ''}
+        </span>
       </div>
     );
   }
