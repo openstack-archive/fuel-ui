@@ -1425,6 +1425,26 @@ input[type=range] {
     }
   }
 
+  .nullable-number-input {
+    .checkbox-group, .form-group {
+      float: left;
+      margin-bottom: 0;
+      .help-block {
+        display: none;
+      }
+    }
+    .checkbox-group {
+      label, input {
+        width: auto;
+        padding-right: 0;
+        margin-right: 6px;
+        .custom-tumbler {
+          margin-right: 0;
+        }
+      }
+    }
+  }
+
   .field-list {
     float: left;
     width: 352px;
@@ -4019,6 +4039,14 @@ input[type=range] {
                 }
                 &.form-group .help-block {
                   max-width: 585px;
+                }
+              }
+              .form-group.form-group.nullable-number-input {
+                > .help-block {
+                  max-width: 560px;
+                }
+                input[type=number] {
+                  width: 253px;
                 }
               }
               .form-group .field-list {

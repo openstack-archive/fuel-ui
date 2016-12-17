@@ -63,26 +63,27 @@ define([
             return common.removeCluster(clusterName, true);
           });
       },
-      // FIXME(apopovych) restore this check after merging https://review.openstack.org/408721
-      /*'Configure interface properties manipulations': function() {
+      /*
+      // FIXME(jkirnosova): uncomment after #1643599 fix
+      'Configure interface properties manipulations': function() {
         return this.remote
           .clickByCssSelector('.mtu .btn-link')
-          .assertElementExists(
+          .assertElementsExist(
             '.mtu-section input[name="value"]',
+            2,
             'MTU control is shown when navigating to MTU tab'
           )
-          .setInputValue('.mtu-section input[name="value"]', '2')
-          // FIXME(jkirnosova) restore this check after merging https://review.openstack.org/355360
-          //.assertElementExists(
-          //  '.mtu-section .has-error',
-          //  'Error styles are applied to MTU control on invalid value'
-          //)
-          // FIXME(jkirnosova) restore this check after adding use_custom_mtu setting
-          //.assertElementExists(
-          //  '.mtu .btn-link.text-danger',
-          //  'Invalid style is applied to MTU in summary panel'
-          //)
-          .setInputValue('.mtu-section input[name="value"]', '256')
+          .clickByCssSelector('.mtu-section input[type=checkbox][name="value"]')
+          .setInputValue('.mtu-section input[type=number][name="value"]', '2')
+          .assertElementExists(
+            '.mtu-section .has-error',
+            'Error styles are applied to MTU control on invalid value'
+          )
+          .assertElementExists(
+            '.mtu .btn-link.text-danger',
+            'Invalid style is applied to MTU in summary panel'
+          )
+          .setInputValue('.mtu-section input[type=number][name="value"]', '256')
           .assertElementExists(
             '.ifc-inner-container.has-changes',
             'Has-Changes style is applied'
@@ -93,7 +94,8 @@ define([
             '.mtu-section input[name="value"]',
             'MTU control is hidden after clicking MTU link again'
           );
-      },*/
+      },
+      */
       'Unassigned networks': function() {
         return this.remote
           .assertElementExists(
@@ -112,9 +114,8 @@ define([
             '.unassigned-networks .network-block .network-name',
             'Public',
             'Public network was successfully removed'
-          );
-          // FIXME(jkirnosova): should be restored after fix of validation errors on the screen
-          //.assertElementEnabled('.btn-apply', 'Network removal can be saved');
+          )
+          .assertElementEnabled('.btn-apply', 'Network removal can be saved');
       },
       'Untagged networks error': function() {
         return this.remote
