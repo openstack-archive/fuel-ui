@@ -307,4 +307,82 @@ suite('File Control', () => {
       content: dummyContent
     }, 'Control sends updated data upon changes');
   });
+
+  test('Nullable control', () => {
+    var setState = sinon.spy(input, 'setState');
+    var dummyName = 'dummy.ext';
+    var dummyContent = 'Lorem ipsum dolores';
+    input.saveFile(dummyName, dummyContent);
+
+    assert.deepEqual(setState.args[0][0], {
+      fileName: dummyName,
+      content: dummyContent
+    }, 'Save file must update control state with data supplied');
+
+    assert.deepEqual(input.props.onChange.args[0][1], {
+      name: dummyName,
+      content: dummyContent
+    }, 'Control sends updated data upon changes');
+  });
+});
+
+suite('Nullable control', () => {
+  setup(() => {
+    input1 = ReactTestUtils.renderIntoDocument(
+      <Input
+        type='number'
+        name='some_name'
+        nullable
+        defaultValue={null}
+        label='Some label'
+        onChange={sinon.spy()}
+      />
+    );
+    input2 = ReactTestUtils.renderIntoDocument(
+      <Input
+        type='number'
+        name='some_name'
+        nullable
+        defaultValue=''
+        label='Some label'
+        onChange={sinon.spy()}
+      />
+    );
+  });
+
+  test('Test input render', () => {
+    assert.equal(
+      ReactTestUtils.scryRenderedDOMComponentsWithTag(input1, 'input').length,
+      1,
+      '1 input element is shown only if control value is null'
+    );
+    assert.equal(
+      input1.refs['nullable-checkbox'].type,
+      'checkbox',
+      '"nullable" checkbox is shown if control value is null'
+    );
+    assert.notOk(
+      input1.refs['nullable-checkbox'].checked,
+      '"nullable" checkbox is unchecked if control value is null'
+    );
+    assert.equal(
+      ReactTestUtils.findRenderedDOMComponentWithClass(input1, 'help-block').textContent,
+      '',
+      'null is valid value for nullable control'
+    );
+    assert.equal(
+      ReactTestUtils.scryRenderedDOMComponentsWithTag(input2, 'input').length,
+      2,
+      '2 inputs are shown if control value is not null'
+    );
+    assert.ok(
+      input2.refs['nullable-checkbox'].checked,
+      '"nullable" checkbox is checked if control value is not null'
+    );
+    assert.equal(
+      input2.refs.input.type,
+      'number',
+      'The second input has "number" type'
+    );
+  });
 });

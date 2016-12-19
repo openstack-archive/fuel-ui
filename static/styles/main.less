@@ -1327,6 +1327,17 @@ input[type=range] {
       max-width: @default-input-width;
       width: @default-input-width;
     }
+    .nullable-checkbox {
+      position: relative;
+      top: 6px;
+      height: 34px;
+      input {
+        width: auto;
+      }
+      & + input {
+        width: 252px;
+      }
+    }
     textarea {
       max-width: @default-input-width * 2;
     }
