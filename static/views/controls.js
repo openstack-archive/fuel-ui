@@ -34,21 +34,20 @@ export var Input = React.createClass({
   statics: {
     validate(setting) {
       var error = null;
-      if (setting.type === 'number') {
-        if (!_.isNumber(setting.value) || _.isNaN(setting.value)) {
+      var {type, value, nullable, min, max, regex = {}} = setting;
+      if ((type === 'number' || type === 'text') && nullable && _.isNull(value)) return null;
+      if (type === 'number') {
+        if (!_.isNumber(value) || _.isNaN(value)) {
           error = i18n('controls.invalid_value');
-        } else if (_.isNumber(setting.min) && setting.value < setting.min) {
-          error = i18n('controls.number.min_size', {min: setting.min});
-        } else if (_.isNumber(setting.max) && setting.value > setting.max) {
-          error = i18n('controls.number.max_size', {max: setting.max});
+        } else if (_.isNumber(min) && value < min) {
+          error = i18n('controls.number.min_size', {min});
+        } else if (_.isNumber(max) && value > max) {
+          error = i18n('controls.number.max_size', {max});
         }
       }
       if (_.isNull(error)) {
-        if (
-          (setting.regex || {}).source &&
-          !String(setting.value).match(new RegExp(setting.regex.source))
-        ) {
-          error = setting.regex.error;
+        if (regex.source && !String(value).match(new RegExp(regex.source))) {
+          error = regex.error;
         }
       }
       return error;
@@ -70,6 +69,7 @@ export var Input = React.createClass({
     tooltipIcon: React.PropTypes.node,
     tooltipText: React.PropTypes.node,
     toggleable: React.PropTypes.bool,
+    nullable: React.PropTypes.bool,
     onChange: React.PropTypes.func,
     error: React.PropTypes.node,
     extraContent: React.PropTypes.node
@@ -84,6 +84,7 @@ export var Input = React.createClass({
   getDefaultProps() {
     return {
       type: 'text',
+      nullable: false,
       tooltipIcon: 'glyphicon-warning-sign',
       tooltipPlacement: 'right'
     };
@@ -166,10 +167,11 @@ export var Input = React.createClass({
     var {visible} = this.state;
     var {
       type, value, inputClassName, toggleable, selectOnFocus,
-      debounce, children, extraContent
+      debounce, children, extraContent, defaultValue, nullable, disabled, name
     } = this.props;
     var isFile = type === 'file';
     var isCheckboxOrRadio = this.isCheckboxOrRadio();
+    var isNullableControl = (type === 'text' || type === 'number') && nullable;
     var inputWrapperClasses = {
       'input-group': toggleable,
       'custom-tumbler': isCheckboxOrRadio,
@@ -189,7 +191,8 @@ export var Input = React.createClass({
         className: utils.classNames({
           'form-control': type !== 'range',
           [inputClassName]: inputClassName
-        })
+        }),
+        autoFocus: isNullableControl
       }
     );
     if (this.props.onChange) props.onChange = debounce ? this.debouncedChange : this.onChange;
@@ -212,7 +215,26 @@ export var Input = React.createClass({
 
     return (
       <div key='input-group' className={utils.classNames(inputWrapperClasses)}>
-        {isFile ? this.renderFile(input) : input}
+        {isNullableControl &&
+          <div className='custom-tumbler nullable-checkbox'>
+            <input
+              type='checkbox'
+              name={'nullable-' + name}
+              ref='nullable-checkbox'
+              checked={!_.isNull(defaultValue)}
+              onChange={() => {
+                if (this.props.onChange) {
+                  return this.props.onChange(
+                    name, ReactDOM.findDOMNode(this.refs['nullable-checkbox']).checked ? '' : null
+                  );
+                }
+              }}
+              disabled={disabled}
+            />
+            <span>&nbsp;</span>
+          </div>
+        }
+        {isFile ? this.renderFile(input) : !(isNullableControl && _.isNull(defaultValue)) && input}
         {toggleable &&
           <div className='input-group-addon' onClick={this.togglePassword}>
             <i
