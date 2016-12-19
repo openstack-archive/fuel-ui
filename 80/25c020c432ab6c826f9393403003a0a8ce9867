@@ -1,0 +1,9 @@
+Code-Review+2: Julia Aranovich <jkirnosova@mirantis.com>
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Workflow+1: Julia Aranovich <jkirnosova@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Mon, 19 Dec 2016 08:32:45 +0000
+Reviewed-on: https://review.openstack.org/411681
+Project: openstack/fuel-ui
+Branch: refs/heads/stable/mitaka
