@@ -52,7 +52,7 @@ define([
         return this.remote
           .deleteCluster(modal);
       },
-      'Set up all attributes': function() {
+      set_up: function() {  // Set up all attributes
         return this.remote
          .updatePlugin('update_nics nic_setup')
          .updatePlugin('update_nodes node_setup')
@@ -60,7 +60,7 @@ define([
 
          .newClusterWithPlugin(modal);
       },
-      'Test attributes for NIC interfaces': function() {
+      test_nics: function() {  // Test attributes for NIC interfaces
         return this.remote
           .newClusterWithPlugin(modal)
 
@@ -86,7 +86,7 @@ define([
           // Save changes
           .applyItfChanges();
       },
-      'Test Load defaults attributes for NIC': function() {
+      nic_defaults: function() {  // Test Load defaults attributes for NIC
         return this.remote
           .newClusterWithPlugin(modal)
 
@@ -121,7 +121,7 @@ define([
           // Save with default values
           .applyItfChanges();
       },
-      'Test cluster without plugin has only core attributes': function() {
+      test_core: function() {  // Test cluster without plugin has only core attributes
         return this.remote
           // Create cluster without plugin
           .clickByCssSelector('.create-cluster')
@@ -183,7 +183,7 @@ define([
             return modal.waitToClose();
           });
       },
-      'Test that NIC config may be changed for several nodes simultaneously': function() {
+      test_mass_config: function() {  // Test NICs may be changed for two nodes simultaneously
         return this.remote
           .newClusterWithPlugin(modal)
 
@@ -224,7 +224,7 @@ define([
 
           .applyItfChanges();
       },
-      'Test several plugins with different attributes for NIC': function() {
+      nic_multiple_plugins: function() {  // Test several plugins with different NIC configs
         var nicCheckboxDVS = 'input[type="checkbox"][name="attribute_checkbox_b"]';
         var nicTextItf1 = '.ifc-list > div:nth-child(1) ' + nicText;
 
@@ -303,7 +303,7 @@ define([
           // Save with default values
           .applyItfChanges();
       },
-      'Test restrictions': function() {
+      nic_restrictions: function() {  // Test restrictions for NICs
         var nicText = 'input[type="text"][name="attribute_text_r"]';
 
         return this.remote
