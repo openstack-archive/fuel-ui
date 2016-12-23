@@ -121,6 +121,10 @@ function runIntern(suites, browser) {
     var config = {
       environments: [{browserName: browser}],
       excludeInstrumentation: true,
+      tunnelOptions: {
+        hostname: process.env.SELENIUM_SERVER || 'localhost',
+        port: process.env.SELENIUM_SERVER_PORT || 4444
+      },
       reporters: [
         'Runner',
         'tests/functional/screenshot_on_fail',

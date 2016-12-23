@@ -469,7 +469,7 @@ _.defaults(Command.prototype, {
   }
 });
 
-var serverHost = '127.0.0.1';
+var serverHost = process.env.FUEL_UI_HOST || '127.0.0.1';
 var serverPort = process.env.NAILGUN_PORT || 5544;
 var serverUrl = 'http://' + serverHost + ':' + serverPort;
 var username = 'admin';

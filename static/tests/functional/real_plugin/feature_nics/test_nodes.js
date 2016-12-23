@@ -45,13 +45,9 @@ registerSuite(() => {
       return this.remote
         .deleteCluster(modal);
     },
-    'Set up attributes'() {
+    test_nodes() {  // Test attributes for Nodes
       return this.remote
         .updatePlugin('update_nodes node_setup')
-        .newClusterWithPlugin(modal);
-    },
-    'Test attributes for Nodes'() {
-      return this.remote
         .newClusterWithPlugin(modal)
 
         // Add node and open settings for it
@@ -76,7 +72,7 @@ registerSuite(() => {
         .then(() => modal.close())
         .then(() => modal.waitToClose());
     },
-    'Test Load defaults for Nodes'() {
+    node_defaults() {  // Test Load defaults for Nodes
       return this.remote
         .newClusterWithPlugin(modal)
 
@@ -107,14 +103,13 @@ registerSuite(() => {
         .then(() => modal.close())
         .then(() => modal.waitToClose());
     },
-    'Test several plugins with different attributes for Nodes'() {
+    node_multiple_plugins() {  // Test several plugins with different Nodes configs
       var nodeCheckboxDVS = 'input[type=checkbox][name="attribute_checkbox_b"]';
 
       return this.remote
         // Create cluster with plugins
         .newClusterFillName(modal)
         .pressKeys('\uE007') // go to Compute
-        .clickByCssSelector('input[name="hypervisor:vmware"]')
         .pressKeys('\uE007') // Networking
         .clickByCssSelector('input[name="network:neutron:ml2:dvs"]')
         .pressKeys('\uE007') // Storage
@@ -182,7 +177,7 @@ registerSuite(() => {
         .then(() => modal.close())
         .then(() => modal.waitToClose());
     },
-    'Test restrictions for Nodes'() {
+    node_restrictions() {  // Test restrictions for Nodes
       return this.remote
         .updatePlugin('update_nodes node_restrict')
         .newClusterWithPlugin(modal)

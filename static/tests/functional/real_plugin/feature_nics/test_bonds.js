@@ -47,13 +47,9 @@ registerSuite(() => {
       return this.remote
         .deleteCluster(modal);
     },
-    'Set up attributes'() {
+    test_bonds() {  // Test attributes for BOND interfaces provided by plugin
       return this.remote
-       .updatePlugin('update_bonds bond_setup')
-       .newClusterWithPlugin(modal);
-    },
-    'Test attributes for BOND interfaces provided by plugin'() {
-      return this.remote
+        .updatePlugin('update_bonds bond_setup')
         .newClusterWithPlugin(modal)
 
         // Add one node, open interface configuration
@@ -69,7 +65,7 @@ registerSuite(() => {
         // Save changes
         .applyItfChanges();
     },
-    'Test Load defaults for BONDs'() {
+    bond_defaults() {  // Test Load defaults for BONDs
       return this.remote
         .newClusterWithPlugin(modal)
 
@@ -93,14 +89,13 @@ registerSuite(() => {
         .assertElementNotExists('input[label="bond0"]', 'Interfaces were not unbonded')
         .applyItfChanges();
     },
-    'Test several plugins with different attributes for BOND'() {
+    bond_multiple_plugins() {  // Test several plugins with different BOND configs
       var bondCheckboxDVS = 'input[type="checkbox"][name="attribute_checkbox_b"]';
 
       return this.remote
         // Create cluster with plugins
         .newClusterFillName(modal)
         .pressKeys('\uE007') // go to Compute
-        .clickByCssSelector('input[name="hypervisor:vmware"]')
         .pressKeys('\uE007') // Networking
         .clickByCssSelector('input[name="network:neutron:ml2:dvs"]')
         .pressKeys('\uE007') // Storage
@@ -176,7 +171,7 @@ registerSuite(() => {
         // Save with default values
         .applyItfChanges();
     },
-    'Test restrictions for Bonds'() {
+    bond_restrictions() {  // Test restrictions for Bonds
       return this.remote
         .updatePlugin('update_bonds bond_restrict')
         .newClusterWithPlugin(modal)
