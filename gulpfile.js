@@ -121,7 +121,19 @@ function runIntern(suites, browser) {
     var config = {
       environments: [{browserName: browser}],
       excludeInstrumentation: true,
-      reporters: ['Runner', 'tests/functional/screenshot_on_fail']
+      tunnelOptions: {
+        hostname: process.env.SELENIUM_SERVER || 'localhost',
+        port: process.env.SELENIUM_SERVER_PORT || 4444
+      },
+      reporters: [
+        'Runner',
+        'tests/functional/screenshot_on_fail',
+        {
+          id: 'JUnit',
+          filename: (process.env.ARTIFACTS || process.cwd()) + '/xml_report_' +
+            new Date().getTime() + '.xml'
+        }
+      ]
     };
     var configFile = 'tests/functional/config.js';
     var configFileContents = 'define(function(){return' + JSON.stringify(config) + '})';

@@ -47,7 +47,7 @@ registerSuite(() => {
       return this.remote
         .deleteCluster(modal);
     },
-    'Set up all attributes'() {
+    set_up() {  // Set up all attributes
       return this.remote
        .updatePlugin('update_nics nic_setup')
        .updatePlugin('update_nodes node_setup')
@@ -55,7 +55,7 @@ registerSuite(() => {
 
        .newClusterWithPlugin(modal);
     },
-    'Test attributes for NIC interfaces'() {
+    test_nics() {  // Test attributes for NIC interfaces
       return this.remote
         .newClusterWithPlugin(modal)
 
@@ -79,7 +79,7 @@ registerSuite(() => {
         // Save changes
         .applyItfChanges();
     },
-    'Test Load defaults attributes for NIC'() {
+    nic_defaults() {  // Test Load defaults attributes for NIC
       return this.remote
         .newClusterWithPlugin(modal)
 
@@ -112,7 +112,7 @@ registerSuite(() => {
         // Save with default values
         .applyItfChanges();
     },
-    'Test cluster without plugin has only core attributes'() {
+    test_core() {  // Test cluster without plugin has only core attributes
       return this.remote
         .then(() => common.createCluster('test'))  // Create cluster without plugin
 
@@ -148,7 +148,7 @@ registerSuite(() => {
         .then(() => modal.close())
         .then(() => modal.waitToClose());
     },
-    'Test that NIC config may be changed for several nodes simultaneously'() {
+    test_mass_config() {  // Test NICs may be changed for two nodes simultaneously
       return this.remote
         .newClusterWithPlugin(modal)
 
@@ -183,7 +183,7 @@ registerSuite(() => {
 
         .applyItfChanges();
     },
-    'Test several plugins with different attributes for NIC'() {
+    nic_multiple_plugins() {  // Test several plugins with different NIC configs
       var nicCheckboxDVS = 'input[type="checkbox"][name="attribute_checkbox_b"]';
       var nicTextItf1 = '.ifc-list > div:nth-child(1) ' + nicText;
 
@@ -191,7 +191,6 @@ registerSuite(() => {
         // Create cluster with plugins
         .newClusterFillName(modal)
         .pressKeys('\uE007') // go to Compute
-        .clickByCssSelector('input[name="hypervisor:vmware"]')
         .pressKeys('\uE007') // Networking
         .clickByCssSelector('input[name="network:neutron:ml2:dvs"]')
         .pressKeys('\uE007') // Storage
@@ -258,7 +257,7 @@ registerSuite(() => {
         // Save with default values
         .applyItfChanges();
     },
-    'Test restrictions'() {
+    nic_restrictions() {  // Test restrictions for NICs
       var nicText = 'input[type="text"][name="attribute_text_r"]';
 
       return this.remote

@@ -89,7 +89,9 @@ _.defaults(Command.prototype, {
         .then(() => modal.waitToOpen())
 
         .clickIfExists('button.remove-cluster-btn')
-        .then(() => modal.waitToClose());
+        .then(() => modal.waitToClose())
+
+        .waitForCssSelector('.create-cluster', 1000);
     });
   },
   clickObjectByIndex(objectsCssSelector, index) {
