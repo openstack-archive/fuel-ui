@@ -17,7 +17,8 @@
     "func-tests": "./run_ui_func_tests.sh",
     "nightly-func-tests": "./run_ui_func_tests.sh static/tests/functional/nightly/*.js",
     "prepublish": "gulp build",
-    "plugin-tests": "./run_real_plugin_tests.sh"
+    "plugin-tests": "./run_real_plugin_tests.sh",
+    "plugin-tests-real": "./run_real_plugin_tests_on_real_nailgun.sh"
   },
   "dependencies": {
     "autoprefixer": "5.2.0",
