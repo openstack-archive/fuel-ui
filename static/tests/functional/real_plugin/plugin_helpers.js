@@ -104,7 +104,9 @@ define([
           .clickIfExists('button.remove-cluster-btn')
           .then(function() {
             modal.waitToClose();
-          });
+          })
+
+          .waitForCssSelector('.create-cluster', 1000);
       });
     },
     clickObjectByIndex: function(objectsCssSelector, index) {

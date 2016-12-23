@@ -19,10 +19,15 @@ define(function() {
 
   return {
     proxyPort: 9057,
+    tunnelOptions: {
+      hostname: process.env.SELENIUM_SERVER_HOST || 'localhost',
+      port: process.env.SELENIUM_SERVER_PORT || 4444
+    },
     proxyUrl: 'http://localhost:9057/',
     maxConcurrency: 1,
     grep: /^/,
     excludeInstrumentation: /^/,
-    reporters: ['Runner', 'tests/functional/screenshot_on_fail']
+    reporters: ['Runner', 'tests/functional/screenshot_on_fail',
+                {id: 'JUnit', filename: process.env.ARTIFACTS + '/junit.xml'}]
   };
 });

@@ -52,14 +52,9 @@ define([
         return this.remote
           .deleteCluster(modal);
       },
-      'Set up attributes': function() {
+      test_bonds: function() {  // Test attributes for BOND interfaces provided by plugin
         return this.remote
-         .updatePlugin('update_bonds bond_setup')
-
-         .newClusterWithPlugin(modal);
-      },
-      'Test attributes for BOND interfaces provided by plugin': function() {
-        return this.remote
+          .updatePlugin('update_bonds bond_setup')
           .newClusterWithPlugin(modal)
 
           // Add one node, open interface configuration
@@ -77,7 +72,7 @@ define([
           // Save changes
           .applyItfChanges();
       },
-      'Test Load defaults for BONDs': function() {
+      bond_defaults: function() {  // Test Load defaults for BONDs
         return this.remote
           .newClusterWithPlugin(modal)
 
@@ -103,14 +98,13 @@ define([
           .assertElementNotExists('input[label="bond0"]', 'Interfaces were not unbonded')
           .applyItfChanges();
       },
-      'Test several plugins with different attributes for BOND': function() {
+      bond_multiple_plugins: function() {  // Test several plugins with different BOND configs
         var bondCheckboxDVS = 'input[type="checkbox"][name="attribute_checkbox_b"]';
 
         return this.remote
           // Create cluster with plugins
           .newClusterFillName(modal)
           .pressKeys('\uE007') // go to Compute
-          .clickByCssSelector('input[name="hypervisor:vmware"]')
           .pressKeys('\uE007') // Networking
           .clickByCssSelector('input[name="network:neutron:ml2:dvs"]')
           .pressKeys('\uE007') // Storage
@@ -190,7 +184,7 @@ define([
           // Save with default values
           .applyItfChanges();
       },
-      'Test restrictions for Bonds': function() {
+      bond_restrictions: function() {  // Test restrictions for Bonds
         return this.remote
           .updatePlugin('update_bonds bond_restrict')
           .newClusterWithPlugin(modal)
