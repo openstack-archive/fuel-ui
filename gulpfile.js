@@ -140,10 +140,16 @@ gulp.task('unit-tests', function(cb) {
 });
 
 gulp.task('functional-tests', function(cb) {
-  runSequence('selenium', 'intern:functional', function(err) {
-    shutdownSelenium();
-    cb(err);
-  });
+  if (process.env.START_STANDALONE_SELENIUM === false) {
+    runSequence('intern:functional', function(err) {
+      cb(err);
+    });
+  } else {
+    runSequence('selenium', 'intern:functional', function(err) {
+      shutdownSelenium();
+      cb(err);
+    });
+  }
 });
 
 gulp.task('jison', function() {
