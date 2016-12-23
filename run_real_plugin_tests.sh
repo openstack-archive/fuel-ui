@@ -25,7 +25,7 @@ export CONF_PATH="${TESTS_ROOT}/${TESTS_DIR_NAME}/plugin_conf"
 
 export NO_NAILGUN_START=${NO_NAILGUN_START:-0}
 export FUEL_WEB_ROOT=$(readlink -f ${FUEL_WEB_ROOT:-"$(dirname $0)/../fuel-web"})
-export ARTIFACTS=${ARTIFACTS:-"$(pwd)/test_run/ui_component"}
+export ARTIFACTS=${ARTIFACTS:-"$(pwd)/test_run/${TESTS_DIR_NAME}"}
 
 export PLUGIN_RPM=${PLUGIN_RPM:-''}
 if [ -z "${PLUGIN_RPM}" ]; then
@@ -91,7 +91,7 @@ function install_prepare_plugin {
 }
 
 function remove_plugins {
-  for plug in $(echo $INSTALLED_PLUGINS | tr ";")
+  for plug in $(echo ${INSTALLED_PLUGINS} | tr ";" "\n")
   do
     fuel --os-username admin --os-password admin plugins \
     --remove "${plug}" 2>/dev/null && \
