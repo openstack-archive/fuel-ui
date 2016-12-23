@@ -55,7 +55,7 @@ define([
           .updatePlugin('update_nodes node_setup')
           .newClusterWithPlugin(modal);
       },
-      'Test attributes for Nodes': function() {
+      'test_nodes': function() {  // Test attributes for Nodes
         return this.remote
           .newClusterWithPlugin(modal)
 
@@ -90,7 +90,7 @@ define([
             return modal.waitToClose();
           });
       },
-      'Test Load defaults for Nodes': function() {
+      'node_defaults': function() {  // Test Load defaults for Nodes
         return this.remote
           .newClusterWithPlugin(modal)
 
@@ -129,7 +129,7 @@ define([
             return modal.waitToClose();
           });
       },
-      'Test several plugins with different attributes for Nodes': function() {
+      'node_multiple_plugins': function() {  // Test several plugins with different Nodes configs
         var nodeCheckboxDVS = 'input[type=checkbox][name="attribute_checkbox_b"]';
 
         return this.remote
@@ -214,7 +214,7 @@ define([
             return modal.waitToClose();
           });
       },
-      'Test restrictions for Nodes': function() {
+      'node_restrictions': function() {  // Test restrictions for Nodes
         return this.remote
           .updatePlugin('update_nodes node_restrict')
           .newClusterWithPlugin(modal)
