@@ -1,0 +1,8 @@
+attributes:
+  metadata:
+    group: 'other'
+  vmware_dvs:
+    value: true
+    label: "Use the VMware DVS"
+    weight: 20
+    type: "checkbox"
