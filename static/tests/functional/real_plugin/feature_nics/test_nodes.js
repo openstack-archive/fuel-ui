@@ -113,8 +113,7 @@ define([
           .clickByCssSelector('button.btn-load-defaults')
           .waitForCssSelector('.btn-load-defaults:not(:disabled)', 1000)
 
-          .assertElementExists(nodeText + '[value=""]', 'Text-input is not empty')
-          .assertElementNotExists(nodeText + '[value="some_data"]', 'Text-input is not empty')
+          .assertInputValueEquals(nicText, '', 'Text-input is not empty')
           .assertElementExists(nodeCheckbox + ':not(:checked)', 'Checkbox is still checked')
 
           // Save default values

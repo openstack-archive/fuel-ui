@@ -110,12 +110,10 @@ define([
 
           // Load defaults
           .clickByCssSelector('button.btn-defaults')
-          .waitForCssSelector('button.btn-defaults', 3000)
+          .waitForCssSelector('.btn-defaults:not(:disabled)', 1000)
 
           // Verify that defaults were loaded
-          .assertElementExists('.ifc-list > div:nth-child(2) ' + nicText + '[value=""]',
-                               'Text-input is not empty')
-          .assertElementNotExists('.ifc-list > div:nth-child(2) ' + nicText + '[value="some_data"]',
+          .assertInputValueEquals('.ifc-list > div:nth-child(2) ' + nicText, '',
                                   'Text-input is not empty')
           .assertElementsExist(nicCheckbox + ':not(:checked)', 2, 'Checkboxes are still checked')
 
@@ -151,9 +149,9 @@ define([
 
           // Add one node, verify that NICs plugin attributes are not presented
           .then(function() {
-            return common.addNodesToCluster(2, ['Controller']);
+            return common.addNodesToCluster(1, ['Controller']);
           })
-          .selectNodeByIndex(1)
+          .selectNodeByIndex(0)
           .clickByCssSelector('button.btn-configure-interfaces')
           .assertElementNotExists('span.fuel_plugin_example_v5', 'NICs attributes are presented')
 
@@ -194,7 +192,7 @@ define([
 
           // Add two nodes, change NIC attributes for the first node
           .then(function() {
-            return common.addNodesToCluster(6, ['Controller']);
+            return common.addNodesToCluster(2, ['Controller']);
           })
           .selectNodeByIndex(0)
           .clickByCssSelector('button.btn-configure-interfaces')
@@ -207,7 +205,7 @@ define([
             return clusterPage.goToTab('Nodes');
           })
           .selectNodeByIndex(0)
-          .selectNodeByIndex(-1)
+          .selectNodeByIndex(1)
           .clickByCssSelector('button.btn-configure-interfaces')
           .selectPluginNICPropertyByIndex(1)
           .setInputValue('.ifc-list > div:nth-child(2) ' + nicText, '2')
@@ -222,11 +220,96 @@ define([
 
           .selectPluginNICPropertyByIndex(0)
           .selectPluginNICPropertyByIndex(1)
-          .assertElementExists('.ifc-list > div:nth-child(1) ' + nicText + '[value="1"]',
-                               'Text-input is not empty')
-          .assertElementExists('.ifc-list > div:nth-child(2) ' + nicText + '[value=""]',
-                               'Text-input is not empty')
+          .assertInputValueEquals('.ifc-list > div:nth-child(1) ' + nicText, '1',
+                                  'Text-input is empty')
+          .assertInputValueEquals('.ifc-list > div:nth-child(2) ' + nicText, '',
+                                  'Text-input is not empty')
 
+          .applyItfChanges();
+      },
+      'Test several plugins with different attributes for NIC': function() {
+        var nicCheckbox = 'input[type="checkbox"][name="attribute_checkbox"]';
+        var nicCheckboxDVS = 'input[type="checkbox"][name="attribute_checkbox_b"]';
+        var nicText = '.ifc-list > div:nth-child(1) input[type="text"][name="attribute_text"]';
+        var itfConfigure = 'button.btn-configure-interfaces';
+
+        return this.remote
+          // Create cluster with plugins
+          .clickByCssSelector('.create-cluster')
+          .then(function() {
+            return modal.waitToOpen();
+          })
+          .setInputValue('[name=name]', 'Temp')
+          .pressKeys('\uE007') // go to Compute
+          .clickByCssSelector('input[name="hypervisor:vmware"]')
+          .pressKeys('\uE007') // Networking
+          .clickByCssSelector('input[name="network:neutron:ml2:dvs"]')
+          .pressKeys('\uE007') // Storage
+          .pressKeys('\uE007') // Additional Services
+          .clickByCssSelector('input[name="additional_service:service_plugin_v5_component"]')
+          .pressKeys('\uE007') // Finish
+          .pressKeys('\uE007') // Create
+          .then(function() {
+            return modal.waitToClose();
+          })
+
+          // Add one node, open interface configuration
+          .then(function() {
+            return common.addNodesToCluster(1, ['Controller']);
+          })
+          .selectNodeByIndex(0)
+          .clickByCssSelector(itfConfigure)
+
+          // Verify that attributes provided by both of plugins are presented and can be changed
+          .selectPluginNICPropertyByIndex(0)  // plugin-1 attributes
+
+          .setInputValue(nicText, 'some_data')
+
+          .assertElementEnabled(nicCheckbox, 'Checkbox is disabled')
+          .clickByCssSelector(nicCheckbox)
+
+          .assertInputValueEquals(nicText, 'some_data', 'Text-input is empty')
+
+          .clickObjectByIndex('span.fuel-plugin-vmware-dvs button', 0)  // plugin-2 attributes
+
+          .assertElementEnabled(nicCheckboxDVS, 'DVS Checkbox is disabled')
+          .clickByCssSelector(nicCheckboxDVS)
+
+          .assertElementExists(nicCheckboxDVS + ':checked', 'DVS Checkbox was not checked')
+
+          .selectPluginNICPropertyByIndex(0)  // plugin-1 attributes
+
+          .assertElementExists(nicCheckbox + ':checked', 'Checkbox was not checked')
+
+          .applyItfChanges()
+
+          // Load defaults
+          .clickByCssSelector('button.btn-defaults')
+          .waitForCssSelector('.btn-defaults:not(:disabled)', 1000)
+
+          // Verify that defaults were loaded
+          .assertInputValueEquals(nicText, '', 'Text-input is not empty')
+          .assertElementExists(nicCheckbox + ':not(:checked)', 'Checkbox is still checked')
+
+          .clickObjectByIndex('span.fuel-plugin-vmware-dvs button', 0)  // plugin-2 attributes
+          .assertElementExists(nicCheckboxDVS + ':not(:checked)', 'DVS Checkbox is still checked')
+
+          // Cancel changes
+          .clickByCssSelector('button.btn-revert-changes')
+          .waitForCssSelector('.btn-revert-changes:disabled', 1000)
+
+          // Verify that saved values loaded
+          .assertElementExists(nicCheckboxDVS + ':checked', 'DVS Checkbox is not checked')
+
+          .selectPluginNICPropertyByIndex(0)  // plugin-1 attributes
+          .assertInputValueEquals(nicText, 'some_data', 'Text-input is empty')
+          .assertElementExists(nicCheckbox + ':checked', 'Checkbox is not checked')
+
+          // Load defaults
+          .clickByCssSelector('button.btn-defaults')
+          .waitForCssSelector('.btn-defaults:not(:disabled)', 1000)
+
+          // Save with default values
           .applyItfChanges();
       },
       'Test restrictions': function() {
