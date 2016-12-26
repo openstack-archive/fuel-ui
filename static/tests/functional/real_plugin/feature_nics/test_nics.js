@@ -110,7 +110,7 @@ define([
 
           // Load defaults
           .clickByCssSelector('button.btn-defaults')
-          .waitForCssSelector('button.btn-defaults', 3000)
+          .waitForCssSelector('.btn-defaults:not(:disabled)', 1000)
 
           // Verify that defaults were loaded
           .assertElementExists('.ifc-list > div:nth-child(2) ' + nicText + '[value=""]',
@@ -151,9 +151,9 @@ define([
 
           // Add one node, verify that NICs plugin attributes are not presented
           .then(function() {
-            return common.addNodesToCluster(2, ['Controller']);
+            return common.addNodesToCluster(1, ['Controller']);
           })
-          .selectNodeByIndex(1)
+          .selectNodeByIndex(0)
           .clickByCssSelector('button.btn-configure-interfaces')
           .assertElementNotExists('span.fuel_plugin_example_v5', 'NICs attributes are presented')
 
@@ -194,7 +194,7 @@ define([
 
           // Add two nodes, change NIC attributes for the first node
           .then(function() {
-            return common.addNodesToCluster(6, ['Controller']);
+            return common.addNodesToCluster(2, ['Controller']);
           })
           .selectNodeByIndex(0)
           .clickByCssSelector('button.btn-configure-interfaces')
@@ -207,7 +207,7 @@ define([
             return clusterPage.goToTab('Nodes');
           })
           .selectNodeByIndex(0)
-          .selectNodeByIndex(-1)
+          .selectNodeByIndex(1)
           .clickByCssSelector('button.btn-configure-interfaces')
           .selectPluginNICPropertyByIndex(1)
           .setInputValue('.ifc-list > div:nth-child(2) ' + nicText, '2')

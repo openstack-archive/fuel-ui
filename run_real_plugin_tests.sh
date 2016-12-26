@@ -101,7 +101,7 @@ function run_component_tests {
       tox -e stop
       tox -e cleanup
       tox -e start
-      ./nailgun/manage.py loaddata nailgun/nailgun/fixtures/sample_environment.json
+      ./nailgun/manage.py loaddata ${TESTS_ROOT}/fixture_nodes.json
       popd > /dev/null
   fi
 
