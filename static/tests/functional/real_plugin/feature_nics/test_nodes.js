@@ -113,11 +113,101 @@ define([
           .clickByCssSelector('button.btn-load-defaults')
           .waitForCssSelector('.btn-load-defaults:not(:disabled)', 1000)
 
-          .assertElementExists(nodeText + '[value=""]', 'Text-input is not empty')
-          .assertElementNotExists(nodeText + '[value="some_data"]', 'Text-input is not empty')
+          .assertInputValueEquals(nicText, '', 'Text-input is not empty')
           .assertElementExists(nodeCheckbox + ':not(:checked)', 'Checkbox is still checked')
 
           // Save default values
+          .assertElementEnabled('button.apply-changes', 'Apply is disabled')
+          .clickByCssSelector('button.apply-changes')
+          .waitForCssSelector('.btn-load-defaults:not(:disabled)', 1000)
+
+          .then(function() {
+            return modal.close();
+          })
+          .then(function() {
+            return modal.waitToClose();
+          });
+      },
+      'Test several plugins with different attributes for Nodes': function() {
+        var nodeCheckbox = 'input[type=checkbox][name="attribute_checkbox"]';
+        var nodeCheckboxDVS = 'input[type=checkbox][name="attribute_checkbox_b"]';
+        var nodeText = 'input[type=text][name="attribute_text"]';
+
+        return this.remote
+          // Create cluster with plugins
+          .clickByCssSelector('.create-cluster')
+          .then(function() {
+            return modal.waitToOpen();
+          })
+          .setInputValue('[name=name]', 'Temp')
+          .pressKeys('\uE007') // go to Compute
+          .clickByCssSelector('input[name="hypervisor:vmware"]')
+          .pressKeys('\uE007') // Networking
+          .clickByCssSelector('input[name="network:neutron:ml2:dvs"]')
+          .pressKeys('\uE007') // Storage
+          .pressKeys('\uE007') // Additional Services
+          .clickByCssSelector('input[name="additional_service:service_plugin_v5_component"]')
+          .pressKeys('\uE007') // Finish
+          .pressKeys('\uE007') // Create
+          .then(function() {
+            return modal.waitToClose();
+          })
+
+          // Add one node, open settings for it
+          .then(function() {
+            return common.addNodesToCluster(1, ['Controller']);
+          })
+          .clickByCssSelector('.node-settings')
+          .then(function() {
+            return modal.waitToOpen();
+          })
+          .clickByCssSelector('#headingattributes')
+
+          // Verify that attributes provided by both of plugins are presented and can be changed
+          .setInputValue(nodeText, 'some_data')
+
+          .assertElementEnabled(nodeCheckbox, 'Checkbox is disabled')
+          .clickByCssSelector(nodeCheckbox)
+
+          .assertInputValueEquals(nodeText, 'some_data', 'Text-input is empty')
+
+          .assertElementEnabled(nodeCheckboxDVS, 'DVS Checkbox is disabled')
+          .clickByCssSelector(nodeCheckboxDVS)
+
+          .assertElementExists(nodeCheckboxDVS + ':checked', 'DVS Checkbox was not checked')
+
+          .assertElementExists(nodeCheckbox + ':checked', 'Checkbox was not checked')
+
+          // Save changes
+          .assertElementEnabled('button.apply-changes', 'Apply is disabled')
+          .clickByCssSelector('button.apply-changes')
+          .waitForCssSelector('.btn-load-defaults:not(:disabled)', 1000)
+
+          // Load defaults
+          .clickByCssSelector('button.btn-load-defaults')
+          .waitForCssSelector('.btn-load-defaults:not(:disabled)', 1000)
+
+          // Verify that defaults were loaded
+          .assertInputValueEquals(nodeText, '', 'Text-input is not empty')
+          .assertElementExists(nodeCheckbox + ':not(:checked)', 'Checkbox is still checked')
+
+          .assertElementExists(nodeCheckboxDVS + ':not(:checked)', 'DVS Checkbox is still checked')
+
+          // Cancel changes
+          .clickByCssSelector('button.discard-changes')
+          .waitForCssSelector('.discard-changes:disabled', 1000)
+
+          // Verify that saved values loaded
+          .assertElementExists(nodeCheckboxDVS + ':checked', 'DVS Checkbox is not checked')
+
+          .assertInputValueEquals(nodeText, 'some_data', 'Text-input is empty')
+          .assertElementExists(nodeCheckbox + ':checked', 'Checkbox is not checked')
+
+          // Load defaults
+          .clickByCssSelector('button.btn-load-defaults')
+          .waitForCssSelector('.btn-load-defaults:not(:disabled)', 1000)
+
+          // Save with default values
           .assertElementEnabled('button.apply-changes', 'Apply is disabled')
           .clickByCssSelector('button.apply-changes')
           .waitForCssSelector('.btn-load-defaults:not(:disabled)', 1000)

@@ -157,6 +157,14 @@ define([
           .clickByCssSelector('button.btn-apply')
           .waitForCssSelector('.btn-defaults:not(:disabled)', 1000);
       });
-    }
+    },
+    assertInputValueEquals: function(cssSelector, value, message) {
+      return new this.constructor(this, function() {
+        return this.parent
+          .findAllByCssSelector(cssSelector).getProperty('value').then(function(el) {
+            return assert.equal(el[0], value, message);
+          }).end();
+      });
+    },
   });
 });
