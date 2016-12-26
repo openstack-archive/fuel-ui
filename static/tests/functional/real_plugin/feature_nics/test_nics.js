@@ -110,7 +110,7 @@ define([
 
           // Load defaults
           .clickByCssSelector('button.btn-defaults')
-          .waitForCssSelector('button.btn-defaults', 3000)
+          .waitForCssSelector('.btn-defaults:not(:disabled)', 1000)
 
           // Verify that defaults were loaded
           .assertElementExists('.ifc-list > div:nth-child(2) ' + nicText + '[value=""]',

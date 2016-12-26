@@ -96,12 +96,14 @@ function run_component_tests {
   fuelclient="${VENV}/lib/python2.7/site-packages/fuelclient"
   sed -i -e "s/if self.auth_required/if True/" "${fuelclient}/client.py"
 
+  local ui_root="$(pwd)"
+
   if [ "${NO_NAILGUN_START}" -ne 1 ]; then
       pushd "$FUEL_WEB_ROOT" > /dev/null
       tox -e stop
       tox -e cleanup
       tox -e start
-      ./nailgun/manage.py loaddata nailgun/nailgun/fixtures/sample_environment.json
+      ./nailgun/manage.py loaddata ${TESTS_ROOT}/fixture_nodes.json
       popd > /dev/null
   fi
 
