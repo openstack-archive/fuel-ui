@@ -78,6 +78,8 @@ _.defaults(Command.prototype, {
   deleteCluster(modal) {
     return new this.constructor(this, function() {
       return this.parent
+        .clickIfExists('.btn-revert-changes')
+        .clickIfExists('.discard-changes')
         .clickIfExists('a.dashboard.cluster-tab')
 
         .clickIfExists('.btn-danger')
@@ -101,10 +103,10 @@ _.defaults(Command.prototype, {
         }).end();
     });
   },
-  selectPluginNICPropertyByIndex(index) {
+  expandNICPropertyByIndex(cssPropLabel, index) {
     return new this.constructor(this, function() {
       return this.parent
-        .clickObjectByIndex('span.fuel_plugin_example_v5 button', index);
+        .clickObjectByIndex(cssPropLabel + ' button', index);
     });
   },
   selectNodeByIndex(nodeIndex) {
@@ -141,6 +143,14 @@ _.defaults(Command.prototype, {
         .assertElementEnabled('button.btn-apply', 'Apply is disabled')
         .clickByCssSelector('button.btn-apply')
         .waitForCssSelector('.btn-defaults:not(:disabled)', 1000);
+    });
+  },
+  assertInputValueEquals(cssSelector, value, message) {
+    return new this.constructor(this, () => {
+      return this.parent
+        .findAllByCssSelector(cssSelector).getProperty('value').then((el) => {
+          return assert.equal(el[0], value, message);
+        }).end();
     });
   }
 });

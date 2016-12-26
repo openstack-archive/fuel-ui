@@ -16,6 +16,7 @@
 
 set -eu
 
+
 # Variables for tests
 export TESTS_ROOT="$(pwd)/static/tests/functional/real_plugin"
 export SCRIPT_PATH="${TESTS_ROOT}/update_plugin.sh"
@@ -35,6 +36,18 @@ if [ -z "${PLUGIN_RPM}" ]; then
 
   export PLUGIN_RPM="${CONF_PATH}/plugin.rpm"
   wget --no-check-certificate -O "${PLUGIN_RPM}" "${plugin_url}"
+fi
+
+if [ ${TESTS_DIR_NAME} == 'feature_nics' ]; then
+  export PLUGIN_RPM_SECOND=${PLUGIN_RPM_SECOND:-''}
+  if [ -z "${PLUGIN_RPM_SECOND}" ]; then
+    plugins='http://plugins.mirantis.com/repository/f/u/fuel-plugin-vmware-dvs'
+    path='fuel-plugin-vmware-dvs-3.1-3.1.0-1.noarch.rpm'
+    plugin_url=${PLUGIN_URL_SECOND:-"${plugins}/${path}"}
+
+    export PLUGIN_RPM_SECOND="${CONF_PATH}/plugin2.rpm"
+    wget --no-check-certificate -O "${PLUGIN_RPM_SECOND}" "${plugin_url}"
+  fi
 fi
 
 # Variables for nailgun
@@ -69,18 +82,23 @@ function install_prepare_plugin {
   sudo sed -i -e "s/package_version: .*/package_version: '5.0.0'/" "${meta}"
   sudo sed -i -e "s/mitaka-9.0/newton-10.0/" "${meta}"  # release version
 
-  # Fix components settings
-  sudo sed -i -e "s/requires/#requires/" ${PLUGIN_PATH}/components.yaml
-  sudo sed -i -e "s/incompatible/#incompatible/" ${PLUGIN_PATH}/components.yaml
+  # Fix requirements
+  sudo sed -i -e '/requires/,$s/^/#/' ${PLUGIN_PATH}/components.yaml
+  sudo sed -i -e '/error/ s/^/#/' ${PLUGIN_PATH}/environment_config.yaml
 
   fuel --os-username admin --os-password admin plugins \
     --register "${plugin_name}==${plugin_version//\'/}"
+
+  export INSTALLED_PLUGINS="${INSTALLED_PLUGINS};${plugin_name}==${plugin_version//\'/}"
 }
 
-function remove_plugin {
-  fuel --os-username admin --os-password admin plugins \
-    --remove "${plugin_name}==${plugin_version//\'/}" 2>/dev/null && \
-    echo "${plugin_name} was removed" || echo "Can not remove plugin ${plugin_name}"
+function remove_plugins {
+  for plug in $(echo $INSTALLED_PLUGINS | tr ";")
+  do
+    fuel --os-username admin --os-password admin plugins \
+    --remove "${plug}" 2>/dev/null && \
+    echo "${plug} was removed" || echo "Can not remove plugin ${plug}"
+  done
 }
 
 function run_component_tests {
@@ -105,8 +123,17 @@ function run_component_tests {
       tox -e stop
       tox -e cleanup
       tox -e start
-      ./nailgun/manage.py loaddata nailgun/nailgun/fixtures/sample_environment.json
+      ./nailgun/manage.py loaddata ${TESTS_ROOT}/fixture_nodes.json
       popd > /dev/null
+  fi
+
+  export INSTALLED_PLUGINS=''
+
+  if [ ${TESTS_DIR_NAME} == 'feature_nics' ]; then
+    install_prepare_plugin "${PLUGIN_RPM_SECOND}"
+    for conf in 'nic' 'node' 'bond'; do
+      sudo cp ${CONF_PATH}/${conf}_plugin2.yaml ${PLUGIN_PATH}/${conf}_config.yaml
+    done
   fi
 
   install_prepare_plugin "${PLUGIN_RPM}"
@@ -123,7 +150,7 @@ function run_component_tests {
     ${GULP} functional-tests --no-transpile --suites="${test_case}" || result=1
   done
 
-  remove_plugin
+  remove_plugins
 
   if [ "${NO_NAILGUN_START}" -ne 1 ]; then
     pushd "$FUEL_WEB_ROOT" > /dev/null
