@@ -300,7 +300,11 @@ var WorkflowsTab = React.createClass({
                             <DownloadFileButton
                               label={i18n(ns + 'download_graph_yaml')}
                               fileName={graphType + '-' + level + '.yaml'}
-                              url={_.result(graphLevelModel, 'url') + '/deployment_tasks/'}
+                              url={
+                                _.result(graphLevelModel, 'url') +
+                                '/deployment_tasks/' +
+                                {cluster: 'own', release: 'release', plugin: 'plugins'}[level]
+                              }
                               headers={{Accept: 'application/x-yaml'}}
                               fetchOptions={{graph_type: graphType}}
                               className='btn btn-link btn-download-graph-yaml'
