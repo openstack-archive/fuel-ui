@@ -188,7 +188,7 @@ define([
           .clickByCssSelector('.node-attributes .btn.discard-changes')
           .assertElementTextEquals('.setting-section-hugepages input[name=dpdk]',
             0, 'Input restored default value')
-          .setInputValue('.setting-section-hugepages input[name=dpdk]', '1024')
+          .setInputValue('.setting-section-hugepages input[name=dpdk]', '5')
           .clickByCssSelector('.node-attributes .btn.apply-changes')
           .assertElementsAppear('.setting-section-hugepages input:not(:disabled)', 2000,
             'Inputs are not disabled after changes were saved successfully')
