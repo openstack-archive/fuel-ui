@@ -54,14 +54,24 @@ export var Navbar = React.createClass({
   fetchData() {
     return Promise.all([
       this.props.statistics.fetch(),
-      this.props.notifications.fetch({limit: this.props.notificationsDisplayCount})
+      this.props.notifications.fetch({
+        data: {
+          limit: this.props.notificationsDisplayCount,
+          order_by: '-id'
+        }
+      })
     ]);
   },
   updateNodeStats() {
     return this.props.statistics.fetch();
   },
   updateNotifications() {
-    return this.props.notifications.fetch({limit: this.props.notificationsDisplayCount});
+    return this.props.notifications.fetch({
+      data: {
+        limit: this.props.notificationsDisplayCount,
+        order_by: '-id'
+      }
+    })
   },
   componentDidMount() {
     this.props.user.on('change:authenticated', (model, value) => {
