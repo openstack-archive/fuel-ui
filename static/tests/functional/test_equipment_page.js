@@ -56,11 +56,14 @@ registerSuite(() => {
     'Check action buttons'() {
       return this.remote
         .assertElementNotExists('.node .btn-discard', 'No discard changes button on a node')
-        .assertElementExists('.node.offline .node-remove-button',
-          'Removing of offline nodes is available on the page')
         .clickByCssSelector('.node.pending_addition > label')
         .assertElementNotExists('.control-buttons-box .btn',
-          'No management buttons for selected node')
+          'No management buttons for selected online node')
+        .clickByCssSelector('.node.offline > label')
+        .assertElementExists('.control-buttons-box .btn',
+          'Management buttons for selected offline node')
+        .assertElementExists('.control-buttons-box .btn-remove-nodes',
+          'Only removing of offline nodes is available on the page')
         .assertElementExists('.node-list-management-buttons .btn-labels:not(:disabled)',
           'Nodes can be labelled on the page')
         .assertElementsExist('.node.pending_addition .btn-view-logs', 4,

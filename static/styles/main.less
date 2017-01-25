@@ -452,26 +452,27 @@ button, .btn:not(.btn-link) {.font-semibold;}
   padding: 0;
   line-height: 1;
 }
-
-.btn-success {
-  .button-mixin(@btn-success);
-}
-.btn-primary {
-  .button-mixin(@btn-primary);
-}
-.btn-warning {
-  .button-mixin(@btn-warning);
-}
-.btn-danger {
-  .button-mixin(@btn-danger);
-}
-.btn-info {
-  .button-mixin(@btn-info);
-}
-.btn-link {
-  color: @link-color;
-  &:hover {
-    color: @link-color-hover;
+.btn, .open > .dropdown-toggle {
+  &.btn-success {
+    .button-mixin(@btn-success);
+  }
+  &.btn-primary {
+    .button-mixin(@btn-primary);
+  }
+  &.btn-warning {
+    .button-mixin(@btn-warning);
+  }
+  &.btn-danger {
+    .button-mixin(@btn-danger);
+  }
+  &.btn-info {
+    .button-mixin(@btn-info);
+  }
+  &.btn-link {
+    color: @link-color;
+    &:hover {
+      color: @link-color-hover;
+    }
   }
 }
 
@@ -1945,7 +1946,6 @@ input[type=range] {
 
   .control-buttons-box {
     margin-bottom: @management-panel-indent * 3;
-    overflow: hidden;
     padding-left: 0;
     .btn-group {
       vertical-align: baseline;
@@ -1953,6 +1953,9 @@ input[type=range] {
         padding: 6px 10px;
         .glyphicon {
           margin-right: @management-panel-indent;
+        }
+        &.dropdown-toggle {
+          padding: 6px 8px;
         }
       }
       &:not(:first-child) button:first-child {
@@ -2496,11 +2499,6 @@ input[type=range] {
           vertical-align: middle;
           text-transform: uppercase;
         }
-        .node-remove-button {
-          font-size: @base-font-size - 2;
-          margin: 0 0 3px 5px;
-          padding: 0 5px;
-        }
         .progress {
           height: 20px;
           margin: 0;
@@ -2723,11 +2721,6 @@ input[type=range] {
               margin: 2px 0;
               width: 80%;
               text-align: left;
-              .node-remove-button {
-                position: relative;
-                top: -1px;
-                margin-bottom: 2px;
-              }
             }
           }
           .node-buttons {
