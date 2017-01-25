@@ -15,13 +15,11 @@
 **/
 import _ from 'underscore';
 import i18n from 'i18n';
-import Backbone from 'backbone';
 import React from 'react';
 import utils from 'utils';
 import models from 'models';
-import dispatcher from 'dispatcher';
 import {Input, Popover, Tooltip} from 'views/controls';
-import {DeleteNodesDialog, RemoveOfflineNodeDialog, ShowNodeInfoDialog} from 'views/dialogs';
+import {DeleteNodesDialog, RemoveOfflineNodesDialog, ShowNodeInfoDialog} from 'views/dialogs';
 import {renamingMixin} from 'component_mixins';
 
 var Node = React.createClass({
@@ -114,37 +112,9 @@ var Node = React.createClass({
   },
   removeNode(e) {
     e.preventDefault();
-    if (this.props.viewMode === 'compact') this.toggleExtendedNodePanel();
-    RemoveOfflineNodeDialog
-      .show()
-      .done(() => {
-        // sync('delete') is used instead of node.destroy() because we want
-        // to keep showing the 'Removing' status until the node is truly removed
-        // Otherwise this node would disappear and might reappear again upon
-        // cluster nodes refetch with status 'Removing' which would look ugly
-        // to the end user
-        return Backbone
-          .sync('delete', this.props.node)
-          .then(
-            (task) => {
-              dispatcher.trigger('networkConfigurationUpdated updateNodeStats ' +
-                'updateNotifications labelsConfigurationUpdated');
-              if (task.status === 'ready') {
-                // Do not send the 'DELETE' request again, just get rid
-                // of this node.
-                this.props.node.trigger('destroy', this.props.node);
-                return;
-              }
-              if (this.props.cluster) {
-                this.props.cluster.get('tasks').add(new models.Task(task), {parse: true});
-              }
-              this.props.node.set('status', 'removing');
-            },
-            (response) => {
-              utils.showErrorDialog({response: response});
-            }
-          );
-      });
+    var {node, viewMode, cluster} = this.props;
+    if (viewMode === 'compact') this.toggleExtendedNodePanel();
+    RemoveOfflineNodesDialog.show({nodes: new models.Nodes(node), cluster});
   },
   showNodeDetails(e) {
     e.preventDefault();
