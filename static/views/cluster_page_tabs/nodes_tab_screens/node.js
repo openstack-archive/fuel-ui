@@ -15,13 +15,11 @@
 **/
 import _ from 'underscore';
 import i18n from 'i18n';
-import Backbone from 'backbone';
 import React from 'react';
 import utils from 'utils';
 import models from 'models';
-import dispatcher from 'dispatcher';
 import {Input, Popover, Tooltip, Link} from 'views/controls';
-import {DeleteNodesDialog, RemoveOfflineNodeDialog, ShowNodeInfoDialog} from 'views/dialogs';
+import {DeleteNodesDialog, ShowNodeInfoDialog} from 'views/dialogs';
 import {renamingMixin} from 'component_mixins';
 
 var Node = React.createClass({
@@ -112,40 +110,6 @@ var Node = React.createClass({
       )
       .then(() => {
         this.setState({actionInProgress: false});
-      });
-  },
-  removeNode(e) {
-    e.preventDefault();
-    if (this.props.viewMode === 'compact') this.toggleExtendedNodePanel();
-    RemoveOfflineNodeDialog
-      .show()
-      .then(() => {
-        // sync('delete') is used instead of node.destroy() because we want
-        // to keep showing the 'Removing' status until the node is truly removed
-        // Otherwise this node would disappear and might reappear again upon
-        // cluster nodes refetch with status 'Removing' which would look ugly
-        // to the end user
-        return Backbone
-          .sync('delete', this.props.node)
-          .then(
-            (task) => {
-              dispatcher.trigger('networkConfigurationUpdated updateNodeStats ' +
-                'updateNotifications labelsConfigurationUpdated');
-              if (task.status === 'ready') {
-                // Do not send the 'DELETE' request again, just get rid
-                // of this node.
-                this.props.node.trigger('destroy', this.props.node);
-                return;
-              }
-              if (this.props.cluster) {
-                this.props.cluster.get('tasks').add(new models.Task(task), {parse: true});
-              }
-              this.props.node.set('status', 'removing');
-            },
-            (response) => {
-              utils.showErrorDialog({response: response});
-            }
-          );
       });
   },
   showNodeDetails(e) {
@@ -446,11 +410,6 @@ var Node = React.createClass({
                 i18n('cluster_page.nodes_tab.node.error_types.' + error, {defaultValue: error})
               }
             </span>
-            {!isCompactView && status === 'offline' &&
-              <button onClick={this.removeNode} className='btn node-remove-button'>
-                {i18n('cluster_page.nodes_tab.node.remove')}
-              </button>
-            }
           </div>
           {node.get('pending_addition') &&
             <div className='text-success'>{i18n(statusNs + 'pending_addition')}</div>
