@@ -590,6 +590,7 @@
                         "search_placeholder": "Node name, MAC or IP address",
                         "edit_roles_button": "Edit Roles",
                         "add_nodes_button": "Add Nodes",
+                        "remove_offline_nodes": "Remove offline nodes",
                         "label_value_not_specified" : "Value is not specified",
                         "label_not_assigned": "Label is not assigned",
                         "labels": {
@@ -1254,9 +1255,9 @@
                     "cant_discard_instruction_start": "Use the ",
                     "cant_discard_instruction_end": " tab to adjust the configuration manually."
                 },
-                "remove_node": {
-                    "default_message": "Fuel will remove this node from its database. This operation will not erase MBR or any data on this node. If you power on the node, it will boot bootstrap (discovery) system, and the node will appear in Fuel as a new unallocated server.",
-                    "title": "Remove Node"
+                "remove_nodes": {
+                    "default_message": "Fuel will remove the offline node(s) from its database. This operation will not erase MBR or any data on the node(s). If you power on a node, it will boot bootstrap (discovery) system, and a node will appear in Fuel as a new unallocated server.",
+                    "title": "Remove Offline Nodes"
                 },
                 "remove_cluster": {
                     "title": "Delete Environment",
@@ -2334,10 +2335,6 @@
                     "discard_deletion": "你确定要放弃删除节点吗？",
                     "cant_discard": "不能放弃变更。"
                 },
-                "remove_node": {
-                    "default_message": "Fuel 会从数据库中删除这个节点。这个操作不会删除节点的 MBR 及任何数据。如果你开启这个节点，它会进入（发现）系统，这个节点会重新成为 Fuel 未分配节点。",
-                    "title": "删除节点"
-                },
                 "remove_cluster": {
                     "title": "删除环境",
                     "incomplete_actions_text": "这个环境有操作未完成，删除环境可能失败，并导致状态不一致。",
@@ -3022,10 +3019,6 @@
                     "discard_button": "破棄",
                     "alert_text": "本当に変更を破棄してもよろしいですか？",
                     "cant_discard": "ノードの変更を破棄することができません"
-                },
-                "remove_node": {
-                    "default_message": "Fuelはデータベースからこのノードを削除します。この操作ではノードのMBRやそのほかのデータは削除されません。ノードの起動した場合、ブートストラップ（ディスカバリー）システムが起動され、新規または未割り当てのサーバとしてFuelに再表示されます。",
-                    "title": "ノードの削除"
                 },
                 "remove_cluster": {
                     "title": "環境の削除",

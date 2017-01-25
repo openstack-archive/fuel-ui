@@ -2051,13 +2051,44 @@ export var DiscardSettingsChangesDialog = React.createClass({
   }
 });
 
-export var RemoveOfflineNodeDialog = React.createClass({
+export var RemoveOfflineNodesDialog = React.createClass({
   mixins: [dialogMixin],
   getDefaultProps() {
     return {
-      title: i18n('dialog.remove_node.title'),
-      defaultMessage: i18n('dialog.remove_node.default_message')
+      title: i18n('dialog.remove_nodes.title'),
+      defaultMessage: i18n('dialog.remove_nodes.default_message')
     };
+  },
+  removeNodes() {
+    this.setState({actionInProgress: true});
+    var {cluster, nodes} = this.props;
+    var offlineNodes = nodes.filter({online: false});
+    // sync('delete') is used instead of node.destroy() because we want
+    // to keep showing the 'Removing' status until the nodes is truly removed
+    // Otherwise this nodes would disappear and might reappear again upon
+    // cluster nodes refetch with status 'Removing' which would look ugly
+    // to the end user
+    Backbone.sync('delete', nodes, {
+      url: _.result(nodes, 'url') + '/?' + $.param({ids: _.map(offlineNodes, 'id').join(',')})
+    })
+      .then(
+        (task) => {
+          dispatcher.trigger('networkConfigurationUpdated updateNodeStats ' +
+            'updateNotifications labelsConfigurationUpdated');
+          if (task.status === 'ready') {
+            // Do not send the 'DELETE' request again, just get rid of the nodes.
+            _.each(offlineNodes, (node) => node.trigger('destroy', node));
+          } else {
+            if (cluster) {
+              cluster.get('tasks').add(new models.Task(task), {parse: true});
+            }
+            _.each(offlineNodes, (node) => node.set({status: 'removing'}));
+          }
+          this.resolveResult();
+          this.close();
+        },
+        (response) => this.showError(response)
+      );
   },
   renderBody() {
     return (
@@ -2075,10 +2106,10 @@ export var RemoveOfflineNodeDialog = React.createClass({
       <ProgressButton
         key='remove'
         className='btn btn-danger btn-delete'
-        onClick={this.submitAction}
+        onClick={this.removeNodes}
         progress={this.state.actionInProgress}
       >
-        {i18n('cluster_page.nodes_tab.node.remove')}
+        {i18n('common.remove_button')}
       </ProgressButton>
     ];
   }
