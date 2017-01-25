@@ -24,7 +24,7 @@ import utils from 'utils';
 import models from 'models';
 import dispatcher from 'dispatcher';
 import {Input, Popover, Tooltip, MultiSelectControl, ProgressButton} from 'views/controls';
-import {DeleteNodesDialog} from 'views/dialogs';
+import {DeleteNodesDialog, RemoveOfflineNodesDialog} from 'views/dialogs';
 import {backboneMixin, pollingMixin, dispatcherMixin, unsavedChangesMixin} from 'component_mixins';
 import Node from 'views/cluster_page_tabs/nodes_tab_screens/node';
 import {Sorter, Filter} from 'views/cluster_page_tabs/nodes_tab_screens/sorter_and_filter';
@@ -679,6 +679,12 @@ ManagementPanel = React.createClass({
         _.pluck(this.props.nodes.where({status: 'ready'}), 'id'), null, true)
       );
   },
+  showRemoveNodesDialog() {
+    var {cluster, nodes, selectNodes} = this.props;
+    RemoveOfflineNodesDialog
+      .show({nodes, cluster})
+      .then(_.partial(selectNodes, _.map(nodes.filter({status: 'removing'}), 'id'), null, false));
+  },
   hasChanges() {
     return this.props.hasChanges;
   },
@@ -857,7 +863,7 @@ ManagementPanel = React.createClass({
   },
   render() {
     var {
-      nodes, screenNodes, filteredNodes, mode, locked, showBatchActionButtons,
+      cluster, nodes, screenNodes, filteredNodes, mode, locked, showBatchActionButtons,
       viewMode, changeViewMode, showViewModeButtons,
       search,
       activeSorters, availableSorters, labelSorters, defaultSorting, changeSortingOrder, addSorting,
@@ -1017,85 +1023,121 @@ ManagementPanel = React.createClass({
           </div>
           <div className='control-buttons-box col-xs-7 text-right'>
             {showBatchActionButtons && (
-              mode !== 'list' ?
-                <div className='btn-group' role='group'>
-                  <button
-                    className='btn btn-default'
-                    disabled={this.state.actionInProgress}
-                    onClick={() => {
-                      revertChanges();
-                      this.changeScreen();
-                    }}
-                  >
-                    {i18n('common.cancel_button')}
-                  </button>
-                  <ProgressButton
-                    className='btn btn-success btn-apply'
-                    disabled={!this.isSavingPossible()}
-                    onClick={this.applyAndRedirect}
-                    progress={this.state.actionInProgress}
-                  >
-                    {i18n('common.apply_changes_button')}
-                  </ProgressButton>
-                </div>
+              cluster ? (
+                mode !== 'list' ?
+                  <div className='btn-group' role='group'>
+                    <button
+                      className='btn btn-default'
+                      disabled={this.state.actionInProgress}
+                      onClick={() => {
+                        revertChanges();
+                        this.changeScreen();
+                      }}
+                    >
+                      {i18n('common.cancel_button')}
+                    </button>
+                    <ProgressButton
+                      className='btn btn-success btn-apply'
+                      disabled={!this.isSavingPossible()}
+                      onClick={this.applyAndRedirect}
+                      progress={this.state.actionInProgress}
+                    >
+                      {i18n('common.apply_changes_button')}
+                    </ProgressButton>
+                  </div>
+                :
+                  [
+                    !!nodes.length &&
+                      <div className='btn-group' role='group' key='configuration-buttons'>
+                        <button
+                          className='btn btn-default btn-configure-disks'
+                          onClick={() => this.goToConfigurationScreen('disks', disksConflict)}
+                        >
+                          {disksConflict && <i className='glyphicon glyphicon-danger-sign' />}
+                          {i18n('dialog.show_node.disk_configuration' +
+                            (_.every(nodes.invokeMap('areDisksConfigurable')) ? '_action' : ''))
+                          }
+                        </button>
+                        <button
+                          className='btn btn-default btn-configure-interfaces'
+                          onClick={
+                            () => this.goToConfigurationScreen('interfaces', interfaceConflict)
+                          }
+                        >
+                          {interfaceConflict && <i className='glyphicon glyphicon-danger-sign' />}
+                          {i18n('dialog.show_node.network_configuration' +
+                            (_.every(nodes.invokeMap('areInterfacesConfigurable')) ?
+                               '_action' : '')
+                            )
+                          }
+                        </button>
+                      </div>,
+                    !locked && !!nodes.length &&
+                      <div className='btn-group' role='group' key='edit-nodes-button'>
+                        <button
+                          className='btn btn-default btn-edit-roles'
+                          onClick={_.partial(this.changeScreen, 'edit', true)}
+                        >
+                          {i18n(ns + 'edit_roles_button')}
+                        </button>
+                      </div>,
+                    !locked && !!nodes.length && nodes.some({pending_deletion: false}) &&
+                      <div className='btn-group' role='group' key='delete-nodes-button'>
+                        {nodes.every({online: false}) ?
+                          <div className='btn-group'>
+                            <button
+                              className='btn btn-danger btn-delete-nodes'
+                              onClick={this.showDeleteNodesDialog}
+                            >
+                              {i18n('common.delete_button')}
+                            </button>
+                            <button
+                              className='btn btn-danger dropdown-toggle btn-toggle-delete'
+                              data-toggle='dropdown'
+                            >
+                              <span className='caret' />
+                            </button>
+                            <ul className='dropdown-menu'>
+                              <li>
+                                <button
+                                  className='btn btn-link btn-remove-nodes'
+                                  onClick={this.showRemoveNodesDialog}
+                                >
+                                  {i18n(ns + 'remove_offline_nodes')}
+                                </button>
+                              </li>
+                            </ul>
+                          </div>
+                        :
+                          <button
+                            className='btn btn-danger btn-delete-nodes'
+                            onClick={this.showDeleteNodesDialog}
+                          >
+                            {i18n('common.delete_button')}
+                          </button>
+                        }
+                      </div>,
+                    !locked &&
+                      <div className='btn-group' role='group' key='add-nodes-button'>
+                        <button
+                          className='btn btn-success btn-add-nodes'
+                          onClick={_.partial(this.changeScreen, 'add', false)}
+                          disabled={locked}
+                        >
+                          <i className='glyphicon glyphicon-plus-white' />
+                          {i18n(ns + 'add_nodes_button')}
+                        </button>
+                      </div>
+                  ]
+                )
               :
-                [
-                  <div className='btn-group' role='group' key='configuration-buttons'>
-                    <button
-                      className='btn btn-default btn-configure-disks'
-                      disabled={!nodes.length}
-                      onClick={_.bind(this.goToConfigurationScreen, this, 'disks', disksConflict)}
-                    >
-                      {disksConflict && <i className='glyphicon glyphicon-danger-sign' />}
-                      {i18n('dialog.show_node.disk_configuration' +
-                        (_.all(nodes.invoke('areDisksConfigurable')) ? '_action' : ''))
-                      }
-                    </button>
-                    <button
-                      className='btn btn-default btn-configure-interfaces'
-                      disabled={!nodes.length}
-                      onClick={_.bind(this.goToConfigurationScreen, this, 'interfaces',
-                        interfaceConflict)
-                      }
-                    >
-                      {interfaceConflict && <i className='glyphicon glyphicon-danger-sign' />}
-                      {i18n('dialog.show_node.network_configuration' +
-                        (_.all(nodes.invoke('areInterfacesConfigurable')) ? '_action' : ''))
-                      }
-                    </button>
-                  </div>,
-                  <div className='btn-group' role='group' key='role-management-buttons'>
-                    {!locked && !!nodes.length && nodes.any({pending_deletion: false}) &&
-                      <button
-                        className='btn btn-danger btn-delete-nodes'
-                        onClick={this.showDeleteNodesDialog}
-                      >
-                        <i className='glyphicon glyphicon-trash' />
-                        {i18n('common.delete_button')}
-                      </button>
-                    }
-                    {!locked && !!nodes.length &&
-                      <button
-                        className='btn btn-success btn-edit-roles'
-                        onClick={_.partial(this.changeScreen, 'edit', true)}
-                      >
-                        <i className='glyphicon glyphicon-edit' />
-                        {i18n(ns + 'edit_roles_button')}
-                      </button>
-                    }
-                  </div>,
-                  !locked &&
-                    <div className='btn-group' role='group' key='add-nodes-button'>
-                      <button
-                        className='btn btn-success btn-add-nodes'
-                        onClick={_.partial(this.changeScreen, 'add', false)}
-                        disabled={locked}
-                      >
-                        <i className='glyphicon glyphicon-plus-white' />
-                        {i18n(ns + 'add_nodes_button')}
-                      </button>
-                    </div>
-                ]
+                !!nodes.length && nodes.every({online: false}) &&
+                  <button
+                    className='btn btn-danger btn-remove-nodes'
+                    onClick={this.showRemoveNodesDialog}
+                  >
+                    {i18n('common.remove_button')}
+                  </button>
             )}
           </div>
           {mode !== 'edit' && !!screenNodes.length && [

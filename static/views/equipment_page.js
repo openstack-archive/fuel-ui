@@ -118,7 +118,6 @@ EquipmentPage = React.createClass({
             selectedNodeIds={this.state.selectedNodeIds}
             selectNodes={this.selectNodes}
             updateUISettings={this.updateUISettings}
-            showBatchActionButtons={false}
           />
         </div>
       </div>
