@@ -75,7 +75,9 @@ var RootComponent = React.createClass({
               key='navbar'
               ref='navbar'
               activeElement={Page.navbarActiveElement}
-              {... _.pick(this.props, 'version', 'user', 'statistics', 'notifications')}
+              {... _.pick(this.props,
+                'version', 'user', 'nodeStatistics', 'notificationStatistics'
+              )}
             />,
             <Breadcrumbs
               key='breadcrumbs'
