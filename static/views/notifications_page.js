@@ -30,10 +30,8 @@ NotificationsPage = React.createClass({
     navbarActiveElement: null,
     breadcrumbsPath: [['home', '#'], 'notifications'],
     fetchData() {
-      var notifications = app.notifications;
-      return notifications.fetch().then(() =>
-        ({notifications: notifications})
-      );
+      var notifications = new models.Notifications();
+      return notifications.fetch().then(() => ({notifications}));
     }
   },
   checkDateIsToday(date) {

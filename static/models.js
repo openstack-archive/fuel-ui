@@ -584,8 +584,8 @@ models.Nodes = BaseCollection.extend({
   }
 });
 
-models.NodesStatistics = BaseModel.extend({
-  constructorName: 'NodesStatistics',
+models.NodeStatistics = BaseModel.extend({
+  constructorName: 'NodeStatistics',
   urlRoot: '/api/nodes/allocation/stats'
 });
 
@@ -771,6 +771,11 @@ models.Notifications = BaseCollection.extend({
   comparator(notification) {
     return -notification.id;
   }
+});
+
+models.NotificationStatistics = BaseModel.extend({
+  constructorName: 'NotificationStatistics',
+  urlRoot: '/api/notifications/stats'
 });
 
 models.Settings = Backbone.DeepModel
