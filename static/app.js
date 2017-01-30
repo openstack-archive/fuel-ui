@@ -167,8 +167,8 @@ class App {
     this.version = new models.FuelVersion();
     this.fuelSettings = new models.FuelSettings();
     this.user = new models.User();
-    this.statistics = new models.NodesStatistics();
-    this.notifications = new models.Notifications();
+    this.nodeStatistics = new models.NodeStatistics();
+    this.notificationStatistics = new models.NotificationStatistics();
     this.releases = new models.Releases();
     this.keystoneClient = new KeystoneClient('/keystone');
   }
@@ -227,7 +227,9 @@ class App {
     var wrappedRootComponent = ReactDOM.render(
       React.createElement(
         RootComponent,
-        _.pick(this, 'version', 'user', 'fuelSettings', 'statistics', 'notifications')
+        _.pick(this,
+          'version', 'user', 'fuelSettings', 'nodeStatistics', 'notificationStatistics'
+        )
       ),
       this.mountNode[0]
     );

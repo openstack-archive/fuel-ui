@@ -21,8 +21,9 @@ import Backbone from 'backbone';
 import React from 'react';
 import utils from 'utils';
 import models from 'models';
+import dispatcher from 'dispatcher';
 import {backboneMixin, pollingMixin, dispatcherMixin} from 'component_mixins';
-import {Popover} from 'views/controls';
+import {Popover, ProgressBar} from 'views/controls';
 import {ChangePasswordDialog, ShowNodeInfoDialog} from 'views/dialogs';
 
 export var Navbar = React.createClass({
@@ -31,8 +32,8 @@ export var Navbar = React.createClass({
     dispatcherMixin('updateNotifications', 'updateNotifications'),
     backboneMixin('user'),
     backboneMixin('version'),
-    backboneMixin('statistics'),
-    backboneMixin('notifications', 'update change:status'),
+    backboneMixin('nodeStatistics'),
+    backboneMixin('notificationStatistics'),
     pollingMixin(20)
   ],
   togglePopover(popoverName) {
@@ -53,15 +54,15 @@ export var Navbar = React.createClass({
   },
   fetchData() {
     return $.when(
-      this.props.statistics.fetch(),
-      this.props.notifications.fetch({limit: this.props.notificationsDisplayCount})
+      this.props.nodeStatistics.fetch(),
+      this.props.notificationStatistics.fetch()
     );
   },
   updateNodeStats() {
-    return this.props.statistics.fetch();
+    return this.props.nodeStatistics.fetch();
   },
   updateNotifications() {
-    return this.props.notifications.fetch({limit: this.props.notificationsDisplayCount});
+    return this.props.notificationStatistics.fetch();
   },
   componentDidMount() {
     this.props.user.on('change:authenticated', (model, value) => {
@@ -69,14 +70,13 @@ export var Navbar = React.createClass({
         this.startPolling();
       } else {
         this.stopPolling();
-        this.props.statistics.clear();
-        this.props.notifications.reset();
+        this.props.nodeStatistics.clear();
+        this.props.notificationStatistics.clear();
       }
     });
   },
   getDefaultProps() {
     return {
-      notificationsDisplayCount: 5,
       elements: [
         {label: 'environments', url: '#clusters'},
         {label: 'equipment', url: '#equipment'},
@@ -87,15 +87,16 @@ export var Navbar = React.createClass({
     };
   },
   getInitialState() {
-    return {};
+    return {notifications: new models.Notifications()};
   },
   scrollToTop() {
     $('html, body').animate({scrollTop: 0}, 'fast');
   },
   render() {
-    var unreadNotificationsCount = this.props.notifications.where({status: 'unread'}).length;
-    var authenticationEnabled = this.props.version.get('auth_required') &&
-      this.props.user.get('authenticated');
+    var {
+      user, version, elements, activeElement, nodeStatistics, notificationStatistics
+    } = this.props;
+    var authenticationEnabled = version.get('auth_required') && user.get('authenticated');
 
     return (
       <div className='navigation-box'>
@@ -107,11 +108,11 @@ export var Navbar = React.createClass({
             </div>
             <div className='col-xs-6'>
               <ul className='nav navbar-nav pull-left'>
-                {_.map(this.props.elements, (element) => {
+                {_.map(elements, (element) => {
                   return (
                     <li
                       className={utils.classNames({
-                        active: this.props.activeElement === element.url.slice(1)
+                        active: activeElement === element.url.slice(1)
                       })}
                       key={element.label}
                     >
@@ -138,16 +139,16 @@ export var Navbar = React.createClass({
                 </li>
                 <li
                   key='statistics-icon'
-                  className={
-                    'statistics-icon ' +
-                    (this.props.statistics.get('unallocated') ? '' : 'no-unallocated')
-                  }
+                  className={utils.classNames({
+                    'statistics-icon': true,
+                    'no-unallocated': !nodeStatistics.get('unallocated')
+                  })}
                   onClick={this.togglePopover('statistics')}
                 >
-                  {!!this.props.statistics.get('unallocated') &&
-                    <div className='unallocated'>{this.props.statistics.get('unallocated')}</div>
+                  {!!nodeStatistics.get('unallocated') &&
+                    <div className='unallocated'>{nodeStatistics.get('unallocated')}</div>
                   }
-                  <div className='total'>{this.props.statistics.get('total')}</div>
+                  <div className='total'>{nodeStatistics.get('total')}</div>
                 </li>
                 {authenticationEnabled &&
                   <li
@@ -162,9 +163,12 @@ export var Navbar = React.createClass({
                   onClick={this.togglePopover('notifications')}
                 >
                   <span
-                    className={utils.classNames({badge: true, visible: unreadNotificationsCount})}
+                    className={utils.classNames({
+                      badge: true,
+                      visible: !!notificationStatistics.get('unread')
+                    })}
                   >
-                    {unreadNotificationsCount}
+                    {notificationStatistics.get('unread')}
                   </span>
                 </li>
 
@@ -177,22 +181,22 @@ export var Navbar = React.createClass({
                 {this.state.statisticsPopoverVisible &&
                   <StatisticsPopover
                     key='statistics-popover'
-                    statistics={this.props.statistics}
+                    statistics={nodeStatistics}
                     toggle={this.togglePopover('statistics')}
                   />
                 }
                 {this.state.userPopoverVisible &&
                   <UserPopover
                     key='user-popover'
-                    user={this.props.user}
+                    user={user}
                     toggle={this.togglePopover('user')}
                   />
                 }
                 {this.state.notificationsPopoverVisible &&
                   <NotificationsPopover
+                    notifications={this.state.notifications}
+                    notificationStatistics={notificationStatistics}
                     key='notifications-popover'
-                    notifications={this.props.notifications}
-                    displayCount={this.props.notificationsDisplayCount}
                     toggle={this.togglePopover('notifications')}
                   />
                 }
@@ -291,7 +295,26 @@ var UserPopover = React.createClass({
 });
 
 var NotificationsPopover = React.createClass({
-  mixins: [backboneMixin('notifications')],
+  mixins: [
+    backboneMixin('notifications'),
+    backboneMixin('notificationStatistics', 'change:total')
+  ],
+  getDefaultProps() {
+    return {visibleNotificationsNumber: 5};
+  },
+  componentWillMount() {
+    this.updateNotifications()
+      .then(() => this.setState({loading: false}));
+  },
+  componentWillReceiveProps() {
+    this.updateNotifications();
+  },
+  updateNotifications() {
+    var {notifications} = this.props;
+    //FIXME(jkirnosova): need to fetch limited number of notifications
+    //according to visibleNotificationsNumber prop
+    return notifications.fetch().then(() => this.markAsRead());
+  },
   showNodeInfo(id) {
     this.props.toggle(false);
     var node = new models.Node({id: id});
@@ -304,20 +327,19 @@ var NotificationsPopover = React.createClass({
     );
     if (notificationsToMark.length) {
       this.setState({unreadNotificationsIds: notificationsToMark.pluck('id')});
-      notificationsToMark.toJSON = function() {
-        return notificationsToMark.map((notification) => {
-          notification.set({status: 'read'});
-          return _.pick(notification.attributes, 'id', 'status');
-        }, this);
-      };
-      Backbone.sync('update', notificationsToMark);
+      notificationsToMark.invoke('set', {status: 'read'});
+      Backbone.sync('update', notificationsToMark, {
+        url: _.result(notificationsToMark, 'url') + '/change_status',
+        data: JSON.stringify({status: 'read'})
+      })
+        .then(() => dispatcher.trigger('updateNotifications'));
     }
   },
-  componentDidMount() {
-    this.markAsRead();
-  },
   getInitialState() {
-    return {unreadNotificationsIds: []};
+    return {
+      loading: true,
+      unreadNotificationsIds: []
+    };
   },
   renderNotification(notification) {
     var topic = notification.get('topic');
@@ -353,14 +375,21 @@ var NotificationsPopover = React.createClass({
     );
   },
   render() {
+    var {loading} = this.state;
+    var {notifications, visibleNotificationsNumber} = this.props;
     var showMore = Backbone.history.getHash() !== 'notifications';
-    var notifications = this.props.notifications.take(this.props.displayCount);
     return (
       <Popover {...this.props} className='notifications-popover'>
-        {_.map(notifications, this.renderNotification)}
-        {showMore &&
-          <div className='show-more'>
-            <a href='#notifications'>{i18n('notifications_popover.view_all_button')}</a>
+        {loading ?
+          <ProgressBar />
+        :
+          <div>
+            {_.map(notifications.take(visibleNotificationsNumber), this.renderNotification)}
+            {showMore &&
+              <div className='show-more'>
+                <a href='#notifications'>{i18n('notifications_popover.view_all_button')}</a>
+              </div>
+            }
           </div>
         }
       </Popover>
