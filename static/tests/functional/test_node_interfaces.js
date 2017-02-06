@@ -63,8 +63,7 @@ define([
             return common.removeCluster(clusterName, true);
           });
       },
-      // FIXME(jkirnosova) restore this check after #1643599 fix
-      /*'Configure interface properties manipulations': function() {
+      'Configure interface properties manipulations': function() {
         return this.remote
           .clickByCssSelector('.mtu .btn-link')
           .clickByCssSelector('.mtu-section input[name="nullable-value"]')
@@ -75,7 +74,7 @@ define([
           .setInputValue('.mtu-section input[name="value"]', '2')
           .assertElementExists(
             '.mtu-section .has-error',
-            'Error styles are applied to MTU control on invalid value'
+            'Error styles are applied to MTU control with invalid value'
           )
           .assertElementExists(
             '.mtu .btn-link.text-danger',
@@ -92,7 +91,7 @@ define([
             '.mtu-section input[name="value"]',
             'MTU control is hidden after clicking MTU link again'
           );
-      },*/
+      },
       'Unassigned networks': function() {
         return this.remote
           .assertElementExists(
@@ -111,9 +110,8 @@ define([
             '.unassigned-networks .network-block .network-name',
             'Public',
             'Public network was successfully removed'
-          );
-          // FIXME(jkirnosova): should be restored after #1643599 fix
-          //.assertElementEnabled('.btn-apply', 'Network removal can be saved');
+          )
+          .assertElementEnabled('.btn-apply', 'Network removal can be saved');
       },
       'Untagged networks error': function() {
         return this.remote
