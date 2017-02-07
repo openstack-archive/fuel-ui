@@ -62,10 +62,10 @@ var LoginForm = React.createClass({
 
         var status = response && response.status;
         var error = 'login_error';
-        if (status === 401) {
+        if (!status) {
           error = 'credentials_error';
         // no status (connection refused) or 5xx error
-        } else if (!status || String(status)[0] === '5') {
+        } else if (String(status)[0] === '5') {
           error = 'keystone_unavailable_error';
         }
         this.setState({error: i18n('login_page.' + error)});
