@@ -76,7 +76,7 @@ registerSuite(() => {
 
         // Bond several interfaces and verify that provided attributes are presented for them
         .bondInterfaces(-1, -2)
-        .assertElementExists('input[label="bond0"]', 'Bonds was not created')
+        .assertElementExists('div.bond0 input', 'Bonds was not created')
         .assertElementExists('.ifc-list > div:nth-child(1) ' + attrLabelPlugin1,
                              'Bonds attributes are not presented')
 
@@ -86,7 +86,7 @@ registerSuite(() => {
         // Load Defaults and save changes
         .clickByCssSelector('button.btn-defaults')
         .waitForCssSelector('.btn-defaults:not(:disabled)', 1000)
-        .assertElementNotExists('input[label="bond0"]', 'Interfaces were not unbonded')
+        .assertElementNotExists('div.bond0 input', 'Interfaces were not unbonded')
         .applyItfChanges();
     },
     bond_multiple_plugins() {  // Test several plugins with different BOND configs
@@ -112,7 +112,7 @@ registerSuite(() => {
 
         // Bond several interfaces, verify attributes provided by both of plugins
         .bondInterfaces(-1, -2)
-        .assertElementExists('input[label="bond0"]', 'Bonds was not created')
+        .assertElementExists('div.bond0 input', 'Bonds was not created')
         .assertElementExists('.ifc-list > div:nth-child(1) ' + attrLabelPlugin1,
                              'Bond attributes for plugin-1 are not presented')
         .assertElementExists('.ifc-list > div:nth-child(1) ' + attrLabelPlugin2,
@@ -145,7 +145,7 @@ registerSuite(() => {
         .waitForCssSelector('.btn-defaults:not(:disabled)', 1000)
 
         // Verify that defaults were loaded
-        .assertElementNotExists('input[label="bond0"]', 'Defaults were not loaded')
+        .assertElementNotExists('div.bond0 input', 'Defaults were not loaded')
         .assertElementNotExists(bondText, 'Defaults were not loaded')
         .assertElementNotExists(bondCheckbox, 'Defaults were not loaded')
         .assertElementNotExists(bondCheckboxDVS, 'Defaults were not loaded')
@@ -155,7 +155,7 @@ registerSuite(() => {
         .waitForCssSelector('.btn-revert-changes:disabled', 1000)
 
         // Verify that saved values loaded
-        .assertElementExists('input[label="bond0"]', 'Saved values were not loaded')
+        .assertElementExists('div.bond0 input', 'Saved values were not loaded')
 
         .expandNICPropertyByIndex(attrLabelPlugin1, 0)
         .assertInputValueEquals(bondText, 'some_data', 'Text-input is empty')
@@ -183,7 +183,7 @@ registerSuite(() => {
 
         // Bond several interfaces and save changes
         .bondInterfaces(-1, -2)
-        .assertElementExists('input[label="bond0"]', 'Bonds was not created')
+        .assertElementExists('div.bond0 input', 'Bonds was not created')
         .applyItfChanges()
 
         // Check that Checkbox is visible, but Text-input isn't
