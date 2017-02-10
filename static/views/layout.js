@@ -310,10 +310,13 @@ var NotificationsPopover = React.createClass({
     this.updateNotifications();
   },
   updateNotifications() {
-    var {notifications} = this.props;
-    //FIXME(jkirnosova): need to fetch limited number of notifications
-    //according to visibleNotificationsNumber prop
-    return notifications.fetch().then(() => this.markAsRead());
+    var {notifications, visibleNotificationsNumber} = this.props;
+    return notifications
+      .fetch({
+        url: _.result(notifications, 'url') + '/?' +
+        $.param({limit: visibleNotificationsNumber, order_by: '-id'})
+      })
+      .then(() => this.markAsRead());
   },
   showNodeInfo(id) {
     this.props.toggle(false);
@@ -376,7 +379,11 @@ var NotificationsPopover = React.createClass({
   },
   render() {
     var {loading} = this.state;
+<<<<<<< HEAD
     var {notifications, visibleNotificationsNumber} = this.props;
+=======
+    var {notifications, toggle} = this.props;
+>>>>>>> e2a7884... Fetch only last notifications in notifications popover
     var showMore = Backbone.history.getHash() !== 'notifications';
     return (
       <Popover {...this.props} className='notifications-popover'>
@@ -384,7 +391,11 @@ var NotificationsPopover = React.createClass({
           <ProgressBar />
         :
           <div>
+<<<<<<< HEAD
             {_.map(notifications.take(visibleNotificationsNumber), this.renderNotification)}
+=======
+            {notifications.map(this.renderNotification)}
+>>>>>>> e2a7884... Fetch only last notifications in notifications popover
             {showMore &&
               <div className='show-more'>
                 <a href='#notifications'>{i18n('notifications_popover.view_all_button')}</a>
