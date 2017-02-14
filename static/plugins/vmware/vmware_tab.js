@@ -308,7 +308,7 @@ var VmWareTab = React.createClass({
       ];
     },
     isVisible(cluster) {
-      return cluster.get('settings').get('common.use_vcenter').value;
+      return cluster.get('settings').get('common.use_vcenter.value');
     },
     fetchData(options) {
       if (!options.cluster.get('vcenter_defaults')) {

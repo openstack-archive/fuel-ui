@@ -1084,7 +1084,7 @@ var ClusterInfo = React.createClass({
       case 'compute':
         var libvirtSettings = settings.get('common').libvirt_type;
         var computeLabel = _.find(libvirtSettings.values, {data: libvirtSettings.value}).label;
-        if (settings.get('common').use_vcenter.value) {
+        if (settings.get('common.use_vcenter.value')) {
           return computeLabel + ' ' + i18n(ns + 'and_vcenter');
         }
         return computeLabel;
