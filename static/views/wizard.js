@@ -334,7 +334,6 @@ var Compute = React.createClass({
     this.processRestrictions(this.components, ['hypervisor']);
   },
   render() {
-    var vcenter = this.props.allComponents.get('hypervisor:vmware');
     return (
       <div className='wizard-compute-pane'>
         <ComponentCheckboxGroup
@@ -342,19 +341,6 @@ var Compute = React.createClass({
           components={this.components}
           onChange={this.props.onChange}
         />
-        {vcenter && vcenter.get('invalid') &&
-          <div className='alert alert-warning vcenter-locked'>
-            <div>
-              {i18n('dialog.create_cluster_wizard.compute.vcenter_requires_network_backend')}
-            </div>
-            <a
-              href='http://stackalytics.com/report/driverlog?project_id=openstack%2Ffuel'
-              target='_blank'
-            >
-              {i18n('dialog.create_cluster_wizard.compute.vcenter_plugins_page')}
-            </a>
-          </div>
-        }
         {this.constructor.hasErrors(this.props.wizard) &&
           <div className='alert alert-warning empty-choice'>
             {i18n('dialog.create_cluster_wizard.compute.empty_choice')}

@@ -28,7 +28,6 @@ import NetworkTab from 'views/cluster_page_tabs/network_tab';
 import SettingsTab from 'views/cluster_page_tabs/settings_tab';
 import LogsTab from 'views/cluster_page_tabs/logs_tab';
 import HealthCheckTab from 'views/cluster_page_tabs/healthcheck_tab';
-import {VmWareTab, VmWareModels} from 'plugins/vmware/vmware';
 import {Link} from 'views/controls';
 
 var ClusterPage = React.createClass({
@@ -83,7 +82,6 @@ var ClusterPage = React.createClass({
         {url: 'nodes', tab: NodesTab},
         {url: 'network', tab: NetworkTab},
         {url: 'settings', tab: SettingsTab},
-        {url: 'vmware', tab: VmWareTab},
         {url: 'logs', tab: LogsTab},
         {url: 'history', tab: HistoryTab},
         {url: 'workflows', tab: WorkflowsTab},
@@ -150,13 +148,6 @@ var ClusterPage = React.createClass({
               cluster.get('networkConfiguration').fetch(),
               cluster.get('release').fetch()
             ]);
-          })
-          .then(() => {
-            if (!cluster.get('settings').get('common.use_vcenter.value')) return true;
-
-            var vcenter = new VmWareModels.VCenter({id: id});
-            cluster.set({vcenter});
-            return vcenter.fetch();
           })
           .then(() => {
             var deployedSettings = new models.Settings();
