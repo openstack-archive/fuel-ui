@@ -557,24 +557,6 @@ var ClusterActionsPanel = React.createClass({
               </div>
             ]
           },
-          // check VCenter settings
-          (cluster) => {
-            if (!cluster.get('settings').get('common.use_vcenter.value')) return false;
-            var vcenter = cluster.get('vcenter');
-            vcenter.setModels(_.extend({
-              current_vcenter: vcenter.get('availability_zones').at(0),
-              glance: vcenter.get('glance')
-            }, configModels));
-            return !vcenter.isValid() && {
-              blocker: [
-                <span key='vcenter'>{i18n('vmware.has_errors') + ' '}
-                  <Link to={'/cluster/' + cluster.id + '/vmware'}>
-                    {i18n('vmware.tab_name')}
-                  </Link>
-                </span>
-              ]
-            };
-          },
           // check cluster settings
           (cluster) => {
             var settings = cluster.get('settings');
@@ -1083,11 +1065,7 @@ var ClusterInfo = React.createClass({
         return cluster.get('release').get('name');
       case 'compute':
         var libvirtSettings = settings.get('common').libvirt_type;
-        var computeLabel = _.find(libvirtSettings.values, {data: libvirtSettings.value}).label;
-        if (settings.get('common').use_vcenter.value) {
-          return computeLabel + ' ' + i18n(ns + 'and_vcenter');
-        }
-        return computeLabel;
+        return _.find(libvirtSettings.values, {data: libvirtSettings.value}).label;
       case 'network':
         var networkingParameters = cluster.get('networkConfiguration').get('networking_parameters');
         return (i18n('common.network.neutron_' + networkingParameters.get('segmentation_type')));
