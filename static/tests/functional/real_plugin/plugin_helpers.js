@@ -38,7 +38,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .clickByCssSelector('.create-cluster')
         .then(() => modal.waitToOpen())
-        .setInputValue('[name=name]', 'Temp');
+        .setInputValue('[name=name]', 'Temp' + String(Math.random()).slice(2));
     });
   },
   newClusterWithPlugin(modal) {
@@ -46,7 +46,7 @@ _.defaults(Command.prototype, {
       return this.parent
         .clickByCssSelector('.create-cluster')
         .then(() => modal.waitToOpen())
-        .setInputValue('[name=name]', 'Temp')
+        .setInputValue('[name=name]', 'Temp' + String(Math.random()).slice(2))
 
         .pressKeys('\uE007') // go to Compute
         .pressKeys('\uE007') // Networking
@@ -83,15 +83,16 @@ _.defaults(Command.prototype, {
         .clickIfExists('a.dashboard.cluster-tab')
 
         .clickIfExists('.btn-danger')
-        .then(() => modal.waitToClose())
+        .then(() => modal.waitToClose()).catch(() => true)
 
         .clickIfExists('button.delete-environment-btn')
-        .then(() => modal.waitToOpen())
+        .then(() => modal.waitToOpen()).catch(() => true)
 
         .clickIfExists('button.remove-cluster-btn')
-        .then(() => modal.waitToClose())
+        .then(() => modal.waitToClose()).catch(() => true)
 
-        .waitForCssSelector('.create-cluster', 1000);
+        .waitForCssSelector('.create-cluster', 1000)
+        .sleep(1000 * 7);
     });
   },
   clickObjectByIndex(objectsCssSelector, index) {

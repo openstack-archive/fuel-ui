@@ -23,8 +23,6 @@ export REMOTE_SSH_PORT=${REMOTE_SSH_PORT:-22}
 export REMOTE_PASSWORD=${REMOTE_PASSWORD:-'r00tme'}
 export REMOTE_DIR=${REMOTE_DIR:-'/root'}
 
-export FUEL_UI_HOST=${FUEL_UI_HOST:-${REMOTE_HOST}}
-
 export REMOTE_EXEC="sshpass -p ${REMOTE_PASSWORD}
                     ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
                         -p ${REMOTE_SSH_PORT} ${REMOTE_USER}@${REMOTE_HOST}"
@@ -64,19 +62,18 @@ function install_prepare_plugin {
   export plugin_name=$(${REMOTE_EXEC} egrep '^name: ' "${meta}" | cut -d ' ' -f 2)
   export plugin_version=$(${REMOTE_EXEC} egrep '^version: ' "${meta}" | cut -d ' ' -f 2)
 
-  # Fix package version
-  ${REMOTE_EXEC} sed -i '$!s/4.0.0/5.0.0/' ${PLUGIN_PATH}/metadata.yaml
+  # Fix package version and release versions
+  ${REMOTE_EXEC} sed -i -e '$!s/4.0.0/5.0.0/' -e '$!s/9.0/10.0/g' -e '$!s/mitaka/newton/' ${meta}
   ${REMOTE_EXEC} fuel plugins --sync
 
   # Fix components settings
   ${REMOTE_EXEC} sed -i '/requires/,/+$/s/^/#/' ${PLUGIN_PATH}/components.yaml
-
   ${REMOTE_EXEC} fuel plugins --sync
 
   export INSTALLED_PLUGINS="${INSTALLED_PLUGINS};${plugin_name}==${plugin_version//\'/}"
 }
 
-function remove_plugin {
+function remove_plugins {
   for plug in $(echo ${INSTALLED_PLUGINS} | tr ";" "\n")
   do
     ${REMOTE_EXEC} fuel plugins --remove "${plug}" 2>/dev/null && \
@@ -92,7 +89,7 @@ function remote_scp {
         -P ${REMOTE_SSH_PORT} $local_file ${REMOTE_USER}@${REMOTE_HOST}:/${REMOTE_DIR}/
 }
 
-function run_component_tests {
+function run_tests {
   local GULP='./node_modules/.bin/gulp'
   local TESTS_DIR="static/tests/functional/real_plugin/${TESTS_DIR_NAME}"
   local TESTS=${TESTS_DIR}/${TEST_PREFIX}.js
@@ -106,20 +103,29 @@ function run_component_tests {
       remote_scp ${CONF_PATH}/${conf}_plugin2.yaml
       ${REMOTE_EXEC} cp ${REMOTE_DIR}/${conf}_plugin2.yaml ${PLUGIN_PATH}/${conf}_config.yaml
     done
+    local plugin1_path=${PLUGIN_PATH}/environment_config.yaml
   fi
 
   install_prepare_plugin ${plugin_url} "plugin"
+
+  if [ ${TESTS_DIR_NAME} == 'feature_nics' ]; then
+    ${REMOTE_EXEC} cp ${PLUGIN_PATH}/environment_config.yaml ${plugin1_path}
+    ${REMOTE_EXEC} sed -i '$!s/fuel.*/dvs/' ${meta}
+    ${REMOTE_EXEC} fuel plugins --sync
+  fi
+
+  ${GULP} intern:transpile
 
   for test_case in $TESTS; do
     echo "INFO: Running test case ${test_case}"
 
     ARTIFACTS=$ARTIFACTS \
-    ${GULP} intern:functional --suites="${test_case}" || result=1
+    ${GULP} intern:run --suites="${test_case}" || result=1
   done
 
-  remove_plugin
+  remove_plugins
 
   return $result
 }
 
-run_component_tests
+run_tests
