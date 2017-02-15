@@ -1,9 +1,0 @@
-- name: 'hypervisor:xen'
-  label: 'xen'
-  description: 'hypervisor:xen'
-  requires:
-    - name: 'hypervisor:qemu'
-  incompatible:
-    - name: 'hypervisor:vmware'
-      description: 'xen not compatible with vmware'
-

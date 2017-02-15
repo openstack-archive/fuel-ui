@@ -64,13 +64,15 @@ function install_prepare_plugin {
   export plugin_name=$(${REMOTE_EXEC} egrep '^name: ' "${meta}" | cut -d ' ' -f 2)
   export plugin_version=$(${REMOTE_EXEC} egrep '^version: ' "${meta}" | cut -d ' ' -f 2)
 
-  # Fix package version
-  ${REMOTE_EXEC} sed -i '$!s/4.0.0/5.0.0/' ${PLUGIN_PATH}/metadata.yaml
+  # Fix package version and release versions
+  ${REMOTE_EXEC} sed -i -e '$!s/4.0.0/5.0.0/' -e '$!s/9.0/10.0/g' -e '$!s/mitaka/newton/' ${meta}
   ${REMOTE_EXEC} fuel plugins --sync
 
   # Fix components settings
   ${REMOTE_EXEC} sed -i '/requires/,/+$/s/^/#/' ${PLUGIN_PATH}/components.yaml
 
+  # Remove vmware dependencies
+  ${REMOTE_EXEC} sed -i '/restrictions/,/+4/s/^/#/' ${PLUGIN_PATH}/environment_config.yaml
   ${REMOTE_EXEC} fuel plugins --sync
 
   export INSTALLED_PLUGINS="${INSTALLED_PLUGINS};${plugin_name}==${plugin_version//\'/}"
@@ -92,7 +94,7 @@ function remote_scp {
         -P ${REMOTE_SSH_PORT} $local_file ${REMOTE_USER}@${REMOTE_HOST}:/${REMOTE_DIR}/
 }
 
-function run_component_tests {
+function run_tests {
   local GULP='./node_modules/.bin/gulp'
   local TESTS_DIR="static/tests/functional/real_plugin/${TESTS_DIR_NAME}"
   local TESTS=${TESTS_DIR}/${TEST_PREFIX}.js
@@ -110,11 +112,13 @@ function run_component_tests {
 
   install_prepare_plugin ${plugin_url} "plugin"
 
+  ${GULP} intern:transpile
+
   for test_case in $TESTS; do
     echo "INFO: Running test case ${test_case}"
 
     ARTIFACTS=$ARTIFACTS \
-    ${GULP} intern:functional --suites="${test_case}" || result=1
+    ${GULP} intern:run --suites="${test_case}" || result=1
   done
 
   remove_plugin
@@ -122,4 +126,4 @@ function run_component_tests {
   return $result
 }
 
-run_component_tests
+run_tests
