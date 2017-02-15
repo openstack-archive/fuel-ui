@@ -1,8 +1,0 @@
-- name: 'network:neutron:ml2:dvs'
-  label: 'DVS network'
-  description: 'DVS network type'
-  requires:
-    - name: 'network:neutron:core:ml2'
-    - name: 'hypervisor:vmware'
-  incompatible:
-    - name: 'network:neutron:core:contrail'
