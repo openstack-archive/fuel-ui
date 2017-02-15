@@ -28,7 +28,7 @@ class HistoryLib {
   }
 
   compareViewsData(rowNumber, nodeName) {
-    var taskName, taskStatus, startTime, endTime;
+    var taskName, taskStatus, taskType, startTime, endTime;
     var historyToolbarSelector = 'div.deployment-history-toolbar ';
     var timelineViewButton = historyToolbarSelector + 'label.timeline-view';
     var tableViewButton = historyToolbarSelector + 'label.table-view';
@@ -39,6 +39,7 @@ class HistoryLib {
     var taskPopover = 'div.popover.deployment-task-info div.popover-content ';
     var popoverTaskName = taskPopover + 'div.task_name ';
     var popoverStatus = taskPopover + 'div.status ';
+    var popoverType = taskPopover + 'div.type ';
     var popoverStartTime = taskPopover + 'div.time_start ';
     var popoverEndTime = taskPopover + 'div.time_end ';
     var taskDetailsAttribure = 'div.deployment-task-details-dialog div.modal-body div.row';
@@ -56,6 +57,10 @@ class HistoryLib {
       .findByCssSelector(popoverStatus + 'span:last-child')
         .getVisibleText()
         .then((value) => {taskStatus = value;})
+        .end()
+      .findByCssSelector(popoverType + 'span:last-child')
+        .getVisibleText()
+        .then((value) => {taskType = value;})
         .end()
       .findByCssSelector(popoverStartTime + 'span:last-child')
         .getVisibleText()
@@ -78,6 +83,10 @@ class HistoryLib {
       .findByCssSelector(tableBodyRow + ':nth-child(' + rowNumber + ') td:nth-child(3)')
         .getVisibleText()
         .then((value) => assert.equal(value, taskStatus, 'Task status is the same in the table'))
+        .end()
+      .findByCssSelector(tableBodyRow + ':nth-child(' + rowNumber + ') td:nth-child(4)')
+        .getVisibleText()
+        .then((value) => assert.equal(value, taskType, 'Task type is the same in the table'))
         .end()
       .findByCssSelector(tableBodyRow + ':nth-child(' + rowNumber + ') td:nth-child(5)')
         .getVisibleText()
@@ -102,6 +111,10 @@ class HistoryLib {
       .findByCssSelector(taskDetailsAttribure + ':nth-child(3) span')
         .getVisibleText()
         .then((value) => assert.equal(value, taskStatus, 'Task status is the same in the dialog'))
+        .end()
+      .findByCssSelector(taskDetailsAttribure + ':nth-child(4) span')
+        .getVisibleText()
+        .then((value) => assert.equal(value, taskType, 'Task type is the same in the dialog'))
         .end()
       .findByCssSelector(taskDetailsAttribure + ':nth-child(5) span')
         .getVisibleText()
