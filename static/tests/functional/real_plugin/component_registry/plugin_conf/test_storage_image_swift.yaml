@@ -1,5 +1,0 @@
-- name: 'storage:image:swift'
-  label: 'swift'
-  description: 'swift'
-  incompatible:
-    - name: 'storage:image:ceph'
