@@ -110,11 +110,13 @@ function run_component_tests {
 
   install_prepare_plugin ${plugin_url} "plugin"
 
+  ${GULP} intern:transpile
+
   for test_case in $TESTS; do
     echo "INFO: Running test case ${test_case}"
 
     ARTIFACTS=$ARTIFACTS \
-    ${GULP} intern:functional --suites="${test_case}" || result=1
+    ${GULP} intern:run --suites="${test_case}" || result=1
   done
 
   remove_plugin
