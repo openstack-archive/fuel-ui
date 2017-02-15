@@ -91,7 +91,8 @@ _.defaults(Command.prototype, {
         .clickIfExists('button.remove-cluster-btn')
         .then(() => modal.waitToClose())
 
-        .waitForCssSelector('.create-cluster', 1000);
+        .waitForCssSelector('.create-cluster', 1000)
+        .waitForElementDeletion('.clusterbox', 1000);
     });
   },
   clickObjectByIndex(objectsCssSelector, index) {
