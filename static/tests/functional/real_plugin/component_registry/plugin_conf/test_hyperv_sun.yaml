@@ -1,5 +1,0 @@
-- name: 'hypervisor:libvirt:sun'
-  label: 'sun'
-  description: 'sun hypervisor'
-  incompatible:
-    - name: 'hypervisor:qemu'
