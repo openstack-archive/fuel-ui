@@ -1,9 +1,0 @@
-- name: 'hypervisor:libvirt:rain1'
-  label: 'rain'
-  description: 'rain hypervisor'
-  incompatible:
-    - name: 'hypervisor:qemu'
-    - name: 'hypervisor:xen'
-- name: 'hypervisor:xen'
-  label: 'xen'
-  description: 'xen hypervisor'

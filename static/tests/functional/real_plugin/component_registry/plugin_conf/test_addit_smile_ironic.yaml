@@ -1,9 +1,0 @@
-- name: 'additional_service:smile'
-  label: 'smile'
-  description: 'smile'
-  incompatible:
-    - name: 'additional_service:ironic'
-  requires:
-    - name: 'additional_service:sahara'
-  compatible:
-    - name: 'additional_service:murano'
