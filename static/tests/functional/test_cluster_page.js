@@ -49,18 +49,18 @@ registerSuite(() => {
         .assertElementDisabled(applyButtonSelector,
           'Apply button is disabled until both roles and nodes chosen')
         .assertElementsExist('.role-panel .row', 4, 'Roles are splitted in groups')
-        .assertElementExists('.role-block.mongo.unavailable', 'Unavailable role is locked')
+        .assertElementExists('.role-block.ironic.unavailable', 'Unavailable role is locked')
         .assertElementExists(
-          '.role-block.mongo i.glyphicon-warning-sign',
+          '.role-block.ironic i.glyphicon-warning-sign',
           'Unavailable role has warning icon'
         )
-        .findByCssSelector('.role-block.mongo')
+        .findByCssSelector('.role-block.ironic')
           .then((element) => this.remote.moveMouseTo(element))
           .end()
         // the following timeout as we have 0.5s transition time for role popover
         .sleep(1000)
         .assertElementExists(
-          '.role-block.mongo .popover .text-warning',
+          '.role-block.ironic .popover .text-warning',
           'Role popover is opened and the role warning is shown in the popover'
         )
         // closing role popover by moving mouse

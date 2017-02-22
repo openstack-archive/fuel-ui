@@ -231,8 +231,6 @@ SettingsLib.prototype = {
   checkOpenStackServicesSegment() {
     var componentsSelector = 'div.setting-section-additional_components';
     var saharaSelector = 'input[name="sahara"]';
-    var ceilometerSelector = 'input[name="ceilometer"]';
-    var mongoSelector = 'input[name="mongo"]';
     var ironicSelector = 'input[name="ironic"]';
     return this.remote
       // Check Additional Components subgroup
@@ -242,12 +240,6 @@ SettingsLib.prototype = {
           'Default subgroup name is observed')
         .assertElementEnabled(saharaSelector, '"Install Sahara" checkbox is enabled')
         .assertElementNotSelected(saharaSelector, '"Install Sahara" checkbox is not selected')
-        .assertElementEnabled(ceilometerSelector, '"Install Ceilometer" checkbox is enabled')
-        .assertElementNotSelected(ceilometerSelector,
-          '"Install Ceilometer" checkbox is not selected')
-        .assertElementDisabled(mongoSelector, '"Use external Mongo DB" checkbox is disabled')
-        .assertElementNotSelected(mongoSelector,
-          '"Use external Mongo DB" checkbox is not selected')
         .assertElementEnabled(ironicSelector, '"Install Ironic" checkbox is enabled')
         .assertElementNotSelected(ironicSelector, '"Install Ironic" checkbox is not selected')
         .end();
