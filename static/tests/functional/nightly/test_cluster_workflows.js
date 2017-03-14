@@ -58,7 +58,8 @@ registerSuite(() => {
         .then(() => clusterPage.goToTab('Workflows'))
         .assertElementAppears(workflowTab, 5000, '"Workflows" tab appears');
     },
-    'Check that default "Workflow" is not avaliable as deployment mode'() {
+    wf_default_not_available() {
+      // Check that default "Workflow" is not avaliable as deployment mode
       var deployModeMenu = 'ul.dropdown-menu';
 
       return this.remote
@@ -74,7 +75,8 @@ registerSuite(() => {
                                        error);
         });
     },
-    'Check that "Workflows" tab is worked'() {
+    wf_tab() {
+      // Check that "Workflows" tab is worked
       var workflowTitle = workflowTab + 'div.title';
       var tableHeader = workflowTable + 'thead';
 
@@ -105,7 +107,8 @@ registerSuite(() => {
         .assertElementExists(tableRow + ':last-child ' + deleteGraphButton,
                              'User can delete default cluster graph');
     },
-    'Check "Workflows" tab support filtering'() {
+    wf_filtering() {
+      // Check "Workflows" tab support filtering
       var filtersPane = toolbar + 'div.filters ';
       var graphTypeButton = filtersPane + 'div.filter-by-graph_type button';
       var graphLevelButton = filtersPane + 'div.filter-by-graph_level button';
@@ -152,7 +155,8 @@ registerSuite(() => {
         .assertElementsExist(tableRow, 3, 'Table includes release- and cluster-level default ' +
                              'workflows after filter reset');
     },
-    'Check that user can upload new custom Graph'() {
+    wf_upload_custom() {
+      // Check that user can upload new custom Graph
       var dialogUploadBody = 'div.upload-graph-form ';
       var dialogUploadError = dialogUploadBody + 'div.has-error span.help-block';
 
@@ -190,7 +194,8 @@ registerSuite(() => {
         .assertElementContainsText(tableRow + ':nth-child(5)', 'Environment',
                                    'New graph includes cluster-level for just uploaded workflow');
     },
-    'Check that custom Workflow can be executed'() {
+    wf_execute() {
+      // Check that custom Workflow can be executed
       this.timeout = 75000;
 
       var progress = 'div.dashboard-tab div.progress';
@@ -234,7 +239,8 @@ registerSuite(() => {
         .assertElementContainsText(runWorkflowButton, 'Run Workflow on 2 Nodes',
                                    'User can run custom graph for operational cluster');
     },
-    'Check "Workflows" nodes selection dialog supports Quick Search, Sorting and Filtering'() {
+    wf_select_nodes() {
+      // Check "Workflows" nodes selection dialog supports Quick Search, Sorting and Filtering
       this.timeout = 45000;
 
       var deepCheck = [controllerName, computeName, ['input[name="error"]']];
@@ -243,7 +249,8 @@ registerSuite(() => {
         .then(() => clusterPage.goToTab('Dashboard'))
         .then(() => dashboardLib.selectNodes('Custom Workflow', 1, 1, 1, 0, deepCheck));
     },
-    'Check that user can delete Workflow'() {
+    wf_delete() {
+      // Check that user can delete Workflow
       var tableRowLast = tableRow + ':last-child ';
       var confirmationForm = 'div.confirmation-form ';
       var deleteWorkflow = 'div.modal-footer button.remove-graph-btn';

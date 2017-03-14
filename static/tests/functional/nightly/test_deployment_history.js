@@ -85,7 +85,8 @@ registerSuite(() => {
           .then((nodeName) => {controllerName = nodeName;})
           .end();
     },
-    'Check "History" tab before deployment'() {
+    history_before_deployment() {
+      // Check "History" tab before deployment
       return this.remote
         .then(() => clusterPage.goToTab('History'))
 
@@ -99,7 +100,8 @@ registerSuite(() => {
         .assertElementMatchesRegExp(historyAlert, /No deployment finished yet./i,
                                     'Alert message is correct');
     },
-    'Check "History" tab after first deployment'() {
+    history_after_first_deployment() {
+      // Check "History" tab after first deployment
       this.timeout = 70000;
 
       return this.remote
@@ -149,7 +151,8 @@ registerSuite(() => {
         .clickByCssSelector(timelineViewButton)
         .assertElementsAppear(timelinePane, 5000, '"Timeline pane" appears');
     },
-    'Check that "History timeline" progress indicator is worked'() {
+    history_timeline_progress() {
+      // Check that "History timeline" progress indicator is worked
       this.timeout = 75000;
 
       var currentTimeMarkerPosition;
@@ -193,7 +196,8 @@ registerSuite(() => {
 
         .assertElementDisappears(progress, 30000, 'Deployment is finished');
     },
-    'Check "History" tab after third cluster deployment'() {
+    history_after_third_deployment() {
+      // Check "History" tab after third cluster deployment
       this.timeout = 80000;
 
       var thirdDeployDate;
@@ -267,7 +271,8 @@ registerSuite(() => {
                                                    activeHistoryPoint + ':hover',
                                                    greenColor, blueColor, blueColor));
     },
-    'Check that "Deployment History" results are saved'() {
+    history_results_saved() {
+      // Check that "Deployment History" results are saved
       this.timeout = 60000;
 
       var activeHistoryPoint = historyPoint + '.active';
@@ -320,7 +325,8 @@ registerSuite(() => {
                                     'other page');
       return chain;
     },
-    'Check that "Timeline View" is worked'() {
+    history_timeline_view() {
+      // Check that "Timeline View" is worked
       this.timeout = 60000;
 
       var nodeNameColumn = timelinePane + 'div.node-names-column ';
@@ -354,7 +360,8 @@ registerSuite(() => {
         .then(() => genericLib.moveCursorTo(historyPoint))
         .assertElementDisappears(taskPopover, 3000, 'Node task popover disappears');
     },
-    'Check that "Table View" is worked'() {
+    history_table_view() {
+      // Check that "Table View" is worked
       var currentTime = firstDeployDate.split(' ')[0];
       var currentDate = firstDeployDate.split(' ')[1];
       var tableHeader = tablePane + 'thead th';
@@ -397,7 +404,8 @@ registerSuite(() => {
         .assertElementContainsText(tableBodyRow + ' td:nth-child(5)', currentDate,
                                    'Task start date the same as real via "Table View"');
     },
-    'Check that "Timeline View" data equals to "Table View" data'() {
+    history_timeline_equls_table_view() {
+      // Check that "Timeline View" data equals to "Table View" data
       this.timeout = 60000;
 
       var filterByNode = 'div.filters div.filter-by-node_id button';
@@ -420,7 +428,8 @@ registerSuite(() => {
         .clickByCssSelector('.btn-reset-filters')  // .discard-changes-icon
         .clickByCssSelector('.btn-filters');
     },
-    'Check "History" tab support filtering'() {
+    history_filtering() {
+      // Check "History" tab support filtering
       var filtersPane = 'div.filters ';
       var taskNameButton = filtersPane + 'div.filter-by-task_name button';
       var nodeNameButton = filtersPane + 'div.filter-by-node_id button';
@@ -464,7 +473,8 @@ registerSuite(() => {
         .clickByCssSelector(resetFilter).sleep(1000)
         .assertElementsExist(tableBodyRow, 8, '8 node tasks are observed after filter resetting');
     },
-    'Check that "Previous Deployments" dropdown is worked'() {
+    history_prev_dropdown() {
+      // Check that "Previous Deployments" dropdown is worked
       this.timeout = 300000;
 
       var lastHistoryPoint = historyPoint + ':last-child';
