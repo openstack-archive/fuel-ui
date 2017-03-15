@@ -62,7 +62,7 @@ gulp.task('selenium:fetch', function(cb) {
   var selenium = require('selenium-standalone');
   selenium.install({
     version: process.env.SELENIUM_VERSION || SELENIUM_VERSION,
-    dirvers: SELENIUM_DRIVERS
+    drivers: SELENIUM_DRIVERS
   }, cb);
 });
 
@@ -72,7 +72,7 @@ gulp.task('selenium', ['selenium:fetch'], function(cb) {
   selenium.start(
     {
       version: process.env.SELENIUM_VERSION || SELENIUM_VERSION,
-      dirvers: SELENIUM_DRIVERS,
+      drivers: SELENIUM_DRIVERS,
       seleniumArgs: ['--port', port],
       spawnOptions: {stdio: 'pipe'}
     },
