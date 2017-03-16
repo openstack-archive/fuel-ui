@@ -25,7 +25,7 @@ module.exports = {
             'transform-runtime',
             'transform-es2015-modules-commonjs'
           ],
-          presets: ['es2015-webpack', 'react']
+          presets: ['es2015', 'react']
         }
       },
       {test: /\/expression\/parser\.js$/, loader: 'exports?parser'},

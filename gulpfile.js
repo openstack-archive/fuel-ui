@@ -166,7 +166,7 @@ gulp.task('intern:transpile', function() {
   rimraf.sync(target);
   return gulp.src(source)
     .pipe(require('gulp-babel')({
-      presets: ['es2015-webpack'],
+      presets: ['es2015'],
       plugins: ['transform-es2015-modules-simple-amd']
     }))
     .pipe(gulp.dest(target));
