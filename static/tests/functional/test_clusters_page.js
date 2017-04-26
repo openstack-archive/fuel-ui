@@ -86,6 +86,7 @@ define([
       'Testing cluster list page': function() {
         return this.remote
           .clickLinkByText('Environments')
+          ..waitForCssSelector('.clusters-page', 2000)
           .assertElementAppears('.clusters-page .clusterbox', 2000, 'Cluster container exists')
           .assertElementExists('.create-cluster', 'Cluster creation control exists');
       }
