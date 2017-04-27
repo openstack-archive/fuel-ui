@@ -35,11 +35,12 @@ registerSuite(() => {
     },
     beforeEach() {
       return this.remote
-        .then(() => common.createCluster(clusterName));
+        .then(() => common.createCluster(clusterName))
+        .waitForCssSelector('.clusters-page', 20000);
     },
     afterEach() {
       return this.remote
-        .then(() => common.removeCluster(clusterName));
+        .then(() => common.removeCluster(clusterName, true));
     },
     'Create Cluster'() {
       return this.remote
