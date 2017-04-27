@@ -53,14 +53,14 @@ class CommonMethods {
   createCluster(clusterName, stepsMethods) {
     return this.remote
       .clickLinkByText('Environments')
-      .waitForCssSelector('.clusters-page', 2000)
+      .waitForCssSelector('.clusters-page', 20000)
       .then(() => this.clustersPage.createCluster(clusterName, stepsMethods));
   }
 
   removeCluster(clusterName, suppressErrors) {
     return this.remote
       .clickLinkByText('Environments')
-      .waitForCssSelector('.clusters-page', 2000)
+      .waitForCssSelector('.clusters-page', 20000)
       .then(() => this.clustersPage.goToEnvironment(clusterName))
       .then(() => this.clusterPage.removeCluster(clusterName))
       .catch((e) => {
