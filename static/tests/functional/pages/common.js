@@ -60,7 +60,7 @@ class CommonMethods {
   removeCluster(clusterName, suppressErrors) {
     return this.remote
       .clickLinkByText('Environments')
-      .waitForCssSelector('.clusters-page', 2000)
+      .waitForCssSelector('.clusters-page', 5000)
       .then(() => this.clustersPage.goToEnvironment(clusterName))
       .then(() => this.clusterPage.removeCluster(clusterName))
       .catch((e) => {

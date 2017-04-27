@@ -35,7 +35,8 @@ registerSuite(() => {
     },
     beforeEach() {
       return this.remote
-        .then(() => common.createCluster(clusterName));
+        .then(() => common.createCluster(clusterName))
+        .waitForCssSelector('.clusters-page', 2000);
     },
     afterEach() {
       return this.remote
