@@ -199,7 +199,7 @@ gulp.task('jison', function() {
 gulp.task('license', function(cb) {
   require('nlf').find({depth: 0}, function(err, data) {
     if (err) return cb(err);
-    // http://governance.openstack.org/reference/licensing.html
+    // https://governance.openstack.org/vc/reference/licensing.html
     // The list of acceptable licenses includes ASLv2, BSD (both forms),
     // MIT, PSF, LGPL, ISC, and MPL
     var licenseRegexp = /(Apache.*?2)|\bBSD\b|\bMIT\b|\bPSF\b|\bLGPL\b|\bISC\b|\bMPL\b/i;
