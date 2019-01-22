@@ -59,7 +59,7 @@ registerSuite(() => {
         .assertElementAppears(workflowTab, 5000, '"Workflows" tab appears');
     },
     wfDefaultNotAvailable() {
-      // Check that default "Workflow" is not avaliable as deployment mode
+      // Check that default "Workflow" is not available as deployment mode
       var deployModeMenu = 'ul.dropdown-menu';
 
       return this.remote
@@ -71,7 +71,7 @@ registerSuite(() => {
           return this.remote
             .pressKeys('\uE00C')
             .assertElementNotDisplayed(deployModeMenu, 'Default "Workflow" is not ' +
-                                       'avaliable at Deployment Mode menu. Check error message: ' +
+                                       'available at Deployment Mode menu. Check error message: ' +
                                        error);
         });
     },
