@@ -1,9 +1,0 @@
-plugin_section_b:
-  metadata:
-    group: "some_plugin_section_b"
-    label: "Section B"
-  attribute_checkbox_b:
-    label: "Node attribute Checkbox for section B"
-    description: "Description Checkbox B"
-    type: "checkbox"
-    value: false

@@ -1,5 +1,0 @@
-# /node_modules/* and /bower_components/* ignored by default
-
-static/build/**
-static/expression/parser.js
-test_run/**

@@ -1,5 +1,0 @@
-attribute_checkbox_b:
-  label: "Bond attribute Checkbox B"
-  description: "Description Checkbox B"
-  type: "checkbox"
-  value: false
